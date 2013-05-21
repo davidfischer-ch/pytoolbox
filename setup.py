@@ -36,4 +36,4 @@ setup(name='pyutils',
       tests_require=['nose'],
       license='GPLv3',
       url='https://github.com/davidfischer-ch/pyutils',
-      packages=['.'])
+      packages=['pyutils'])
