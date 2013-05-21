@@ -47,11 +47,17 @@ class PickleableObject(object):
     An :class:`object` serializable/deserializable by :mod:`pickle`.
     """
     @staticmethod
-    def read(filename):
-        return pickle.load(file(filename))
+    def read(filename, store_filename=False):
+        u"""
+        Returns a deserialized instance of a pickleable object loaded from a file.
+        """
+        the_object = pickle.load(file(filename))
+        if store_filename:
+            the_object._pickle_filename = filename
+        return the_object
 
-    def write(self, filename):
-        pickle.dump(self, file(filename, 'w'))
+    def write(self, filename=None):
+        pickle.dump(self, file(self._pickle_filename if filename is None else filename, 'w'))
 
 # --------------------------------------------------------------------------------------------------
 
@@ -458,7 +464,25 @@ UUID_ZERO = str(uuid.UUID('{00000000-0000-0000-0000-000000000000}'))
 # Main ---------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    print('Testing pyutils with doctest')
+    print('Test pyutils with doctest')
     import doctest
     doctest.testmod(verbose=False)
+
+    print('Test PickleableObject outside of docstring')
+    class MyPoint(PickleableObject):
+        def __init__(self, name=None, x=0, y=0):
+            self.name = name
+            self.x = x
+            self.y = y
+    p1 = MyPoint(name='My point', x=6, y=-3)
+    p1.write('test.pkl')
+    p2 = MyPoint.read('test.pkl', store_filename=True)
+    assert(p2.__dict__ == {'y': -3, 'x': 6, '_pickle_filename': 'test.pkl', 'name': 'My point'})
+    p2.write()
+    delattr(p2, '_pickle_filename')
+    try:
+        p2.write()
+        raise ValueError('Must raise an AttributeError')
+    except AttributeError:
+        pass
     print('OK')
