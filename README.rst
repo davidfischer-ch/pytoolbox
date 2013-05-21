@@ -17,7 +17,7 @@ How to use it ?
 
 Here is an example ``hello.py`` using the cmd function provided by `pyutils``::
 
-    from pyutils import cmd
+    from pyutils.pyutils import cmd
 
     cmd('echo Hello World!')
 
