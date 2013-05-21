@@ -27,14 +27,31 @@
 #    git clone https://github.com/davidfischer-ch/pyutils.git
 #
 
-import hashlib, inspect, json, logging, logging.handlers, os, re, shlex, subprocess, sys, uuid
+import inspect, json, logging, logging.handlers, pickle, re, shlex, subprocess, sys, uuid
 from bson.json_util import dumps, loads
 from datetime import datetime
 from ipaddr import IPAddress
 
 
 class ForbiddenError(Exception):
+    u"""
+    A forbidden error.
+    """
     pass
+
+# --------------------------------------------------------------------------------------------------
+
+
+class PickleableObject(object):
+    u"""
+    An :class:`object` serializable/deserializable by :mod:`pickle`.
+    """
+    @staticmethod
+    def read(filename):
+        return pickle.load(file(filename))
+
+    def write(self, filename):
+        pickle.dump(self, file(filename, 'w'))
 
 # --------------------------------------------------------------------------------------------------
 
@@ -85,59 +102,6 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
             log(result)
         raise subprocess.CalledProcessError(process.returncode, command, stderr)
     return result
-
-# --------------------------------------------------------------------------------------------------
-
-
-def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False,
-          progress=False, recursive=False, simulate=False, excludes=None, includes=None, fail=True,
-          log=None):
-    if makedest and not os.path.exists(destination):
-        os.makedirs(destination)
-    source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else '')
-    destination = os.path.normpath(destination) + (os.sep if os.path.isdir(destination) else '')
-    command = ['rsync',
-               '-a' if archive else None,
-               '--delete' if delete else None,
-               '--progress' if progress else None,
-               '-r' if recursive else None,
-               '--dry-run' if simulate else None]
-    if excludes is not None:
-        command.extend(['--exclude=%s' % e for e in excludes])
-    if includes is not None:
-        command.extend(['--include=%s' % i for i in includes])
-    if exclude_vcs:
-        command.extend(['--exclude=.svn', '--exclude=.git'])
-    command.extend([source, destination])
-    return cmd(filter(None, command), fail=fail, log=log)
-
-# --------------------------------------------------------------------------------------------------
-
-
-def githash(data):
-    u"""
-    Return the blob of some data.
-
-    This is how Git calculates the SHA1 for a file (or, in Git terms, a "blob")::
-
-        sha1("blob " + filesize + "\0" + data)
-
-    .. seealso::
-
-        http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
-
-    **Example usage**
-
-    >>> print(githash(''))
-    e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
-    >>> print(githash('give me some hash please'))
-    abdd1818289725c072eff0f5ce185457679650be
-    """
-    s = hashlib.sha1()
-    s.update("blob %u\0" % len(data))
-    s.update(data)
-    return s.hexdigest()
-
 
 # --------------------------------------------------------------------------------------------------
 
@@ -211,21 +175,89 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
-def json2object(json, something):
-    something.__dict__.update(loads(json))
+def json2object(json, something=None):
+    u"""
+    Deserialize the JSON string ``json`` to attributes of ``something``.
+
+    .. warning:: Current implementation does not handle recursion.
+
+    **Example usage**:
+
+    Define the sample class and deserialize a JSON string to attributes of a new instance:
+
+    >>> class Point(object):
+    ...     def __init__(self, name=None, x=0, y=0):
+    ...         self.name = name
+    ...         self.x = x
+    ...         self.y = y
+    >>> p = Point()
+    >>> print(sorted_dict(p.__dict__))
+    [('name', None), ('x', 0), ('y', 0)]
+    >>> json2object('{"x":10,"y":20,"name":"My position"}', p)
+    >>> print(sorted_dict(p.__dict__))
+    [('name', u'My position'), ('x', 10), ('y', 20)]
+    >>> json2object('{"y":25}', p)
+    >>> print(sorted_dict(p.__dict__))
+    [('name', u'My position'), ('x', 10), ('y', 25)]
+    >>> json2object('{"z":3}', p)
+    >>> print(sorted_dict(p.__dict__))
+    [('name', u'My position'), ('x', 10), ('y', 25)]
+
+    Deserialize a JSON string to a dictionary:
+
+    >>> print(sorted_dict(json2object('{"firstname":"Tabby","lastname":"Fischer"}')))
+    [(u'firstname', u'Tabby'), (u'lastname', u'Fischer')]
+    """
+    if something is None:
+        return loads(json)
+    for key, value in loads(json).items():
+        if hasattr(something, key):
+            setattr(something, key, value)
+    #something.__dict__.update(loads(json)) <-- old implementation
 
 
 def jsonfile2object(filename_or_file, something=None):
+    u"""
+    Loads and deserialize the JSON string stored in a file ``filename``  to attributes of
+    ``something``.
+
+    .. warning:: Current implementation does not handle recursion.
+
+    **Example usage**:
+
+    Define the sample class, instantiate it and serialize it to a file:
+
+    >>> class Point(object):
+    ...     def __init__(self, name=None, x=0, y=0):
+    ...         self.name = name
+    ...         self.x = x
+    ...         self.y = y
+    >>> p1 = Point(name='My point', x=10, y=-5)
+    >>> open('test.json', 'w').write(object2json(p1, include_properties=False))
+
+    Deserialize the freshly saved file to the attributes of another instance:
+
+    >>> p2 = Point()
+    >>> jsonfile2object('test.json', p2)
+    >>> assert(p1.__dict__ == p2.__dict__)
+    >>> jsonfile2object(open('test.json'), p2)
+    >>> assert(p1.__dict__ == p2.__dict__)
+
+    Deserialize the freshly saved file to a dictionary:
+
+    >>> assert(jsonfile2object('test.json') == p1.__dict__)
+    >>> assert(jsonfile2object(open('test.json')) == p1.__dict__)
+    """
     if something is None:
         try:
             return json.load(open(filename_or_file))
         except TypeError:
             return json.load(filename_or_file)
     else:
-        try:
-            something.__dict__.update(json.load(open(filename_or_file)))
-        except TypeError:
-            something.__dict__.update(json.load(filename_or_file))
+        if isinstance(filename_or_file, str):
+            json2object(open(filename_or_file).read(), something)
+        else:
+            json2object(filename_or_file.read(), something)
 
 
 def object2json(something, include_properties):
@@ -233,6 +265,10 @@ def object2json(something, include_properties):
         return dumps(something, cls=SmartJSONEncoderV1)
     else:
         return dumps(something, cls=SmartJSONEncoderV2)
+
+
+def sorted_dict(dictionary):
+    return sorted(dictionary.items(), key=lambda x: x[0])
 
 # --------------------------------------------------------------------------------------------------
 
