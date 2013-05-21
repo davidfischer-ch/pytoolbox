@@ -8,21 +8,23 @@ This module is a Toolbox for Python scripts.
 How to install it ?
 -------------------
 
+You only need to run ``setup.py``::
+
     sudo python setup.py install
 
 How to use it ?
 ---------------
 
-Here is an example ``hello.py`` using the cmd function provided by pyutils::
+Here is an example ``hello.py`` using the cmd function provided by `pyutils``::
 
-    from pyutils import cmd
+    from pyutils.pyutils import cmd
 
     cmd('echo Hello World!')
 
 How to add it to dependencies of my own project ?
 -------------------------------------------------
 
-Here is an example setup.py of a project called my-cool-project::
+Here is an example ``setup.py`` for a project called *my-cool-project*::
 
 	from setuptools import setup
 
