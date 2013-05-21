@@ -55,7 +55,16 @@ class PickleableObject(object):
         return the_object
 
     def write(self, filename=None):
-        pickle.dump(self, file(self._pickle_filename if filename is None else filename, 'w'))
+        u"""
+        Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
+        """
+        if filename is None and hasattr(self, '_pickle_filename'):
+            filename = self._pickle_filename
+            delattr(self, '_pickle_filename')
+            pickle.dump(self, file(filename, 'w'))
+            self._pickle_filename = filename
+        else:
+            pickle.dump(self, file(filename, 'w'))
 
 # --------------------------------------------------------------------------------------------------
 
