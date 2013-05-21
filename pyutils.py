@@ -23,9 +23,7 @@
 #  You should have received a copy of the GNU General Public License along with this project.
 #  If not, see <http://www.gnu.org/licenses/>
 #
-#  Retrieved from:
-#    git clone https://github.com/davidfischer-ch/pyutils.git
-#
+#  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import inspect, json, logging, logging.handlers, pickle, re, shlex, subprocess, sys, uuid
 from bson.json_util import dumps, loads
