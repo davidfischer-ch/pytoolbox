@@ -8,6 +8,8 @@ This module is a Toolbox for Python scripts.
 How to install it ?
 -------------------
 
+You only need to run setup.py::
+
     sudo python setup.py install
 
 How to use it ?
