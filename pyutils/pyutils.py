@@ -166,37 +166,44 @@ def screen_list(name=None, log=None):
 # --------------------------------------------------------------------------------------------------
 
 
-def first_existing_file(filenames):
+def first_that_exist(*paths):
     u"""
-    Returns the first file that exist.
-    """
-    for filename in filenames:
-        if os.path.exists(filename):
-            return filename
-    return None
-
-
-def try_remove(filename):
-    u"""
-    Tries to remove a file (which may not exist) without throwing an exception.
-    Returns True if operation is successful, False if file/directory not found and raise any other
-    type of exception.
+    Returns the first file/directory that exist.
 
     **Example usage**:
 
-    >>> try_remove('file_that_may_not_exist.com')
+    >>> print(first_that_exist('', '/etc', '.'))
+    /etc
+    >>> print(first_that_exist('does_not_exist.com', '', '..'))
+    ..
+    """
+    for path in paths:
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def try_makedirs(path):
+    u"""
+    Tries to recursive make directories (which may already exists) without throwing an exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type of
+    exception.
+
+    **Example usage**:
+
+    >>> import shutil
+    >>> try_makedirs('/etc')
     False
-    >>> try_remove('/tmp')
-    Traceback (most recent call last):
-    ...
-    OSError: [Errno 13] Permission denied: '/tmp'
+    >>> try_makedirs('/tmp/salut/mec')
+    True
+    >>> shutil.rmtree('/tmp/salut/mec')
     """
     try:
-        os.remove(filename)
+        os.makedirs(path)
         return True
     except OSError as e:
-        # No such file or directory
-        if e.errno == errno.ENOENT:
+        # File exists
+        if e.errno == errno.EEXIST:
             return False
         raise  # Re-raise exception if a different error occured
 
