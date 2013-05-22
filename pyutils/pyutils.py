@@ -25,7 +25,7 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import inspect, json, logging, logging.handlers, pickle, re, shlex, subprocess, sys, uuid
+import inspect, json, logging, logging.handlers, pickle, os, re, shlex, subprocess, sys, uuid
 from bson.json_util import dumps, loads
 from datetime import datetime
 from ipaddr import IPAddress
@@ -115,6 +115,18 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
             log(result)
         raise subprocess.CalledProcessError(process.returncode, command, stderr)
     return result
+
+# --------------------------------------------------------------------------------------------------
+
+
+def first_existing_file(filenames):
+    u"""
+    Returns the first file that exist.
+    """
+    for filename in filenames:
+        if os.path.exists(filename):
+            return filename
+    return None
 
 # --------------------------------------------------------------------------------------------------
 
