@@ -119,6 +119,53 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
 # --------------------------------------------------------------------------------------------------
 
 
+def screen_kill(name=None, fail=True, log=None):
+    for name in screen_list(name=name, log=log):
+        cmd(['screen', '-S', name, '-X', 'quit'], fail=fail, log=log)
+
+
+def screen_launch(name, command, fail=True, log=None):
+    return cmd(['screen', '-dmS', name, command])
+
+
+def screen_list(name=None, log=None):
+    u"""
+    Returns a list containing all instances of screen. Can be filtered by ``name``.
+
+    **Example usage**:
+
+    >>> def log_it(line):
+    ...     print(line)
+
+    Launch some screens:
+
+    >>> assert(screen_launch('my_1st_screen', '')['returncode'] == 0)
+    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
+    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
+
+    List the launched screen sessions:
+
+    >>> print(screen_list(name=r'my_1st_screen'))  # doctest: +ELLIPSIS
+    ['....my_1st_screen']
+    >>> print(screen_list(name=r'my_2nd_screen'))  # doctest: +ELLIPSIS
+    ['....my_2nd_screen', '....my_2nd_screen']
+
+    Cleanup:
+
+    >>> screen_kill(name='my_1st_screen', log=log_it)  # doctest: +ELLIPSIS
+    Execute ['screen', '-ls', 'my_1st_screen']
+    Execute ['screen', '-S', '....my_1st_screen', '-X', 'quit']
+    >>> screen_kill(name='my_2nd_screen', log=log_it)  # doctest: +ELLIPSIS
+    Execute ['screen', '-ls', 'my_2nd_screen']
+    Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+    Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+    """
+    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
+                      cmd(['screen', '-ls', name], fail=False, log=log)['stdout'])
+
+# --------------------------------------------------------------------------------------------------
+
+
 def first_existing_file(filenames):
     u"""
     Returns the first file that exist.
@@ -220,18 +267,18 @@ def json2object(json, something=None):
     [('name', None), ('x', 0), ('y', 0)]
     >>> json2object('{"x":10,"y":20,"name":"My position"}', p)
     >>> print(sorted_dict(p.__dict__))
-    [('name', 'My position'), ('x', 10), ('y', 20)]
+    [('name', u'My position'), ('x', 10), ('y', 20)]
     >>> json2object('{"y":25}', p)
     >>> print(sorted_dict(p.__dict__))
-    [('name', 'My position'), ('x', 10), ('y', 25)]
+    [('name', u'My position'), ('x', 10), ('y', 25)]
     >>> json2object('{"z":3}', p)
     >>> print(sorted_dict(p.__dict__))
-    [('name', 'My position'), ('x', 10), ('y', 25)]
+    [('name', u'My position'), ('x', 10), ('y', 25)]
 
     Deserialize a JSON string to a dictionary:
 
     >>> print(sorted_dict(json2object('{"firstname":"Tabby","lastname":"Fischer"}')))
-    [('firstname', 'Tabby'), ('lastname', 'Fischer')]
+    [(u'firstname', u'Tabby'), (u'lastname', u'Fischer')]
     """
     if something is None:
         return loads(json)
