@@ -25,8 +25,8 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import inspect, json, logging, logging.handlers, pickle, os, re, shlex, subprocess, sys, uuid
-from bson.json_util import dumps, loads
+import inspect, logging, logging.handlers, pickle, os, re, shlex, subprocess, sys, uuid
+from bson.json_util import dumps, json, loads
 from datetime import datetime
 from ipaddr import IPAddress
 
@@ -63,8 +63,10 @@ class PickleableObject(object):
             delattr(self, '_pickle_filename')
             pickle.dump(self, file(filename, 'w'))
             self._pickle_filename = filename
-        else:
+        elif filename is not None:
             pickle.dump(self, file(filename, 'w'))
+        else:
+            raise ValueError('A filename must be specified')
 
 # --------------------------------------------------------------------------------------------------
 
@@ -220,18 +222,18 @@ def json2object(json, something=None):
     [('name', None), ('x', 0), ('y', 0)]
     >>> json2object('{"x":10,"y":20,"name":"My position"}', p)
     >>> print(sorted_dict(p.__dict__))
-    [('name', u'My position'), ('x', 10), ('y', 20)]
+    [('name', 'My position'), ('x', 10), ('y', 20)]
     >>> json2object('{"y":25}', p)
     >>> print(sorted_dict(p.__dict__))
-    [('name', u'My position'), ('x', 10), ('y', 25)]
+    [('name', 'My position'), ('x', 10), ('y', 25)]
     >>> json2object('{"z":3}', p)
     >>> print(sorted_dict(p.__dict__))
-    [('name', u'My position'), ('x', 10), ('y', 25)]
+    [('name', 'My position'), ('x', 10), ('y', 25)]
 
     Deserialize a JSON string to a dictionary:
 
     >>> print(sorted_dict(json2object('{"firstname":"Tabby","lastname":"Fischer"}')))
-    [(u'firstname', u'Tabby'), (u'lastname', u'Fischer')]
+    [('firstname', 'Tabby'), ('lastname', 'Fischer')]
     """
     if something is None:
         return loads(json)
@@ -502,6 +504,6 @@ if __name__ == '__main__':
     try:
         p2.write()
         raise ValueError('Must raise an AttributeError')
-    except AttributeError:
+    except ValueError:
         pass
     print('OK')
