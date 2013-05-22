@@ -125,7 +125,7 @@ def screen_kill(name=None, fail=True, log=None):
 
 
 def screen_launch(name, command, fail=True, log=None):
-    return cmd(['screen', '-dmS', name, command])
+    return cmd(['screen', '-dmS', name] + (command if isinstance(command, list) else [command]))
 
 
 def screen_list(name=None, log=None):
