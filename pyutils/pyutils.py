@@ -103,11 +103,9 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
     if log is not None:
         log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
             '' if cli_input is None else ' < %s' % repr(cli_input)))
-    args = command
-    if isinstance(command, str):
-        args = shlex.split(command)
-    process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    args = filter(None, shlex.split(command) if isinstance(command, str) else command)
+    process = subprocess.Popen(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if cli_input is not None:
         process.stdin.write(cli_input)
     stdout, stderr = process.communicate(input=input)
