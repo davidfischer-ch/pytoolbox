@@ -25,11 +25,14 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, inspect, logging, logging.handlers, pickle, os, re, shlex, subprocess, sys, uuid
-from bson.json_util import dumps, json, loads
+import errno, inspect, json, logging, logging.handlers, pickle, os, re, shlex, subprocess, sys, uuid
 from datetime import datetime
 from ipaddr import IPAddress
 
+# FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
+
+
+# EXCEPTION ----------------------------------------------------------------------------------------
 
 class ForbiddenError(Exception):
     u"""
@@ -37,7 +40,7 @@ class ForbiddenError(Exception):
     """
     pass
 
-# --------------------------------------------------------------------------------------------------
+# SERIALIZATION/DESERIALIZATION --------------------------------------------------------------------
 
 
 class PickleableObject(object):
@@ -68,7 +71,7 @@ class PickleableObject(object):
         else:
             raise ValueError('A filename must be specified')
 
-# --------------------------------------------------------------------------------------------------
+# SUBPROCESS ---------------------------------------------------------------------------------------
 
 
 def cmd(command, input=None, cli_input=None, fail=True, log=None):
@@ -116,7 +119,7 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
         raise subprocess.CalledProcessError(process.returncode, command, stderr)
     return result
 
-# --------------------------------------------------------------------------------------------------
+# SCREEN -------------------------------------------------------------------------------------------
 
 
 def screen_kill(name=None, fail=True, log=None):
@@ -163,7 +166,7 @@ def screen_list(name=None, log=None):
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
                       cmd(['screen', '-ls', name], fail=False, log=log)['stdout'])
 
-# --------------------------------------------------------------------------------------------------
+# FILESYSTEM ---------------------------------------------------------------------------------------
 
 
 def first_that_exist(*paths):
@@ -207,7 +210,7 @@ def try_makedirs(path):
             return False
         raise  # Re-raise exception if a different error occured
 
-# --------------------------------------------------------------------------------------------------
+# DATETIME -----------------------------------------------------------------------------------------
 
 
 def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
@@ -258,7 +261,7 @@ def duration2secs(duration):
 def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
     return datetime.strptime(date, format)
 
-# --------------------------------------------------------------------------------------------------
+# JSON ---------------------------------------------------------------------------------------------
 
 
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
@@ -279,9 +282,9 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
-def json2object(json, something=None):
+def json2object(json_string, something=None):
     u"""
-    Deserialize the JSON string ``json`` to attributes of ``something``.
+    Deserialize the JSON string ``json_string`` to attributes of ``something``.
 
     .. warning:: Current implementation does not handle recursion.
 
@@ -313,8 +316,8 @@ def json2object(json, something=None):
     [(u'firstname', u'Tabby'), (u'lastname', u'Fischer')]
     """
     if something is None:
-        return loads(json)
-    for key, value in loads(json).items():
+        return json.loads(json_string)
+    for key, value in json.loads(json_string).items():
         if hasattr(something, key):
             setattr(something, key, value)
     #something.__dict__.update(loads(json)) <-- old implementation
@@ -366,15 +369,15 @@ def jsonfile2object(filename_or_file, something=None):
 
 def object2json(something, include_properties):
     if not include_properties:
-        return dumps(something, cls=SmartJSONEncoderV1)
+        return json.dumps(something, cls=SmartJSONEncoderV1)
     else:
-        return dumps(something, cls=SmartJSONEncoderV2)
+        return json.dumps(something, cls=SmartJSONEncoderV2)
 
 
 def sorted_dict(dictionary):
     return sorted(dictionary.items(), key=lambda x: x[0])
 
-# --------------------------------------------------------------------------------------------------
+# VALIDATION ---------------------------------------------------------------------------------------
 
 
 def valid_filename(filename):
@@ -493,7 +496,7 @@ def valid_uuid(id, none_allowed):
         return False
     return True
 
-# --------------------------------------------------------------------------------------------------
+# LOGGING ------------------------------------------------------------------------------------------
 
 
 def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
