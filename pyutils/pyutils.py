@@ -31,185 +31,6 @@ from ipaddr import IPAddress
 
 # FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
 
-
-# EXCEPTION ----------------------------------------------------------------------------------------
-
-class ForbiddenError(Exception):
-    u"""
-    A forbidden error.
-    """
-    pass
-
-# SERIALIZATION/DESERIALIZATION --------------------------------------------------------------------
-
-
-class PickleableObject(object):
-    u"""
-    An :class:`object` serializable/deserializable by :mod:`pickle`.
-    """
-    @staticmethod
-    def read(filename, store_filename=False):
-        u"""
-        Returns a deserialized instance of a pickleable object loaded from a file.
-        """
-        the_object = pickle.load(file(filename))
-        if store_filename:
-            the_object._pickle_filename = filename
-        return the_object
-
-    def write(self, filename=None):
-        u"""
-        Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
-        """
-        if filename is None and hasattr(self, '_pickle_filename'):
-            filename = self._pickle_filename
-            delattr(self, '_pickle_filename')
-            pickle.dump(self, file(filename, 'w'))
-            self._pickle_filename = filename
-        elif filename is not None:
-            pickle.dump(self, file(filename, 'w'))
-        else:
-            raise ValueError('A filename must be specified')
-
-# SUBPROCESS ---------------------------------------------------------------------------------------
-
-
-def cmd(command, input=None, cli_input=None, fail=True, log=None):
-    u"""
-    Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
-
-    * Pipe some content to the command with ``input``.
-    * Answer to interactive CLI questions with ``cli_input``.
-    * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
-    * Set ``log`` to a method to log / print details about what is executed / any failure.
-
-    **Example usage**:
-
-    >>> def print_it(str):
-    ...     print('[DEBUG] %s' % str)
-    >>> print(cmd(['echo', 'it seem to work'], log=print_it)['stdout'])
-    [DEBUG] Execute ['echo', 'it seem to work']
-    it seem to work
-    <BLANKLINE>
-
-    >>> assert(cmd('cat missing_file', fail=False, log=print_it)['returncode'] != 0)
-    [DEBUG] Execute cat missing_file
-    >>> cmd('my.funny.missing.script.sh')
-    Traceback (most recent call last):
-    ...
-    OSError: [Errno 2] No such file or directory
-
-    >>> result = cmd('cat pyutils.py')
-    >>> print(result['stdout'].splitlines()[0])
-    #!/usr/bin/env python2
-    """
-    if log is not None:
-        log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
-            '' if cli_input is None else ' < %s' % repr(cli_input)))
-    args = filter(None, shlex.split(command) if isinstance(command, str) else command)
-    process = subprocess.Popen(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if cli_input is not None:
-        process.stdin.write(cli_input)
-    stdout, stderr = process.communicate(input=input)
-    result = {'stdout': stdout, 'stderr': stderr, 'returncode': process.returncode}
-    if fail and process.returncode != 0:
-        if log is not None:
-            log(result)
-        raise subprocess.CalledProcessError(process.returncode, command, stderr)
-    return result
-
-# SCREEN -------------------------------------------------------------------------------------------
-
-
-def screen_kill(name=None, fail=True, log=None):
-    for name in screen_list(name=name, log=log):
-        cmd(['screen', '-S', name, '-X', 'quit'], fail=fail, log=log)
-
-
-def screen_launch(name, command, fail=True, log=None):
-    return cmd(['screen', '-dmS', name] + (command if isinstance(command, list) else [command]))
-
-
-def screen_list(name=None, log=None):
-    u"""
-    Returns a list containing all instances of screen. Can be filtered by ``name``.
-
-    **Example usage**:
-
-    >>> def log_it(line):
-    ...     print(line)
-
-    Launch some screens:
-
-    >>> assert(screen_launch('my_1st_screen', '')['returncode'] == 0)
-    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
-    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
-
-    List the launched screen sessions:
-
-    >>> print(screen_list(name=r'my_1st_screen'))  # doctest: +ELLIPSIS
-    ['....my_1st_screen']
-    >>> print(screen_list(name=r'my_2nd_screen'))  # doctest: +ELLIPSIS
-    ['....my_2nd_screen', '....my_2nd_screen']
-
-    Cleanup:
-
-    >>> screen_kill(name='my_1st_screen', log=log_it)  # doctest: +ELLIPSIS
-    Execute ['screen', '-ls', 'my_1st_screen']
-    Execute ['screen', '-S', '....my_1st_screen', '-X', 'quit']
-    >>> screen_kill(name='my_2nd_screen', log=log_it)  # doctest: +ELLIPSIS
-    Execute ['screen', '-ls', 'my_2nd_screen']
-    Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
-    Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
-    """
-    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
-                      cmd(['screen', '-ls', name], fail=False, log=log)['stdout'])
-
-# FILESYSTEM ---------------------------------------------------------------------------------------
-
-
-def first_that_exist(*paths):
-    u"""
-    Returns the first file/directory that exist.
-
-    **Example usage**:
-
-    >>> print(first_that_exist('', '/etc', '.'))
-    /etc
-    >>> print(first_that_exist('does_not_exist.com', '', '..'))
-    ..
-    """
-    for path in paths:
-        if os.path.exists(path):
-            return path
-    return None
-
-
-def try_makedirs(path):
-    u"""
-    Tries to recursive make directories (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if directory found and re-raise any other type of
-    exception.
-
-    **Example usage**:
-
-    >>> import shutil
-    >>> try_makedirs('/etc')
-    False
-    >>> try_makedirs('/tmp/salut/mec')
-    True
-    >>> shutil.rmtree('/tmp/salut/mec')
-    """
-    try:
-        os.makedirs(path)
-        return True
-    except OSError as e:
-        # File exists
-        if e.errno == errno.EEXIST:
-            return False
-        raise  # Re-raise exception if a different error occured
-
 # DATETIME -----------------------------------------------------------------------------------------
 
 
@@ -260,6 +81,59 @@ def duration2secs(duration):
 
 def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
     return datetime.strptime(date, format)
+
+# EXCEPTION ----------------------------------------------------------------------------------------
+
+
+class ForbiddenError(Exception):
+    u"""
+    A forbidden error.
+    """
+    pass
+
+# FILESYSTEM ---------------------------------------------------------------------------------------
+
+
+def first_that_exist(*paths):
+    u"""
+    Returns the first file/directory that exist.
+
+    **Example usage**:
+
+    >>> print(first_that_exist('', '/etc', '.'))
+    /etc
+    >>> print(first_that_exist('does_not_exist.com', '', '..'))
+    ..
+    """
+    for path in paths:
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def try_makedirs(path):
+    u"""
+    Tries to recursive make directories (which may already exists) without throwing an exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type of
+    exception.
+
+    **Example usage**:
+
+    >>> import shutil
+    >>> try_makedirs('/etc')
+    False
+    >>> try_makedirs('/tmp/salut/mec')
+    True
+    >>> shutil.rmtree('/tmp/salut/mec')
+    """
+    try:
+        os.makedirs(path)
+        return True
+    except OSError as e:
+        # File exists
+        if e.errno == errno.EEXIST:
+            return False
+        raise  # Re-raise exception if a different error occured
 
 # JSON ---------------------------------------------------------------------------------------------
 
@@ -376,6 +250,198 @@ def object2json(something, include_properties):
 
 def sorted_dict(dictionary):
     return sorted(dictionary.items(), key=lambda x: x[0])
+
+# LOGGING ------------------------------------------------------------------------------------------
+
+
+def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
+                  fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
+    u"""
+    Setup logging (TODO).
+
+    :param name: TODO
+    :type name: str
+    :param reset: Unregister all previously registered handlers ?
+    :type reset: bool
+    :param filename: TODO
+    :type name: str
+    :param console: Toggle console output (stdout)
+    :type console: bool
+    :param level: TODO
+    :type level: int
+    :param fmt: TODO
+    :type fmt: str
+    :param datefmt: TODO
+    :type datefmt: str
+
+    **Example usage**
+
+    Setup a console output for logger with name *test*:
+
+    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
+    >>> log = logging.getLogger('test')
+    >>> log.info('this is my info')
+    this is my info
+    >>> log.debug('this is my debug')
+    this is my debug
+    >>> log.setLevel(logging.INFO)
+    >>> log.debug('this is my hidden debug')
+    >>> log.handlers = []  # Remove handlers manually: pas de bras, pas de chocolat !
+    >>> log.debug('no handlers, no messages ;-)')
+
+    Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
+
+    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
+    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
+    >>> log.info('double message')
+    double message
+    double message
+    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
+    >>> log.info('single message')
+    single message
+    """
+    if reset:
+        logging.getLogger(name).handlers = []
+    if filename:
+        log = logging.getLogger(name)
+        log.setLevel(level)
+        handler = logging.FileHandler(filename)
+        handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
+        log.addHandler(handler)
+    if console:
+        log = logging.getLogger(name)
+        log.setLevel(level)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
+        log.addHandler(handler)
+
+UUID_ZERO = str(uuid.UUID('{00000000-0000-0000-0000-000000000000}'))
+
+# SCREEN -------------------------------------------------------------------------------------------
+
+
+def screen_kill(name=None, fail=True, log=None):
+    for name in screen_list(name=name, log=log):
+        cmd(['screen', '-S', name, '-X', 'quit'], fail=fail, log=log)
+
+
+def screen_launch(name, command, fail=True, log=None):
+    return cmd(['screen', '-dmS', name] + (command if isinstance(command, list) else [command]))
+
+
+def screen_list(name=None, log=None):
+    u"""
+    Returns a list containing all instances of screen. Can be filtered by ``name``.
+
+    **Example usage**:
+
+    >>> def log_it(line):
+    ...     print(line)
+
+    Launch some screens:
+
+    >>> assert(screen_launch('my_1st_screen', '')['returncode'] == 0)
+    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
+    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
+
+    List the launched screen sessions:
+
+    >>> print(screen_list(name=r'my_1st_screen'))  # doctest: +ELLIPSIS
+    ['....my_1st_screen']
+    >>> print(screen_list(name=r'my_2nd_screen'))  # doctest: +ELLIPSIS
+    ['....my_2nd_screen', '....my_2nd_screen']
+
+    Cleanup:
+
+    >>> screen_kill(name='my_1st_screen', log=log_it)  # doctest: +ELLIPSIS
+    Execute ['screen', '-ls', 'my_1st_screen']
+    Execute ['screen', '-S', '....my_1st_screen', '-X', 'quit']
+    >>> screen_kill(name='my_2nd_screen', log=log_it)  # doctest: +ELLIPSIS
+    Execute ['screen', '-ls', 'my_2nd_screen']
+    Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+    Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+    """
+    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
+                      cmd(['screen', '-ls', name], fail=False, log=log)['stdout'])
+
+# SERIALIZATION/DESERIALIZATION --------------------------------------------------------------------
+
+
+class PickleableObject(object):
+    u"""
+    An :class:`object` serializable/deserializable by :mod:`pickle`.
+    """
+    @staticmethod
+    def read(filename, store_filename=False):
+        u"""
+        Returns a deserialized instance of a pickleable object loaded from a file.
+        """
+        the_object = pickle.load(file(filename))
+        if store_filename:
+            the_object._pickle_filename = filename
+        return the_object
+
+    def write(self, filename=None):
+        u"""
+        Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
+        """
+        if filename is None and hasattr(self, '_pickle_filename'):
+            filename = self._pickle_filename
+            delattr(self, '_pickle_filename')
+            pickle.dump(self, file(filename, 'w'))
+            self._pickle_filename = filename
+        elif filename is not None:
+            pickle.dump(self, file(filename, 'w'))
+        else:
+            raise ValueError('A filename must be specified')
+
+# SUBPROCESS ---------------------------------------------------------------------------------------
+
+
+def cmd(command, input=None, cli_input=None, fail=True, log=None):
+    u"""
+    Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
+
+    * Pipe some content to the command with ``input``.
+    * Answer to interactive CLI questions with ``cli_input``.
+    * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
+    * Set ``log`` to a method to log / print details about what is executed / any failure.
+
+    **Example usage**:
+
+    >>> def print_it(str):
+    ...     print('[DEBUG] %s' % str)
+    >>> print(cmd(['echo', 'it seem to work'], log=print_it)['stdout'])
+    [DEBUG] Execute ['echo', 'it seem to work']
+    it seem to work
+    <BLANKLINE>
+
+    >>> assert(cmd('cat missing_file', fail=False, log=print_it)['returncode'] != 0)
+    [DEBUG] Execute cat missing_file
+    >>> cmd('my.funny.missing.script.sh')
+    Traceback (most recent call last):
+    ...
+    OSError: [Errno 2] No such file or directory
+
+    >>> result = cmd('cat pyutils.py')
+    >>> print(result['stdout'].splitlines()[0])
+    #!/usr/bin/env python2
+    """
+    if log is not None:
+        log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
+            '' if cli_input is None else ' < %s' % repr(cli_input)))
+    args = filter(None, shlex.split(command) if isinstance(command, str) else command)
+    process = subprocess.Popen(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if cli_input is not None:
+        process.stdin.write(cli_input)
+    stdout, stderr = process.communicate(input=input)
+    result = {'stdout': stdout, 'stderr': stderr, 'returncode': process.returncode}
+    if fail and process.returncode != 0:
+        if log is not None:
+            log(result)
+        raise subprocess.CalledProcessError(process.returncode, command, stderr)
+    return result
 
 # VALIDATION ---------------------------------------------------------------------------------------
 
@@ -496,71 +562,6 @@ def valid_uuid(id, none_allowed):
         return False
     return True
 
-# LOGGING ------------------------------------------------------------------------------------------
-
-
-def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
-                  fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
-    u"""
-    Setup logging (TODO).
-
-    :param name: TODO
-    :type name: str
-    :param reset: Unregister all previously registered handlers ?
-    :type reset: bool
-    :param filename: TODO
-    :type name: str
-    :param console: Toggle console output (stdout)
-    :type console: bool
-    :param level: TODO
-    :type level: int
-    :param fmt: TODO
-    :type fmt: str
-    :param datefmt: TODO
-    :type datefmt: str
-
-    **Example usage**
-
-    Setup a console output for logger with name *test*:
-
-    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
-    >>> log = logging.getLogger('test')
-    >>> log.info('this is my info')
-    this is my info
-    >>> log.debug('this is my debug')
-    this is my debug
-    >>> log.setLevel(logging.INFO)
-    >>> log.debug('this is my hidden debug')
-    >>> log.handlers = []  # Remove handlers manually: pas de bras, pas de chocolat !
-    >>> log.debug('no handlers, no messages ;-)')
-
-    Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
-
-    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
-    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
-    >>> log.info('double message')
-    double message
-    double message
-    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
-    >>> log.info('single message')
-    single message
-    """
-    if reset:
-        logging.getLogger(name).handlers = []
-    if filename:
-        log = logging.getLogger(name)
-        log.setLevel(level)
-        handler = logging.FileHandler(filename)
-        handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
-        log.addHandler(handler)
-    if console:
-        log = logging.getLogger(name)
-        log.setLevel(level)
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
-        log.addHandler(handler)
-
-UUID_ZERO = str(uuid.UUID('{00000000-0000-0000-0000-000000000000}'))
 
 # Main ---------------------------------------------------------------------------------------------
 
