@@ -31,8 +31,8 @@ from ipaddr import IPAddress
 
 # FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
 
-# DATETIME -----------------------------------------------------------------------------------------
 
+# DATETIME -----------------------------------------------------------------------------------------
 
 def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
     u"""
@@ -82,8 +82,8 @@ def duration2secs(duration):
 def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
     return datetime.strptime(date, format)
 
-# EXCEPTION ----------------------------------------------------------------------------------------
 
+# EXCEPTION ----------------------------------------------------------------------------------------
 
 class ForbiddenError(Exception):
     u"""
@@ -91,8 +91,8 @@ class ForbiddenError(Exception):
     """
     pass
 
-# FILESYSTEM ---------------------------------------------------------------------------------------
 
+# FILESYSTEM ---------------------------------------------------------------------------------------
 
 def first_that_exist(*paths):
     u"""
@@ -135,8 +135,8 @@ def try_makedirs(path):
             return False
         raise  # Re-raise exception if a different error occured
 
-# JSON ---------------------------------------------------------------------------------------------
 
+# JSON ---------------------------------------------------------------------------------------------
 
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
@@ -251,8 +251,8 @@ def object2json(something, include_properties):
 def sorted_dict(dictionary):
     return sorted(dictionary.items(), key=lambda x: x[0])
 
-# LOGGING ------------------------------------------------------------------------------------------
 
+# LOGGING ------------------------------------------------------------------------------------------
 
 def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
                   fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
@@ -317,8 +317,8 @@ def setup_logging(name='', reset=False, filename=None, console=False, level=logg
 
 UUID_ZERO = str(uuid.UUID('{00000000-0000-0000-0000-000000000000}'))
 
-# SCREEN -------------------------------------------------------------------------------------------
 
+# SCREEN -------------------------------------------------------------------------------------------
 
 def screen_kill(name=None, fail=True, log=None):
     for name in screen_list(name=name, log=log):
@@ -364,8 +364,8 @@ def screen_list(name=None, log=None):
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
                       cmd(['screen', '-ls', name], fail=False, log=log)['stdout'])
 
-# SERIALIZATION/DESERIALIZATION --------------------------------------------------------------------
 
+# SERIALIZATION/DESERIALIZATION --------------------------------------------------------------------
 
 class PickleableObject(object):
     u"""
@@ -395,8 +395,8 @@ class PickleableObject(object):
         else:
             raise ValueError('A filename must be specified')
 
-# SUBPROCESS ---------------------------------------------------------------------------------------
 
+# SUBPROCESS ---------------------------------------------------------------------------------------
 
 def cmd(command, input=None, cli_input=None, fail=True, log=None):
     u"""
@@ -443,8 +443,8 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
         raise subprocess.CalledProcessError(process.returncode, command, stderr)
     return result
 
-# VALIDATION ---------------------------------------------------------------------------------------
 
+# VALIDATION ---------------------------------------------------------------------------------------
 
 def valid_filename(filename):
     u"""
