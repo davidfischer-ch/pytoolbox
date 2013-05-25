@@ -43,6 +43,5 @@ You also need to install ``git-core``, but it is probably already the case, at l
 
 2013 - David Fischer
 
-.. image::
-
-    https://secure.travis-ci.org/davidfischer-ch/pyutils.png
+.. image:: https://secure.travis-ci.org/davidfischer-ch/pyutils.png
+	:target: http://travis-ci.org/davidfischer-ch/pyutils
