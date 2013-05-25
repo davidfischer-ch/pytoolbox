@@ -39,6 +39,6 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  url='https://github.com/nickname/my-cool-project',
 		  packages=['my_cool_project'])
 		 
-You also need to install ``git-core``, but it is probably already the case, at least for your development computer ;-)
+You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
 2013 - David Fischer
