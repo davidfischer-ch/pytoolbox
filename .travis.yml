@@ -6,4 +6,4 @@ python:
 #  - "3.3"
 install: python setup.py develop
 #  - pip install --use-mirrors pymongo nose
-script: python pyutils.py
+script: python pyutils.py --travis

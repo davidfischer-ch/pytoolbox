@@ -97,7 +97,7 @@ def duration2secs(duration):
     600.0
     >>> duration2secs('01:54:17')
     6857.0
-    >>> duration2secs('16.40')
+    >>> print round(duration2secs('16.40'), 3)
     16.4
     """
     try:
@@ -203,14 +203,14 @@ def json2object(json_string, something=None):
     >>> print(sorted_dict(p.__dict__))
     [('name', None), ('x', 0), ('y', 0)]
     >>> json2object('{"x":10,"y":20,"name":"My position"}', p)
-    >>> print(sorted_dict(p.__dict__))
-    [('name', u'My position'), ('x', 10), ('y', 20)]
+    >>> p.__dict__ == {'name': 'My position', 'x': 10, 'y': 20}
+    True
     >>> json2object('{"y":25}', p)
-    >>> print(sorted_dict(p.__dict__))
-    [('name', u'My position'), ('x', 10), ('y', 25)]
+    >>> p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25}
+    True
     >>> json2object('{"z":3}', p)
-    >>> print(sorted_dict(p.__dict__))
-    [('name', u'My position'), ('x', 10), ('y', 25)]
+    >>> p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25}
+    True
 
     Deserialize a JSON string to a dictionary:
 
@@ -661,9 +661,23 @@ def valid_uuid(id, none_allowed):
 # Main ---------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+    HELP_TRAVIS = 'Disable screen doctest for Travis CI'
+
+    parser = ArgumentParser(
+        formatter_class=ArgumentDefaultsHelpFormatter,
+        epilog='''Generate a unique identifier (UUID) and save it into pictures's tags (EXIFv2).''')
+    parser.add_argument('-t', '--travis', help=HELP_TRAVIS, action='store_true')
+    args = parser.parse_args()
+
+    if args.travis:
+        screen_kill.__doc__ = screen_launch.__doc__ = screen_list.__doc__ = ''
+
     print('Test pyutils with doctest')
     import doctest
-    doctest.testmod(verbose=False)
+    doctest.testmod(verbose=True)
 
     print('Test PickleableObject outside of docstring')
     class MyPoint(PickleableObject):
