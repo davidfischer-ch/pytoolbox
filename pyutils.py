@@ -677,7 +677,7 @@ if __name__ == '__main__':
 
     print('Test pyutils with doctest')
     import doctest
-    doctest.testmod(verbose=True)
+    assert(doctest.testmod(verbose=True).failed == 0)
 
     print('Test PickleableObject outside of docstring')
     class MyPoint(PickleableObject):
