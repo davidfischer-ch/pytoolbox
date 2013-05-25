@@ -25,12 +25,39 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, inspect, json, logging, logging.handlers, pickle, os, re, shlex, subprocess, sys, uuid
+import errno, hashlib, inspect, json, logging, logging.handlers, pickle, os, re, shlex, \
+       subprocess, sys, uuid
 from datetime import datetime
 from ipaddr import IPAddress
 from mock import Mock
 
 # FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
+
+# CRYPTO -------------------------------------------------------------------------------------------
+
+def githash(data):
+    u"""
+    Return the blob of some data.
+
+    This is how Git calculates the SHA1 for a file (or, in Git terms, a "blob")::
+
+        sha1("blob " + filesize + "\0" + data)
+
+    .. seealso::
+
+        http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
+
+    **Example usage**
+
+    >>> print(githash(''))
+    e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+    >>> print(githash('give me some hash please'))
+    abdd1818289725c072eff0f5ce185457679650be
+    """
+    s = hashlib.sha1()
+    s.update("blob %u\0" % len(data))
+    s.update(data)
+    return s.hexdigest()
 
 
 # DATETIME -----------------------------------------------------------------------------------------
@@ -317,6 +344,31 @@ def setup_logging(name='', reset=False, filename=None, console=False, level=logg
         log.addHandler(handler)
 
 UUID_ZERO = str(uuid.UUID('{00000000-0000-0000-0000-000000000000}'))
+
+
+# RSYNC --------------------------------------------------------------------------------------------
+
+def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False,
+          progress=False, recursive=False, simulate=False, excludes=None, includes=None, fail=True,
+          log=None):
+    if makedest and not os.path.exists(destination):
+        os.makedirs(destination)
+    source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else '')
+    destination = os.path.normpath(destination) + (os.sep if os.path.isdir(destination) else '')
+    command = ['rsync',
+               '-a' if archive else None,
+               '--delete' if delete else None,
+               '--progress' if progress else None,
+               '-r' if recursive else None,
+               '--dry-run' if simulate else None]
+    if excludes is not None:
+        command.extend(['--exclude=%s' % e for e in excludes])
+    if includes is not None:
+        command.extend(['--include=%s' % i for i in includes])
+    if exclude_vcs:
+        command.extend(['--exclude=.svn', '--exclude=.git'])
+    command.extend([source, destination])
+    return cmd(filter(None, command), fail=fail, log=log)
 
 
 # SCREEN -------------------------------------------------------------------------------------------
