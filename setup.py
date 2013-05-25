@@ -37,10 +37,10 @@ setup(name='pyutils',
       #    'export-albums=sharepics.bin:export_albums',
       #    'generate-albums-metadata=sharepics.bin:generate_albums_metadata',
       #    'generate-pics-uuid=sharepics.bin:generate_pics_uuid']},
-      include_package_data=True,
+      #include_package_data=True,
       install_requires=['hashlib', 'ipaddr', 'mock'],
       license='GPLv3',
-      packages=find_packages(),
+      py_modules=['pyutils'],
       tests_require=['nose'],
       url='https://github.com/davidfischer-ch/pyutils')
 
