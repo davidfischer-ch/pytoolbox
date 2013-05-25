@@ -42,3 +42,7 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
 2013 - David Fischer
+
+.. image::
+
+    https://secure.travis-ci.org/davidfischer-ch/pyutils.png
