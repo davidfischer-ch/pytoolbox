@@ -256,6 +256,7 @@ def jsonfile2object(filename_or_file, something=None):
 
     >>> assert(jsonfile2object('test.json') == p1.__dict__)
     >>> assert(jsonfile2object(open('test.json')) == p1.__dict__)
+    >>> os.remove('test.json')
     """
     if something is None:
         try:
@@ -696,4 +697,6 @@ if __name__ == '__main__':
         raise ValueError('Must raise an AttributeError')
     except ValueError:
         pass
+    finally:
+        os.remove('test.pkl')
     print('OK')
