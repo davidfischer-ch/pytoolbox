@@ -28,8 +28,15 @@
 import errno, hashlib, inspect, json, logging, logging.handlers, pickle, os, re, shlex, \
        subprocess, sys, uuid
 from datetime import datetime
-from ipaddr import IPAddress
-from mock import Mock
+try:  # Python 3
+    from ipaddress import ip_address
+except ImportError:
+    from ipaddr import IPAddress as ip_address
+
+try:  # Python 3
+    from unittest import mock
+except ImportError:
+    from mock import Mock
 
 # FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
 
@@ -571,7 +578,7 @@ def valid_ip(ip):
     True
     """
     try:
-        IPAddress(ip)
+        ip_address(ip)
         return True
     except:
         return False
