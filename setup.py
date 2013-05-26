@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -24,7 +24,6 @@
 #  If not, see <http://www.gnu.org/licenses/>
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
-#
 
 from setuptools import setup, find_packages
 
@@ -33,14 +32,10 @@ setup(name='pyutils',
       author='David Fischer',
       author_email='david.fischer.ch@gmail.com',
       description='Some Python utility functions',
-      #entry_points={'console_scripts': [
-      #    'export-albums=sharepics.bin:export_albums',
-      #    'generate-albums-metadata=sharepics.bin:generate_albums_metadata',
-      #    'generate-pics-uuid=sharepics.bin:generate_pics_uuid']},
       #include_package_data=True,
       install_requires=['argparse', 'hashlib', 'ipaddr', 'mock'],
       license='GPLv3',
-      py_modules=['pyutils'],
+      packages=find_packages(),
       tests_require=['nose'],
       url='https://github.com/davidfischer-ch/pyutils')
 
