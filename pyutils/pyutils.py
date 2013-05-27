@@ -484,9 +484,9 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
     ...
     OSError: [Errno 2] No such file or directory
 
-    >>> result = cmd('cat pyutils.py')
+    >>> result = cmd('cat %s' % __file__)
     >>> print(result['stdout'].splitlines()[0])
-    #!/usr/bin/env python2
+    #!/usr/bin/env python
     """
     if log is not None:
         log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
