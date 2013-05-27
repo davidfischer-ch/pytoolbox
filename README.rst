@@ -18,7 +18,7 @@ You only need to run ``setup.py``::
 How to use it ?
 ---------------
 
-Here is an example ``hello.py`` using the cmd function provided by `pyutils``::
+Here is an example ``hello.py`` using the cmd function provided by ``pyutils``::
 
     from pyutils.pyutils import cmd
 
