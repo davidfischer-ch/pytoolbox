@@ -22,7 +22,7 @@ Here is an example ``hello.py`` using the cmd function provided by ``pyutils``::
 
     from pyutils.pyutils import cmd
 
-    cmd('echo Hello World!')
+    print(cmd('echo Hello World!')['stdout'])
 
 How to add it to dependencies of my own project ?
 -------------------------------------------------
