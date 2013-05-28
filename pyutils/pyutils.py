@@ -40,6 +40,17 @@ except ImportError:
 
 # FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
 
+try:  # Python 3
+    basestring  # attempt to evaluate basestring
+
+    def isstr(s):
+        return isinstance(s, basestring)
+except NameError:
+
+    def isstr(s):
+        return isinstance(s, str)
+
+
 # CRYPTO -------------------------------------------------------------------------------------------
 
 def githash(data):
@@ -86,7 +97,7 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
     >>> future = datetime_now(offset=timedelta(hours=2, minutes=10), format=None)
     >>> print future - now  # doctest: +ELLIPSIS
     2:10:00...
-    >>> assert(isinstance(datetime_now(), str))
+    >>> assert(isstr(datetime_now()))
     """
     now = datetime.utcnow()
     if offset:
@@ -271,7 +282,7 @@ def jsonfile2object(filename_or_file, something=None):
         except TypeError:
             return json.load(filename_or_file)
     else:
-        if isinstance(filename_or_file, str):
+        if isstr(filename_or_file):
             json2object(open(filename_or_file).read(), something)
         else:
             json2object(filename_or_file.read(), something)
@@ -477,28 +488,27 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
 
     >>> def print_it(str):
     ...     print('[DEBUG] %s' % str)
-    >>> print(cmd(['echo', 'it seem to work'], log=print_it)['stdout'])
+    >>> cmd(['echo', 'it seem to work'], log=print_it)['stdout']
     [DEBUG] Execute ['echo', 'it seem to work']
-    it seem to work
-    <BLANKLINE>
-
+    'it seem to work\\n'
     >>> assert(cmd('cat missing_file', fail=False, log=print_it)['returncode'] != 0)
     [DEBUG] Execute cat missing_file
-    >>> cmd('my.funny.missing.script.sh')
-    Traceback (most recent call last):
-    ...
-    OSError: [Errno 2] No such file or directory
-
+    >>> assert(cmd('my.funny.missing.script.sh', fail=False)['stderr'] != '')
     >>> result = cmd('cat %s' % __file__)
-    >>> print(result['stdout'].splitlines()[0])
-    #!/usr/bin/env python
+    >>> '#!/usr/bin/env python' in result['stdout'].splitlines()[0]
+    True
     """
     if log is not None:
         log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
             '' if cli_input is None else ' < %s' % repr(cli_input)))
-    args = filter(None, shlex.split(command) if isinstance(command, str) else command)
-    process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    args = filter(None, command if isinstance(command, list) else shlex.split(command))
+    try:
+        process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+    except OSError:
+        if fail:
+            raise
+        return {'stdout': '', 'stderr': 'No such file or directory %s' % args[0], 'returncode': 2}
     if cli_input is not None:
         process.stdin.write(cli_input)
     stdout, stderr = process.communicate(input=input)
