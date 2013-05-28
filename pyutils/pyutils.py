@@ -387,7 +387,8 @@ def screen_kill(name=None, fail=True, log=None):
 
 
 def screen_launch(name, command, fail=True, log=None):
-    return cmd(['screen', '-dmS', name] + (command if isinstance(command, list) else [command]))
+    return cmd(['screen', '-dmS', name] + (command if isinstance(command, list) else [command]),
+               fail=fail, log=log)
 
 
 def screen_list(name=None, log=None):
@@ -401,9 +402,12 @@ def screen_list(name=None, log=None):
 
     Launch some screens:
 
-    >>> assert(screen_launch('my_1st_screen', '')['returncode'] == 0)
-    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
-    >>> assert(screen_launch('my_2nd_screen', '')['returncode'] == 0)
+    >>> print(screen_launch('my_1st_screen', 'top', fail=False))['stderr']
+    <BLANKLINE>
+    >>> print(screen_launch('my_2nd_screen', 'top', fail=False))['stderr']
+    <BLANKLINE>
+    >>> print(screen_launch('my_2nd_screen', 'top', fail=False))['stderr']
+    <BLANKLINE>
 
     List the launched screen sessions:
 
@@ -459,13 +463,14 @@ class PickleableObject(object):
 
 # SUBPROCESS ---------------------------------------------------------------------------------------
 
-def cmd(command, input=None, cli_input=None, fail=True, log=None):
+def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
     u"""
     Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
 
     * Pipe some content to the command with ``input``.
     * Answer to interactive CLI questions with ``cli_input``.
     * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
+    * Set ``shell`` to True to enable shell expension (dangerous ! See :mod:`subprocess`).
     * Set ``log`` to a method to log / print details about what is executed / any failure.
 
     **Example usage**:
@@ -492,8 +497,8 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None):
         log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
             '' if cli_input is None else ' < %s' % repr(cli_input)))
     args = filter(None, shlex.split(command) if isinstance(command, str) else command)
-    process = subprocess.Popen(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
     if cli_input is not None:
         process.stdin.write(cli_input)
     stdout, stderr = process.communicate(input=input)
