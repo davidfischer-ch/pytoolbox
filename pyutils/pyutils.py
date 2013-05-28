@@ -28,28 +28,16 @@
 import errno, hashlib, inspect, json, logging, logging.handlers, pickle, os, re, shlex, \
        subprocess, sys, uuid
 from datetime import datetime
-try:  # Python 3
-    from ipaddress import ip_address
-except ImportError:
-    from ipaddr import IPAddress as ip_address
+from six import PY3, string_types
 
-try:  # Python 3
-    from unittest import mock
-except ImportError:
+if PY3:
+    from ipaddress import ip_address
+    from unittest.mock import Mock
+else:
+    from ipaddr import IPAddress as ip_address
     from mock import Mock
 
 # FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
-
-try:  # Python 3
-    basestring  # attempt to evaluate basestring
-
-    def isstr(s):
-        return isinstance(s, basestring)
-except NameError:
-
-    def isstr(s):
-        return isinstance(s, str)
-
 
 # CRYPTO -------------------------------------------------------------------------------------------
 
@@ -95,9 +83,9 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
     >>> from datetime import timedelta
     >>> now = datetime_now(format=None)
     >>> future = datetime_now(offset=timedelta(hours=2, minutes=10), format=None)
-    >>> print future - now  # doctest: +ELLIPSIS
+    >>> print(future - now)  # doctest: +ELLIPSIS
     2:10:00...
-    >>> assert(isstr(datetime_now()))
+    >>> assert(isinstance(datetime_now(), string_types))
     """
     now = datetime.utcnow()
     if offset:
@@ -115,7 +103,7 @@ def duration2secs(duration):
     600.0
     >>> duration2secs('01:54:17')
     6857.0
-    >>> print round(duration2secs('16.40'), 3)
+    >>> print(round(duration2secs('16.40'), 3))
     16.4
     """
     try:
@@ -218,22 +206,18 @@ def json2object(json_string, something=None):
     ...         self.x = x
     ...         self.y = y
     >>> p = Point()
-    >>> print(sorted_dict(p.__dict__))
-    [('name', None), ('x', 0), ('y', 0)]
+    >>> assert(p.__dict__ == {'name': None, 'x':0, 'y': 0})
     >>> json2object('{"x":10,"y":20,"name":"My position"}', p)
-    >>> p.__dict__ == {'name': 'My position', 'x': 10, 'y': 20}
-    True
+    >>> assert(p.__dict__ == {'name': 'My position', 'x': 10, 'y': 20})
     >>> json2object('{"y":25}', p)
-    >>> p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25}
-    True
+    >>> assert(p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25})
     >>> json2object('{"z":3}', p)
-    >>> p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25}
-    True
+    >>> assert(p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25})
 
     Deserialize a JSON string to a dictionary:
 
-    >>> print(sorted_dict(json2object('{"firstname":"Tabby","lastname":"Fischer"}')))
-    [(u'firstname', u'Tabby'), (u'lastname', u'Fischer')]
+    >>> expected = {'firstname': 'Tabby', 'lastname': 'Fischer'}
+    >>> assert(json2object('{"firstname":"Tabby","lastname":"Fischer"}') == expected)
     """
     if something is None:
         return json.loads(json_string)
@@ -282,7 +266,7 @@ def jsonfile2object(filename_or_file, something=None):
         except TypeError:
             return json.load(filename_or_file)
     else:
-        if isstr(filename_or_file):
+        if isinstance(filename_or_file, string_types):
             json2object(open(filename_or_file).read(), something)
         else:
             json2object(filename_or_file.read(), something)
@@ -486,17 +470,18 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
 
     **Example usage**:
 
+    >>> import six
     >>> def print_it(str):
     ...     print('[DEBUG] %s' % str)
-    >>> cmd(['echo', 'it seem to work'], log=print_it)['stdout']
+    >>> cmd(['echo', 'it seem to work'], log=print_it)  # doctest: +ELLIPSIS
     [DEBUG] Execute ['echo', 'it seem to work']
-    'it seem to work\\n'
+    ...
     >>> assert(cmd('cat missing_file', fail=False, log=print_it)['returncode'] != 0)
     [DEBUG] Execute cat missing_file
     >>> assert(cmd('my.funny.missing.script.sh', fail=False)['stderr'] != '')
     >>> result = cmd('cat %s' % __file__)
-    >>> '#!/usr/bin/env python' in result['stdout'].splitlines()[0]
-    True
+    >>> print(result['stdout'].splitlines()[0])
+    #!/usr/bin/env python
     """
     if log is not None:
         log('Execute %s%s%s' % ('' if input is None else 'echo %s | ' % repr(input), command,
@@ -505,10 +490,10 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
     try:
         process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
-    except OSError:
+    except OSError as e:
         if fail:
             raise
-        return {'stdout': '', 'stderr': 'No such file or directory %s' % args[0], 'returncode': 2}
+        return {'stdout': '', 'stderr': e, 'returncode': 2}
     if cli_input is not None:
         process.stdin.write(cli_input)
     stdout, stderr = process.communicate(input=input)
