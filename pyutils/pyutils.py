@@ -170,6 +170,22 @@ def try_makedirs(path):
         raise  # Re-raise exception if a different error occured
 
 
+def chown(path, uid, gid, recursive=False):
+    u"""
+    Change owner/group of a path, can be recursive.
+    """
+    if recursive:
+        for root, dirnames, filenames in os.walk(path):
+            print root, dirnames, filenames
+            os.chown(root, uid, gid)
+            #for dirname in dirnames:
+            #    os.chown(dirname, uid, gid)
+            for filename in filenames:
+                os.chown(os.path.join(root, filename), uid, gid)
+    else:
+        os.chown(path, uid, gid)
+
+
 # JSON ---------------------------------------------------------------------------------------------
 
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
