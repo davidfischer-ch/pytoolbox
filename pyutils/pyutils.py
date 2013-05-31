@@ -25,7 +25,7 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, hashlib, inspect, json, logging, logging.handlers, pickle, os, re, shlex, \
+import errno, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, re, shlex, \
        subprocess, sys, uuid
 from datetime import datetime
 from six import PY3, string_types
@@ -170,10 +170,12 @@ def try_makedirs(path):
         raise  # Re-raise exception if a different error occured
 
 
-def chown(path, uid, gid, recursive=False):
+def chown(path, user, group, recursive=False):
     u"""
-    Change owner/group of a path, can be recursive.
+    Change owner/group of a path, can be recursive. User and group can be a name or an id.
     """
+    uid = pwd.getpwnam(user) if isinstance(user, string_types) else user
+    gid = pwd.getpwnam(group) if isinstance(group, string_types) else group
     if recursive:
         for root, dirnames, filenames in os.walk(path):
             print root, dirnames, filenames
