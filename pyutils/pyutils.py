@@ -25,7 +25,7 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, re, shlex, \
+import errno, grp, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, re, shlex, \
        subprocess, sys, uuid
 from datetime import datetime
 from six import PY3, string_types
@@ -174,14 +174,11 @@ def chown(path, user, group, recursive=False):
     u"""
     Change owner/group of a path, can be recursive. User and group can be a name or an id.
     """
-    uid = pwd.getpwnam(user) if isinstance(user, string_types) else user
-    gid = pwd.getpwnam(group) if isinstance(group, string_types) else group
+    uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else user
+    gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else group
     if recursive:
         for root, dirnames, filenames in os.walk(path):
-            print root, dirnames, filenames
             os.chown(root, uid, gid)
-            #for dirname in dirnames:
-            #    os.chown(dirname, uid, gid)
             for filename in filenames:
                 os.chown(os.path.join(root, filename), uid, gid)
     else:
