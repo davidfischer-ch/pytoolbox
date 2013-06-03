@@ -170,6 +170,30 @@ def try_makedirs(path):
         raise  # Re-raise exception if a different error occured
 
 
+def try_remove(path):
+    u"""
+    Tries to remove a file/directory (which may not exists) without throwing an exception.
+    Returns True if operation is successful, False if file/directory not found and re-raise any
+    other type of exception.
+
+    **Example usage**:
+
+    >>> open('try_remove.example', 'w').write('salut')
+    >>> try_remove('try_remove.example')
+    True
+    >>> try_remove('try_remove.example')
+    False
+    """
+    try:
+        os.remove(path)
+        return True
+    except OSError as e:
+        # File does not exist
+        if e.errno == errno.ENOENT:
+            return False
+        raise  # Re-raise exception if a different error occured
+
+
 def chown(path, user, group, recursive=False):
     u"""
     Change owner/group of a path, can be recursive. User and group can be a name or an id.
