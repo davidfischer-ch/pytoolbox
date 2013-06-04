@@ -68,7 +68,7 @@ def githash(data):
 
 # DATETIME -----------------------------------------------------------------------------------------
 
-def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
+def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     u"""
     Return the current UTC date and time.
     If format is not None, the date will be returned in a formatted string.
@@ -77,6 +77,8 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
     :type offset: datetime.timedelta
     :param format: Output date string formatting
     :type format: str
+    :param append_utc: Append ' UTC' to date string
+    :type append_utc: bool
 
     **Example usage**:
 
@@ -86,11 +88,13 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S'):
     >>> print(future - now)  # doctest: +ELLIPSIS
     2:10:00...
     >>> assert(isinstance(datetime_now(), string_types))
+    >>> assert(' UTC' not in datetime_now(append_utc=False))
+    >>> assert(' UTC' in datetime_now(append_utc=True))
     """
     now = datetime.utcnow()
     if offset:
         now += offset
-    return now.strftime(format) if format else now
+    return (now.strftime(format) + (' UTC' if append_utc else '')) if format else now
 
 
 def duration2secs(duration):
