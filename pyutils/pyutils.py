@@ -97,6 +97,10 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     return (now.strftime(format) + (' UTC' if append_utc else '')) if format else now
 
 
+def datetime2str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
+    return date_time.strftime(format) + (' UTC' if append_utc else '')
+
+
 def duration2secs(duration):
     u"""
     Returns the duration converted in seconds.
