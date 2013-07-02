@@ -11,7 +11,11 @@ This module is a Toolbox for Python scripts.
 How to install it ?
 -------------------
 
-You only need to run ``setup.py``::
+Install some packages that are not handled by pip:
+
+    sudo apt-get install git-core python-dev
+
+Then, you only need to run ``setup.py``::
 
     sudo python setup.py install
 
