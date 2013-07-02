@@ -145,6 +145,21 @@ def first_that_exist(*paths):
     return None
 
 
+def get_size(path):
+    u"""
+    Returns the size of a file or directory.
+    If given ``path`` is a directory (or symlink to a directory), then returned value is computed by
+    summing the size of all files, and that recursively.
+    """
+    if os.path.isfile(path):
+        return os.stat(path).st_size
+    size = 0
+    for root, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            size += os.stat(os.path.join(root, filename)).st_size
+    return size
+
+
 def try_makedirs(path):
     u"""
     Tries to recursive make directories (which may already exists) without throwing an exception.
@@ -166,6 +181,30 @@ def try_makedirs(path):
     except OSError as e:
         # File exists
         if e.errno == errno.EEXIST:
+            return False
+        raise  # Re-raise exception if a different error occured
+
+
+def try_remove(path):
+    u"""
+    Tries to remove a file/directory (which may not exists) without throwing an exception.
+    Returns True if operation is successful, False if file/directory not found and re-raise any
+    other type of exception.
+
+    **Example usage**:
+
+    >>> open('try_remove.example', 'w').write('salut')
+    >>> try_remove('try_remove.example')
+    True
+    >>> try_remove('try_remove.example')
+    False
+    """
+    try:
+        os.remove(path)
+        return True
+    except OSError as e:
+        # File does not exist
+        if e.errno == errno.ENOENT:
             return False
         raise  # Re-raise exception if a different error occured
 
