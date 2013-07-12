@@ -29,6 +29,7 @@ import errno, grp, hashlib, inspect, json, logging, logging.handlers, pickle, pw
     subprocess, sys, uuid
 from bson.objectid import ObjectId
 from datetime import datetime
+from mongoengine import Document
 from six import PY3, string_types
 
 if PY3:
@@ -239,7 +240,7 @@ class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
             return str(obj)
-        if hasattr(obj, 'to_mongo'):
+        if isinstance(obj, Document):
             return obj.to_mongo().to_dict()
         if hasattr(obj, '__dict__'):
             return obj.__dict__
@@ -250,7 +251,7 @@ class SmartJSONEncoderV2(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
             return str(obj)
-        if hasattr(obj, 'to_mongo'):
+        if isinstance(obj, Document):
             # FIXME a way to return MongoEngine Document user's properties too (@property)
             return obj.to_mongo().to_dict()
         attributes = {}
