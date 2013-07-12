@@ -26,7 +26,8 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import errno, grp, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, re, shlex, \
-       subprocess, sys, uuid
+    subprocess, sys, uuid
+from bson.objectid import ObjectId
 from datetime import datetime
 from six import PY3, string_types
 
@@ -37,7 +38,6 @@ else:
     from ipaddr import IPAddress as ip_address
     from mock import Mock
 
-# FIXME bson.json_util is required to import dumps, loads for applications using MongoDB !
 
 # CRYPTO -------------------------------------------------------------------------------------------
 
@@ -237,6 +237,10 @@ def chown(path, user, group, recursive=False):
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        if hasattr(obj, 'to_mongo'):
+            return obj.to_mongo().to_dict()
         if hasattr(obj, '__dict__'):
             return obj.__dict__
         return super(SmartJSONEncoderV1, self).default(obj)
@@ -244,6 +248,11 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 
 class SmartJSONEncoderV2(json.JSONEncoder):
     def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        if hasattr(obj, 'to_mongo'):
+            # FIXME a way to return MongoEngine Document user's properties too (@property)
+            return obj.to_mongo().to_dict()
         attributes = {}
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith('__'):
