@@ -226,26 +226,77 @@ def try_symlink(source, link_name):
 
     **Example usage**:
 
+    >>> a = try_remove('/tmp/does_not_exist')
+    >>> a = try_remove('/tmp/does_not_exist_2')
+    >>> a = try_remove('/tmp/link_etc')
+    >>> a = try_remove(os.path.expanduser('~/broken_link'))
+
+    Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
+
     >>> import shutil
     >>> try_symlink('/home', '/etc')
     Traceback (most recent call last):
         ...
     OSError: [Errno 17] File exists
+
+    Symlinking /etc to itself only returns that nothing changed:
+
     >>> try_symlink('/etc', '/etc')
     False
-    >>> try_symlink('/etc', '/tmp/yo_sym')
+
+    Creating a symlink to an existing file has the following behaviour:
+
+    >>> try_symlink('/etc', '/tmp/link_etc')
     True
-    >>> try_symlink('/etc', '/tmp/yo_sym')
+    >>> try_symlink('/etc', '/tmp/link_etc')
     False
-    >>> os.remove('/tmp/yo_sym')
+    >>> try_symlink('/etc/does_not_exist', '/tmp/link_etc')
+    Traceback (most recent call last):
+        ...
+    OSError: [Errno 17] File exists
+    >>> try_symlink('/home', '/tmp/link_etc')
+    Traceback (most recent call last):
+        ...
+    OSError: [Errno 17] File exists
+
+    Creating a symlink to a non existing has the following behaviour:
+
+    >>> try_symlink('~/does_not_exist', '~/broken_link')
+    True
+    >>> try_symlink('~/does_not_exist', '~/broken_link')
+    False
+    >>> try_symlink('~/does_not_exist_2', '~/broken_link')
+    Traceback (most recent call last):
+        ...
+    OSError: [Errno 17] File exists
+    >>> try_symlink('/home', '~/broken_link')
+    Traceback (most recent call last):
+        ...
+    OSError: [Errno 17] File exists
+
+    >>> os.remove('/tmp/link_etc')
+    >>> os.remove(os.path.expanduser('~/broken_link'))
     """
     try:
+        source = os.path.expanduser(source)
+        link_name = os.path.expanduser(link_name)
         os.symlink(source, link_name)
         return True
-    except OSError as e:
+    except OSError as e1:
         # File exists
-        if e.errno == errno.EEXIST and os.path.samefile(source, link_name):
-            return False
+        if e1.errno == errno.EEXIST:
+            try:
+                if os.path.samefile(source, link_name):
+                    return False
+            except OSError as e2:
+                # Handle broken symlink that point to same target
+                target = os.path.expanduser(os.readlink(link_name))
+                if e2.errno == errno.ENOENT:
+                    if target == source:
+                        return False
+                    else:
+                        raise OSError(errno.EEXIST, 'File exists')
+                raise
         raise  # Re-raise exception if a different error occurred
 
 
