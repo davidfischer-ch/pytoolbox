@@ -27,7 +27,7 @@
 
 import errno, grp, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, re, shlex, \
     subprocess, sys, uuid
-from bson.objectid import ObjectId
+from bson.objectid import InvalidId, ObjectId
 from datetime import datetime
 from mongoengine import Document
 from six import PY3, string_types
@@ -798,17 +798,33 @@ def valid_secret(secret, none_allowed):
         return False
 
 
-def valid_uuid(id, none_allowed):
+def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     u"""
-    Returns True if ``id`` is a valid UUID.
+    Returns True if ``id`` is a valid UUID / ObjectId.
 
     **Example usage**:
 
-    >>> valid_uuid('gaga-gogo-gaga-gogo', False)
+    >>> valid_uuid(None)
     False
-    >>> valid_uuid(None, True)
+    >>> valid_uuid(None, none_allowed=True)
     True
-    >>> valid_uuid(uuid.uuid4(), False)
+    >>> valid_uuid('gaga-gogo-gaga-gogo')
+    False
+    >>> valid_uuid('gaga-gogo-gaga-gogo', objectid_allowed=True)
+    False
+    >>> valid_uuid(uuid.uuid4(), none_allowed=False)
+    True
+    >>> valid_uuid(uuid.uuid4().hex, none_allowed=False)
+    True
+    >>> valid_uuid(str(uuid.uuid4().hex), none_allowed=False)
+    True
+    >>> valid_uuid(ObjectId())
+    False
+    >>> valid_uuid(ObjectId(), objectid_allowed=True)
+    True
+    >>> valid_uuid(ObjectId().binary, objectid_allowed=True)
+    True
+    >>> valid_uuid(str(ObjectId().binary), objectid_allowed=True)
     True
     """
     if id is None and none_allowed:
@@ -816,7 +832,12 @@ def valid_uuid(id, none_allowed):
     try:
         uuid.UUID('{' + str(id) + '}')
     except ValueError:
-        return False
+        if not objectid_allowed:
+            return False
+        try:
+            ObjectId(str(id))
+        except InvalidId:
+            return False
     return True
 
 
