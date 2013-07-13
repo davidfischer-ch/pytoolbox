@@ -191,7 +191,7 @@ def try_makedirs(path):
         # File exists
         if e.errno == errno.EEXIST:
             return False
-        raise  # Re-raise exception if a different error occured
+        raise  # Re-raise exception if a different error occurred
 
 
 def try_remove(path):
@@ -215,7 +215,38 @@ def try_remove(path):
         # File does not exist
         if e.errno == errno.ENOENT:
             return False
-        raise  # Re-raise exception if a different error occured
+        raise  # Re-raise exception if a different error occurred
+
+
+def try_symlink(source, link_name):
+    u"""
+    Tries to symlink a file/directory (which may already exists) without throwing an exception.
+    Returns True if operation is successful, False if found & target is ``link_name`` and re-raise
+    any other type of exception.
+
+    **Example usage**:
+
+    >>> import shutil
+    >>> try_symlink('/home', '/etc')
+    Traceback (most recent call last):
+        ...
+    OSError: [Errno 17] File exists
+    >>> try_symlink('/etc', '/etc')
+    False
+    >>> try_symlink('/etc', '/tmp/yo_sym')
+    True
+    >>> try_symlink('/etc', '/tmp/yo_sym')
+    False
+    >>> os.remove('/tmp/yo_sym')
+    """
+    try:
+        os.symlink(source, link_name)
+        return True
+    except OSError as e:
+        # File exists
+        if e.errno == errno.EEXIST and os.path.samefile(source, link_name):
+            return False
+        raise  # Re-raise exception if a different error occurred
 
 
 def chown(path, user, group, recursive=False):
