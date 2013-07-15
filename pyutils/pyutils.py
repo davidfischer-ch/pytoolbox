@@ -25,8 +25,8 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, grp, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, re, shlex, \
-    subprocess, sys, uuid
+import errno, fcntl, grp, hashlib, inspect, json, logging, logging.handlers, pickle, pwd, os, \
+    re, shlex, subprocess, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from datetime import datetime
 from mongoengine import Document
@@ -657,6 +657,27 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
             log(result)
         raise subprocess.CalledProcessError(process.returncode, command, stderr)
     return result
+
+
+# http://stackoverflow.com/a/7730201/190597
+def make_async(fd):
+    u'''
+    Add the O_NONBLOCK flag to a file descriptor.
+    '''
+    fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
+
+
+# http://stackoverflow.com/a/7730201/190597
+def read_async(fd):
+    u'''
+    Read some data from a file descriptor, ignoring EAGAIN errors.
+    '''
+    try:
+        return fd.read()
+    except IOError as e:
+        if e.errno == errno.EAGAIN:
+            return ''
+        raise
 
 
 # TEST / MOCK --------------------------------------------------------------------------------------
