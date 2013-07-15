@@ -45,6 +45,24 @@ def get_media_duration(filename):
 
 
 def get_media_tracks(filename):
+    u"""
+    **Example usage**:
+
+    >>> from pyutils.ffmpeg import get_media_tracks
+    >>> pprint(get_media_tracks('test.mp4')
+    {'audio': {'0.1': {'bit_depth': '16',
+                       'bitrate': '155 kb/s',
+                       'channels': 'stereo',
+                       'codec': 'aac',
+                       'sample_rate': '44100'}},
+     'duration': '00:02:44.88',
+     'video': {'0.0': {'bitrate': '2504 kb/s',
+                       'codec': 'h264 (High)',
+                       'colorimetry': 'yuv420p',
+                       'estimated_frames': 4941,
+                       'framerate': '29.97',
+                       'size': '1280x720 [PAR 1:1 DAR 16:9]'}}}
+    """
     duration = get_media_duration(filename)
     duration_secs = duration2secs(duration)
     cmd = 'ffmpeg -i "%s"' % filename
