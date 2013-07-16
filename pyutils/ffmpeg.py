@@ -37,24 +37,31 @@ VIDEO_TRACKS_REGEX = re.compile(
     r'Stream #(?P<track>\d+.\d+)\S+ Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
     r'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s),\s+(?P<framerate>\S+)\s+fps,')
 
-DURATION_REGEX = re.compile(r'PT(?P<days>\d+)H(?P<hours>\d+)M(?P<minutes>[^S]+)S')
+DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+
+MPD_TEST = """<?xml version="1.0"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
+</MPD>
+"""
 
 
 def get_media_duration(filename):
     u"""
     Returns the duration of a media as a string.
 
-    
     If input ``filename`` is a MPEG-DASH MPD, then duration will be parser from value of key
     *mediaPresentationDuration*. For any other type of file, this is a *ffmpeg* subprocess
     that detect duration of the media.
 
     **Example usage**:
 
+    >>> import os
     >>> print(get_media_duration('ffmpeg.py'))
     None
-    >>> print(get_media_duration('test.mpd'))
-    00:01:38
+    >>> open('/tmp/test.mpd', 'w').write(MPD_TEST)
+    >>> print(get_media_duration('/tmp/test.mpd'))
+    00:06:07.83
+    >>> os.remove('/tmp/test.mpd')
 
     >> print(get_media_duration('test.mp4'))
     01:45:23.62
@@ -62,19 +69,16 @@ def get_media_duration(filename):
     if os.path.splitext(filename)[1] == '.mpd':
         mpd = minidom.parse(filename)
         if mpd.firstChild.nodeName == 'MPD':
-            x = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
-            if x is not None:
-                hours = 24 * int(x.group('days')) + int(x.group('hours'))
-                min_seconds = float(x.group('minutes'))
-                minutes, seconds = int(min_seconds), int(60*(min_seconds - int(min_seconds)))
-                return '%02d:%02d:%02d' % (hours, minutes, seconds)
-        else:
-            return None
+            match = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
+            if match is not None:
+                return '%02d:%02d:%05.2f' % (int(match.group('hours')), int(match.group('minutes')),
+                                             float(match.group('seconds')))
     else:
         cmd = 'ffmpeg -i "%s"' % filename
         pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
         duration = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
         return None if not duration else duration.group('duration')
+    return None
 
 
 def get_media_tracks(filename):

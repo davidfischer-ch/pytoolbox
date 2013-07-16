@@ -8,4 +8,6 @@ install:
   - pip install six
   - python setup.py develop
 script:
+  - python pyutils/ffmpeg.py
+  - python pyutils/filesystem.py
   - python pyutils/pyutils.py --travis
