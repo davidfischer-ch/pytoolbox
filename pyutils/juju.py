@@ -237,4 +237,3 @@ def add_relation(environment, service1, service2, relation1=None, relation2=None
     member1 = service1 if relation1 is None else '%s:%s' % (service1, relation1)
     member2 = service2 if relation2 is None else '%s:%s' % (service2, relation2)
     return juju_do('add-relation', environment, [member1, member2])
-

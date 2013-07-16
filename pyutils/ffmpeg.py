@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import fcntl, os, re, select, shlex, subprocess, time
+from xml.dom import minidom
 from pyutils import duration2secs
 
 AUDIO_TRACKS_REGEX = re.compile(
@@ -36,20 +37,52 @@ VIDEO_TRACKS_REGEX = re.compile(
     r'Stream #(?P<track>\d+.\d+)\S+ Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
     r'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s),\s+(?P<framerate>\S+)\s+fps,')
 
+DURATION_REGEX = re.compile(r'PT(?P<days>\d+)H(?P<hours>\d+)M(?P<minutes>[^S]+)S')
+
 
 def get_media_duration(filename):
-    cmd = 'ffmpeg -i "%s"' % filename
-    pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
-    duration = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
-    return None if not duration else duration.group('duration')
+    u"""
+    Returns the duration of a media as a string.
+
+    
+    If input ``filename`` is a MPEG-DASH MPD, then duration will be parser from value of key
+    *mediaPresentationDuration*. For any other type of file, this is a *ffmpeg* subprocess
+    that detect duration of the media.
+
+    **Example usage**:
+
+    >>> print(get_media_duration('ffmpeg.py'))
+    None
+    >>> print(get_media_duration('test.mpd'))
+    00:01:38
+
+    >> print(get_media_duration('test.mp4'))
+    01:45:23.62
+    """
+    if os.path.splitext(filename)[1] == '.mpd':
+        mpd = minidom.parse(filename)
+        if mpd.firstChild.nodeName == 'MPD':
+            x = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
+            if x is not None:
+                hours = 24 * int(x.group('days')) + int(x.group('hours'))
+                min_seconds = float(x.group('minutes'))
+                minutes, seconds = int(min_seconds), int(60*(min_seconds - int(min_seconds)))
+                return '%02d:%02d:%02d' % (hours, minutes, seconds)
+        else:
+            return None
+    else:
+        cmd = 'ffmpeg -i "%s"' % filename
+        pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
+        duration = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
+        return None if not duration else duration.group('duration')
 
 
 def get_media_tracks(filename):
     u"""
     **Example usage**:
 
-    >>> from pyutils.ffmpeg import get_media_tracks
-    >>> pprint(get_media_tracks('test.mp4')
+    >> from pyutils.ffmpeg import get_media_tracks
+    >> pprint(get_media_tracks('test.mp4')
     {'audio': {'0.1': {'bit_depth': '16',
                        'bitrate': '155 kb/s',
                        'channels': 'stereo',
@@ -115,3 +148,11 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
 #if __name__ == '__main__':
 #    print FFmpeg.duration(movie)
 #    FFmpeg.encode(movie, movie_out, '-acodec copy -vcodec copy', True, test_callback)
+
+# Main ---------------------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    print('Test ffmpeg with doctest')
+    import doctest
+    assert(doctest.testmod(verbose=True).failed == 0)
+    print('OK')
