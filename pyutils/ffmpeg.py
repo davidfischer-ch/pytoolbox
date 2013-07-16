@@ -97,6 +97,8 @@ def get_media_tracks(filename):
                        'size': '1280x720 [PAR 1:1 DAR 16:9]'}}}
     """
     duration = get_media_duration(filename)
+    if not duration:
+        return None
     duration_secs = duration2secs(duration)
     cmd = 'ffmpeg -i "%s"' % filename
     pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
