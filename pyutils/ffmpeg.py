@@ -55,8 +55,7 @@ def get_media_duration(filename):
 
     **Example usage**:
 
-    >>> import os
-    >>> print(get_media_duration(os.path.abspath(__file__)))
+    >>> print(get_media_duration('/tmp'))
     None
     >>> open('/tmp/test.mpd', 'w').write(MPD_TEST)
     >>> print(get_media_duration('/tmp/test.mpd'))
