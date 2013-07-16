@@ -25,8 +25,9 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, grp, pwd, os
+import errno, grp, pwd, os, time
 from six import string_types
+from pyutils import datetime_now
 
 
 def first_that_exist(*paths):
@@ -59,6 +60,56 @@ def get_size(path):
         for filename in filenames:
             size += os.stat(os.path.join(root, filename)).st_size
     return size
+
+
+def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, time_delta=1):
+
+    start_date, start_time = datetime_now(), time.time()
+    src_size, dst_size = get_size(source_path), 0
+
+    # Recursive copy of a directory of files
+    for src_root, dirnames, filenames in os.walk(source_path):
+        for filename in filenames:
+            dst_root = src_root.replace(source_path, destination_path)
+            src_path = os.path.join(src_root, filename)
+            dst_path = os.path.join(dst_root, filename)
+
+            # Initialize block-based copy
+            os.makedirs(os.path.dirname(dst_path))
+            block_size = 1024 * 1024
+            src_file = open(src_path, 'rb')
+            dst_file = open(dst_path, 'wb')
+
+            # Block-based copy loop
+            block_pos = prev_ratio = prev_time = 0
+            while True:
+                block = src_file.read(block_size)
+                try:
+                    ratio = float(dst_size) / src_size
+                    ratio = 0.0 if ratio < 0.0 else 1.0 if ratio > 1.0 else ratio
+                except ZeroDivisionError:
+                    ratio = 1.0
+                elapsed_time = time.time() - start_time
+                # Update status of job only if delta time or delta ratio is sufficient
+                if ratio - prev_ratio > ratio_delta and elapsed_time - prev_time > time_delta:
+                    prev_ratio = ratio
+                    prev_time = elapsed_time
+                    eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
+                    callback(start_date, elapsed_time, eta_time, src_size, dst_size, ratio)
+                block_length = len(block)
+                block_pos += block_length
+                dst_size += block_length
+                if not block:
+                    break  # End of input reached
+                dst_file.write(block)
+            # FIXME maybe a finally block for that
+            src_file.close()
+            dst_file.close()
+
+    # Output directory sanity check
+    dst_size = get_size(destination_path)
+    if dst_size != src_size:
+        raise IOError('Destination size does not match source (%s vs %s)' % (src_size, dst_size))
 
 
 def try_makedirs(path):
