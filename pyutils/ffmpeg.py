@@ -55,8 +55,10 @@ def get_media_duration(filename):
 
     **Example usage**:
 
-    >>> print(get_media_duration('/tmp'))
+    >>> open('/tmp/test.txt', 'w').write('Hey, I am not a MPD nor a media')
+    >>> print(get_media_duration('/tmp/test.txt'))
     None
+    >>> os.remove('/tmp/test.txt')
     >>> open('/tmp/test.mpd', 'w').write(MPD_TEST)
     >>> print(get_media_duration('/tmp/test.mpd'))
     00:06:07.83
@@ -75,8 +77,9 @@ def get_media_duration(filename):
     else:
         cmd = 'ffmpeg -i "%s"' % filename
         pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
-        duration = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
-        return None if not duration else duration.group('duration')
+        duration = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read()).group('duration')
+        # ffmpeg may return this so strange value, 00:00:00.04, let it being None
+        return duration if duration and duration != '00:00:00.04' else None
     return None
 
 
