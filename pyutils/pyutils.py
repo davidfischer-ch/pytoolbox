@@ -29,7 +29,6 @@ import errno, fcntl, hashlib, inspect, json, logging, logging.handlers, pickle, 
     subprocess, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from datetime import datetime
-from mongoengine import Document
 from six import PY3, string_types
 
 if PY3:
@@ -142,8 +141,6 @@ class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
             return str(obj)
-        if isinstance(obj, Document):
-            return obj.to_mongo().to_dict()
         if hasattr(obj, '__dict__'):
             return obj.__dict__
         return super(SmartJSONEncoderV1, self).default(obj)
@@ -153,9 +150,6 @@ class SmartJSONEncoderV2(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
             return str(obj)
-        if isinstance(obj, Document):
-            # FIXME a way to return MongoEngine Document user's properties too (@property)
-            return obj.to_mongo().to_dict()
         attributes = {}
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith('__'):
