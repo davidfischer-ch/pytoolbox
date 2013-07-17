@@ -25,17 +25,27 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-from setuptools import setup, find_packages
+from ming.odm.declarative import MappedClass
 
-setup(name='pyutils',
-      version='1.0',
-      author='David Fischer',
-      author_email='david.fischer.ch@gmail.com',
-      description='Some Python utility functions',
-      #include_package_data=True,
-      install_requires=['argparse', 'hashlib', 'ipaddr', 'ming', 'mock', 'mongoengine', 'six'],
-      license='GPLv3',
-      packages=find_packages(),
-      tests_require=['nose'],
-      url='https://github.com/davidfischer-ch/pyutils')
 
+class MappedClassWithDict(MappedClass):
+    u"""
+    Implement a ``MappedClass`` with a method called ``to_dict`` that returns a ``dict`` containing
+    fields and properties specified in ``DICT_FIELDS`` and ``DICT_PROPERTIES``.
+    """
+    DICT_FIELDS = DICT_PROPERTIES = None
+
+    def to_dict(self, include_properties=False, load_fields=False):
+        user_dict = {}
+        if self.DICT_FIELDS is not None:
+            for field in self.DICT_FIELDS:
+                if load_fields and len(field) > 3 and '_id' in field:
+                    field = field.replace('_id', '')
+                value = getattr(self, field)
+                if isinstance(value, MappedClassWithDict):
+                    value = value.to_dict(include_properties, load_fields)
+                user_dict[field] = value
+        if include_properties and self.DICT_PROPERTIES is not None:
+            for p in self.DICT_PROPERTIES:
+                user_dict[p] = getattr(self, p)
+        return user_dict

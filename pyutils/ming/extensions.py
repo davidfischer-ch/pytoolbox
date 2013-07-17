@@ -25,17 +25,16 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-from setuptools import setup, find_packages
+#from ming.odm.mapper import MapperExtension
 
-setup(name='pyutils',
-      version='1.0',
-      author='David Fischer',
-      author_email='david.fischer.ch@gmail.com',
-      description='Some Python utility functions',
-      #include_package_data=True,
-      install_requires=['argparse', 'hashlib', 'ipaddr', 'ming', 'mock', 'mongoengine', 'six'],
-      license='GPLv3',
-      packages=find_packages(),
-      tests_require=['nose'],
-      url='https://github.com/davidfischer-ch/pyutils')
+# class UserExtension(MapperExtension):
+
+#     def E(self, user, text):
+#         raise ValueError('%s %s' % (user.__class__.__name__, text))
+
+#     def before_insert(self, user, state, sess):
+#         if not valid_mail(user.mail):
+#             self.E(user, 'mail is not a valid email address')
+#         if not user.is_secret_hashed and not valid_secret(user.secret, True):
+#             self.E(user, 'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
 

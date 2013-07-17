@@ -25,17 +25,9 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-from setuptools import setup, find_packages
+from ming import create_datastore, Session
+from ming.odm import ThreadLocalODMSession
 
-setup(name='pyutils',
-      version='1.0',
-      author='David Fischer',
-      author_email='david.fischer.ch@gmail.com',
-      description='Some Python utility functions',
-      #include_package_data=True,
-      install_requires=['argparse', 'hashlib', 'ipaddr', 'ming', 'mock', 'mongoengine', 'six'],
-      license='GPLv3',
-      packages=find_packages(),
-      tests_require=['nose'],
-      url='https://github.com/davidfischer-ch/pyutils')
-
+bind = create_datastore('mim://')
+doc_session = Session(bind)
+odm_session = ThreadLocalODMSession(doc_session=doc_session)
