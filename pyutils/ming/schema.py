@@ -26,18 +26,23 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import uuid
-from ming.schema import String, Invalid
+from ming.schema import FancySchemaItem, String, Invalid
 from pyutils.pyutils import valid_filename, valid_mail, valid_secret, valid_uuid
 
 
 class Filename(String):
 
+    def __init__(self, url_friendly, **kwargs):
+        self.url_friendly = url_friendly
+        String.__init__(self, **kwargs)
+
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid('mail is not a %s' % self.type, value, None)
-        value = value.replace(' ', '_')
+            raise Invalid('%s is not a %s' % (value, self.type), value, None)
+        if self.url_friendly:
+            value = value.replace(' ', '_')
         if not valid_filename(value):
-            raise Invalid('filename is not a valid file-name', value, None)
+            raise Invalid('%s is not a valid file-name' % value, value, None)
         return value
 
 
@@ -45,21 +50,24 @@ class Mail(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid('mail is not a %s' % self.type, value, None)
+            raise Invalid('%s is not a %s' % (value, self.type), value, None)
         if not valid_mail(value):
-            raise Invalid('mail is not a valid email address', value, None)
+            raise Invalid('%s is not a valid email address' % value, value, None)
         return value
 
 
-class MediaStatus(String):
+class OneOf(FancySchemaItem):
 
-    STATUS = ('PENDING', 'READY', 'PUBLISHED', 'DELETED')
+    def __init__(self, type, *options, **kwargs):
+        self.type = type
+        self.options = options
+        FancySchemaItem.__init__(self, **kwargs)
 
-    def _validate(self, value, **kwargs):
+    def _validate(self, value, **kw):
         if not isinstance(value, self.type):
-            raise Invalid('status is not a %s' % self.type, value, None)
-        if value not in MediaStatus.STATUS:
-            raise Invalid('status is not in %s' % (MediaStatus.STATUS,), value, None)
+            raise Invalid('%s is not a %s' % (value, self.type), value, None)
+        if value not in self.options:
+            raise Invalid('%s is not in %r' % (value, (self.options,)), value, None)
         return value
 
 
@@ -71,9 +79,10 @@ class Secret(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid('secret is not a %s' % self.type, value, None)
+            raise Invalid('%s is not a %s' % (value, self.type), value, None)
         if not Secret.is_hashed(value) and not valid_secret(value, True):
-            raise Invalid('secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)', value, None)
+            raise Invalid('%s is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)' %
+                          value, value, None)
         return value
 
 
@@ -85,9 +94,9 @@ class UniqueId(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid('_id is not a %s' % self.type, value, None)
+            raise Invalid('%s is not a %s' % (value, self.type), value, None)
         if not valid_uuid(value, objectid_allowed=False, none_allowed=False):
-            raise Invalid('_id is not a valid UUID string', value, None)
+            raise Invalid('%s is not a valid UUID string' % value, value, None)
         return value
 
 
@@ -95,7 +104,7 @@ class Uri(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid('uri is not a %s' % self.type, value, None)
+            raise Invalid('%s is not a %s' % (value, self.type), value, None)
         if False:  # FIXME TODO
-            raise Invalid('uri is not a valid URI', value, None)
+            raise Invalid('%s is not a valid URI' % value, value, None)
         return value
