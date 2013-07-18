@@ -158,6 +158,41 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
+class DBModel(object):
+    u"""
+    Implement an ``object`` with a method called ``to_dict`` that returns a ``dict`` containing
+    fields and properties specified in ``DICT_FIELDS`` and ``DICT_PROPERTIES``.
+
+    It is useful to inherit your *ming* or *sqlalchemy* models from the ``DBModel``class to control
+    which fields and properties you want to include into the ``dict`` you may JSONify.
+    """
+    DICT_FIELDS = DICT_PROPERTIES = None
+
+    def to_dict(self, include_properties=False, load_fields=False):
+        u"""
+        Returns a ``dict`` containing fields and properties of the object.
+        This method handles recursion (e.g. a field may be a DBModel itself ...).
+
+        :param include_properties: Set to True to include properties listed into DICT_PROPERTIES.
+        :type include_properties: bool
+        :param load_fields: Set to True to load value of any foreign model.
+        :type load_fields: bool
+        """
+        user_dict = {}
+        if self.DICT_FIELDS is not None:
+            for field in self.DICT_FIELDS:
+                if load_fields and len(field) > 3 and '_id' in field:
+                    field = field.replace('_id', '')
+                value = getattr(self, field)
+                if isinstance(value, DBModel):
+                    value = value.to_dict(include_properties, load_fields)
+                user_dict[field] = value
+        if include_properties and self.DICT_PROPERTIES is not None:
+            for p in self.DICT_PROPERTIES:
+                user_dict[p] = getattr(self, p)
+        return user_dict
+
+
 def json2object(json_string, something=None):
     u"""
     Deserialize the JSON string ``json_string`` to attributes of ``something``.
