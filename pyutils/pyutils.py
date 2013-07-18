@@ -573,19 +573,19 @@ def valid_ip(ip):
         return False
 
 
-def valid_mail(mail):
+def valid_email(email):
     u"""
-    Returns True if ``mail`` is a valid e-mail address.
+    Returns True if ``email`` is a valid e-mail address.
 
     **Example usage**:
 
-    >>> valid_mail('Tabby@croquetes')
+    >>> valid_email('Tabby@croquetes')
     False
-    >>> valid_mail('Tabby@bernex.ch')
+    >>> valid_email('Tabby@bernex.ch')
     True
     """
     try:
-        return True if re.match(r'[^@]+@[^@]+\.[^@]+', mail) else False
+        return True if re.match(r'[^@]+@[^@]+\.[^@]+', email) else False
     except:
         return False
 

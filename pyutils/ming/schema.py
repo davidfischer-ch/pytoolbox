@@ -27,7 +27,7 @@
 
 import uuid
 from ming.schema import FancySchemaItem, String, Invalid
-from pyutils.pyutils import valid_filename, valid_mail, valid_secret, valid_uuid
+from pyutils.pyutils import valid_filename, valid_email, valid_secret, valid_uuid
 
 
 class Filename(String):
@@ -46,13 +46,13 @@ class Filename(String):
         return value
 
 
-class Mail(String):
+class Email(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
             raise Invalid('%s is not a %s' % (value, self.type), value, None)
-        if not valid_mail(value):
-            raise Invalid('%s is not a valid email address' % value, value, None)
+        if not valid_email(value):
+            raise Invalid('%s is not a valid e-mail address' % value, value, None)
         return value
 
 

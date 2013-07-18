@@ -33,8 +33,8 @@
 #         raise ValueError('%s %s' % (user.__class__.__name__, text))
 
 #     def before_insert(self, user, state, sess):
-#         if not valid_mail(user.mail):
-#             self.E(user, 'mail is not a valid email address')
+#         if not valid_email(user.email):
+#             self.E(user, 'email is not a valid e-mail address')
 #         if not user.is_secret_hashed and not valid_secret(user.secret, True):
 #             self.E(user, 'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
 
