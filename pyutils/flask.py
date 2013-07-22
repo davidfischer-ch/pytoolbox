@@ -68,8 +68,9 @@ def map_exceptions(e):
     abort(500, '%s %s %s' % (e.__class__.__name__, repr(e), str(e)))
 
 
-def json_response(status, value=None):
-    response = Response(response=object2json({'status': status, 'value': value}, False),
-                        status=status, mimetype="application/json")
+def json_response(status, value=None, include_properties=False):
+    response = Response(
+        response=object2json({'status': status, 'value': value}, include_properties),
+        status=status, mimetype="application/json")
     response.status_code = status
     return response
