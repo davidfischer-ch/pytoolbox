@@ -26,9 +26,9 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 from bson.objectid import ObjectId
-from flask import abort, Response
+from pyutils import object2json, import_non_local, valid_uuid
+import_non_local(flask)
 from werkzeug.exceptions import HTTPException
-from pyutils import object2json, valid_uuid
 
 
 def check_id(id):
@@ -56,20 +56,20 @@ def map_exceptions(e):
     if isinstance(e, HTTPException):
         raise
     if isinstance(e, TypeError):
-        abort(400, str(e))
+        flask.abort(400, str(e))
     elif isinstance(e, KeyError):
-        abort(400, 'Key %s not found.' % e)
+        flask.abort(400, 'Key %s not found.' % e)
     elif isinstance(e, IndexError):
-        abort(404, str(e))
+        flask.abort(404, str(e))
     elif isinstance(e, ValueError):
-        abort(415, str(e))
+        flask.abort(415, str(e))
     elif isinstance(e, NotImplementedError):
-        abort(501, str(e))
-    abort(500, '%s %s %s' % (e.__class__.__name__, repr(e), str(e)))
+        flask.abort(501, str(e))
+    flask.abort(500, '%s %s %s' % (e.__class__.__name__, repr(e), str(e)))
 
 
 def json_response(status, value=None, include_properties=False):
-    response = Response(
+    response = flask.Response(
         response=object2json({'status': status, 'value': value}, include_properties),
         status=status, mimetype="application/json")
     response.status_code = status
