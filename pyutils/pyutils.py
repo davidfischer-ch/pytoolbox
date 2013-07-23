@@ -39,6 +39,30 @@ else:
     from mock import Mock
 
 
+# PYTHON TIPS --------------------------------------------------------------------------------------
+
+def import_non_local(name, custom_name=None):
+    u"""
+    Import a module of name ``name``. This method temporarily remove local path from `sys.path` to
+    avoid importing any local module.
+    """
+    import imp, sys
+ 
+    custom_name = custom_name or name
+ 
+    f, pathname, desc = imp.find_module(name, sys.path[1:])
+    first = sys.path[0]
+    sys.path = sys.path[1:]
+    bkp = sys.modules[name]
+    del sys.modules[name]
+    module = imp.load_module(custom_name, f, pathname, desc)
+    sys.path = [first] + sys.path
+    sys.modules[name] = bkp
+    #f.close()
+ 
+    return module
+
+
 # CRYPTO -------------------------------------------------------------------------------------------
 
 def githash(data):
