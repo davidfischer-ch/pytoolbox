@@ -77,7 +77,10 @@ def get_media_duration(filename):
     else:
         cmd = 'ffmpeg -i "%s"' % filename
         pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
-        duration = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read()).group('duration')
+        match = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
+        if not match:
+            return None
+        duration = match.group('duration')
         # ffmpeg may return this so strange value, 00:00:00.04, let it being None
         return duration if duration and duration != '00:00:00.04' else None
     return None
