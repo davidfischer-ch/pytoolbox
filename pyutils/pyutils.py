@@ -45,11 +45,15 @@ def import_non_local(name, custom_name=None):
     u"""
     Import a module of name ``name``. This method temporarily remove local path from `sys.path` to
     avoid importing any local module.
+
+    .. warning::
+
+        Do not use it for your own purposes until I remove this warning.
     """
-    import imp, sys
- 
+    import imp
+
     custom_name = custom_name or name
- 
+
     f, pathname, desc = imp.find_module(name, sys.path[1:])
     first = sys.path[0]
     sys.path = sys.path[1:]
@@ -59,7 +63,7 @@ def import_non_local(name, custom_name=None):
     sys.path = [first] + sys.path
     sys.modules[name] = bkp
     #f.close()
- 
+
     return module
 
 
@@ -88,6 +92,27 @@ def githash(data):
     s.update("blob %u\0" % len(data))
     s.update(data)
     return s.hexdigest()
+
+
+# CSV ----------------------------------------------------------------------------------------------
+
+def unicode_csv_reader(filename, delimiter=';', quotechar='"'):
+    u"""
+    Yield the content of a CSV file.
+
+    .. warning::
+
+        Do not use it for your own purposes until I remove this warning.
+    """
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            line = line.strip()
+            yield [cell for cell in line.split(delimiter)]
+    #import csv
+    #reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
+    #for row in reader:
+    #    yield [cell for cell in row]
+        #yield [unicode(cell, 'utf-8').encode('utf-8') for cell in row]
 
 
 # DATETIME -----------------------------------------------------------------------------------------
