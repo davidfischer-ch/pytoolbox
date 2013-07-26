@@ -41,6 +41,10 @@ def check_id(id):
 def get_request_json(request, required_keys=[]):
     try:
         data = request.json
+        if data is None:
+            data = {}
+            for x in request.form:
+                data[x] = request.form.get(x)
     except:
         raise ValueError('Requires valid JSON content-type.')
     for key in required_keys:
