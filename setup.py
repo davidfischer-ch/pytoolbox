@@ -25,17 +25,52 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-from setuptools import setup, find_packages
+from setuptools import setup, sys
+
+major, minor = sys.version_info[:2]
+kwargs = {}
+if major >= 3:
+    print('Converting code to Python 3 helped by 2to3')
+    kwargs['use_2to3'] = True
+
+classifiers = """
+Intended Audience :: Developers
+License :: OSI Approved :: GNU GPLv3
+Development Status :: 4 - Beta
+Natural Language :: English
+Programming Language :: Python :: 2
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
+Operating System :: MacOS :: MacOS X
+Operating System :: Unix
+Programming Language :: Python
+Programming Language :: Python :: Implementation :: CPython
+"""
+
+not_yet_tested = """
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.2
+Programming Language :: Python :: 3.3
+"""
 
 setup(name='pyutils',
-      version='1.0',
+      version='2.0-beta',
+      packages=['pyutils'],
+      description='Some Python utility functions',
+      long_description=open('README.rst').read(),
       author='David Fischer',
       author_email='david.fischer.ch@gmail.com',
-      description='Some Python utility functions',
-      #include_package_data=True,
-      install_requires=['argparse', 'hashlib', 'ipaddr', 'ming', 'mock', 'six'],
-      license='GPLv3',
-      packages=find_packages(),
-      tests_require=['nose'],
-      url='https://github.com/davidfischer-ch/pyutils')
-
+      url='https://github.com/davidfischer-ch/pyutils',
+      license='GNU GPLv3',
+      classifiers=filter(None, classifiers.split('\n')),
+      keywords=['ffmpeg', 'json', 'juju', 'mock', 'rsync', 'screen', 'subprocess'],
+      install_requires=[
+            'argparse',  # FIXME > 1.2
+            'hashlib',   # ...
+            'ipaddr',
+            'ming',
+            'mock',
+            'six'],
+      setup_requires=['coverage', 'nose'],
+      tests_require=['coverage', 'nose'],
+      test_suite='nose.main', **kwargs)

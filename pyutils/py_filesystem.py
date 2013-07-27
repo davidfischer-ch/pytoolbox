@@ -27,7 +27,7 @@
 
 import errno, grp, pwd, os, shutil, time
 from six import string_types
-from pyutils import datetime_now
+from py_datetime import datetime_now
 
 
 def first_that_exist(*paths):
@@ -274,11 +274,3 @@ def chown(path, user, group, recursive=False):
                 os.chown(os.path.join(root, filename), uid, gid)
     else:
         os.chown(path, uid, gid)
-
-# Main ---------------------------------------------------------------------------------------------
-
-if __name__ == '__main__':
-    print('Test filesystem with doctest')
-    import doctest
-    assert(doctest.testmod(verbose=True).failed == 0)
-    print('OK')

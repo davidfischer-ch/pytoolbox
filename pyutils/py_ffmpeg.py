@@ -27,7 +27,8 @@
 
 import fcntl, os, re, select, shlex, subprocess, time
 from xml.dom import minidom
-from pyutils import duration2secs
+from py_datetime import duration2secs
+
 
 AUDIO_TRACKS_REGEX = re.compile(
     r'Stream #(?P<track>\d+.\d+)\S+ Audio:\s+(?P<codec>[^,]+),\s+(?P<sample_rate>\d+) Hz,\s+'
@@ -159,11 +160,3 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
 #if __name__ == '__main__':
 #    print FFmpeg.duration(movie)
 #    FFmpeg.encode(movie, movie_out, '-acodec copy -vcodec copy', True, test_callback)
-
-# Main ---------------------------------------------------------------------------------------------
-
-if __name__ == '__main__':
-    print('Test ffmpeg with doctest')
-    import doctest
-    assert(doctest.testmod(verbose=True).failed == 0)
-    print('OK')

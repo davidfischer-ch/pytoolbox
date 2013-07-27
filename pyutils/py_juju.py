@@ -27,7 +27,7 @@
 
 import uuid, yaml
 from six import string_types
-from pyutils import cmd
+from py_subprocess import cmd
 #from juju.environment.config import EnvironmentsConfig
 
 
@@ -39,12 +39,12 @@ def juju_do(command, environment, options=None, fail=True):
 
     Locking Juju status 'are you sure you want to continue connecting (yes/no)'.
 
-    We need a way to confirm our choice, pyutils.cmd('juju status --environment %s' % environment, 
+    We need a way to confirm our choice, pyutils.cmd('juju status --environment %s' % environment,
     cli_input='yes\n') seem to not work as expected. This happens the first time (and only the first
     time) juju connect to a freshly deployed environment.
 
     Solution : http://askubuntu.com/questions/123072/ssh-automatically-accept-keys
-    
+
     .. code-block:: bash
 
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
