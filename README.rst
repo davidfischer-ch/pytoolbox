@@ -24,7 +24,7 @@ How to use it ?
 
 Here is an example ``hello.py`` using the cmd function provided by ``pyutils``::
 
-    from pyutils.pyutils import cmd
+    from pyutils.py_subprocess import cmd
 
     print(cmd('echo Hello World!')['stdout'])
 

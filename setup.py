@@ -54,7 +54,7 @@ Programming Language :: Python :: 3.3
 """
 
 setup(name='pyutils',
-      version='2.0-beta',
+      version='2.0.1-beta',
       packages=['pyutils'],
       description='Some Python utility functions',
       long_description=open('README.rst').read(),
@@ -63,9 +63,10 @@ setup(name='pyutils',
       url='https://github.com/davidfischer-ch/pyutils',
       license='GNU GPLv3',
       classifiers=filter(None, classifiers.split('\n')),
-      keywords=['ffmpeg', 'json', 'juju', 'mock', 'rsync', 'screen', 'subprocess'],
+      keywords=['ffmpeg', 'flask', 'json', 'juju', 'mock', 'rsync', 'screen', 'subprocess'],
       install_requires=[
             'argparse',  # FIXME > 1.2
+            'flask',     # ...
             'hashlib',   # ...
             'ipaddr',
             'ming',

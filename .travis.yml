@@ -5,7 +5,7 @@ python:
 #  - "3.2"
 #  - "3.3"
 install:
-  - pip install six
+  - pip install six coverage
   - sudo apt-get install ffmpeg
   - python setup.py develop
 script:
