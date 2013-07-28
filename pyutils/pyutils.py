@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import uuid
+from codecs import open
 
 
 # CSV ----------------------------------------------------------------------------------------------
@@ -38,7 +39,7 @@ def unicode_csv_reader(filename, delimiter=u';', quotechar=u'"'):
 
         Do not use it for your own purposes until I remove this warning.
     """
-    with open(filename, u'r') as f:
+    with open(filename, u'r', encoding=u'utf-8') as f:
         for line in f.readlines():
             line = line.strip()
             yield [cell for cell in line.split(delimiter)]

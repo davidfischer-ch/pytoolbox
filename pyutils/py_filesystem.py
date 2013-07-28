@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import errno, grp, pwd, os, shutil, time
+from codecs import open
 from six import string_types
 from py_datetime import datetime_now
 
@@ -164,7 +165,7 @@ def try_remove(path):
 
     **Example usage**:
 
-    >>> open(u'try_remove.example', u'w').write(u'salut')
+    >>> open(u'try_remove.example', u'w', encoding=u'utf-8').write(u'salut les pépés')
     >>> try_remove(u'try_remove.example')
     True
     >>> try_remove(u'try_remove.example')

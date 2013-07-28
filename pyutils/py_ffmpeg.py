@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import fcntl, os, re, select, shlex, subprocess, time
+from codecs import open
 from xml.dom import minidom
 from py_datetime import duration2secs
 
@@ -42,6 +43,7 @@ DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]
 
 MPD_TEST = u"""<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
+  <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
 """
 
@@ -56,11 +58,11 @@ def get_media_duration(filename):
 
     **Example usage**:
 
-    >>> open(u'/tmp/test.txt', 'w').write(u'Hey, I am not a MPD nor a media')
+    >>> open(u'/tmp/test.txt', u'w', encoding=u'utf-8').write(u'Hey, I am not a MPD nor a média')
     >>> print(get_media_duration(u'/tmp/test.txt'))
     None
     >>> os.remove(u'/tmp/test.txt')
-    >>> open(u'/tmp/test.mpd', 'w').write(MPD_TEST)
+    >>> open(u'/tmp/test.mpd', u'w', encoding=u'utf-8').write(MPD_TEST)
     >>> print(get_media_duration(u'/tmp/test.mpd'))
     00:06:07.83
     >>> os.remove(u'/tmp/test.mpd')

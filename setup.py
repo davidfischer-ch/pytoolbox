@@ -25,15 +25,16 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+from codecs import open
 from setuptools import setup, sys
 
 major, minor = sys.version_info[:2]
 kwargs = {}
 if major >= 3:
-    print('Converting code to Python 3 helped by 2to3')
-    kwargs['use_2to3'] = True
+    print(u'Converting code to Python 3 helped by 2to3')
+    kwargs[u'use_2to3'] = True
 
-classifiers = """
+classifiers = u"""
 Intended Audience :: Developers
 License :: OSI Approved :: GNU GPLv3
 Development Status :: 4 - Beta
@@ -47,32 +48,32 @@ Programming Language :: Python
 Programming Language :: Python :: Implementation :: CPython
 """
 
-not_yet_tested = """
+not_yet_tested = u"""
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3.2
 Programming Language :: Python :: 3.3
 """
 
-setup(name='pyutils',
-      version='2.0.1-beta',
-      packages=['pyutils'],
-      description='Some Python utility functions',
-      long_description=open('README.rst').read(),
-      author='David Fischer',
-      author_email='david.fischer.ch@gmail.com',
-      url='https://github.com/davidfischer-ch/pyutils',
-      license='GNU GPLv3',
+setup(name=u'pyutils',
+      version=u'2.0.1-beta',
+      packages=[u'pyutils'],
+      description=u'Some Python utility functions',
+      long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
+      author=u'David Fischer',
+      author_email=u'david.fischer.ch@gmail.com',
+      url=u'https://github.com/davidfischer-ch/pyutils',
+      license=u'GNU GPLv3',
       classifiers=filter(None, classifiers.split('\n')),
-      keywords=['ffmpeg', 'flask', 'json', 'juju', 'mock', 'rsync', 'screen', 'subprocess'],
+      keywords=[u'ffmpeg', u'flask', u'json', u'juju', u'mock', u'rsync', u'screen', u'subprocess'],
       install_requires=[
-            'argparse',  # FIXME version
-            'flask',     # FIXME version
-            'hashlib',   # FIXME version
-            'ipaddr',    # FIXME version
-            'ming',      # FIXME version
-            'mock',      # FIXME version
-            'pyaml',     # FIXME version
-            'six'],      # FIXME version
-      setup_requires=['coverage', 'nose'],
-      tests_require=['coverage', 'nose'],
-      test_suite='nose.main', **kwargs)
+            u'argparse',  # FIXME version
+            u'flask',     # FIXME version
+            u'hashlib',   # FIXME version
+            u'ipaddr',    # FIXME version
+            u'ming',      # FIXME version
+            u'mock',      # FIXME version
+            u'pyaml',     # FIXME version
+            u'six'],      # FIXME version
+      setup_requires=[u'coverage', u'nose'],
+      tests_require=[u'coverage', u'nose'],
+      test_suite=u'nose.main', **kwargs)

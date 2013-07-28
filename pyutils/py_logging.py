@@ -67,9 +67,9 @@ def setup_logging(name=u'', reset=False, filename=None, console=False, level=log
 
     >>> setup_logging(name=u'test', console=True, fmt=None, datefmt=None)
     >>> setup_logging(name=u'test', console=True, fmt=None, datefmt=None)
-    >>> log.info(u'double message')
-    double message
-    double message
+    >>> log.info(u'double message, tu radote pépé')
+    double message, tu radote pépé
+    double message, tu radote pépé
     >>> setup_logging(name=u'test', reset=True, console=True, fmt=None, datefmt=None)
     >>> log.info(u'single message')
     single message

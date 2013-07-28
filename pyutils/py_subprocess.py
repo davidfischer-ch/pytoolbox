@@ -40,7 +40,7 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
     """
     if log is not None:
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
-            command, u'' if cli_input is None else u' < {}'.format(repr(cli_input))))
+            command, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
     args = filter(None, command if isinstance(command, list) else shlex.split(command))
     try:
         process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -97,9 +97,9 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
                u'-r' if recursive else None,
                u'--dry-run' if simulate else None]
     if excludes is not None:
-        command.extend([u'--exclude={}'.format(e) for e in excludes])
+        command.extend([u'--exclude={0}'.format(e) for e in excludes])
     if includes is not None:
-        command.extend([u'--include={}'.format(i) for i in includes])
+        command.extend([u'--include={0}'.format(i) for i in includes])
     if exclude_vcs:
         command.extend([u'--exclude=.svn', u'--exclude=.git'])
     command.extend([source, destination])

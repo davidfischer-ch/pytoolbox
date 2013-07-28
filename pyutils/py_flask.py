@@ -63,7 +63,7 @@ def map_exceptions(e):
     if isinstance(e, TypeError):
         abort(400, unicode(e))
     elif isinstance(e, KeyError):
-        abort(400, u'Key {} not found.'.format(e))
+        abort(400, u'Key {0} not found.'.format(e))
     elif isinstance(e, IndexError):
         abort(404, unicode(e))
     elif isinstance(e, ValueError):

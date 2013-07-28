@@ -27,6 +27,7 @@
 
 import inspect, json, pickle
 from bson.objectid import ObjectId
+from codecs import open
 from six import string_types
 
 
@@ -136,30 +137,30 @@ def jsonfile2object(filename_or_file, something=None):
     ...         self.x = x
     ...         self.y = y
     >>> p1 = Point(name=u'My point', x=10, y=-5)
-    >>> open(u'test.json', u'w').write(object2json(p1, include_properties=False))
+    >>> open(u'test.json', u'w', encoding=u'utf-8').write(object2json(p1, include_properties=False))
 
     Deserialize the freshly saved file to the attributes of another instance:
 
     >>> p2 = Point()
     >>> jsonfile2object(u'test.json', p2)
     >>> assert(p1.__dict__ == p2.__dict__)
-    >>> jsonfile2object(open(u'test.json'), p2)
+    >>> jsonfile2object(open(u'test.json', u'r', encoding=u'utf-8'), p2)
     >>> assert(p1.__dict__ == p2.__dict__)
 
     Deserialize the freshly saved file to a dictionary:
 
     >>> assert(jsonfile2object(u'test.json') == p1.__dict__)
-    >>> assert(jsonfile2object(open(u'test.json')) == p1.__dict__)
+    >>> assert(jsonfile2object(open(u'test.json', u'r', encoding=u'utf-8')) == p1.__dict__)
     >>> os.remove(u'test.json')
     """
     if something is None:
         try:
-            return json.load(open(filename_or_file))
+            return json.load(open(filename_or_file, u'r', encoding=u'utf-8'))
         except TypeError:
             return json.load(filename_or_file)
     else:
         if isinstance(filename_or_file, string_types):
-            json2object(open(filename_or_file).read(), something)
+            json2object(open(filename_or_file, u'r', encoding=u'utf-8').read(), something)
         else:
             json2object(filename_or_file.read(), something)
 

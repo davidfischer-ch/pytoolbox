@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import uuid, yaml
+from codecs import open
 from six import string_types
 from py_subprocess import cmd
 #from juju.environment.config import EnvironmentsConfig
@@ -71,7 +72,7 @@ def load_unit_config(config, log=None):
     if isinstance(config, string_types):
         if log is not None:
             log(u'Load config from file {0}'.format(config))
-        with open(config) as f:
+        with open(config, u'r', encoding=u'utf-8') as f:
             options = yaml.load(f)[u'options']
             config = {}
             for option in options:
@@ -85,7 +86,7 @@ def load_unit_config(config, log=None):
 
 
 def save_unit_config(filename, service, config, log=None):
-    with open(filename, u'w') as f:
+    with open(filename, u'w', encoding=u'utf-8') as f:
         for option, value in config.iteritems():
             if isinstance(value, bool):
                 config[option] = u'True' if value else u'False'
@@ -101,7 +102,7 @@ def add_environment(environments, name, type, region, access_key, secret_key, co
 #    environments_dict.load(environments)
 #    if environments_dict.get(name):
 #        raise ValueError('The name %s is already used by another environment.' % name)
-    environments_dict = yaml.load(open(environments))
+    environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     if name in environments_dict[u'environments']:
         raise ValueError(u'The name {0} is already used by another environment.'.format(name))
     if type == u'ec2':
@@ -114,19 +115,19 @@ def add_environment(environments, name, type, region, access_key, secret_key, co
         raise NotImplementedError(
             u'Registration of {0} type of environment not yet implemented.'.format(type))
     environments_dict[u'environments'][name] = environment
-    open(environments, u'w').write(yaml.safe_dump(environments_dict))
+    open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
     try:
         return juju_do(u'bootstrap', name)
     except RuntimeError as e:
         if u'configuration error' in unicode(e):
             del environments_dict[u'environments'][name]
-            open(environments, u'w').write(yaml.safe_dump(environments_dict))
+            open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
             raise ValueError(u'Cannot add environment {0} ({1}).'.format(name, e))
         raise
 
 
 def destroy_environment(environments, name, remove=False):
-    environments_dict = yaml.load(open(environments))
+    environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     if name not in environments_dict[u'environments']:
         raise IndexError(u'No environment with name {0}.'.format(name))
     if name == environments_dict[u'default']:
@@ -137,14 +138,14 @@ def destroy_environment(environments, name, remove=False):
         # FIXME : check if environment destroyed otherwise a lot of trouble with $/€ !
         if remove:
             del environments_dict[u'environments'][name]
-            open(environments, u'w').write(yaml.safe_dump(environments_dict))
+            open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
 
 #def get_environment_status(environment):
 #    return juju_do('status', environment)
 
 
 def get_environments(environments, get_status=False):
-    environments_dict = yaml.load(open(environments))
+    environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     environments = {}
     for environment in environments_dict[u'environments'].iteritems():
         informations = environment[1]
@@ -155,7 +156,7 @@ def get_environments(environments, get_status=False):
 
 
 def get_environments_count(environments):
-    environments_dict = yaml.load(open(environments))
+    environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     return len(environments_dict[u'environments'])
 
 
@@ -186,9 +187,9 @@ def deploy_units(environment, service, num_units, config=None, constraints=None,
     if constraints is not None:
         options.extend([u'--constraints', constraints])
     if release is not None:
-        service = u'{}/{}'.format(release, service)
+        service = u'{0}/{1}'.format(release, service)
     if local:
-        service = u'local:{}'.format(service)
+        service = u'local:{0}'.format(service)
     if repository is not None:
         options.extend([u'--repository', repository])
     options.extend([service])
@@ -196,7 +197,7 @@ def deploy_units(environment, service, num_units, config=None, constraints=None,
 
 
 def get_unit(environment, service, number):
-    name = u'{}/{}'.format(service, number)
+    name = u'{0}/{1}'.format(service, number)
     return juju_do(u'status', environment, [name])[u'services'][service][u'units'][name]
 
 
@@ -221,7 +222,7 @@ def get_units_count(environment, service):
 
 
 def remove_unit(environment, service, number, terminate):
-    name = u'{}/{}'.format(service, number)
+    name = u'{0}/{1}'.format(service, number)
     try:
         unit_dict = get_unit(environment, service, number)
     except KeyError:
