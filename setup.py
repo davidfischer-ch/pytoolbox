@@ -65,14 +65,14 @@ setup(name='pyutils',
       classifiers=filter(None, classifiers.split('\n')),
       keywords=['ffmpeg', 'flask', 'json', 'juju', 'mock', 'rsync', 'screen', 'subprocess'],
       install_requires=[
-            'argparse',  # FIXME > 1.2
-            'flask',     # ...
-            'hashlib',   # ...
-            'ipaddr',
-            'ming',
-            'mock',
-            'pyaml',
-            'six'],
+            'argparse',  # FIXME version
+            'flask',     # FIXME version
+            'hashlib',   # FIXME version
+            'ipaddr',    # FIXME version
+            'ming',      # FIXME version
+            'mock',      # FIXME version
+            'pyaml',     # FIXME version
+            'six'],      # FIXME version
       setup_requires=['coverage', 'nose'],
       tests_require=['coverage', 'nose'],
       test_suite='nose.main', **kwargs)
