@@ -48,6 +48,6 @@ def githash(data):
     abdd1818289725c072eff0f5ce185457679650be
     """
     s = hashlib.sha1()
-    s.update(u'blob {}\0'.format(len(data)))
+    s.update(u'blob {0}\0'.format(len(data)))
     s.update(data)
     return s.hexdigest()

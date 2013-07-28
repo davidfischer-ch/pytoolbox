@@ -38,11 +38,11 @@ class Filename(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid(u'{} is not a {}'.format(value, self.type), value, None)
+            raise Invalid(u'{0} is not a {1}'.format(value, self.type), value, None)
         if self.url_friendly:
             value = value.replace(u' ', u'_')
         if not valid_filename(value):
-            raise Invalid(u'{} is not a valid file-name'.format(value), value, None)
+            raise Invalid(u'{0} is not a valid file-name'.format(value), value, None)
         return value
 
 
@@ -50,9 +50,9 @@ class Email(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid(u'{} is not a {}'.format(value, self.type), value, None)
+            raise Invalid(u'{0} is not a {1}'.format(value, self.type), value, None)
         if not valid_email(value):
-            raise Invalid(u'{} is not a valid e-mail address'.format(value), value, None)
+            raise Invalid(u'{0} is not a valid e-mail address'.format(value), value, None)
         return value
 
 
@@ -65,9 +65,9 @@ class OneOf(FancySchemaItem):
 
     def _validate(self, value, **kw):
         if not isinstance(value, self.type):
-            raise Invalid(u'{} is not a {}'.format(value, self.type), value, None)
+            raise Invalid(u'{0} is not a {1}'.format(value, self.type), value, None)
         if value not in self.options:
-            raise Invalid(u'{} is not in {}'.format(value, (self.options,)), value, None)
+            raise Invalid(u'{0} is not in {1}'.format(value, (self.options,)), value, None)
         return value
 
 
@@ -79,9 +79,9 @@ class Secret(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid(u'{} is not a {}'.format(value, self.type), value, None)
+            raise Invalid(u'{0} is not a {1}'.format(value, self.type), value, None)
         if not Secret.is_hashed(value) and not valid_secret(value, True):
-            raise Invalid(u'{} is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)'
+            raise Invalid(u'{0} is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)'
                           .format(value), value, None)
         return value
 
@@ -94,9 +94,9 @@ class UniqueId(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid(u'{} is not a {}'.format(value, self.type), value, None)
+            raise Invalid(u'{0} is not a {1}'.format(value, self.type), value, None)
         if not valid_uuid(value, objectid_allowed=False, none_allowed=False):
-            raise Invalid(u'{} is not a valid UUID string'.format(value), value, None)
+            raise Invalid(u'{0} is not a valid UUID string'.format(value), value, None)
         return value
 
 
@@ -104,7 +104,7 @@ class Uri(String):
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
-            raise Invalid(u'{} is not a {}'.format(value, self.type), value, None)
+            raise Invalid(u'{0} is not a {1}'.format(value, self.type), value, None)
         if False:  # FIXME TODO
-            raise Invalid(u'{} is not a valid URI'.format(value), value, None)
+            raise Invalid(u'{0} is not a valid URI'.format(value), value, None)
         return value

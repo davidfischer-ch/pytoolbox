@@ -77,7 +77,7 @@ def get_media_duration(filename):
                     int(match.group(u'hours')), int(match.group(u'minutes')),
                     float(match.group(u'seconds')))
     else:
-        cmd = u'ffmpeg -i "{}"'.format(filename)
+        cmd = u'ffmpeg -i "{0}"'.format(filename)
         pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
         match = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
         if not match:
@@ -111,7 +111,7 @@ def get_media_tracks(filename):
     if not duration:
         return None
     duration_secs = duration2secs(duration)
-    cmd = u'ffmpeg -i "{}"'.format(filename)
+    cmd = u'ffmpeg -i "{0}"'.format(filename)
     pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
     output = pipe.stderr.read()
     audio, video = {}, {}
@@ -132,7 +132,7 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
         if not overwrite:
             return False
         os.unlink(out_filename)
-    cmd = u'ffmpeg -i "{}" {} "{}"'.format(in_filename, encoder_string, out_filename)
+    cmd = u'ffmpeg -i "{0}" {1} "{2}"'.format(in_filename, encoder_string, out_filename)
     pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
 
     # http://stackoverflow.com/questions/1388753/how-to-get-output-from-subprocess-popen

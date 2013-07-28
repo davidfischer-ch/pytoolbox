@@ -37,7 +37,7 @@ def check_id(id):
         return id
     elif valid_uuid(id, objectid_allowed=True, none_allowed=False):
         return ObjectId(id)
-    raise ValueError(u'Wrong id format {}'.format(id))
+    raise ValueError(u'Wrong id format {0}'.format(id))
 
 
 def get_request_json(request, required_keys=[]):
@@ -51,7 +51,7 @@ def get_request_json(request, required_keys=[]):
         raise ValueError(u'Requires valid JSON content-type.')
     for key in required_keys:
         if not key in data:
-            raise ValueError(u'Missing key "{}" from JSON content.'.format(key))
+            raise ValueError(u'Missing key "{0}" from JSON content.'.format(key))
     if not data:
         raise ValueError(u'Requires JSON content-type.')
     return data
@@ -70,7 +70,7 @@ def map_exceptions(e):
         abort(415, unicode(e))
     elif isinstance(e, NotImplementedError):
         abort(501, unicode(e))
-    abort(500, '{} {} {}'.format(e.__class__.__name__, repr(e), unicode(e)))
+    abort(500, '{0} {1} {2}'.format(e.__class__.__name__, repr(e), unicode(e)))
 
 
 def json_response(status, value=None, include_properties=False):

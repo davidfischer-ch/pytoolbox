@@ -39,7 +39,7 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
     * Set ``log`` to a method to log / print details about what is executed / any failure.
     """
     if log is not None:
-        log(u'Execute {}{}{}'.format(u'' if input is None else u'echo {} | '.format(repr(input)),
+        log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             command, u'' if cli_input is None else u' < {}'.format(repr(cli_input))))
     args = filter(None, command if isinstance(command, list) else shlex.split(command))
     try:

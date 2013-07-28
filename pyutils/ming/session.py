@@ -28,6 +28,6 @@
 from ming import create_datastore, Session
 from ming.odm import ThreadLocalODMSession
 
-bind = create_datastore('mim://')
+bind = create_datastore(u'mim://')
 doc_session = Session(bind)
 odm_session = ThreadLocalODMSession(doc_session=doc_session)

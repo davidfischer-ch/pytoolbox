@@ -161,7 +161,7 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     if id is None and none_allowed:
         return True
     try:
-        uuid.UUID(u'{{{}}}'.format(id))
+        uuid.UUID(u'{{{0}}}'.format(id))
     except ValueError:
         if not objectid_allowed:
             return False

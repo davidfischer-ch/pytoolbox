@@ -121,7 +121,7 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
         dst_size = get_size(destination_path)
         if dst_size != src_size:
             raise IOError(
-                u'Destination size does not match source ({} vs {})'.format(src_size, dst_size))
+                u'Destination size does not match source ({0} vs {1})'.format(src_size, dst_size))
 
         elapsed_time = time.time() - start_time
         return {u'start_date': start_date, u'elapsed_time': elapsed_time, u'src_size': src_size}

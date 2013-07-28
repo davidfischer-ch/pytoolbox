@@ -52,11 +52,11 @@ def juju_do(command, environment, options=None, fail=True):
     command = [u'juju', command, u'--environment', environment]
     if isinstance(options, list):
         command.extend(options)
-    print(u'Executing command {}'.format(command))
+    print(u'Executing command {0}'.format(command))
     result = cmd(command, fail=False)
     if result[u'returncode'] != 0 and fail:
         raise RuntimeError(
-            u'Subprocess failed {} : {}.'.format(u' '.join(command), result[u'stderr']))
+            u'Subprocess failed {0} : {1}.'.format(u' '.join(command), result[u'stderr']))
     return yaml.load(result[u'stdout'])
 
 
@@ -70,7 +70,7 @@ def load_unit_config(config, log=None):
     """
     if isinstance(config, string_types):
         if log is not None:
-            log(u'Load config from file {}'.format(config))
+            log(u'Load config from file {0}'.format(config))
         with open(config) as f:
             options = yaml.load(f)[u'options']
             config = {}
@@ -80,7 +80,7 @@ def load_unit_config(config, log=None):
         if unicode(value).lower() in (u'false', u'true'):
             config[option] = True if unicode(value).lower() == u'true' else False
             if log is not None:
-                log(u'Convert boolean option {} {} -> {}'.format(option, value, config[option]))
+                log(u'Convert boolean option {0} {1} -> {2}'.format(option, value, config[option]))
     return config
 
 
@@ -103,7 +103,7 @@ def add_environment(environments, name, type, region, access_key, secret_key, co
 #        raise ValueError('The name %s is already used by another environment.' % name)
     environments_dict = yaml.load(open(environments))
     if name in environments_dict[u'environments']:
-        raise ValueError(u'The name {} is already used by another environment.'.format(name))
+        raise ValueError(u'The name {0} is already used by another environment.'.format(name))
     if type == u'ec2':
         environment = {
             u'type': type, u'region': region, u'access-key': access_key, u'secret-key': secret_key,
@@ -112,7 +112,7 @@ def add_environment(environments, name, type, region, access_key, secret_key, co
             u'admin-secret': uuid.uuid4().hex}
     else:
         raise NotImplementedError(
-            u'Registration of {} type of environment not yet implemented.'.format(type))
+            u'Registration of {0} type of environment not yet implemented.'.format(type))
     environments_dict[u'environments'][name] = environment
     open(environments, u'w').write(yaml.safe_dump(environments_dict))
     try:
@@ -121,16 +121,16 @@ def add_environment(environments, name, type, region, access_key, secret_key, co
         if u'configuration error' in unicode(e):
             del environments_dict[u'environments'][name]
             open(environments, u'w').write(yaml.safe_dump(environments_dict))
-            raise ValueError(u'Cannot add environment {} ({}).'.format(name, e))
+            raise ValueError(u'Cannot add environment {0} ({1}).'.format(name, e))
         raise
 
 
 def destroy_environment(environments, name, remove=False):
     environments_dict = yaml.load(open(environments))
     if name not in environments_dict[u'environments']:
-        raise IndexError(u'No environment with name {}.'.format(name))
+        raise IndexError(u'No environment with name {0}.'.format(name))
     if name == environments_dict[u'default']:
-        raise NotImplementedError(u'Cannot remove default environment {}.'.format(name))
+        raise NotImplementedError(u'Cannot remove default environment {0}.'.format(name))
     try:
         return juju_do(u'destroy-environment', name)
     finally:
@@ -226,7 +226,7 @@ def remove_unit(environment, service, number, terminate):
         unit_dict = get_unit(environment, service, number)
     except KeyError:
         raise IndexError(
-            u'No unit with name {}/{} on environment {}.'.format(service, number, environment))
+            u'No unit with name {0}/{1} on environment {2}.'.format(service, number, environment))
     if terminate:
         juju_do(u'remove-unit', environment, [name])
         return juju_do(u'terminate-machine', environment, [unicode(unit_dict[u'machine'])])
@@ -236,6 +236,6 @@ def remove_unit(environment, service, number, terminate):
 # Relations ----------------------------------------------------------------------------------------
 
 def add_relation(environment, service1, service2, relation1=None, relation2=None):
-    member1 = service1 if relation1 is None else u'{}:{}'.format(service1, relation1)
-    member2 = service2 if relation2 is None else u'{}:{}'.format(service2, relation2)
+    member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
+    member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
     return juju_do(u'add-relation', environment, [member1, member2])
