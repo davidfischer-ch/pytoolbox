@@ -12,5 +12,6 @@ script:
   - nosetests pyutils
 matrix:
   allow_failures:
+    - python: "2.6"
     - python: "3.2"
     - python: "3.3"
