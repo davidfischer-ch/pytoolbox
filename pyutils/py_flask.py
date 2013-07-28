@@ -37,7 +37,7 @@ def check_id(id):
         return id
     elif valid_uuid(id, objectid_allowed=True, none_allowed=False):
         return ObjectId(id)
-    raise ValueError('Wrong id format %s' % id)
+    raise ValueError(u'Wrong id format {}'.format(id))
 
 
 def get_request_json(request, required_keys=[]):
@@ -48,12 +48,12 @@ def get_request_json(request, required_keys=[]):
             for x in request.form:
                 data[x] = request.form.get(x)
     except:
-        raise ValueError('Requires valid JSON content-type.')
+        raise ValueError(u'Requires valid JSON content-type.')
     for key in required_keys:
         if not key in data:
-            raise ValueError('Missing key "%s" from JSON content.' % key)
+            raise ValueError(u'Missing key "{}" from JSON content.'.format(key))
     if not data:
-        raise ValueError('Requires JSON content-type.')
+        raise ValueError(u'Requires JSON content-type.')
     return data
 
 
@@ -61,21 +61,21 @@ def map_exceptions(e):
     if isinstance(e, HTTPException):
         raise
     if isinstance(e, TypeError):
-        abort(400, str(e))
+        abort(400, unicode(e))
     elif isinstance(e, KeyError):
-        abort(400, 'Key %s not found.' % e)
+        abort(400, u'Key {} not found.'.format(e))
     elif isinstance(e, IndexError):
-        abort(404, str(e))
+        abort(404, unicode(e))
     elif isinstance(e, ValueError):
-        abort(415, str(e))
+        abort(415, unicode(e))
     elif isinstance(e, NotImplementedError):
-        abort(501, str(e))
-    abort(500, '%s %s %s' % (e.__class__.__name__, repr(e), str(e)))
+        abort(501, unicode(e))
+    abort(500, '{} {} {}'.format(e.__class__.__name__, repr(e), unicode(e)))
 
 
 def json_response(status, value=None, include_properties=False):
     response = Response(
-        response=object2json({'status': status, 'value': value}, include_properties),
-        status=status, mimetype="application/json")
+        response=object2json({u'status': status, u'value': value}, include_properties),
+        status=status, mimetype=u'application/json')
     response.status_code = status
     return response

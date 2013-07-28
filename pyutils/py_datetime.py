@@ -49,17 +49,17 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     >>> print(future - now)  # doctest: +ELLIPSIS
     2:10:00...
     >>> assert(isinstance(datetime_now(), string_types))
-    >>> assert(' UTC' not in datetime_now(append_utc=False))
-    >>> assert(' UTC' in datetime_now(append_utc=True))
+    >>> assert(u' UTC' not in datetime_now(append_utc=False))
+    >>> assert(u' UTC' in datetime_now(append_utc=True))
     """
     now = datetime.utcnow()
     if offset:
         now += offset
-    return (now.strftime(format) + (' UTC' if append_utc else '')) if format else now
+    return (now.strftime(format) + (u' UTC' if append_utc else u'')) if format else now
 
 
-def datetime2str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
-    return date_time.strftime(format) + (' UTC' if append_utc else '')
+def datetime2str(date_time, format=u'%Y-%m-%d %H:%M:%S', append_utc=False):
+    return date_time.strftime(format) + (u' UTC' if append_utc else u'')
 
 
 def duration2secs(duration):
@@ -68,19 +68,19 @@ def duration2secs(duration):
 
     **Example usage**:
 
-    >>> duration2secs('00:10:00')
+    >>> duration2secs(u'00:10:00')
     600.0
-    >>> duration2secs('01:54:17')
+    >>> duration2secs(u'01:54:17')
     6857.0
-    >>> print(round(duration2secs('16.40'), 3))
+    >>> print(round(duration2secs(u'16.40'), 3))
     16.4
     """
     try:
-        hours, minutes, seconds = duration.split(':')
+        hours, minutes, seconds = duration.split(u':')
         return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
     except ValueError:
         return float(duration)
 
 
-def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
+def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
     return datetime.strptime(date, format)

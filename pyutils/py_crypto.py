@@ -42,12 +42,12 @@ def githash(data):
 
     **Example usage**
 
-    >>> print(githash(''))
+    >>> print(githash(u''))
     e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
-    >>> print(githash('give me some hash please'))
+    >>> print(githash(u'give me some hash please'))
     abdd1818289725c072eff0f5ce185457679650be
     """
     s = hashlib.sha1()
-    s.update("blob %u\0" % len(data))
+    s.update(u'blob {}\0'.format(len(data)))
     s.update(data)
     return s.hexdigest()

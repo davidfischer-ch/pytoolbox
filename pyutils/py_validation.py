@@ -40,9 +40,9 @@ def valid_filename(filename):
 
     **Example usage**:
 
-    >>> valid_filename('my_file_without_extension')
+    >>> valid_filename(u'my_file_without_extension')
     False
-    >>> valid_filename('my_file_with_extension.mp4')
+    >>> valid_filename(u'my_file_with_extension.mp4')
     True
     """
     try:
@@ -57,9 +57,9 @@ def valid_ip(ip):
 
     **Example usage**:
 
-    >>> valid_ip('123.0.0.')
+    >>> valid_ip(u'123.0.0.')
     False
-    >>> valid_ip('239.232.0.222')
+    >>> valid_ip(u'239.232.0.222')
     True
     """
     try:
@@ -75,9 +75,9 @@ def valid_email(email):
 
     **Example usage**:
 
-    >>> valid_email('Tabby@croquetes')
+    >>> valid_email(u'Tabby@croquetes')
     False
-    >>> valid_email('Tabby@bernex.ch')
+    >>> valid_email(u'Tabby@bernex.ch')
     True
     """
     try:
@@ -94,7 +94,7 @@ def valid_port(port):
 
     >>> assert(not valid_port(-1))
     >>> assert(not valid_port('something not a port'))
-    >>> assert(valid_port('80'))
+    >>> assert(valid_port(u'80'))
     >>> valid_port(65535)
     True
     """
@@ -112,13 +112,13 @@ def valid_secret(secret, none_allowed):
 
     **Example usage**:
 
-    >>> valid_secret('1234', False)
+    >>> valid_secret(u'1234', False)
     False
     >>> valid_secret(None, True)
     True
     >>> valid_secret(None, False)
     False
-    >>> valid_secret('my_password', False)
+    >>> valid_secret(u'my_password', False)
     True
     """
     if secret is None and none_allowed:
@@ -139,15 +139,15 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     False
     >>> valid_uuid(None, none_allowed=True)
     True
-    >>> valid_uuid('gaga-gogo-gaga-gogo')
+    >>> valid_uuid(u'gaga-gogo-gaga-gogo')
     False
-    >>> valid_uuid('gaga-gogo-gaga-gogo', objectid_allowed=True)
+    >>> valid_uuid(u'gaga-gogo-gaga-gogo', objectid_allowed=True)
     False
     >>> valid_uuid(uuid.uuid4(), none_allowed=False)
     True
     >>> valid_uuid(uuid.uuid4().hex, none_allowed=False)
     True
-    >>> valid_uuid(str(uuid.uuid4().hex), none_allowed=False)
+    >>> valid_uuid(unicode(uuid.uuid4().hex), none_allowed=False)
     True
     >>> valid_uuid(ObjectId())
     False
@@ -161,7 +161,7 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     if id is None and none_allowed:
         return True
     try:
-        uuid.UUID('{' + str(id) + '}')
+        uuid.UUID(u'{{{}}}'.format(id))
     except ValueError:
         if not objectid_allowed:
             return False

@@ -40,7 +40,7 @@ VIDEO_TRACKS_REGEX = re.compile(
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 
-MPD_TEST = """<?xml version="1.0"?>
+MPD_TEST = u"""<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
 </MPD>
 """
@@ -56,34 +56,35 @@ def get_media_duration(filename):
 
     **Example usage**:
 
-    >>> open('/tmp/test.txt', 'w').write('Hey, I am not a MPD nor a media')
-    >>> print(get_media_duration('/tmp/test.txt'))
+    >>> open(u'/tmp/test.txt', 'w').write(u'Hey, I am not a MPD nor a media')
+    >>> print(get_media_duration(u'/tmp/test.txt'))
     None
-    >>> os.remove('/tmp/test.txt')
-    >>> open('/tmp/test.mpd', 'w').write(MPD_TEST)
-    >>> print(get_media_duration('/tmp/test.mpd'))
+    >>> os.remove(u'/tmp/test.txt')
+    >>> open(u'/tmp/test.mpd', 'w').write(MPD_TEST)
+    >>> print(get_media_duration(u'/tmp/test.mpd'))
     00:06:07.83
-    >>> os.remove('/tmp/test.mpd')
+    >>> os.remove(u'/tmp/test.mpd')
 
-    >> print(get_media_duration('test.mp4'))
+    >> print(get_media_duration(u'test.mp4'))
     01:45:23.62
     """
-    if os.path.splitext(filename)[1] == '.mpd':
+    if os.path.splitext(filename)[1] == u'.mpd':
         mpd = minidom.parse(filename)
-        if mpd.firstChild.nodeName == 'MPD':
-            match = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
+        if mpd.firstChild.nodeName == u'MPD':
+            match = DURATION_REGEX.search(mpd.firstChild.getAttribute(u'mediaPresentationDuration'))
             if match is not None:
-                return '%02d:%02d:%05.2f' % (int(match.group('hours')), int(match.group('minutes')),
-                                             float(match.group('seconds')))
+                return u'{0:02d}:{1:02d}:{2:05.2f}'.format(
+                    int(match.group(u'hours')), int(match.group(u'minutes')),
+                    float(match.group(u'seconds')))
     else:
-        cmd = 'ffmpeg -i "%s"' % filename
+        cmd = u'ffmpeg -i "{}"'.format(filename)
         pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
         match = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
         if not match:
             return None
-        duration = match.group('duration')
+        duration = match.group(u'duration')
         # ffmpeg may return this so strange value, 00:00:00.04, let it being None
-        return duration if duration and duration != '00:00:00.04' else None
+        return duration if duration and duration != u'00:00:00.04' else None
     return None
 
 
@@ -110,20 +111,20 @@ def get_media_tracks(filename):
     if not duration:
         return None
     duration_secs = duration2secs(duration)
-    cmd = 'ffmpeg -i "%s"' % filename
+    cmd = u'ffmpeg -i "{}"'.format(filename)
     pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
     output = pipe.stderr.read()
     audio, video = {}, {}
     for match in AUDIO_TRACKS_REGEX.finditer(output):
         group = match.groupdict()
-        track = group.pop('track')
+        track = group.pop(u'track')
         audio[track] = group
     for match in VIDEO_TRACKS_REGEX.finditer(output):
         group = match.groupdict()
-        track = group.pop('track')
-        group['estimated_frames'] = int(float(group['framerate']) * duration_secs)
+        track = group.pop(u'track')
+        group[u'estimated_frames'] = int(float(group[u'framerate']) * duration_secs)
         video[track] = group
-    return {'duration': duration, 'audio': audio, 'video': video}
+    return {u'duration': duration, u'audio': audio, u'video': video}
 
 
 def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, callback=None):
@@ -131,7 +132,7 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
         if not overwrite:
             return False
         os.unlink(out_filename)
-    cmd = 'ffmpeg -i "%s" ' + encoder_string + ' "%s"' % (in_filename, out_filename)
+    cmd = u'ffmpeg -i "{}" {} "{}"'.format(in_filename, encoder_string, out_filename)
     pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
 
     # http://stackoverflow.com/questions/1388753/how-to-get-output-from-subprocess-popen
@@ -146,7 +147,7 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
         readx = select.select([pipe.stderr.fileno()], [], [])[0]
         if readx:
             chunk = pipe.stderr.read()
-            if chunk == '':
+            if chunk == u'':
                 break
             match = regex.match(chunk)
             if match and callback:

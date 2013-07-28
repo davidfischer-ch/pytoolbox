@@ -30,7 +30,7 @@ import uuid
 
 # CSV ----------------------------------------------------------------------------------------------
 
-def unicode_csv_reader(filename, delimiter=';', quotechar='"'):
+def unicode_csv_reader(filename, delimiter=u';', quotechar=u'"'):
     u"""
     Yield the content of a CSV file.
 
@@ -38,7 +38,7 @@ def unicode_csv_reader(filename, delimiter=';', quotechar='"'):
 
         Do not use it for your own purposes until I remove this warning.
     """
-    with open(filename, 'r') as f:
+    with open(filename, u'r') as f:
         for line in f.readlines():
             line = line.strip()
             yield [cell for cell in line.split(delimiter)]
@@ -72,8 +72,8 @@ class DBModel(object):
         user_dict = {}
         if self.DICT_FIELDS is not None:
             for field in self.DICT_FIELDS:
-                if load_fields and len(field) > 3 and '_id' in field:
-                    field = field.replace('_id', '')
+                if load_fields and len(field) > 3 and u'_id' in field:
+                    field = field.replace(u'_id', u'')
                 value = getattr(self, field)
                 if isinstance(value, DBModel):
                     value = value.to_dict(include_properties, load_fields)
@@ -88,4 +88,4 @@ def sorted_dict(dictionary):
     return sorted(dictionary.items(), key=lambda x: x[0])
 
 
-UUID_ZERO = str(uuid.UUID('{00000000-0000-0000-0000-000000000000}'))
+UUID_ZERO = unicode(uuid.UUID(u'{00000000-0000-0000-0000-000000000000}'))

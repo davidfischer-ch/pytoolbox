@@ -36,9 +36,9 @@ def first_that_exist(*paths):
 
     **Example usage**:
 
-    >>> print(first_that_exist('', '/etc', '.'))
+    >>> print(first_that_exist(u'', u'/etc', u'.'))
     /etc
-    >>> print(first_that_exist('does_not_exist.com', '', '..'))
+    >>> print(first_that_exist(u'does_not_exist.com', u'', u'..'))
     ..
     """
     for path in paths:
@@ -88,8 +88,8 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
                 # Initialize block-based copy
                 try_makedirs(os.path.dirname(dst_path))
                 block_size = 1024 * 1024
-                src_file = open(src_path, 'rb')
-                dst_file = open(dst_path, 'wb')
+                src_file = open(src_path, u'rb')
+                dst_file = open(dst_path, u'wb')
 
                 # Block-based copy loop
                 block_pos = prev_ratio = prev_time = 0
@@ -120,10 +120,11 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
         # Output directory sanity check
         dst_size = get_size(destination_path)
         if dst_size != src_size:
-            raise IOError('Destination size does not match source (%s vs %s)' % (src_size, dst_size))
+            raise IOError(
+                u'Destination size does not match source ({} vs {})'.format(src_size, dst_size))
 
         elapsed_time = time.time() - start_time
-        return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
+        return {u'start_date': start_date, u'elapsed_time': elapsed_time, u'src_size': src_size}
     except:
         # Cleanup - remove output directory
         shutil.rmtree(destination_path, ignore_errors=True)
@@ -139,11 +140,11 @@ def try_makedirs(path):
     **Example usage**:
 
     >>> import shutil
-    >>> try_makedirs('/etc')
+    >>> try_makedirs(u'/etc')
     False
-    >>> try_makedirs('/tmp/salut/mec')
+    >>> try_makedirs(u'/tmp/salut/mec')
     True
-    >>> shutil.rmtree('/tmp/salut/mec')
+    >>> shutil.rmtree(u'/tmp/salut/mec')
     """
     try:
         os.makedirs(path)
@@ -163,10 +164,10 @@ def try_remove(path):
 
     **Example usage**:
 
-    >>> open('try_remove.example', 'w').write('salut')
-    >>> try_remove('try_remove.example')
+    >>> open(u'try_remove.example', u'w').write(u'salut')
+    >>> try_remove(u'try_remove.example')
     True
-    >>> try_remove('try_remove.example')
+    >>> try_remove(u'try_remove.example')
     False
     """
     try:
@@ -187,56 +188,56 @@ def try_symlink(source, link_name):
 
     **Example usage**:
 
-    >>> a = try_remove('/tmp/does_not_exist')
-    >>> a = try_remove('/tmp/does_not_exist_2')
-    >>> a = try_remove('/tmp/link_etc')
-    >>> a = try_remove(os.path.expanduser('~/broken_link'))
+    >>> a = try_remove(u'/tmp/does_not_exist')
+    >>> a = try_remove(u'/tmp/does_not_exist_2')
+    >>> a = try_remove(u'/tmp/link_etc')
+    >>> a = try_remove(os.path.expanduser(u'~/broken_link'))
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
     >>> import shutil
-    >>> try_symlink('/home', '/etc')
+    >>> try_symlink(u'/home', u'/etc')
     Traceback (most recent call last):
         ...
     OSError: [Errno 17] File exists
 
     Symlinking /etc to itself only returns that nothing changed:
 
-    >>> try_symlink('/etc', '/etc')
+    >>> try_symlink(u'/etc', u'/etc')
     False
 
     Creating a symlink to an existing file has the following behaviour:
 
-    >>> try_symlink('/etc', '/tmp/link_etc')
+    >>> try_symlink(u'/etc', u'/tmp/link_etc')
     True
-    >>> try_symlink('/etc', '/tmp/link_etc')
+    >>> try_symlink(u'/etc', u'/tmp/link_etc')
     False
-    >>> try_symlink('/etc/does_not_exist', '/tmp/link_etc')
+    >>> try_symlink(u'/etc/does_not_exist', u'/tmp/link_etc')
     Traceback (most recent call last):
         ...
     OSError: [Errno 17] File exists
-    >>> try_symlink('/home', '/tmp/link_etc')
+    >>> try_symlink(u'/home', u'/tmp/link_etc')
     Traceback (most recent call last):
         ...
     OSError: [Errno 17] File exists
 
     Creating a symlink to a non existing has the following behaviour:
 
-    >>> try_symlink('~/does_not_exist', '~/broken_link')
+    >>> try_symlink(u'~/does_not_exist', u'~/broken_link')
     True
-    >>> try_symlink('~/does_not_exist', '~/broken_link')
+    >>> try_symlink(u'~/does_not_exist', u'~/broken_link')
     False
-    >>> try_symlink('~/does_not_exist_2', '~/broken_link')
+    >>> try_symlink(u'~/does_not_exist_2', u'~/broken_link')
     Traceback (most recent call last):
         ...
     OSError: [Errno 17] File exists
-    >>> try_symlink('/home', '~/broken_link')
+    >>> try_symlink(u'/home', u'~/broken_link')
     Traceback (most recent call last):
         ...
     OSError: [Errno 17] File exists
 
-    >>> os.remove('/tmp/link_etc')
-    >>> os.remove(os.path.expanduser('~/broken_link'))
+    >>> os.remove(u'/tmp/link_etc')
+    >>> os.remove(os.path.expanduser(u'~/broken_link'))
     """
     try:
         source = os.path.expanduser(source)
@@ -256,7 +257,7 @@ def try_symlink(source, link_name):
                     if target == source:
                         return False
                     else:
-                        raise OSError(errno.EEXIST, 'File exists')
+                        raise OSError(errno.EEXIST, u'File exists')
                 raise
         raise  # Re-raise exception if a different error occurred
 

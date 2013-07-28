@@ -48,23 +48,23 @@ class PickleableObject(object):
         u"""
         Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
         """
-        if filename is None and hasattr(self, '_pickle_filename'):
+        if filename is None and hasattr(self, u'_pickle_filename'):
             filename = self._pickle_filename
-            delattr(self, '_pickle_filename')
-            pickle.dump(self, file(filename, 'w'))
+            delattr(self, u'_pickle_filename')
+            pickle.dump(self, file(filename, u'w'))
             self._pickle_filename = filename
         elif filename is not None:
-            pickle.dump(self, file(filename, 'w'))
+            pickle.dump(self, file(filename, u'w'))
         else:
-            raise ValueError('A filename must be specified')
+            raise ValueError(u'A filename must be specified')
 
 
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
-            return str(obj)
-        if hasattr(obj, '__dict__'):
+            return unicode(obj)
+        if hasattr(obj, u'__dict__'):
             return obj.__dict__
         return super(SmartJSONEncoderV1, self).default(obj)
 
@@ -72,10 +72,10 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 class SmartJSONEncoderV2(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
-            return str(obj)
+            return unicode(obj)
         attributes = {}
         for a in inspect.getmembers(obj):
-            if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith('__'):
+            if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith(u'__'):
                 continue
             attributes[a[0]] = a[1]
         return attributes
@@ -97,17 +97,17 @@ def json2object(json_string, something=None):
     ...         self.x = x
     ...         self.y = y
     >>> p = Point()
-    >>> assert(p.__dict__ == {'name': None, 'x':0, 'y': 0})
-    >>> json2object('{"x":10,"y":20,"name":"My position"}', p)
-    >>> assert(p.__dict__ == {'name': 'My position', 'x': 10, 'y': 20})
-    >>> json2object('{"y":25}', p)
-    >>> assert(p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25})
-    >>> json2object('{"z":3}', p)
-    >>> assert(p.__dict__ == {'name': 'My position', 'x': 10, 'y': 25})
+    >>> assert(p.__dict__ == {u'name': None, u'x': 0, u'y': 0})
+    >>> json2object(u'{"x":10,"y":20,"name":"My position"}', p)
+    >>> assert(p.__dict__ == {u'name': u'My position', u'x': 10, u'y': 20})
+    >>> json2object(u'{"y":25}', p)
+    >>> assert(p.__dict__ == {u'name': u'My position', u'x': 10, u'y': 25})
+    >>> json2object(u'{"z":3}', p)
+    >>> assert(p.__dict__ == {u'name': u'My position', u'x': 10, u'y': 25})
 
     Deserialize a JSON string to a dictionary:
 
-    >>> expected = {'firstname': 'Tabby', 'lastname': 'Fischer'}
+    >>> expected = {u'firstname': u'Tabby', u'lastname': u'Fischer'}
     >>> assert(json2object('{"firstname":"Tabby","lastname":"Fischer"}') == expected)
     """
     if something is None:
@@ -135,22 +135,22 @@ def jsonfile2object(filename_or_file, something=None):
     ...         self.name = name
     ...         self.x = x
     ...         self.y = y
-    >>> p1 = Point(name='My point', x=10, y=-5)
-    >>> open('test.json', 'w').write(object2json(p1, include_properties=False))
+    >>> p1 = Point(name=u'My point', x=10, y=-5)
+    >>> open(u'test.json', u'w').write(object2json(p1, include_properties=False))
 
     Deserialize the freshly saved file to the attributes of another instance:
 
     >>> p2 = Point()
-    >>> jsonfile2object('test.json', p2)
+    >>> jsonfile2object(u'test.json', p2)
     >>> assert(p1.__dict__ == p2.__dict__)
-    >>> jsonfile2object(open('test.json'), p2)
+    >>> jsonfile2object(open(u'test.json'), p2)
     >>> assert(p1.__dict__ == p2.__dict__)
 
     Deserialize the freshly saved file to a dictionary:
 
-    >>> assert(jsonfile2object('test.json') == p1.__dict__)
-    >>> assert(jsonfile2object(open('test.json')) == p1.__dict__)
-    >>> os.remove('test.json')
+    >>> assert(jsonfile2object(u'test.json') == p1.__dict__)
+    >>> assert(jsonfile2object(open(u'test.json')) == p1.__dict__)
+    >>> os.remove(u'test.json')
     """
     if something is None:
         try:

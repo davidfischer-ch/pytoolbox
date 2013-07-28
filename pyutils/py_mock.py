@@ -33,11 +33,11 @@ else:
     from mock import Mock
 
 
-MOCK_SIDE_EFFECT_RETURNS = [Exception('you must set MOCK_SIDE_EFFECT_RETURNS'), {'title': 'second'}]
+MOCK_SIDE_EFFECT_RETURNS = [Exception(u'you must set MOCK_SIDE_EFFECT_RETURNS'), {u'title': u'2nd'}]
 
 
-def mock_cmd(stdout='', stderr='', returncode=0):
-    return Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
+def mock_cmd(stdout=u'', stderr=u'', returncode=0):
+    return Mock(return_value={u'stdout': stdout, u'stderr': stderr, u'returncode': returncode})
 
 
 def mock_side_effect(*args, **kwargs):
@@ -47,7 +47,7 @@ def mock_side_effect(*args, **kwargs):
     from your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this method::
 
         import pyutils.py_mock
-        pyutils.py_mock.MOCK_SIDE_EFFECT_RETURNS = ['first', {'title': 'second'}, EOFError('last')]
+        pyutils.py_mock.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
 
     **example usage**:
 
@@ -60,7 +60,7 @@ def mock_side_effect(*args, **kwargs):
     ...
     Exception: you must set MOCK_SIDE_EFFECT_RETURNS
     >>> print(mock_side_effect())
-    {'title': 'second'}
+    {u'title': u'2nd'}
     >>> print(mock_side_effect())
     Traceback (most recent call last):
     ...

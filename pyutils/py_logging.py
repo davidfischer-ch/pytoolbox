@@ -28,8 +28,8 @@
 import logging, sys
 
 
-def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
-                  fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
+def setup_logging(name=u'', reset=False, filename=None, console=False, level=logging.DEBUG,
+                  fmt=u'%(asctime)s %(levelname)-8s - %(message)s', datefmt=u'%d/%m/%Y %H:%M:%S'):
     u"""
     Setup logging (TODO).
 
@@ -52,26 +52,26 @@ def setup_logging(name='', reset=False, filename=None, console=False, level=logg
 
     Setup a console output for logger with name *test*:
 
-    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
-    >>> log = logging.getLogger('test')
-    >>> log.info('this is my info')
+    >>> setup_logging(name=u'test', reset=True, console=True, fmt=None, datefmt=None)
+    >>> log = logging.getLogger(u'test')
+    >>> log.info(u'this is my info')
     this is my info
-    >>> log.debug('this is my debug')
+    >>> log.debug(u'this is my debug')
     this is my debug
     >>> log.setLevel(logging.INFO)
-    >>> log.debug('this is my hidden debug')
+    >>> log.debug(u'this is my hidden debug')
     >>> log.handlers = []  # Remove handlers manually: pas de bras, pas de chocolat !
-    >>> log.debug('no handlers, no messages ;-)')
+    >>> log.debug(u'no handlers, no messages ;-)')
 
     Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
 
-    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
-    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
-    >>> log.info('double message')
+    >>> setup_logging(name=u'test', console=True, fmt=None, datefmt=None)
+    >>> setup_logging(name=u'test', console=True, fmt=None, datefmt=None)
+    >>> log.info(u'double message')
     double message
     double message
-    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
-    >>> log.info('single message')
+    >>> setup_logging(name=u'test', reset=True, console=True, fmt=None, datefmt=None)
+    >>> log.info(u'single message')
     single message
     """
     if reset:
