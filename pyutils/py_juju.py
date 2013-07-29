@@ -32,7 +32,7 @@ from py_subprocess import cmd
 #from juju.environment.config import EnvironmentsConfig
 
 
-def juju_do(command, environment, options=None, fail=True):
+def juju_do(command, environment, options=None, fail=True, log=None):
     u"""
     Execute a command ``command`` into environment ``environment``.
 
@@ -40,8 +40,8 @@ def juju_do(command, environment, options=None, fail=True):
 
     Locking Juju status 'are you sure you want to continue connecting (yes/no)'.
 
-    We need a way to confirm our choice, pyutils.cmd(u'juju status --environment %s' % environment,
-    cli_input=u'yes\n') seem to not work as expected. This happens the first time (and only the
+    We need a way to confirm our choice, ``cmd(u'juju status --environment %s' % environment,
+    cli_input=u'yes\n')? ?  seem to not work as expected. This happens the first time (and only the
     first time) juju connect to a freshly deployed environment.
 
     Solution : http://askubuntu.com/questions/123072/ssh-automatically-accept-keys
@@ -53,8 +53,7 @@ def juju_do(command, environment, options=None, fail=True):
     command = [u'juju', command, u'--environment', environment]
     if isinstance(options, list):
         command.extend(options)
-    print(u'Executing command {0}'.format(command))
-    result = cmd(command, fail=False)
+    result = cmd(command, fail=False, log=log)
     if result[u'returncode'] != 0 and fail:
         raise RuntimeError(
             u'Subprocess failed {0} : {1}.'.format(u' '.join(command), result[u'stderr']))
@@ -70,7 +69,7 @@ def load_unit_config(config, log=None):
     * A dictionary containing already loaded options names as keys and options values as values.
     """
     if isinstance(config, string_types):
-        if log is not None:
+        if hasattr(log, '__call__'):
             log(u'Load config from file {0}'.format(config))
         with open(config, u'r', encoding=u'utf-8') as f:
             options = yaml.load(f)[u'options']
@@ -80,7 +79,7 @@ def load_unit_config(config, log=None):
     for option, value in config.iteritems():
         if unicode(value).lower() in (u'false', u'true'):
             config[option] = True if unicode(value).lower() == u'true' else False
-            if log is not None:
+            if hasattr(log, '__call__'):
                 log(u'Convert boolean option {0} {1} -> {2}'.format(option, value, config[option]))
     return config
 
