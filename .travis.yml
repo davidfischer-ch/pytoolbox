@@ -6,7 +6,7 @@ python:
   - "3.3"
 install:
   - pip install six coverage
-  - sudo apt-get install ffmpeg
+  - sudo apt-get install ffmpeg screen
   - python setup.py develop
 script:
   - nosetests pyutils tests
