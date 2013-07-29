@@ -60,6 +60,24 @@ class PickleableObject(object):
             raise ValueError(u'A filename must be specified')
 
 
+class JsoneableObject(object):
+    u"""
+    An :class:`object` serializable/deserializable by :mod:`json`.
+
+    .. note::
+
+        Class constructor should have default value for all arguments !
+    """
+    def to_json(self, include_properties):
+        return object2json(self, include_properties)
+
+    @classmethod
+    def from_json(cls, json):
+        the_object = cls()
+        json2object(json, the_object)
+        return the_object
+
+
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
