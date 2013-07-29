@@ -32,9 +32,9 @@
 #    sys.path.append(abspath(join(dirname(dirname(__file__)), 'pyutils')))
 
 #from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-import os
-from nose import assert_equal
-from pyutils.py_serialization import PickleableObject
+import math, os
+from nose.tools import assert_equal, raises
+from pyutils.py_serialization import JsoneableObject, PickleableObject
 from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
 
 #HELP_TRAVIS = 'Disable screen doctest for Travis CI'
@@ -49,55 +49,74 @@ from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
 #    screen_kill.__doc__ = screen_launch.__doc__ = screen_list.__doc__ = ''
 
 
-class MyPoint(PickleableObject):
+class MyPoint(JsoneableObject, PickleableObject):
     def __init__(self, name=None, x=0, y=0):
         self.name = name
         self.x = x
         self.y = y
 
+    @property
+    def length(self):
+        return math.sqrt(self.x*self.x + self.y*self.y)
+
 
 class TestPyutils(object):
 
     def test_cmd(self):
-        cmd(['echo', 'it seem to work'], log=None)  # FIXME todo
+        cmd([u'echo', u'it seem to work'], log=None)  # FIXME todo
         #[DEBUG] Execute ['echo', 'it seem to work']
-        assert_equal(cmd('cat missing_file', fail=False, log=None)['returncode'], 0)
+        assert_equal(cmd(u'cat missing_file', fail=False, log=None)[u'returncode'], 1)
         #[DEBUG] Execute cat missing_file
-        assert(cmd('my.funny.missing.script.sh', fail=False)['stderr'] != '')
-        result = cmd('cat %s' % __file__)
-        assert_equal(result['stdout'].splitlines()[0], '#!/usr/bin/env python')
+        assert(cmd(u'my.funny.missing.script.sh', fail=False)[u'stderr'] != u'')
+        result = cmd(u'cat {0}'.format(__file__))
+        assert_equal(result[u'stdout'].splitlines()[0], u'#!/usr/bin/env python')
 
     def test_screen(self):
-        #Launch some screens
-        assert_equal(screen_launch('my_1st_screen', 'top', fail=False)['stderr'], '')
-        assert_equal(screen_launch('my_2nd_screen', 'top', fail=False)['stderr'], '')
-        assert_equal(screen_launch('my_2nd_screen', 'top', fail=False)['stderr'], '')
-        #List the launched screen sessions
-        assert_equal(screen_list(name=r'my_1st_screen'), ['....my_1st_screen'])
-        assert_equal(screen_list(name=r'my_2nd_screen'), ['....my_2nd_screen', '....my_2nd_screen'])
-        #Cleanup
-        screen_kill(name='my_1st_screen', log=None)  # FIXME todo
-        #Execute ['screen', '-ls', 'my_1st_screen']
-        #Execute ['screen', '-S', '....my_1st_screen', '-X', 'quit']
-        screen_kill(name='my_2nd_screen', log=None)  # FIXME todo
-        #Execute ['screen', '-ls', 'my_2nd_screen']
-        #Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
-        #Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+        try:
+            # Launch some screens
+            assert_equal(screen_launch(u'my_1st_screen', u'top', fail=False)[u'stderr'], u'')
+            assert_equal(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr'], u'')
+            assert_equal(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr'], u'')
+            # List the launched screen sessions
+            screens = screen_list(name=u'my_1st_screen')
+            assert(len(screens) >= 1 and screens[0].endswith(u'my_1st_screen'))
+            screens = screen_list(name=u'my_2nd_screen')
+            assert(len(screens) >= 1 and screens[0].endswith(u'my_2nd_screen'))
+        finally:
+            # Cleanup
+            screen_kill(name=u'my_1st_screen', log=None)  # FIXME todo
+            #Execute ['screen', '-ls', 'my_1st_screen']
+            #Execute ['screen', '-S', '....my_1st_screen', '-X', 'quit']
+            screen_kill(name=u'my_2nd_screen', log=None)  # FIXME todo
+            #Execute ['screen', '-ls', 'my_2nd_screen']
+            #Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+            #Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
 
     def test_PickleableObject(self):
-        p1 = MyPoint(name='My point', x=6, y=-3)
-        p1.write('test.pkl')
-        p2 = MyPoint.read('test.pkl', store_filename=True)
-        assert(p2.__dict__ == {'y': -3, 'x': 6, '_pickle_filename': 'test.pkl', 'name': 'My point'})
+        p1 = MyPoint(name=u'My point', x=6, y=-3)
+        p1.write(u'test.pkl')
+        p2 = MyPoint.read(u'test.pkl', store_filename=True)
+        assert_equal(p2.__dict__,
+                     {u'y': -3, u'x': 6, u'_pickle_filename': u'test.pkl', u'name': u'My point'})
         p2.write()
-        delattr(p2, '_pickle_filename')
+        delattr(p2, u'_pickle_filename')
         try:
             p2.write()
-            raise ValueError('Must raise an AttributeError')
+            raise ValueError(u'Must raise an AttributeError')
         except ValueError:
             pass
         finally:
-            os.remove('test.pkl')
+            os.remove(u'test.pkl')
+
+    def test_JsoneableObject(self):
+        p1 = MyPoint(name=u'My point', x=8, y=-2)
+        p2 = MyPoint.from_json(p1.to_json(include_properties=False))
+        assert_equal((p1.x, p1.y), (p2.x, p2.y))
+
+    @raises(AttributeError)
+    def test_JsoneableObject_fail(self):
+        p1 = MyPoint(name=u'My point', x=8, y=-2)
+        MyPoint.from_json(p1.to_json(include_properties=True))
 
 #if __name__ == '__main__':
 #    import nose
