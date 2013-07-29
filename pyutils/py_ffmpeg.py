@@ -26,7 +26,6 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import fcntl, os, re, select, shlex, subprocess, time
-from codecs import open
 from xml.dom import minidom
 from py_datetime import duration2secs
 
@@ -58,6 +57,7 @@ def get_media_duration(filename):
 
     **Example usage**:
 
+    >>> from codecs import open
     >>> open(u'/tmp/test.txt', u'w', encoding=u'utf-8').write(u'Hey, I am not a MPD nor a média')
     >>> print(get_media_duration(u'/tmp/test.txt'))
     None
