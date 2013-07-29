@@ -9,7 +9,7 @@ install:
   - sudo apt-get install ffmpeg
   - python setup.py develop
 script:
-  - nosetests pyutils
+  - nosetests pyutils tests
 matrix:
   allow_failures:
     - python: "2.6"
