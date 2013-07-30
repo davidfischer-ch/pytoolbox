@@ -69,6 +69,7 @@ setup(name=u'pyutils',
             u'argparse',  # FIXME version
             u'flask',     # FIXME version
             u'hashlib',   # FIXME version
+            #u'kitchen',  # FIXME version + pip error
             u'ipaddr',    # FIXME version
             u'ming',      # FIXME version
             u'mock',      # FIXME version

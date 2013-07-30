@@ -26,24 +26,6 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import uuid
-from codecs import open
-
-
-# CSV ----------------------------------------------------------------------------------------------
-
-def unicode_csv_reader(filename, delimiter=u';', quotechar=u'"'):
-    u"""
-    Yield the content of a CSV file.
-    """
-    with open(filename, u'r', u'utf-8') as f:
-        for line in f.readlines():
-            line = line.strip()
-            yield [unicode(cell) for cell in line.split(delimiter)]
-    #import csv
-    #reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
-    #for row in reader:
-    #    yield [cell for cell in row]
-        #yield [unicode(cell, 'utf-8').encode('utf-8') for cell in row]
 
 
 class DBModel(object):

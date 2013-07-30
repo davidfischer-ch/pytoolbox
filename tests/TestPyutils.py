@@ -34,9 +34,9 @@
 #from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import math, os
 from nose.tools import assert_equal, raises
-from pyutils.pyutils import unicode_csv_reader
 from pyutils.py_serialization import JsoneableObject, PickleableObject
 from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
+from pyutils.py_unicode import configure_unicode, csv_reader
 
 #HELP_TRAVIS = 'Disable screen doctest for Travis CI'
 
@@ -62,12 +62,6 @@ class MyPoint(JsoneableObject, PickleableObject):
 
 
 class TestPyutils(object):
-
-    def test_unicode_csv_reader(self):
-        values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
-        for name, hobby in unicode_csv_reader('unicode.csv'):
-            assert_equal((name, hobby), values[i])
-            i += 1
 
     def test_cmd(self):
         cmd([u'echo', u'it seem to work'], log=None)  # FIXME todo
@@ -125,6 +119,12 @@ class TestPyutils(object):
         p1 = MyPoint(name=u'My point', x=8, y=-2)
         MyPoint.from_json(p1.to_json(include_properties=True))
 
-#if __name__ == '__main__':
-#    import nose
-#    nose.runmodule(argv=[__file__], exit=False)
+    def test_csv_reader(self):
+        values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
+        for name, hobby in csv_reader('unicode.csv'):
+            assert_equal((name, hobby), values[i])
+            i += 1
+
+if __name__ == '__main__':
+    import nose
+    nose.runmodule(argv=[__file__], exit=False)
