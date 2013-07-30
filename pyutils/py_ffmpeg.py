@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import fcntl, os, re, select, shlex, subprocess, time
+from kitchen.text.converters import to_bytes
 from xml.dom import minidom
 from py_datetime import duration2secs
 
@@ -80,7 +81,7 @@ def get_media_duration(filename):
                     float(match.group(u'seconds')))
     else:
         cmd = u'ffmpeg -i "{0}"'.format(filename)
-        pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
+        pipe = subprocess.Popen(shlex.split(to_bytes(cmd)), stderr=subprocess.PIPE, close_fds=True)
         match = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
         if not match:
             return None

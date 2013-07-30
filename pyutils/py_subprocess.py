@@ -42,7 +42,7 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
     if hasattr(log, u'__call__'):
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             command, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
-    args = filter(None, command if isinstance(command, list) else shlex.split(command))
+    args = filter(None, command if isinstance(command, list) else shlex.split(to_bytes(command)))
     try:
         process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
