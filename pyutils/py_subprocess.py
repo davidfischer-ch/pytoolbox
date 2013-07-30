@@ -26,6 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import errno, fcntl, os, re, shlex, subprocess
+from kitchen.text.converters import to_bytes
 
 
 def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
@@ -38,7 +39,7 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
     * Set ``shell`` to True to enable shell expansion (dangerous ! See :mod:`subprocess`).
     * Set ``log`` to a method to log / print details about what is executed / any failure.
     """
-    if hasattr(log, '__call__'):
+    if hasattr(log, u'__call__'):
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             command, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
     args = filter(None, command if isinstance(command, list) else shlex.split(command))
@@ -50,11 +51,11 @@ def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
             raise
         return {u'stdout': u'', u'stderr': e, u'returncode': 2}
     if cli_input is not None:
-        process.stdin.write(cli_input)
+        process.stdin.write(to_bytes(cli_input))
     stdout, stderr = process.communicate(input=input)
     result = {u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
     if fail and process.returncode != 0:
-        if hasattr(log, '__call__'):
+        if hasattr(log, u'__call__'):
             log(result)
         raise subprocess.CalledProcessError(process.returncode, command, stderr)
     return result
