@@ -7,6 +7,7 @@ python:
 install:
   - pip install six coverage
   - sudo apt-get install ffmpeg screen python-kitchen
+  - pip install kitchen
   - python setup.py develop
 script:
   - nosetests pyutils tests
