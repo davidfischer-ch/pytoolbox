@@ -34,15 +34,11 @@ from codecs import open
 def unicode_csv_reader(filename, delimiter=u';', quotechar=u'"'):
     u"""
     Yield the content of a CSV file.
-
-    .. warning::
-
-        Do not use it for your own purposes until I remove this warning.
     """
-    with open(filename, u'r', encoding=u'utf-8') as f:
+    with open(filename, u'r', u'utf-8') as f:
         for line in f.readlines():
             line = line.strip()
-            yield [cell for cell in line.split(delimiter)]
+            yield [unicode(cell) for cell in line.split(delimiter)]
     #import csv
     #reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
     #for row in reader:

@@ -34,6 +34,7 @@
 #from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import math, os
 from nose.tools import assert_equal, raises
+from pyutils.pyutils import unicode_csv_reader
 from pyutils.py_serialization import JsoneableObject, PickleableObject
 from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
 
@@ -61,6 +62,12 @@ class MyPoint(JsoneableObject, PickleableObject):
 
 
 class TestPyutils(object):
+
+    def test_unicode_csv_reader(self):
+        values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
+        for name, hobby in unicode_csv_reader('unicode.csv'):
+            assert_equal((name, hobby), values[i])
+            i += 1
 
     def test_cmd(self):
         cmd([u'echo', u'it seem to work'], log=None)  # FIXME todo
