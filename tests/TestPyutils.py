@@ -50,10 +50,12 @@ class MyPoint(JsoneableObject, PickleableObject):
 class TestPyutils(object):
 
     def test_cmd(self):
-        cmd([u'echo', u'it seem to work'], log=None)  # FIXME todo
-        #[DEBUG] Execute ['echo', 'it seem to work']
-        assert_equal(cmd(u'cat missing_file', fail=False, log=None)[u'returncode'], 1)
-        #[DEBUG] Execute cat missing_file
+        cmd_log = mock_cmd()
+        cmd([u'echo', u'it seem to work'], log=cmd_log)
+        assert_equal(cmd(u'cat missing_file', fail=False, log=cmd_log)[u'returncode'], 1)
+        validate_list(cmd_log.call_args_list, [
+                r"call\(u*\"Execute \[u*'echo', u*'it seem to work'\]\"\)",
+                r"call\(u*'Execute cat missing_file'\)"])
         assert(cmd(u'my.funny.missing.script.sh', fail=False)[u'stderr'] != u'')
         result = cmd(u'cat {0}'.format(__file__))
         assert_equal(result[u'stdout'].splitlines()[0], u'#!/usr/bin/env python')
