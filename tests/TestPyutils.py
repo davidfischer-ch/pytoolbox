@@ -77,8 +77,8 @@ class TestPyutils(object):
             validate_list(kill_log.call_args_list, [
                 r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
                 r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
-                r"call\(u*\"Execute \[u*'scresen', u*'-ls', u*'my_2nd_screen'\]\"\)",
-                r"call\(u*\"Execute \[u*'screesn', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_2nd_screen'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
                 r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
 
     def test_PickleableObject(self):
