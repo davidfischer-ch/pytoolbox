@@ -25,29 +25,15 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-#if __name__ == '__main__':
-#    import os, sys
-#    from os.path import abspath, dirname, join
-#    sys.path.append(abspath(dirname(dirname(__file__))))
-#    sys.path.append(abspath(join(dirname(dirname(__file__)), 'pyutils')))
-
-#from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import math, os
 from nose.tools import assert_equal, raises
+from pyutils.py_mock import mock_cmd
 from pyutils.py_serialization import JsoneableObject, PickleableObject
 from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
 from pyutils.py_unicode import configure_unicode, csv_reader
+from pyutils.py_validation import validate_list
 
-#HELP_TRAVIS = 'Disable screen doctest for Travis CI'
-
-#parser = ArgumentParser(
-#    formatter_class=ArgumentDefaultsHelpFormatter,
-#    epilog='''Generate a unique identifier (UUID) and save it into pictures's tags (EXIFv2).''')
-#parser.add_argument('-t', '--travis', help=HELP_TRAVIS, action='store_true')
-#args = parser.parse_args()
-
-#if args.travis:
-#    screen_kill.__doc__ = screen_launch.__doc__ = screen_list.__doc__ = ''
+configure_unicode()
 
 
 class MyPoint(JsoneableObject, PickleableObject):
@@ -85,13 +71,15 @@ class TestPyutils(object):
             assert(len(screens) >= 1 and screens[0].endswith(u'my_2nd_screen'))
         finally:
             # Cleanup
-            screen_kill(name=u'my_1st_screen', log=None)  # FIXME todo
-            #Execute ['screen', '-ls', 'my_1st_screen']
-            #Execute ['screen', '-S', '....my_1st_screen', '-X', 'quit']
-            screen_kill(name=u'my_2nd_screen', log=None)  # FIXME todo
-            #Execute ['screen', '-ls', 'my_2nd_screen']
-            #Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
-            #Execute ['screen', '-S', '....my_2nd_screen', '-X', 'quit']
+            kill_log = mock_cmd()
+            screen_kill(name=u'my_1st_screen', log=kill_log)
+            screen_kill(name=u'my_2nd_screen', log=kill_log)
+            validate_list(kill_log.call_args_list, [
+                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
+                r"call\(u*\"Execute \[u*'scresen', u*'-ls', u*'my_2nd_screen'\]\"\)",
+                r"call\(u*\"Execute \[u*'screesn', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
 
     def test_PickleableObject(self):
         p1 = MyPoint(name=u'My point', x=6, y=-3)
@@ -124,6 +112,19 @@ class TestPyutils(object):
         for name, hobby in csv_reader('unicode.csv'):
             assert_equal((name, hobby), values[i])
             i += 1
+
+    def test_validate_list(self):
+        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+        validate_list([10, "call([u'my_var', recursive=False])"], regexes)
+
+    @raises(IndexError)
+    def test_validate_list_fail_size(self):
+        validate_list([1, 2], [1, 2, 3])
+
+    @raises(ValueError)
+    def test_validate_list_fail_value(self):
+        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+        validate_list([10, "call([u'my_var', recursive='error'])"], regexes)
 
 if __name__ == '__main__':
     import nose

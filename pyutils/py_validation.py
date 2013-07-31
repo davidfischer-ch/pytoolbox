@@ -27,6 +27,7 @@
 
 import re, six, uuid
 from bson.objectid import InvalidId, ObjectId
+from kitchen.text.converters import to_bytes
 
 if six.PY3:
     from ipaddress import ip_address
@@ -170,3 +171,14 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
         except InvalidId:
             return False
     return True
+
+
+def validate_list(the_list, regexes):
+    u"""
+    Validate every element of ``the_list`` with corresponding regular expression picked-in from ``regexes``.
+    """
+    if len(the_list) != len(regexes):
+        raise IndexError(to_bytes(u'{0} elements to validate with {1} regular expressions'.format(len(the_list), len(regexes))))
+    for i in range(len(regexes)):
+        if not re.match(regexes[i], unicode(the_list[i])):
+            raise ValueError(to_bytes(u'N°{0} is invalid:\n\telement: {1}\n\tregex:   {2}'.format(i+1, the_list[i], regexes[i])))
