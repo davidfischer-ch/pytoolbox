@@ -130,9 +130,10 @@ class TestPyutils(object):
         validate_list([10, u"call([u'my_var', recursive='error'])"], regexes)
 
 def runtests():
-    import nose, sys
-    sys.exit(nose.run(argv=[ __file__, u'--with-doctest', u'--with-coverage', u'--cover-package=pyutils', u'-vv',
+    import nose, unittest
+    assert(nose.run(argv=[ __file__, u'--with-doctest', u'--with-coverage', u'--cover-package=pyutils', u'-vv',
                            u'../pyutils', u'tests']))
+    return unittest.TestSuite()  # Unittest module loader.py check if we return an instance of TestSuite ...
 
 if __name__ == '__main__':
     runtests()
