@@ -55,7 +55,7 @@ Programming Language :: Python :: 3.3
 """
 
 setup(name=u'pyutils',
-      version=u'2.0.2-beta',
+      version=u'2.1.2-beta',
       packages=[u'pyutils'],
       description=u'Some Python utility functions',
       long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
