@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -127,5 +126,5 @@ def screen_list(name=None, log=None):
     u"""
     Returns a list containing all instances of screen. Can be filtered by ``name``.
     """
-    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
+    return re.findall(ur'\s+(\d+.\S+)\s+\(.*\).*',
                       cmd([u'screen', u'-ls', name], fail=False, log=log)[u'stdout'])

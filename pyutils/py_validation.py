@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -47,7 +46,7 @@ def valid_filename(filename):
     True
     """
     try:
-        return True if re.match(r'[^\.]+\.[^\.]+', filename) else False
+        return True if re.match(ur'[^\.]+\.[^\.]+', filename) else False
     except:
         return False
 
@@ -82,7 +81,7 @@ def valid_email(email):
     True
     """
     try:
-        return True if re.match(r'[^@]+@[^@]+\.[^@]+', email) else False
+        return True if re.match(ur'[^@]+@[^@]+\.[^@]+', email) else False
     except:
         return False
 

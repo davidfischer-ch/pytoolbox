@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -196,7 +195,6 @@ def try_symlink(source, link_name):
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
-    >>> import shutil
     >>> try_symlink(u'/home', u'/etc')
     Traceback (most recent call last):
         ...

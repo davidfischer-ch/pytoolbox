@@ -54,11 +54,12 @@ class TestPyutils(object):
         cmd([u'echo', u'it seem to work'], log=cmd_log)
         assert_equal(cmd(u'cat missing_file', fail=False, log=cmd_log)[u'returncode'], 1)
         validate_list(cmd_log.call_args_list, [
-                r"call\(u*\"Execute \[u*'echo', u*'it seem to work'\]\"\)",
-                r"call\(u*'Execute cat missing_file'\)"])
+                ur"call\(u*\"Execute \[u*'echo', u*'it seem to work'\]\"\)",
+                ur"call\(u*'Execute cat missing_file'\)"])
         assert(cmd(u'my.funny.missing.script.sh', fail=False)[u'stderr'] != u'')
         result = cmd(u'cat {0}'.format(__file__))
-        assert_equal(result[u'stdout'].splitlines()[0], u'#!/usr/bin/env python')
+        # There are at least 30 lines in this source file !
+        assert(len(result[u'stdout'].splitlines()) > 30)
 
     def test_screen(self):
         try:
@@ -77,11 +78,11 @@ class TestPyutils(object):
             screen_kill(name=u'my_1st_screen', log=kill_log)
             screen_kill(name=u'my_2nd_screen', log=kill_log)
             validate_list(kill_log.call_args_list, [
-                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_2nd_screen'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
+                ur"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
+                ur"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
+                ur"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_2nd_screen'\]\"\)",
+                ur"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
+                ur"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
 
     def test_PickleableObject(self):
         p1 = MyPoint(name=u'My point', x=6, y=-3)
@@ -111,12 +112,12 @@ class TestPyutils(object):
 
     def test_csv_reader(self):
         values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
-        for name, hobby in csv_reader('unicode.csv'):
+        for name, hobby in csv_reader(u'unicode.csv'):
             assert_equal((name, hobby), values[i])
             i += 1
 
     def test_validate_list(self):
-        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+        regexes = [ur'\d+', ur"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, "call([u'my_var', recursive=False])"], regexes)
 
     @raises(IndexError)
@@ -125,9 +126,13 @@ class TestPyutils(object):
 
     @raises(ValueError)
     def test_validate_list_fail_value(self):
-        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
-        validate_list([10, "call([u'my_var', recursive='error'])"], regexes)
+        regexes = [ur'\d+', ur"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+        validate_list([10, u"call([u'my_var', recursive='error'])"], regexes)
+
+def runtests():
+    import nose, sys
+    sys.exit(nose.run(argv=[ __file__, u'--with-doctest', u'--with-coverage', u'--cover-package=pyutils', u'-vv',
+                           u'../pyutils', u'tests']))
 
 if __name__ == '__main__':
-    import nose
-    nose.runmodule(argv=[__file__], exit=False)
+    runtests()

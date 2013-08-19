@@ -10,7 +10,7 @@ install:
   - pip install kitchen
   - python setup.py develop
 script:
-  - nosetests pyutils tests
+  - python setup.py test
 matrix:
   allow_failures:
     - python: "2.6"
