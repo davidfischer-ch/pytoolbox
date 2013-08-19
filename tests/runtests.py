@@ -27,6 +27,7 @@
 
 import math, os
 from nose.tools import assert_equal, raises
+from unittest import TestCase
 from pyutils.py_mock import mock_cmd
 from pyutils.py_serialization import JsoneableObject, PickleableObject
 from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
@@ -129,11 +130,22 @@ class TestPyutils(object):
         regexes = [ur'\d+', ur"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, u"call([u'my_var', recursive='error'])"], regexes)
 
+
+class MyTestCase(TestCase):
+
+    def __init__(self, result):
+        self.result = result
+
+    def __call__(self, something):
+        assert(self.result)
+
+
 def runtests():
-    import nose, unittest
-    assert(nose.run(argv=[ __file__, u'--with-doctest', u'--with-coverage', u'--cover-package=pyutils', u'-vv',
-                           u'../pyutils', u'tests']))
-    return unittest.TestSuite()  # Unittest module loader.py check if we return an instance of TestSuite ...
+    import nose
+    result = nose.run(argv=[ __file__,
+        u'--with-doctest', u'--with-coverage', u'--cover-package=pyutils', u'-vv', u'../pyutils', u'tests'])
+    return MyTestCase(result)  # Unittest module loader.py check if we return an instance of TestCase ...
+
 
 if __name__ == '__main__':
     runtests()

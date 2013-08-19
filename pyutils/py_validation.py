@@ -131,7 +131,7 @@ def valid_secret(secret, none_allowed):
 
 
 def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, default_port=80,
-              excepted_errnos=(errno.ENOENT, errno.ENETUNREACH)):
+              excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH)):
     u"""
 
     *Example usage**:
@@ -164,10 +164,10 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     Only accept to map a 'No such file or directory' standard :mod:`errno` to False:
     >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080)
     False
-    >>> valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT,), default_port=8080)
+    >>> valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT,), default_port=8080)  # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
-    error: [Errno 101] Network is unreachable
+    error: ...
     """
     url = urlparse(uri)
     if not url.netloc or not url.path or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
