@@ -32,15 +32,51 @@ class ForbiddenError(Exception):
     pass
 
 
-def assert_raises_item(exception_cls, something, index, delete=False):
+def assert_raises_item(exception_cls, something, index, value=None, delete=False):
     u"""
+
+    **Example usage**:
+
+    >>> x = {0: 3.14, 1: 2.54}
+
+    Assert that __getitem__ will fail:
+
+    >>> assert_raises_item(KeyError, x, 2)
+    >>> assert_raises_item(ValueError, x, 3)
+    Traceback (most recent call last):
+        ...
+    ValueError: Exception <type 'exceptions.KeyError'> is not an instance of <type 'exceptions.ValueError'>.
+    >>> assert_raises_item(Exception, x, 0)
+    Traceback (most recent call last):
+        ...
+    AssertionError: Exception <type 'exceptions.Exception'> not raised.
+
+    Assert that __setitem__ will fail:
+
+    >>> assert_raises_item(TypeError, x, [10], value=3.1415)
+    >>> assert_raises_item(TypeError, x, 0, value=3.1415)
+    Traceback (most recent call last):
+        ...
+    AssertionError: Exception <type 'exceptions.TypeError'> not raised.
+
+    Assert that __delitem__ will fail:
+
+    >>> assert_raises_item(KeyError, x, 2, delete=True)
+    >>> assert_raises_item(KeyError, x, 1, delete=True)
+    Traceback (most recent call last):
+        ...
+    AssertionError: Exception <type 'exceptions.KeyError'> not raised.
+
+    >>> x == {0: 3.1415}
+    True
     """
     try:
         if delete:
             del something[index]
-        else:
+        elif value is None:
             something[index]
-        return
+        else:
+            something[index] = value
     except Exception as e:
         if not isinstance(e, exception_cls):
             raise ValueError(to_bytes(u'Exception {0} is not an instance of {1}.'.format(
