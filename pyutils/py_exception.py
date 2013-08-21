@@ -24,9 +24,26 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+from kitchen.text.converters import to_bytes
+
 
 class ForbiddenError(Exception):
-    u"""
-    A forbidden error.
-    """
+    u"""A forbidden error."""
     pass
+
+
+def assert_raises_item(exception_cls, something, index, delete=False):
+    u"""
+    """
+    try:
+        if delete:
+            del something[index]
+        else:
+            something[index]
+        return
+    except Exception as e:
+        if not isinstance(e, exception_cls):
+            raise ValueError(to_bytes(u'Exception {0} is not an instance of {1}.'.format(
+                             e.__class__, exception_cls)))
+        return
+    raise AssertionError(to_bytes(u'Exception {0} not raised.'.format(exception_cls)))
