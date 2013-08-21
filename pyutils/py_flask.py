@@ -30,6 +30,8 @@ from werkzeug.exceptions import HTTPException
 from py_serialization import object2json
 from py_validation import valid_uuid
 
+STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
+
 
 def check_id(id):
     if valid_uuid(id, objectid_allowed=False, none_allowed=False):
@@ -57,9 +59,48 @@ def get_request_json(request, required_keys=[]):
 
 
 def map_exceptions(e):
-    if isinstance(e, HTTPException):
+    u"""
+    Maps a standard exception into corresponding HTTP exception class.
+
+    **Example usage**:
+
+    >>> map_exceptions(TypeError())
+    Traceback (most recent call last):
+        ...
+    ClientDisconnected: 400: Bad Request
+
+    >>> map_exceptions(IndexError())
+    Traceback (most recent call last):
+        ...
+    NotFound: 404: Not Found
+
+    >>> map_exceptions(NotImplementedError())
+    Traceback (most recent call last):
+        ...
+    NotImplemented: 501: Not Implemented
+
+    Any instance of HTTPException is simply raised without any mapping:
+
+    >>> map_exceptions(HTTPException())
+    Traceback (most recent call last):
+        ...
+    NotImplemented: 501: Not Implemented
+
+    Convert a JSON response of kind {'status': 200, 'value': '...'}:
+
+    >>> map_exceptions({'status': 200, 'value': '...'})
+    >>> map_exceptions({'status': 415, 'value': 'The value is bad.'})
+    Traceback (most recent call last):
+        ...
+    ValueError: The value is bad.
+    """
+    if isinstance(e, dict):
+        if e['status'] != 200:
+            exception = STATUS_TO_EXCEPTION.get(e['status'], Exception)
+            raise exception(e['value'])
+    elif isinstance(e, HTTPException):
         raise
-    if isinstance(e, TypeError):
+    elif isinstance(e, TypeError):
         abort(400, unicode(e))
     elif isinstance(e, KeyError):
         abort(400, u'Key {0} not found.'.format(e))
@@ -69,7 +110,8 @@ def map_exceptions(e):
         abort(415, unicode(e))
     elif isinstance(e, NotImplementedError):
         abort(501, unicode(e))
-    abort(500, '{0} {1} {2}'.format(e.__class__.__name__, repr(e), unicode(e)))
+    else:
+        abort(500, '{0} {1} {2}'.format(e.__class__.__name__, repr(e), unicode(e)))
 
 
 def json_response(status, value=None, include_properties=False):
