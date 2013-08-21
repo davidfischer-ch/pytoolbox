@@ -88,16 +88,18 @@ def map_exceptions(e):
 
     Convert a JSON response of kind {'status': 200, 'value': '...'}:
 
-    >>> map_exceptions({'status': 200, 'value': '...'})
+    >>> map_exceptions({'status': 200, 'value': 'The good value.'})
+    'The good value.'
     >>> map_exceptions({'status': 415, 'value': 'The value is bad.'})
     Traceback (most recent call last):
         ...
     ValueError: The value is bad.
     """
     if isinstance(e, dict):
-        if e['status'] != 200:
-            exception = STATUS_TO_EXCEPTION.get(e['status'], Exception)
-            raise exception(e['value'])
+        if e['status'] == 200:
+            return e['value']
+        exception = STATUS_TO_EXCEPTION.get(e['status'], Exception)
+        raise exception(e['value'])
     elif isinstance(e, HTTPException):
         raise
     elif isinstance(e, TypeError):
