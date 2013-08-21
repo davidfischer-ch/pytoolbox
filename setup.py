@@ -55,7 +55,7 @@ Programming Language :: Python :: 3.3
 """
 
 setup(name=u'pyutils',
-      version=u'2.0.1-beta',
+      version=u'2.1.2-beta',
       packages=[u'pyutils'],
       description=u'Some Python utility functions',
       long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
@@ -77,4 +77,6 @@ setup(name=u'pyutils',
             u'six'],      # FIXME version
       setup_requires=[u'coverage', u'nose'],
       tests_require=[u'coverage', u'nose'],
-      test_suite=u'nose.main', **kwargs)
+      # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
+      test_suite="tests.runtests.runtests",
+      **kwargs)

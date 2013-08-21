@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -29,23 +28,23 @@ import errno, fcntl, os, re, shlex, subprocess
 from kitchen.text.converters import to_bytes
 
 
-def cmd(command, input=None, cli_input=None, shell=False, fail=True, log=None):
+def cmd(command, input=None, cli_input=None, fail=True, log=None, **kwargs):
     u"""
     Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
 
     * Pipe some content to the command with ``input``.
     * Answer to interactive CLI questions with ``cli_input``.
     * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
-    * Set ``shell`` to True to enable shell expansion (dangerous ! See :mod:`subprocess`).
     * Set ``log`` to a method to log / print details about what is executed / any failure.
+    * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
     """
     if hasattr(log, u'__call__'):
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             command, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
     args = filter(None, command if isinstance(command, list) else shlex.split(to_bytes(command)))
     try:
-        process = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+        process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, **kwargs)
     except OSError as e:
         if fail:
             raise
@@ -86,7 +85,7 @@ def read_async(fd):
 
 def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False,
           progress=False, recursive=False, simulate=False, excludes=None, includes=None, fail=True,
-          log=None):
+          log=None, **kwargs):
     if makedest and not os.path.exists(destination):
         os.makedirs(destination)
     source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else u'')
@@ -104,28 +103,28 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
     if exclude_vcs:
         command.extend([u'--exclude=.svn', u'--exclude=.git'])
     command.extend([source, destination])
-    return cmd(filter(None, command), fail=fail, log=log)
+    return cmd(filter(None, command), fail=fail, log=log, **kwargs)
 
 
-def screen_kill(name=None, fail=True, log=None):
+def screen_kill(name=None, fail=True, log=None, **kwargs):
     u"""
     Kill all screen instances called ``name`` or all if ``name`` is None.
     """
     for name in screen_list(name=name, log=log):
-        cmd([u'screen', u'-S', name, u'-X', u'quit'], fail=fail, log=log)
+        cmd([u'screen', u'-S', name, u'-X', u'quit'], fail=fail, log=log, **kwargs)
 
 
-def screen_launch(name, command, fail=True, log=None):
+def screen_launch(name, command, fail=True, log=None, **kwargs):
     u"""
     Launch a new named screen instance.
     """
     return cmd([u'screen', u'-dmS', name] + (command if isinstance(command, list) else [command]),
-               fail=fail, log=log)
+               fail=fail, log=log, **kwargs)
 
 
-def screen_list(name=None, log=None):
+def screen_list(name=None, log=None, **kwargs):
     u"""
     Returns a list containing all instances of screen. Can be filtered by ``name``.
     """
-    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
-                      cmd([u'screen', u'-ls', name], fail=False, log=log)[u'stdout'])
+    return re.findall(ur'\s+(\d+.\S+)\s+\(.*\).*',
+                      cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'])

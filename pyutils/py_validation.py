@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -25,9 +24,10 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import re, six, uuid
+import errno, httplib, re, six, socket, uuid
 from bson.objectid import InvalidId, ObjectId
 from kitchen.text.converters import to_bytes
+from urlparse import urlparse
 
 if six.PY3:
     from ipaddress import ip_address
@@ -47,7 +47,7 @@ def valid_filename(filename):
     True
     """
     try:
-        return True if re.match(r'[^\.]+\.[^\.]+', filename) else False
+        return True if re.match(ur'[^\.]+\.[^\.]+', filename) else False
     except:
         return False
 
@@ -82,7 +82,7 @@ def valid_email(email):
     True
     """
     try:
-        return True if re.match(r'[^@]+@[^@]+\.[^@]+', email) else False
+        return True if re.match(ur'[^@]+@[^@]+\.[^@]+', email) else False
     except:
         return False
 
@@ -125,9 +125,66 @@ def valid_secret(secret, none_allowed):
     if secret is None and none_allowed:
         return True
     try:
-        return True if re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) else False
+        return True if re.match(ur'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) else False
     except:
         return False
+
+
+def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, default_port=80,
+              excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH)):
+    u"""
+
+    *Example usage**:
+
+    >>> valid_uri('http://docs.python.org/2/library/httplib.html', check_404=True)
+    True
+    >>> valid_uri('//docs.python.org/2/library/httplib.html', check_404=True)
+    True
+    >>> valid_uri('domain_not_exist_404_404/index.htmlw', check_404=True)
+    False
+
+    Set default value for port (using a crazy port number to ensure a 404):
+    >>> valid_uri('//docs.python.org/2/library/httplib.html', check_404=True, default_port=88881)
+    False
+
+    Following the syntax ... in RFC 1808, ... input is presumed ... a path component:
+    >>> valid_uri('docs.python.org/2/library/httplib.html', check_404=True)
+    False
+
+    This method does not use scheme of ``uri`` at all, so here is the proof:
+    >>> valid_uri('gluster://docs.python.org/2/library/httplib.html', check_404=True)
+    True
+
+    Enforce the scheme or the port to being set:
+    >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, scheme_mandatory=True)
+    False
+    >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
+    False
+
+    Only accept to map a 'No such file or directory' standard :mod:`errno` to False:
+    >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080)
+    False
+    >>> valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT,), default_port=8080)  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+        ...
+    error: ...
+    """
+    url = urlparse(uri)
+    if not url.netloc or not url.path or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
+        return False
+    if check_404:
+        conn = httplib.HTTPConnection(url.netloc, url.port or default_port)
+        try:
+            conn.request('HEAD', url.path)
+        except socket.error as e:
+            # Resource does not exist
+            if e.errno in excepted_errnos:
+                return False
+            raise  # Re-raise exception if a different error occurred
+        response = conn.getresponse()
+        conn.close()
+        return response.status != 404
+    return True
 
 
 def valid_uuid(id, objectid_allowed=False, none_allowed=False):

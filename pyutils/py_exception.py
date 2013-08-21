@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -25,9 +24,62 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+from kitchen.text.converters import to_bytes
+
 
 class ForbiddenError(Exception):
-    u"""
-    A forbidden error.
-    """
+    u"""A forbidden error."""
     pass
+
+
+def assert_raises_item(exception_cls, something, index, value=None, delete=False):
+    u"""
+
+    **Example usage**:
+
+    >>> x = {0: 3.14, 1: 2.54}
+
+    Assert that __getitem__ will fail:
+
+    >>> assert_raises_item(KeyError, x, 2)
+    >>> assert_raises_item(ValueError, x, 3)
+    Traceback (most recent call last):
+        ...
+    ValueError: Exception <type 'exceptions.KeyError'> is not an instance of <type 'exceptions.ValueError'>.
+    >>> assert_raises_item(Exception, x, 0)
+    Traceback (most recent call last):
+        ...
+    AssertionError: Exception <type 'exceptions.Exception'> not raised.
+
+    Assert that __setitem__ will fail:
+
+    >>> assert_raises_item(TypeError, x, [10], value=3.1415)
+    >>> assert_raises_item(TypeError, x, 0, value=3.1415)
+    Traceback (most recent call last):
+        ...
+    AssertionError: Exception <type 'exceptions.TypeError'> not raised.
+
+    Assert that __delitem__ will fail:
+
+    >>> assert_raises_item(KeyError, x, 2, delete=True)
+    >>> assert_raises_item(KeyError, x, 1, delete=True)
+    Traceback (most recent call last):
+        ...
+    AssertionError: Exception <type 'exceptions.KeyError'> not raised.
+
+    >>> x == {0: 3.1415}
+    True
+    """
+    try:
+        if delete:
+            del something[index]
+        elif value is None:
+            something[index]
+        else:
+            something[index] = value
+    except Exception as e:
+        if not isinstance(e, exception_cls):
+            raise ValueError(to_bytes(u'Exception {0} is not an instance of {1}.'.format(
+                             e.__class__, exception_cls)))
+        return
+    raise AssertionError(to_bytes(u'Exception {0} not raised.'.format(exception_cls)))

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**************************************************************************************************#
@@ -32,12 +31,12 @@ from py_datetime import duration2secs
 
 
 AUDIO_TRACKS_REGEX = re.compile(
-    r'Stream #(?P<track>\d+.\d+)\S+ Audio:\s+(?P<codec>[^,]+),\s+(?P<sample_rate>\d+) Hz,\s+'
-    r'(?P<channels>[^,]+),\s+s(?P<bit_depth>\d+),\s+(?P<bitrate>[^,]+/s)')
+    ur'Stream #(?P<track>\d+.\d+)\S+ Audio:\s+(?P<codec>[^,]+),\s+(?P<sample_rate>\d+) Hz,\s+'
+    ur'(?P<channels>[^,]+),\s+s(?P<bit_depth>\d+),\s+(?P<bitrate>[^,]+/s)')
 
 VIDEO_TRACKS_REGEX = re.compile(
-    r'Stream #(?P<track>\d+.\d+)\S+ Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
-    r'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s),\s+(?P<framerate>\S+)\s+fps,')
+    ur'Stream #(?P<track>\d+.\d+)\S+ Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
+    ur'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s),\s+(?P<framerate>\S+)\s+fps,')
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 
@@ -82,7 +81,7 @@ def get_media_duration(filename):
     else:
         cmd = u'ffmpeg -i "{0}"'.format(filename)
         pipe = subprocess.Popen(shlex.split(to_bytes(cmd)), stderr=subprocess.PIPE, close_fds=True)
-        match = re.search(r'Duration: (?P<duration>\S+),', pipe.stderr.read())
+        match = re.search(ur'Duration: (?P<duration>\S+),', pipe.stderr.read())
         if not match:
             return None
         duration = match.group(u'duration')
@@ -144,8 +143,8 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
 
     # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
     regex = re.compile(
-        r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+)\s+q=\s*(?P<q>\S+)\s+\S*'
-        r'size=\s*(?P<size>\S+)\s+time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)')
+        ur'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+)\s+q=\s*(?P<q>\S+)\s+\S*'
+        ur'size=\s*(?P<size>\S+)\s+time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)')
     while True:
         readx = select.select([pipe.stderr.fileno()], [], [])[0]
         if readx:
