@@ -32,6 +32,11 @@ class ForbiddenError(Exception):
     pass
 
 
+class TimeoutError(Exception):
+    u"""A time-out error."""
+    pass
+
+
 def assert_raises_item(exception_cls, something, index, value=None, delete=False):
     u"""
 
