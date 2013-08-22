@@ -37,6 +37,18 @@ from pyutils.py_validation import validate_list
 configure_unicode()
 
 
+def runtests():
+    u"""Run tests and report coverage with nose and coverage."""
+    import nose
+    os.chdir(os.path.abspath(os.path.dirname(__file__)))
+    result = nose.run(argv=[ __file__,
+        u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--cover-package=pyutils',
+        u'--cover-html', u'-vv', u'../pyutils', __file__])
+    return MyTestCase(result)  # Unittest module loader.py check if we return an instance of TestCase ...
+
+
+# Here are the test cases that are too complex to be used as docstrings ----------------------------
+
 class MyPoint(JsoneableObject, PickleableObject):
     def __init__(self, name=None, x=0, y=0):
         self.name = name
@@ -138,13 +150,6 @@ class MyTestCase(TestCase):
 
     def __call__(self, something):
         assert(self.result)
-
-
-def runtests():
-    import nose
-    result = nose.run(argv=[ __file__,
-        u'--with-doctest', u'--with-coverage', u'--cover-package=pyutils', u'-vv', u'../pyutils', u'tests'])
-    return MyTestCase(result)  # Unittest module loader.py check if we return an instance of TestCase ...
 
 
 if __name__ == '__main__':
