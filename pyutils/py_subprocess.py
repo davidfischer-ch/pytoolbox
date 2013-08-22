@@ -28,14 +28,17 @@ import errno, fcntl, os, re, shlex, subprocess
 from kitchen.text.converters import to_bytes
 
 
-def cmd(command, input=None, cli_input=None, fail=True, log=None, **kwargs):
+def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=True, **kwargs):
     u"""
-    Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
+    Calls the ``command`` and returns a dictionary with process, stdout, stderr, and the returncode.
+
+    Returned stdout and stderr will be None if ``communicate`` is set to False.
 
     * Pipe some content to the command with ``input``.
     * Answer to interactive CLI questions with ``cli_input``.
     * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
     * Set ``log`` to a method to log / print details about what is executed / any failure.
+    * Set ``communicate`` to True to communicate with the process, this is a locking call.
     * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
     """
     if hasattr(log, u'__call__'):
@@ -48,16 +51,18 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, **kwargs):
     except OSError as e:
         if fail:
             raise
-        return {u'stdout': u'', u'stderr': e, u'returncode': 2}
+        return {u'process': process, u'stdout': u'', u'stderr': e, u'returncode': 2}
     if cli_input is not None:
         process.stdin.write(to_bytes(cli_input))
-    stdout, stderr = process.communicate(input=input)
-    result = {u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
-    if fail and process.returncode != 0:
-        if hasattr(log, u'__call__'):
-            log(result)
-        raise subprocess.CalledProcessError(process.returncode, command, stderr)
-    return result
+    if communicate:
+        stdout, stderr = process.communicate(input=input)
+        result = {u'process': process, u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
+        if fail and process.returncode != 0:
+            if hasattr(log, u'__call__'):
+                log(result)
+            raise subprocess.CalledProcessError(process.returncode, command, stderr)
+        return result
+    return  {u'process': process, u'stdout': None, u'stderr': None, u'returncode': process.returncode}
 
 
 # http://stackoverflow.com/a/7730201/190597
