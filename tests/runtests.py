@@ -29,9 +29,15 @@ def main():
     import sys
     from os.path import abspath, dirname
     sys.path.append(abspath(dirname(dirname(__file__))))
-
-    from py_unittest import runtests
-    return runtests(__file__, package=u'pyutils', package_path=u'../pyutils')
+    try:
+        try:
+            from py_unittest import runtests
+        except ImportError:
+            from pyutils.py_unittest import runtests
+        return runtests(__file__, package=u'pyutils', package_path=u'../pyutils')
+    except ImportError:
+        print(sys.path)
+        raise
 
 if __name__ == '__main__':
     main()
