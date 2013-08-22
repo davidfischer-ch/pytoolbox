@@ -83,5 +83,4 @@ setup(name=u'pyutils',
       setup_requires=[u'coverage', u'mock', u'nose'],
       tests_require=[u'coverage', u'mock', u'nose'],
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-      test_suite="tests.runtests.runtests",
-      **kwargs)
+      test_suite='tests.runtests.main', **kwargs)
