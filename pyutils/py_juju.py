@@ -30,14 +30,14 @@ from kitchen.text.converters import to_bytes
 from six import string_types
 from py_console import confirm
 from py_exception import TimeoutError
-from py_subprocess import cmd
+from py_subprocess import cmd, screen_kill, screen_launch, screen_list
 
 DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser('~/.juju/environments.yaml'))
 STARTED_STATES = ('started',)
 ERROR_STATES = ('not-started', 'error')
 
 
-def juju_do(command, environment=None, options=None, fail=True, log=None):
+def juju_do(command, environment=None, options=None, screen_name=None, fail=True, log=None, **kwargs):
     u"""
     Execute a command ``command`` into environment ``environment``.
 
@@ -63,7 +63,10 @@ def juju_do(command, environment=None, options=None, fail=True, log=None):
     env = os.environ.copy()
     env['HOME'] = os.path.expanduser('~/')
     env['JUJU_HOME'] = os.path.expanduser('~/.juju')
-    result = cmd(command, fail=False, log=log, env=env)
+    if screen_name:
+        return screen_launch(command, fail=fail, log=log, env=env, **kwargs)
+    else:
+        result = cmd(command, fail=False, log=log, env=env, **kwargs)
     if result[u'returncode'] != 0 and fail:
         raise RuntimeError(to_bytes(u'Subprocess failed {0} : {1}.'.format(u' '.join(command), result[u'stderr'])))
     return yaml.load(result[u'stdout'])
@@ -101,6 +104,9 @@ def save_unit_config(filename, service, config, log=None):
         config = {service: config}
         f.write(yaml.safe_dump(config))
 
+
+def launch_log(environment, screen_name, log=None):
+    return ('screenlog.0', juju_do('debug-log', ['-L'], screen_name=screen_name, communicate=False, log=log))
 
 # Environments ---------------------------------------------------------------------------------------------------------
 
@@ -313,10 +319,20 @@ def add_relation(environment, service1, service2, relation1=None, relation2=None
     try:
         return juju_do(u'add-relation', environment, [member1, member2])
     except RuntimeError as e:
-        # FIXME get status of service and before adding relation may be cleaner.
+        # FIXME get status of service before adding relation may be cleaner.
         if not 'already exists' in unicode(e):
             raise
 
+def remove_relation(environment, service1, service2, relation1=None, relation2=None):
+    u"""Remove a relation between 2 services. Knowing that the relation may not exists."""
+    member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
+    member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
+    try:
+        return juju_do(u'remove-relation', environment, [member1, member2])
+    except RuntimeError as e:
+        # FIXME get status of service before removing relation may be cleaner.
+        if not 'exists' in unicode(e):
+            raise
 
 # Helpers --------------------------------------------------------------------------------------------------------------
 
@@ -337,6 +353,9 @@ class DeploymentScenario(object):
         self.environment, self.config = u'default', u'config.yaml'
         self.run()
 
+    def launch_log(self, screen_name, log=None):
+        return launch_log(self.environment, screen_name, log=log)
+
     def bootstrap(self, environment, **kwargs):
         self.environment = environment
         print(u'Cleanup and bootstrap environment {0}'.format(self.environment))
@@ -346,9 +365,9 @@ class DeploymentScenario(object):
 
     def deploy(self, service, num_units=1, num_is_target=True, release=None, expose=False, required=True, **kwargs):
         release = release or self.release
-        local = ('oscied' in service)
+        local = (u'oscied' in service)
         repository = self.charms_deploy_path if local else None
-        s = 's' if num_units > 1 else ''
+        s = u's' if num_units > 1 else ''
         print(u'Deploy {0} ({1} instance{2})'.format(service, num_units, s))
         if self.auto and required or confirm(u'do it now', default=False):
             add_or_deploy_units(self.environment, service, num_units, num_is_target=num_is_target, config=self.config,
@@ -358,8 +377,20 @@ class DeploymentScenario(object):
             return True
         return False
 
-    def add_relation(self, *args):
-        print('add-relation', args)
+    def add_relation(self, service1, service2):
+        print(u'Add relation between {0} and {1}'.format(service1, service2))
+        if self.auto or confirm(u'do it now', default=False):
+            add_relation(self.environment, service1, service2)
+
+    def remove_relation(self, service1, service2):
+        print(u'Add relation between {0} and {1}'.format(service1, service2))
+        if self.auto or confirm(u'do it now', default=False):
+            remove_relation(self.environment, service1, service2)
+
+    def unexpose_service(self, service):
+        print(u'Unexpose service {0}'.format(service))
+        if self.auto or confirm(u'do it now', default=False):
+            unexpose_service(self.environment, service)
 
     def run(self):
         raise NotImplementedError(u'Here should be implemented the deployment scenario.')
