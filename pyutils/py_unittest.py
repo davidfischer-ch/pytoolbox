@@ -24,7 +24,10 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+import nose, os
+from os.path import abspath, dirname
 from six import PY3
+from unittest import TestCase
 
 if PY3:
     from unittest.mock import Mock
@@ -45,8 +48,8 @@ def mock_side_effect(*args, **kwargs):
 
     from your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this method::
 
-        import pyutils.py_mock
-        pyutils.py_mock.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
+        import pyutils.py_unittest
+        pyutils.py_unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
 
     **example usage**:
 
@@ -70,3 +73,30 @@ def mock_side_effect(*args, **kwargs):
     if isinstance(result, Exception):
         raise result
     return result
+
+
+class PseudoTestCase(TestCase):
+    u"""
+    Pseudo test-case to map result from :mod:`nose` to :mod:`unittest`.
+
+    In fact, :mod:`unittest` ``loader.py`` check if we return an instance of TestCase ...
+    """
+
+    def __init__(self, result):
+        self.result = result
+
+    def __call__(self, something):
+        assert(self.result)
+
+
+def runtests(test_file, package, package_path):
+    u"""Run tests and report coverage with nose and coverage."""
+
+    from py_unicode import configure_unicode
+    configure_unicode()
+
+    nose_options = [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe',
+        u'--cover-package={0}'.format(package), u'--cover-html', u'-vv', package_path, package, test_file]
+
+    os.chdir(abspath(dirname(test_file)))
+    return PseudoTestCase(nose.run(argv=nose_options))

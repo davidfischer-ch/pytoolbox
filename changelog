@@ -1,0 +1,29 @@
+v2.1.2-beta -> v3.10.7-beta
+
+Compatibility breaks
+--------------------
+
+* Rename module py_mock -> py_unittest
+* Remove method unicode_csv_reader
+
+Features
+--------
+
+* Add module py_console
+* Add module py_unicode
+* Add module and method runtests
+* Add class JsoneableObject
+* Add method assert_raises_item
+* Add method valid_uri
+* Add method validate_list
+* Greatly improve module py_juju
+* Greatly improve setup and unit-testing
+
+Fixes and enhancements
+----------------------
+
+* Fix shebangs
+* Handle unicode
+* Use new string formatting
+* Update method map_exceptions
+* Add kwargs to methods of module py_subprocess
