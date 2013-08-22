@@ -34,21 +34,26 @@ if major >= 3:
     print(u'Converting code to Python 3 helped by 2to3')
     kwargs[u'use_2to3'] = True
 
+# https://pypi.python.org/pypi?%3Aaction=list_classifiers
+
 classifiers = u"""
-Intended Audience :: Developers
-License :: OSI Approved :: GNU GPLv3
 Development Status :: 4 - Beta
+Intended Audience :: Developers
+Framework :: Flask
+License :: OSI Approved :: GNU GPLv3
 Natural Language :: English
+Operating System :: POSIX :: Linux
+Programming Language :: Python
 Programming Language :: Python :: 2
 Programming Language :: Python :: 2.6
 Programming Language :: Python :: 2.7
-Operating System :: MacOS :: MacOS X
-Operating System :: Unix
-Programming Language :: Python
 Programming Language :: Python :: Implementation :: CPython
+Topic :: Software Development :: Libraries :: Python Modules
 """
 
 not_yet_tested = u"""
+Operating System :: MacOS :: MacOS X
+Operating System :: Unix
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3.2
 Programming Language :: Python :: 3.3
@@ -56,7 +61,7 @@ Programming Language :: Python :: 3.3
 
 setup(name=u'pyutils',
       version=u'2.1.2-beta',
-      packages=[u'pyutils'],
+      packages=['pyutils'],
       description=u'Some Python utility functions',
       long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
       author=u'David Fischer',
@@ -75,8 +80,8 @@ setup(name=u'pyutils',
             u'mock',      # FIXME version
             u'pyaml',     # FIXME version
             u'six'],      # FIXME version
-      setup_requires=[u'coverage', u'nose'],
-      tests_require=[u'coverage', u'nose'],
+      setup_requires=[u'coverage', u'mock', u'nose'],
+      tests_require=[u'coverage', u'mock', u'nose'],
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
       test_suite="tests.runtests.runtests",
       **kwargs)
