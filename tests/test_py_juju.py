@@ -30,14 +30,6 @@ from nose.tools import assert_equal, assert_raises
 from mock import Mock
 from py_unittest import mock_cmd
 
-import py_subprocess
-cmd = py_subprocess.cmd = mock_cmd()
-
-import py_juju
-#add = py_juju.add_or_deploy_units = Mock(return_value='a')
-#expose = py_juju.expose_service = Mock(return_value='b')
-count = py_juju.get_units_count = Mock(return_value=0)
-
 DEFAULT = {u'local_charms_path': u'.', u'release': u'raring', u'auto': True,
            u'environment': u'maas', u'config': u'config.yaml'}
 
@@ -48,6 +40,13 @@ N, R = u'--num-units', u'--repository'
 class TestDeploymentScenario(object):
 
     def test_deploy(self):
+        import py_subprocess
+        old_cmd = py_subprocess.cmd
+        cmd = py_subprocess.cmd = mock_cmd()
+        import py_juju
+        #add = py_juju.add_or_deploy_units = Mock(return_value='a')
+        #expose = py_juju.expose_service = Mock(return_value='b')
+        count = py_juju.get_units_count = Mock(return_value=0)
         scenario = py_juju.DeploymentScenario()
         scenario.__dict__.update(DEFAULT)
         print(scenario.deploy(u'mysql', u'my_mysql'))
@@ -57,3 +56,4 @@ class TestDeploymentScenario(object):
         assert_equal(cmd.call_args_list, [
             call(BASE + [N, 1] + CFG + [R, u'.', u'local:raring/mysql', u'my_mysql'], fail=False, log=None),
             call(BASE + [N, 1] + CFG + [R, u'.', u'local:raring/lamp', u'lamp'], fail=False, log=None)])
+        py_subprocess.cmd = old_cmd
