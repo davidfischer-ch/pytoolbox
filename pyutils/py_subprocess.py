@@ -27,6 +27,8 @@
 import errno, fcntl, os, re, shlex, subprocess
 from kitchen.text.converters import to_bytes
 
+EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
+
 
 def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=True, **kwargs):
     u"""
@@ -44,7 +46,7 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
     if hasattr(log, u'__call__'):
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             command, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
-    args = filter(None, command if isinstance(command, list) else shlex.split(to_bytes(command)))
+    args = [to_bytes(arg) for arg in command if arg] if isinstance(command, list) else shlex.split(to_bytes(command))
     try:
         process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, **kwargs)
@@ -62,6 +64,7 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
                 log(result)
             raise subprocess.CalledProcessError(process.returncode, command, stderr)
         return result
+    process.poll()  # To get a returncode that may be None of course ...
     return  {u'process': process, u'stdout': None, u'stderr': None, u'returncode': process.returncode}
 
 
