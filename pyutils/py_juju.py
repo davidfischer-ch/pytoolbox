@@ -258,6 +258,8 @@ def add_or_deploy_units(environment, charm, service, num_units=1, num_is_target=
 def deploy_units(environment, charm, service=None, num_units=1, to=None, config=None, constraints=None, local=False,
                  release=None, repository=None):
     service = service or charm
+    if not charm:
+        raise ValueError('Charm is required.')
     options = [u'--num-units', num_units]
     if to is not None:
         options.extend([u'--to', to])
@@ -266,9 +268,9 @@ def deploy_units(environment, charm, service=None, num_units=1, to=None, config=
     if constraints is not None:
         options.extend([u'--constraints', constraints])
     if release is not None:
-        service = u'{0}/{1}'.format(release, service)
+        charm = u'{0}/{1}'.format(release, charm)
     if local:
-        service = u'local:{0}'.format(service)
+        charm = u'local:{0}'.format(charm)
     if repository is not None:
         options.extend([u'--repository', repository])
     options.extend(filter(None, [charm, service]))
