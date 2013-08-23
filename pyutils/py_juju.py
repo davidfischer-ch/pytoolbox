@@ -237,7 +237,7 @@ def destroy_service(environment, service, fail=True):
 
 # Units ----------------------------------------------------------------------------------------------------------------
 
-def add_units(environment, service, num_units, to=None, **kwargs):
+def add_units(environment, service, num_units=1, to=None, **kwargs):
     options = [u'--num-units', unicode(num_units)]
     if to is not None:
         options.extend([u'--to', to])
@@ -245,18 +245,19 @@ def add_units(environment, service, num_units, to=None, **kwargs):
     return juju_do(u'add-unit', environment, options)
 
 
-def add_or_deploy_units(environment, service, num_units, num_is_target=False, **kwargs):
+def add_or_deploy_units(environment, charm, service, num_units=1, num_is_target=False, **kwargs):
     actual_count = get_units_count(environment, service)
     if actual_count == 0:
-        return deploy_units(environment, service, num_units, **kwargs)
+        return deploy_units(environment, charm, service, num_units, **kwargs)
     else:
         num_units = max(num_units - actual_count, 0) if num_is_target else num_units
         if num_units > 0:
             return add_units(environment, service, num_units, **kwargs)
 
 
-def deploy_units(environment, service, num_units, to=None, config=None, constraints=None,
-                 local=False, release=None, repository=None):
+def deploy_units(environment, charm, service=None, num_units=1, to=None, config=None, constraints=None, local=False,
+                 release=None, repository=None):
+    service = service or charm
     options = [u'--num-units', num_units]
     if to is not None:
         options.extend([u'--to', to])
@@ -270,7 +271,7 @@ def deploy_units(environment, service, num_units, to=None, config=None, constrai
         service = u'local:{0}'.format(service)
     if repository is not None:
         options.extend([u'--repository', repository])
-    options.extend([service])
+    options.extend(filter(None, [charm, service]))
     return juju_do(u'deploy', environment, options)
 
 
@@ -382,16 +383,17 @@ class DeploymentScenario(object):
         return (False, [None])
 
     @print_stdouts
-    def deploy(self, service, num_units=1, num_is_target=True, local=False, release=None, expose=False, required=True, **kwargs):
-        release = release or self.release
-        repository = self.local_charms_path if local else None
+    def deploy(self, charm, service, expose=False, required=True, **kwargs):
+        kwargs['release'] = kwargs.get('release', self.release)
+        kwargs['num_is_target'] = kwargs.get('num_is_target', True)
+        kwargs['local'] = kwargs.get('local', True)
+        kwargs['repository'] = kwargs.get('repository', self.local_charms_path if kwargs['local'] else None)
+        num_units = kwargs.get('num_units', 1)
         s = u's' if num_units > 1 else u''
-        print(u'Deploy {0} ({1} instance{2})'.format(service, num_units, s))
+        print(u'Deploy {0} as {1} ({2} instance{3})'.format(charm, service, num_units, s))
         stdouts = [None] * 2
         if self.auto and required or confirm(u'do it now', default=False):
-            stdouts[0] = add_or_deploy_units(self.environment, service, num_units, num_is_target=num_is_target,
-                                             config=self.config, local=local, release=release, repository=repository,
-                                             **kwargs)
+            stdouts[0] = add_or_deploy_units(self.environment, charm, service, config=self.config, **kwargs)
             if expose:
                 stdouts[1] = expose_service(self.environment, service)
             return (True, stdouts)
