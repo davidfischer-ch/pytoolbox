@@ -53,7 +53,7 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
     except OSError as e:
         if fail:
             raise
-        return {u'process': process, u'stdout': u'', u'stderr': e, u'returncode': 2}
+        return {u'process': None, u'stdout': u'', u'stderr': e, u'returncode': 2}
     if cli_input is not None:
         process.stdin.write(to_bytes(cli_input))
     if communicate:
