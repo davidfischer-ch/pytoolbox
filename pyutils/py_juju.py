@@ -356,20 +356,21 @@ def print_stdouts(func):
 
 class DeploymentScenario(object):
 
-    def main(self, environment=u'default', config=None):
-        from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-        from oscied_lib.pyutils.py_unicode import configure_unicode
-        configure_unicode()
-        parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
-                                epilog=u'''Show interesting informations about a running orchestrator.''')
-        parser.add_argument(u'local_charms_path', action=u'store')
-        parser.add_argument(u'-r', u'--release',  action=u'store',      default=u'raring')
-        parser.add_argument(u'-a', u'--auto',     action=u'store_true', default=False)
-        args = parser.parse_args()
-        self.local_charms_path = os.path.abspath(os.path.expanduser(args.local_charms_path))
-        self.release, self.auto = args.release, args.auto
-        self.environment, self.config = environment, config
+    def main(self, **kwargs):
+        parser = self.get_parser(**kwargs)
+        self.__dict__.update(vars(parser.parse_args()))
         self.run()
+
+    def get_parser(self, epilog=u'', charms_path=u'.', environment=u'default', config=u'config.yaml', release=u'raring',
+                   auto=False):
+        from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+        parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
+        parser.add_argument(u'-m', u'--charms_path', action=u'store', default=charms_path)
+        parser.add_argument(u'-e', u'--environment', action=u'store', default=environment)
+        parser.add_argument(u'-c', u'--config',      action=u'store', default=config)
+        parser.add_argument(u'-r', u'--release',     action=u'store', default=release)
+        parser.add_argument(u'-a', u'--auto',        action=u'store_true', default=auto)
+        return parser
 
     @print_stdouts
     def launch_log(self, screen_name, log=None):
