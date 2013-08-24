@@ -25,6 +25,10 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import print_function
+
+import sys
+
 
 def confirm(question=None, default=False):
     u"""
@@ -52,3 +56,19 @@ def confirm(question=None, default=False):
         elif ans in (u'n', u'N'):
             return False
         print(u'please enter y or n.')
+
+
+def print_error(message, output=sys.stderr, exit_code=1):
+    u"""
+    Print a error message and exit if ``exit_code`` is not None.
+
+    **Example usage**:
+
+    In following example output is set to stdout and exit is disabled (for doctest):
+
+    >>> print_error(u"It's not a bug - it's an undocumented feature.", output=sys.stdout, exit_code=None)
+    [ERROR] It's not a bug - it's an undocumented feature.
+    """
+    print(u'[ERROR] {0}'.format(message), file=output)
+    if exit_code is not None:
+        sys.exit(exit_code)
