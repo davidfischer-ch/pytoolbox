@@ -99,11 +99,13 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
-def json2object(json_string, something=None):
+def json2object(json_string, obj=None):
     u"""
-    Deserialize the JSON string ``json_string`` to attributes of ``something``.
+    Deserialize the JSON string ``json_string`` to attributes of ``obj``.
 
-    .. warning:: Current implementation does not handle recursion.
+    .. warning::
+
+        This method does not handle conversion of ``obj``attributes from ``dict`` to instances of classes.
 
     **Example usage**:
 
@@ -128,20 +130,21 @@ def json2object(json_string, something=None):
     >>> expected = {u'firstname': u'Tabby', u'lastname': u'Fischer'}
     >>> assert(json2object('{"firstname":"Tabby","lastname":"Fischer"}') == expected)
     """
-    if something is None:
+    if obj is None:
         return json.loads(json_string)
     for key, value in json.loads(json_string).items():
-        if hasattr(something, key):
-            setattr(something, key, value)
-    #something.__dict__.update(loads(json)) <-- old implementation
+        if hasattr(obj, key):
+            setattr(obj, key, value)
+    #obj.__dict__.update(loads(json)) <-- old implementation
 
 
-def jsonfile2object(filename_or_file, something=None):
+def jsonfile2object(filename_or_file, obj=None):
     u"""
-    Loads and deserialize the JSON string stored in a file ``filename``  to attributes of
-    ``something``.
+    Loads and deserialize the JSON string stored in a file ``filename``  to attributes of ``obj``.
 
-    .. warning:: Current implementation does not handle recursion.
+    .. warning::
+
+        This method does not handle conversion of ``obj``attributes from ``dict`` to instances of classes.
 
     **Example usage**:
 
@@ -170,20 +173,59 @@ def jsonfile2object(filename_or_file, something=None):
     >>> assert(jsonfile2object(open(u'test.json', u'r', encoding=u'utf-8')) == p1.__dict__)
     >>> os.remove(u'test.json')
     """
-    if something is None:
+    if obj is None:
         try:
             return json.load(open(filename_or_file, u'r', encoding=u'utf-8'))
         except TypeError:
             return json.load(filename_or_file)
     else:
         if isinstance(filename_or_file, string_types):
-            json2object(open(filename_or_file, u'r', encoding=u'utf-8').read(), something)
+            json2object(open(filename_or_file, u'r', encoding=u'utf-8').read(), obj)
         else:
-            json2object(filename_or_file.read(), something)
+            json2object(filename_or_file.read(), obj)
 
 
-def object2json(something, include_properties):
+def object2json(obj, include_properties):
     if not include_properties:
-        return json.dumps(something, cls=SmartJSONEncoderV1)
+        return json.dumps(obj, cls=SmartJSONEncoderV1)
     else:
-        return json.dumps(something, cls=SmartJSONEncoderV2)
+        return json.dumps(obj, cls=SmartJSONEncoderV2)
+
+
+def object2dict(obj, include_properties):
+    u"""
+    Convert an object to a python dictionary.
+
+    .. warning::
+
+        Current implementation serialize ``obj`` to a JSON string and then deserialize this JSON string to a ``dict``.
+
+    **Example usage**:
+
+    Define the sample class and convert some instances to a dictionary:
+
+    >>> class Point(object):
+    ...     def __init__(self, name, x, y, p):
+    ...         self.name = name
+    ...         self.x = x
+    ...         self.y = y
+    ...         self.p = p
+    ...     @property
+    ...     def z(self):
+    ...         return self.x - self.y
+
+    >>> p1_dict = {u'y': 2, u'x': 5, u'name': u'p1', u'p': {u'y': 4, u'x': 3, u'name': u'p2', u'p': None}}
+    >>> assert(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), False) == p1_dict)
+
+    >>> p2_dict = {u'y': 4, u'p': None, u'z': -1, u'name': u'p2', u'x': 3}
+    >>> p1_dict = {u'y': 2, u'p': p2_dict, u'z': 3, u'name': u'p1', u'x': 5}
+    >>> assert(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), True) == p1_dict)
+
+    >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
+    >>> p1.p, p2.p = p2, p1
+    >>> print(object2dict(p1, True))
+    Traceback (most recent call last):
+        ...
+    ValueError: Circular reference detected
+    """
+    return json2object(object2json(obj, include_properties))
