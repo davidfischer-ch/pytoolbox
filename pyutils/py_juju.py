@@ -223,6 +223,10 @@ def get_environments_count(environments=None):
 
 # Services -------------------------------------------------------------------------------------------------------------
 
+def get_service_config(environment, service, options=None, fail=True):
+    return juju_do(u'get', environment, [service], fail=fail)
+
+
 def expose_service(environment, service, fail=True):
     return juju_do(u'expose', environment, [service], fail=fail)
 
@@ -390,7 +394,7 @@ class DeploymentScenario(object):
         kwargs['release'] = kwargs.get('release', self.release)
         kwargs['num_is_target'] = kwargs.get('num_is_target', True)
         kwargs['local'] = kwargs.get('local', True)
-        kwargs['repository'] = kwargs.get('repository', self.local_charms_path if kwargs['local'] else None)
+        kwargs['repository'] = kwargs.get('repository', self.charms_path if kwargs['local'] else None)
         num_units = kwargs.get('num_units', 1)
         s = u's' if num_units > 1 else u''
         print(u'Deploy {0} as {1} ({2} instance{3})'.format(charm, service, num_units, s))
@@ -402,6 +406,22 @@ class DeploymentScenario(object):
             return (True, stdouts)
         return (False, stdouts)
 
+    # Services
+    def get_service_config(self, service, **kwargs):
+        return get_service_config(self.environment, service, **kwargs)
+
+    @print_stdouts
+    def unexpose_service(self, service):
+        print(u'Unexpose service {0}'.format(service))
+        if self.auto or confirm(u'do it now', default=False):
+            return (True, [unexpose_service(self.environment, service)])
+        return (False, [None])
+
+    # Units
+    def get_units(self, service):
+        return get_units(self.environment, service)
+
+    # Relations
     @print_stdouts
     def add_relation(self, service1, service2):
         print(u'Add relation between {0} and {1}'.format(service1, service2))
@@ -414,13 +434,6 @@ class DeploymentScenario(object):
         print(u'Add relation between {0} and {1}'.format(service1, service2))
         if self.auto or confirm(u'do it now', default=False):
             return (True, [remove_relation(self.environment, service1, service2)])
-        return (False, [None])
-
-    @print_stdouts
-    def unexpose_service(self, service):
-        print(u'Unexpose service {0}'.format(service))
-        if self.auto or confirm(u'do it now', default=False):
-            return (True, [unexpose_service(self.environment, service)])
         return (False, [None])
 
     def run(self):
