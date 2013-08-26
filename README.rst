@@ -8,6 +8,11 @@ Some Python utility functions.
 
 This module is a Toolbox for Python scripts.
 
+What the release number stands for ?
+------------------------------------
+
+I do my best to follow this interesting recommendation : `Semantic Versioning 2.0.0 <http://semver.org/>`_
+
 How to install it ?
 -------------------
 
