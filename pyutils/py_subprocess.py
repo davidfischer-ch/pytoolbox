@@ -103,16 +103,18 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
                u'--delete' if delete else None,
                u'--progress' if progress else None,
                u'-r' if recursive else None,
-               u'--dry-run' if simulate else None,
-               u'--rsync-path' if rsync_path else None,
-               u'-e "{0}"'.format(extra) if extra else None]
+               u'--dry-run' if simulate else None]
+    if rsync_path is not None:
+        command += [u'--rsync-path', rsync_path]
+    if extra is not None:
+        command += [u'-e', extra]
     if excludes is not None:
-        command.extend([u'--exclude={0}'.format(e) for e in excludes])
+        command += [u'--exclude={0}'.format(e) for e in excludes]
     if includes is not None:
-        command.extend([u'--include={0}'.format(i) for i in includes])
+        command += [u'--include={0}'.format(i) for i in includes]
     if exclude_vcs:
-        command.extend([u'--exclude=.svn', u'--exclude=.git'])
-    command.extend([source, destination])
+        command += [u'--exclude=.svn', u'--exclude=.git']
+    command += [source, destination]
     return cmd(filter(None, command), fail=fail, log=log, **kwargs)
 
 
@@ -138,3 +140,13 @@ def screen_list(name=None, log=None, **kwargs):
     """
     return re.findall(ur'\s+(\d+.\S+)\s+\(.*\).*',
                       cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'])
+
+
+def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):
+    command = [u'ssh']
+    if id is not None:
+        command += [u'-i', id]
+    command += [host]
+    if remote_cmd is not None:
+        command += [u'-n', remote_cmd]
+    return cmd(filter(None, command), fail=fail, log=log, **kwargs)
