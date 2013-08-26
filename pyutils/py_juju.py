@@ -30,7 +30,7 @@ from kitchen.text.converters import to_bytes
 from six import string_types
 from py_console import confirm
 from py_exception import TimeoutError
-from py_subprocess import cmd, screen_launch
+from py_subprocess import cmd
 
 DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser(u'~/.juju/environments.yaml'))
 STARTED_STATES = (u'started',)
@@ -55,7 +55,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
 
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
     """
-    command = [u'juju', command]
+    command = [u'sudo', u'juju', command] if command == u'destroy-environment' else [u'juju', command]
     if isinstance(environment, string_types) and environment != u'default':
         command.extend([u'--environment', environment])
     if isinstance(options, list):
@@ -314,7 +314,7 @@ def destroy_unit(environment, service, number, destroy_machine):
 
 
 def get_unit_path(service, number, *args):
-    return os.path.join(u'/var/lib/juju/agents/unit-{0}-{1}'.format(service, number), *args)
+    return os.path.join(u'/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
 
 
 # Relations ------------------------------------------------------------------------------------------------------------
