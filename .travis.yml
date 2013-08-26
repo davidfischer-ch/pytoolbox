@@ -5,9 +5,7 @@ python:
   - "3.2"
   - "3.3"
 install:
-  - pip install six coverage
-  - sudo apt-get install ffmpeg screen python-kitchen
-  - pip install kitchen
+  - sudo apt-get install ffmpeg screen
   - python setup.py develop
 script:
   - python setup.py test

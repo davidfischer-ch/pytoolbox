@@ -18,10 +18,11 @@ How to install it ?
 
 Install some packages that are not handled by pip:
 
-    sudo apt-get install git-core python-dev
+    sudo apt-get install ffmpeg git-core python-dev screen
 
 Then, you only need to run ``setup.py``::
 
+    python setup.py test
     sudo python setup.py install
 
 How to use it ?
