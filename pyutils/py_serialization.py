@@ -30,6 +30,8 @@ from codecs import open
 from six import string_types
 
 
+# Object <-> Pickle file -----------------------------------------------------------------------------------------------
+
 class PickleableObject(object):
     u"""
     An :class:`object` serializable/deserializable by :mod:`pickle`.
@@ -50,32 +52,18 @@ class PickleableObject(object):
         """
         if filename is None and hasattr(self, u'_pickle_filename'):
             filename = self._pickle_filename
-            delattr(self, u'_pickle_filename')
-            pickle.dump(self, file(filename, u'w'))
-            self._pickle_filename = filename
+            try:
+                delattr(self, u'_pickle_filename')
+                pickle.dump(self, file(filename, u'w'))
+            finally:
+                self._pickle_filename = filename
         elif filename is not None:
             pickle.dump(self, file(filename, u'w'))
         else:
             raise ValueError(u'A filename must be specified')
 
 
-class JsoneableObject(object):
-    u"""
-    An :class:`object` serializable/deserializable by :mod:`json`.
-
-    .. note::
-
-        Class constructor should have default value for all arguments !
-    """
-    def to_json(self, include_properties):
-        return object2json(self, include_properties)
-
-    @classmethod
-    def from_json(cls, json):
-        the_object = cls()
-        json2object(json, the_object)
-        return the_object
-
+# Object <-> JSON string -----------------------------------------------------------------------------------------------
 
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
@@ -98,59 +86,34 @@ class SmartJSONEncoderV2(json.JSONEncoder):
             attributes[a[0]] = a[1]
         return attributes
 
-
-def json2object(json_string, obj=None):
+def object2json(obj, include_properties):
     u"""
-    Deserialize the JSON string ``json_string`` to attributes of ``obj``.
-
-    .. warning::
-
-        This method does not handle conversion of ``obj``attributes from ``dict`` to instances of classes.
-
-    **Example usage**:
-
-    Define the sample class and deserialize a JSON string to attributes of a new instance:
-
-    >>> class Point(object):
-    ...     def __init__(self, name=None, x=0, y=0):
-    ...         self.name = name
-    ...         self.x = x
-    ...         self.y = y
-    >>> p = Point()
-    >>> assert(p.__dict__ == {u'name': None, u'x': 0, u'y': 0})
-    >>> json2object(u'{"x":10,"y":20,"name":"My position"}', p)
-    >>> assert(p.__dict__ == {u'name': u'My position', u'x': 10, u'y': 20})
-    >>> json2object(u'{"y":25}', p)
-    >>> assert(p.__dict__ == {u'name': u'My position', u'x': 10, u'y': 25})
-    >>> json2object(u'{"z":3}', p)
-    >>> assert(p.__dict__ == {u'name': u'My position', u'x': 10, u'y': 25})
-
-    Deserialize a JSON string to a dictionary:
-
-    >>> expected = {u'firstname': u'Tabby', u'lastname': u'Fischer'}
-    >>> assert(json2object('{"firstname":"Tabby","lastname":"Fischer"}') == expected)
+    Serialize an :class:`object` to a JSON string.
     """
-    if obj is None:
-        return json.loads(json_string)
-    for key, value in json.loads(json_string).items():
-        if hasattr(obj, key):
-            setattr(obj, key, value)
-    #obj.__dict__.update(loads(json)) <-- old implementation
+    return json.dumps(obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1))
 
 
-def jsonfile2object(filename_or_file, obj=None):
+def json2object(cls, json_string, inspect_constructor):
     u"""
-    Loads and deserialize the JSON string stored in a file ``filename``  to attributes of ``obj``.
+    Deserialize the JSON string ``json_string`` to an instance of ``cls``.
+    """
+    return dict2object(cls, json.loads(json_string), inspect_constructor)
+
+
+def jsonfile2object(cls, filename_or_file, inspect_constructor):
+    u"""
+    Load and deserialize the JSON string stored in a file ``filename`` to an instance of ``cls``.
 
     .. warning::
 
-        This method does not handle conversion of ``obj``attributes from ``dict`` to instances of classes.
+        Class constructor is responsible of converting attributes to instances of classes with ``dict2object``.
 
     **Example usage**:
 
     Define the sample class, instantiate it and serialize it to a file:
 
     >>> import os
+    >>> from nose.tools import assert_equal
     >>> class Point(object):
     ...     def __init__(self, name=None, x=0, y=0):
     ...         self.name = name
@@ -159,51 +122,99 @@ def jsonfile2object(filename_or_file, obj=None):
     >>> p1 = Point(name=u'My point', x=10, y=-5)
     >>> open(u'test.json', u'w', encoding=u'utf-8').write(object2json(p1, include_properties=False))
 
-    Deserialize the freshly saved file to the attributes of another instance:
+    Deserialize the freshly saved file:
 
-    >>> p2 = Point()
-    >>> jsonfile2object(u'test.json', p2)
-    >>> assert(p1.__dict__ == p2.__dict__)
-    >>> jsonfile2object(open(u'test.json', u'r', encoding=u'utf-8'), p2)
-    >>> assert(p1.__dict__ == p2.__dict__)
-
-    Deserialize the freshly saved file to a dictionary:
-
-    >>> assert(jsonfile2object(u'test.json') == p1.__dict__)
-    >>> assert(jsonfile2object(open(u'test.json', u'r', encoding=u'utf-8')) == p1.__dict__)
+    >>> p2 = jsonfile2object(Point, u'test.json', inspect_constructor=False)
+    >>> assert_equal(p1.__dict__, p2.__dict__)
+    >>> p2 = jsonfile2object(Point, open(u'test.json', u'r', encoding=u'utf-8'), inspect_constructor=False)
+    >>> assert_equal(p1.__dict__, p2.__dict__)
     >>> os.remove(u'test.json')
     """
-    if obj is None:
-        try:
-            return json.load(open(filename_or_file, u'r', encoding=u'utf-8'))
-        except TypeError:
-            return json.load(filename_or_file)
-    else:
-        if isinstance(filename_or_file, string_types):
-            json2object(open(filename_or_file, u'r', encoding=u'utf-8').read(), obj)
-        else:
-            json2object(filename_or_file.read(), obj)
+    f = (open(filename_or_file, u'r', encoding=u'utf-8') if isinstance(filename_or_file, string_types)
+         else filename_or_file)
+    return json2object(cls, f.read(), inspect_constructor)
 
 
-def object2json(obj, include_properties):
-    if not include_properties:
-        return json.dumps(obj, cls=SmartJSONEncoderV1)
-    else:
-        return json.dumps(obj, cls=SmartJSONEncoderV2)
-
-
-def object2dict(obj, include_properties):
+class JsoneableObject(object):
     u"""
-    Convert an object to a python dictionary.
+    An :class:`object` serializable/deserializable by :mod:`json`.
 
     .. warning::
 
-        Current implementation serialize ``obj`` to a JSON string and then deserialize this JSON string to a ``dict``.
+        Class constructor is responsible of converting attributes to instances of classes with ``dict2object``.
+
+    Convert-back from JSON strings containing extra parameters:
+
+    >>> from nose.tools import assert_equal
+
+    >>> class User(object):
+    ...     def __init__(self, first_name, last_name):
+    ...         self.first_name, self.last_name = first_name, last_name
+    ...     @property
+    ...     def name(self):
+    ...         return u'{0} {1}'.format(self.first_name, self.last_name)
+
+    >>> class Media(JsoneableObject):
+    ...     def __init__(self, author, title):
+    ...         self.author = dict2object(User, author, True) if isinstance(author, dict) else author
+    ...         self.title = title
+
+    Sounds good:
+
+    >>> media = Media(User(u'Andrés', u'Revuelta'), u'Vacances à Phucket')
+    >>> media_json = media.to_json(include_properties=False)
+    >>> media_back = Media.from_json(media_json, inspect_constructor=True)
+    >>> isinstance(media_back.author, User)
+    True
+    >>> assert_equal(media_back.author.__dict__, media.author.__dict__)
+
+    A second example handling extra arguments by using ``**kwargs`` (a.k.a the dirty way):
+
+    >>> class User(object):
+    ...     def __init__(self, first_name, last_name, **kwargs):
+    ...         self.first_name, self.last_name = first_name, last_name
+    ...     @property
+    ...     def name(self):
+    ...         return u'{0} {1}'.format(self.first_name, self.last_name)
+
+    >>> class Media(JsoneableObject):
+    ...     def __init__(self, author, title, **kwargs):
+    ...         self.author = User(**author) if isinstance(author, dict) else author
+    ...         self.title = title
+
+    Sounds good:
+
+    >>> media = Media(User(u'Andrés', u'Revuelta'), u'Vacances à Phucket')
+    >>> media_json = media.to_json(include_properties=True)
+    >>> media_back = Media.from_json(media_json, inspect_constructor=False)
+    >>> isinstance(media_back.author, User)
+    True
+    >>> assert_equal(media_back.author.__dict__, media.author.__dict__)
+    """
+    def to_json(self, include_properties):
+        return object2json(self, include_properties)
+
+    @classmethod
+    def from_json(cls, json_string, inspect_constructor):
+        return dict2object(cls, json.loads(json_string), inspect_constructor)
+
+
+# Object <-> Dictionary ------------------------------------------------------------------------------------------------
+
+def object2dict(obj, include_properties):
+    u"""
+    Convert an :class:`object` to a python dictionary.
+
+    .. warning::
+
+        Current implementation serialize ``obj`` to a JSON string and then deserialize this JSON string to an instance
+        of :class:`dict`.
 
     **Example usage**:
 
     Define the sample class and convert some instances to a dictionary:
 
+    >>> from nose.tools import assert_equal
     >>> class Point(object):
     ...     def __init__(self, name, x, y, p):
     ...         self.name = name
@@ -215,11 +226,11 @@ def object2dict(obj, include_properties):
     ...         return self.x - self.y
 
     >>> p1_dict = {u'y': 2, u'x': 5, u'name': u'p1', u'p': {u'y': 4, u'x': 3, u'name': u'p2', u'p': None}}
-    >>> assert(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), False) == p1_dict)
+    >>> assert_equal(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
 
     >>> p2_dict = {u'y': 4, u'p': None, u'z': -1, u'name': u'p2', u'x': 3}
     >>> p1_dict = {u'y': 2, u'p': p2_dict, u'z': 3, u'name': u'p1', u'x': 5}
-    >>> assert(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), True) == p1_dict)
+    >>> assert_equal(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
 
     >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
     >>> p1.p, p2.p = p2, p1
@@ -228,4 +239,37 @@ def object2dict(obj, include_properties):
         ...
     ValueError: Circular reference detected
     """
-    return json2object(object2json(obj, include_properties))
+    return json2object(dict, object2json(obj, include_properties), inspect_constructor=False)
+
+
+def dict2object(cls, the_dict, inspect_constructor):
+    u"""
+    Convert a python dictionary to an instance of a class.
+
+    * Set ``inspect_constructor`` to filter input dictionary to avoid sending unexpected keyword arguments to the
+    constructor (``__init__``) of ``cls``.
+
+    **Example usage**:
+
+    >>> from nose.tools import assert_equal
+
+    >>> class User(object):
+    ...     def __init__(self, first_name, last_name=u'Fischer'):
+    ...         self.first_name, self.last_name = first_name, last_name
+    ...     @property
+    ...     def name(self):
+    ...        return u'{0} {1}'.format(self.first_name, self.last_name)
+
+    >>> user_dict = {u'first_name': u'Victor', u'last_name': u'Fischer', u'unexpected': 10}
+
+    >>> dict2object(User, user_dict, inspect_constructor=False)
+    Traceback (most recent call last):
+        ...
+    TypeError: __init__() got an unexpected keyword argument 'unexpected'
+
+    >>> expected = {u'first_name': 'Victor', u'last_name': 'Fischer'}
+    >>> assert_equal(dict2object(User, user_dict, inspect_constructor=True).__dict__, expected)
+    """
+    if inspect_constructor:
+        the_dict = {arg: the_dict.get(arg, None) for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'}
+    return cls(**the_dict)

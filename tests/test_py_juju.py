@@ -30,7 +30,7 @@ from nose.tools import assert_equal, assert_raises
 from mock import Mock
 from py_unittest import mock_cmd
 
-DEFAULT = {u'local_charms_path': u'.', u'release': u'raring', u'auto': True,
+DEFAULT = {u'charms_path': u'.', u'release': u'raring', u'auto': True,
            u'environment': u'maas', u'config': u'config.yaml'}
 
 BASE = [u'juju', u'deploy', u'--environment', u'maas']
@@ -46,7 +46,7 @@ class TestDeploymentScenario(object):
         import py_juju
         #add = py_juju.add_or_deploy_units = Mock(return_value='a')
         #expose = py_juju.expose_service = Mock(return_value='b')
-        count = py_juju.get_units_count = Mock(return_value=0)
+        py_juju.get_units_count = Mock(return_value=0)
         scenario = py_juju.DeploymentScenario()
         scenario.__dict__.update(DEFAULT)
         print(scenario.deploy(u'mysql', u'my_mysql'))

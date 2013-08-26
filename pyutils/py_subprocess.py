@@ -92,8 +92,8 @@ def read_async(fd):
 # --------------------------------------------------------------------------------------------------
 
 def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False,
-          progress=False, recursive=False, simulate=False, excludes=None, includes=None, fail=True,
-          log=None, **kwargs):
+          progress=False, recursive=False, simulate=False, excludes=None, includes=None,
+          rsync_path=None, extra=None, fail=True, log=None, **kwargs):
     if makedest and not os.path.exists(destination):
         os.makedirs(destination)
     source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else u'')
@@ -103,7 +103,9 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
                u'--delete' if delete else None,
                u'--progress' if progress else None,
                u'-r' if recursive else None,
-               u'--dry-run' if simulate else None]
+               u'--dry-run' if simulate else None,
+               u'--rsync-path' if rsync_path else None,
+               u'-e "{0}"'.format(extra) if extra else None]
     if excludes is not None:
         command.extend([u'--exclude={0}'.format(e) for e in excludes])
     if includes is not None:

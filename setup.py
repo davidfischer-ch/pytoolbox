@@ -60,7 +60,7 @@ Programming Language :: Python :: 3.3
 """
 
 setup(name=u'pyutils',
-      version=u'3.10.7-beta',
+      version=u'v4.0.0-beta',
       packages=['pyutils'],
       description=u'Some Python utility functions',
       long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),

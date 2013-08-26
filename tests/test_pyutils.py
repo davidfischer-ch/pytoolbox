@@ -26,7 +26,7 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import math, os
-from nose.tools import assert_equal, raises
+from nose.tools import assert_equal, assert_raises, raises
 from py_unittest import mock_cmd
 from py_serialization import JsoneableObject, PickleableObject
 from py_subprocess import cmd, screen_launch, screen_list, screen_kill
@@ -91,22 +91,9 @@ class TestPyutils(object):
         p2.write()
         delattr(p2, u'_pickle_filename')
         try:
-            p2.write()
-            raise ValueError(u'Must raise an AttributeError')
-        except ValueError:
-            pass
+            assert_raises(ValueError, p2.write)
         finally:
             os.remove(u'test.pkl')
-
-    def test_JsoneableObject(self):
-        p1 = MyPoint(name=u'My point', x=8, y=-2)
-        p2 = MyPoint.from_json(p1.to_json(include_properties=False))
-        assert_equal((p1.x, p1.y), (p2.x, p2.y))
-
-    @raises(AttributeError)
-    def test_JsoneableObject_fail(self):
-        p1 = MyPoint(name=u'My point', x=8, y=-2)
-        MyPoint.from_json(p1.to_json(include_properties=True))
 
     def test_csv_reader(self):
         values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0

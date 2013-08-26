@@ -37,7 +37,7 @@ STARTED_STATES = (u'started',)
 ERROR_STATES = (u'not-started', u'error')
 
 
-def juju_do(command, environment=None, options=None, screen_name=None, fail=True, log=None, **kwargs):
+def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
     Execute a command ``command`` into environment ``environment``.
 
@@ -63,10 +63,7 @@ def juju_do(command, environment=None, options=None, screen_name=None, fail=True
     env = os.environ.copy()
     env[u'HOME'] = os.path.expanduser(u'~/')
     env[u'JUJU_HOME'] = os.path.expanduser(u'~/.juju')
-    if screen_name:
-        return screen_launch(command, fail=fail, log=log, env=env, **kwargs)
-    else:
-        result = cmd(command, fail=False, log=log, env=env, **kwargs)
+    result = cmd(command, fail=False, log=log, env=env, **kwargs)
     if result[u'returncode'] != 0 and fail:
         command_string = u' '.join([unicode(arg) for arg in command])
         raise RuntimeError(to_bytes(u'Subprocess failed {0} : {1}.'.format(command_string, result[u'stderr'])))
@@ -105,9 +102,6 @@ def save_unit_config(filename, service, config, log=None):
         config = {service: config}
         f.write(yaml.safe_dump(config))
 
-
-def launch_log(environment, screen_name, log=None):
-    return (u'screenlog.0', juju_do(u'debug-log', [u'-L'], screen_name=screen_name, communicate=False, log=log))
 
 # Environments ---------------------------------------------------------------------------------------------------------
 
@@ -311,11 +305,16 @@ def destroy_unit(environment, service, number, destroy_machine):
     try:
         unit_dict = get_unit(environment, service, number)
     except KeyError:
-        raise IndexError(to_bytes(u'No unit with name {0}/{1} on environment {2}.'.format(service, number, environment)))
+        raise IndexError(to_bytes(u'No unit with name {0}/{1} on environment {2}.'.format(
+                         service, number, environment)))
     if destroy_machine:
         juju_do(u'destroy-unit', environment, [name])
         return juju_do(u'destroy-machine', environment, [unicode(unit_dict[u'machine'])])
     return juju_do(u'destroy-unit', environment, [name])
+
+
+def get_unit_path(service, number, *args):
+    return os.path.join(u'/var/lib/juju/agents/unit-{0}-{1}'.format(service, number), *args)
 
 
 # Relations ------------------------------------------------------------------------------------------------------------
@@ -377,10 +376,6 @@ class DeploymentScenario(object):
         return parser
 
     @print_stdouts
-    def launch_log(self, screen_name, log=None):
-        return (True, [launch_log(self.environment, screen_name, log=log)])
-
-    @print_stdouts
     def bootstrap(self, environment, **kwargs):
         self.environment = environment
         print(u'Cleanup and bootstrap environment {0}'.format(self.environment))
@@ -418,6 +413,9 @@ class DeploymentScenario(object):
         return (False, [None])
 
     # Units
+    def get_unit(self, service, number):
+        return get_unit(self.environment, service, number)
+
     def get_units(self, service):
         return get_units(self.environment, service)
 
