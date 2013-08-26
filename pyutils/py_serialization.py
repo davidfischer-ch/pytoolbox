@@ -39,7 +39,7 @@ class PickleableObject(object):
     @staticmethod
     def read(filename, store_filename=False):
         u"""
-        Returns a deserialized instance of a pickleable object loaded from a file.
+        Return a deserialized instance of a pickleable object loaded from a file.
         """
         the_object = pickle.load(file(filename))
         if store_filename:
@@ -191,6 +191,35 @@ class JsoneableObject(object):
     True
     >>> assert_equal(media_back.author.__dict__, media.author.__dict__)
     """
+    @classmethod
+    def read(cls, filename, store_filename=False, inspect_constructor=True):
+        u"""
+        Return a deserialized instance of a jsoneable object loaded from a file.
+        """
+        with open(filename, u'r', u'utf-8') as f:
+            the_object = dict2object(cls, json.loads(f.read()), inspect_constructor)
+            if store_filename:
+                the_object._json_filename = filename
+            return the_object
+
+    def write(self, filename=None, include_properties=False):
+        u"""
+        Serialize ``self`` to a file, excluding the attribute ``_json_filename``.
+        """
+        if filename is None and hasattr(self, u'_json_filename'):
+            filename = self._json_filename
+            try:
+                delattr(self, u'_json_filename')
+                with open(filename, u'w', u'utf-8') as f:
+                    f.write(object2json(self, include_properties))
+            finally:
+                self._json_filename = filename
+        elif filename is not None:
+            with open(filename, u'w', u'utf-8') as f:
+                f.write(object2json(self, include_properties))
+        else:
+            raise ValueError(u'A filename must be specified')
+
     def to_json(self, include_properties):
         return object2json(self, include_properties)
 
