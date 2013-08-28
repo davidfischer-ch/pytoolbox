@@ -57,9 +57,9 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     """
     command = [u'sudo', u'juju', command] if command == u'destroy-environment' else [u'juju', command]
     if isinstance(environment, string_types) and environment != u'default':
-        command.extend([u'--environment', environment])
+        command += [u'--environment', environment]
     if isinstance(options, list):
-        command.extend(options)
+        command += options
     env = os.environ.copy()
     env[u'HOME'] = os.path.expanduser(u'~/')
     env[u'JUJU_HOME'] = os.path.expanduser(u'~/.juju')
@@ -103,10 +103,17 @@ def save_unit_config(filename, service, config, log=None):
         f.write(yaml.safe_dump(config))
 
 
+# Tools ----------------------------------------------------------------------------------------------------------------
+
+def sync_tools(environment, all_tools=True):
+    options = [u'--all'] if all_tools else None
+    return juju_do(u'sync-tools', environment, options=options)
+
+
 # Environments ---------------------------------------------------------------------------------------------------------
 
 def bootstrap_environment(environment, wait_started=False, started_states=STARTED_STATES, error_states=ERROR_STATES,
-                          timeout=600, polling_delay=10, environments=None):
+                          timeout=600, polling_delay=10):
     result = juju_do(u'bootstrap', environment)
     if wait_started:
         start_time = time.time()
@@ -218,19 +225,19 @@ def get_environments_count(environments=None):
 # Services -------------------------------------------------------------------------------------------------------------
 
 def get_service_config(environment, service, options=None, fail=True):
-    return juju_do(u'get', environment, [service], fail=fail)
+    return juju_do(u'get', environment, options=[service], fail=fail)
 
 
 def expose_service(environment, service, fail=True):
-    return juju_do(u'expose', environment, [service], fail=fail)
+    return juju_do(u'expose', environment, options=[service], fail=fail)
 
 
 def unexpose_service(environment, service, fail=True):
-    return juju_do(u'unexpose', environment, [service], fail=fail)
+    return juju_do(u'unexpose', environment, options=[service], fail=fail)
 
 
 def destroy_service(environment, service, fail=True):
-    return juju_do(u'destroy-service', environment, [service], fail=fail)
+    return juju_do(u'destroy-service', environment, options=[service], fail=fail)
 
 
 # Units ----------------------------------------------------------------------------------------------------------------
@@ -238,9 +245,9 @@ def destroy_service(environment, service, fail=True):
 def add_units(environment, service, num_units=1, to=None, **kwargs):
     options = [u'--num-units', unicode(num_units)]
     if to is not None:
-        options.extend([u'--to', to])
-    options.extend([service])
-    return juju_do(u'add-unit', environment, options)
+        options += [u'--to', to]
+    options += [service]
+    return juju_do(u'add-unit', environment, options=options)
 
 
 def add_or_deploy_units(environment, charm, service, num_units=1, num_is_target=False, **kwargs):
@@ -260,19 +267,19 @@ def deploy_units(environment, charm, service=None, num_units=1, to=None, config=
         raise ValueError('Charm is required.')
     options = [u'--num-units', num_units]
     if to is not None:
-        options.extend([u'--to', to])
+        options += [u'--to', to]
     if config is not None:
-        options.extend([u'--config', config])
+        options += [u'--config', config]
     if constraints is not None:
-        options.extend([u'--constraints', constraints])
+        options += [u'--constraints', constraints]
     if release is not None:
         charm = u'{0}/{1}'.format(release, charm)
     if local:
         charm = u'local:{0}'.format(charm)
     if repository is not None:
-        options.extend([u'--repository', repository])
-    options.extend(filter(None, [charm, service]))
-    return juju_do(u'deploy', environment, options)
+        options += [u'--repository', repository]
+    options += filter(None, [charm, service])
+    return juju_do(u'deploy', environment, options=options)
 
 
 def get_unit(environment, service, number):
@@ -308,9 +315,9 @@ def destroy_unit(environment, service, number, destroy_machine):
         raise IndexError(to_bytes(u'No unit with name {0}/{1} on environment {2}.'.format(
                          service, number, environment)))
     if destroy_machine:
-        juju_do(u'destroy-unit', environment, [name])
-        return juju_do(u'destroy-machine', environment, [unicode(unit_dict[u'machine'])])
-    return juju_do(u'destroy-unit', environment, [name])
+        juju_do(u'destroy-unit', environment, options=[name])
+        return juju_do(u'destroy-machine', environment, options=[unicode(unit_dict[u'machine'])])
+    return juju_do(u'destroy-unit', environment, options=[name])
 
 
 def get_unit_path(service, number, *args):
@@ -324,7 +331,7 @@ def add_relation(environment, service1, service2, relation1=None, relation2=None
     member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
     member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
     try:
-        return juju_do(u'add-relation', environment, [member1, member2])
+        return juju_do(u'add-relation', environment, options=[member1, member2])
     except RuntimeError as e:
         # FIXME get status of service before adding relation may be cleaner.
         if not u'already exists' in unicode(e):
@@ -335,7 +342,7 @@ def remove_relation(environment, service1, service2, relation1=None, relation2=N
     member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
     member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
     try:
-        return juju_do(u'remove-relation', environment, [member1, member2])
+        return juju_do(u'remove-relation', environment, options=[member1, member2])
     except RuntimeError as e:
         # FIXME get status of service before removing relation may be cleaner.
         if not u'exists' in unicode(e):
@@ -381,6 +388,7 @@ class DeploymentScenario(object):
         print(u'Cleanup and bootstrap environment {0}'.format(self.environment))
         if self.auto or confirm(u'do it now', default=False):
             destroy_environment(self.environment, remove_default=True)
+            sync_tools(self.environment, all_tools=True)
             return (True, [bootstrap_environment(self.environment, **kwargs)])
         return (False, [None])
 
