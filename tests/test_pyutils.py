@@ -28,13 +28,13 @@
 import math, os
 from nose.tools import assert_equal, assert_raises, raises
 from py_unittest import mock_cmd
-from py_serialization import JsoneableObject, PickleableObject
+from py_serialization import PickleableObject
 from py_subprocess import cmd, screen_launch, screen_list, screen_kill
 from py_unicode import csv_reader
 from py_validation import validate_list
 
 
-class MyPoint(JsoneableObject, PickleableObject):
+class MyPoint(PickleableObject):
     def __init__(self, name=None, x=0, y=0):
         self.name = name
         self.x = x
