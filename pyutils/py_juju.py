@@ -496,7 +496,7 @@ class CharmHooks(object):
 
         **Example usage**:
 
-        >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV)
+        >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.name = u'oscied-storage/3'
         >>> hooks.id
         3
@@ -599,15 +599,19 @@ class CharmHooks(object):
 
         **Example usage**:
 
-        >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV)
+        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+        >>> config = os.path.join(here, u'../tests/config.yaml')
+
+        >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hasattr(hooks.config, u'pingu') or hasattr(hooks.config, u'rabbit_password')
         False
         >>> hooks.load_config({u'pingu': u'bi bi'})
         >>> print(hooks.config.pingu)
         bi bi
         >>> hooks.config.verbose = True
-        >>> hooks.load_config(u'config.yaml')  # doctest: +ELLIPSIS
-        [DEBUG] Load config from file config.yaml
+
+        >>> hooks.load_config(config)  # doctest: +ELLIPSIS
+        [DEBUG] Load config from file ...
         [DEBUG] Convert boolean option verbose true -> True
         [DEBUG] Convert boolean option email_tls true -> True
         [DEBUG] Convert boolean option cleanup true -> True
@@ -634,14 +638,17 @@ class CharmHooks(object):
 
         **Example usage**:
 
+        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+        >>> metadata = os.path.join(here, u'../tests/metadata.yaml')
+
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.metadata
         >>> hooks.load_metadata({u'ensemble': u'oscied'})
         >>> hooks.metadata
         {u'ensemble': u'oscied'}
         >>> hooks.config.verbose = True
-        >>> hooks.load_metadata(u'metadata.yaml')  # doctest: +ELLIPSIS
-        [DEBUG] Load metadatas from file metadata.yaml
+        >>> hooks.load_metadata(metadata)  # doctest: +ELLIPSIS
+        [DEBUG] Load metadatas from file ...
         >>> print(hooks.metadata[u'maintainer'])
         OSCIED Main Developper <david.fischer.ch@gmail.com>
         """
