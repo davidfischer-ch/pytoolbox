@@ -24,8 +24,9 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, fcntl, os, re, shlex, subprocess
+import errno, fcntl, multiprocessing, os, re, setuptools.archive_util, shlex, shutil, subprocess
 from kitchen.text.converters import to_bytes
+from py_filesystem import try_makedirs
 
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 
@@ -88,6 +89,27 @@ def read_async(fd):
             return u''
         raise
 
+# --------------------------------------------------------------------------------------------------
+
+def make(archive, with_cmake=False, configure_options=u'', make_options=u'-j{0}'.format(multiprocessing.cpu_count()),
+         install=True, remove_temporary=True, log=None):
+    path = archive.split('.')[0]
+    shutil.rmtree(path, ignore_errors=True)
+    setuptools.archive_util.unpack_archive(archive, path)
+    here = os.getcwd()
+    os.chdir(path)
+    if with_cmake:
+        try_makedirs(u'build')
+        os.chdir(u'build')
+        cmd(u'cmake -DCMAKE_BUILD_TYPE=RELEASE ..', log=log)
+    else:
+        cmd(u'./configure {0}'.format(configure_options), log=log)
+    cmd(u'make {0}'.format(make_options), log=log)
+    if install:
+        cmd(u'make install', log=log)
+    os.chdir(here)
+    if remove_temporary:
+        shutil.rmtree(path)
 
 # --------------------------------------------------------------------------------------------------
 
