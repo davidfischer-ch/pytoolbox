@@ -1,0 +1,16 @@
+ensemble: oscied
+name: oscied-orchestra
+summary: "EBU's OSCIED Orchestra"
+maintainer: OSCIED Main Developper <david.fischer.ch@gmail.com>
+description: |
+  Installs the EBU's OSCIED orchestrator.
+provides:
+  api:
+    interface: orchestra
+  transform:
+    interface: subordinate
+  publisher:
+    interface: subordinate
+requires:
+  storage:
+    interface: mount

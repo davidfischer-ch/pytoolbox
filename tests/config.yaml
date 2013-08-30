@@ -1,0 +1,93 @@
+options:
+  verbose:
+    type: string
+    default: "true"
+    description: Toogle verbose logging.
+  cleanup:
+    type: string
+    default: "true"
+    description: |
+        Toggle uninstall step of prerequisities by install hook.
+        Disable this if you planned to merge services into same unit, see ticket #87.
+  root_secret:
+    type: string
+    default: "toto"
+    description: |
+        Secret key used by API clients to manage users.
+        Please change it in production.
+  node_secret:
+    type: string
+    default: "abcd"
+    description: |
+        Secret key used by workers/nodes to callback API when they finish their task.
+        Please change it in production.
+  repositories_user:
+    type: string
+    default: "oscied"
+    description: OSCIED charms repositories client username.
+  repositories_pass:
+    type: string
+    default: ""
+    description: OSCIED charms repositories client password.
+  oscied_repository:
+    type: string
+    default: "https://github.com/ebu/OSCIED/charms"
+    description: OSCIED charms will be checked out locally under ~/charms/(release).
+  mongo_admin_password:
+    type: string
+    default: "Mongo_admin_1234"
+    description: Database administrator password.
+  mongo_node_password:
+    type: string
+    default: "Mongo_user_1234"
+    description: Database nodes password.
+  rabbit_password:
+    type: string
+    default: "Alice_in_wonderland"
+    description: |
+        Messaging queue user's password.
+        This secret is then forwared by the coordinator to managed units (transform, publish).
+  email_server:
+    type: string
+    default: ""
+    description: |
+        SMTP mailing server address.
+        Please set to enable mailing functionnalitiy.
+  email_tls:
+    type: string
+    default: "true"
+    description: Enable TLS layer.
+  email_address:
+    type: string
+    default: "someone@oscied.org"
+    description: Sender e-mail address of any mail sended by the orchestrator.
+  email_username:
+    type: string
+    default: "someone"
+    description: Sender e-mail account username.
+  email_password:
+    type: string
+    default: "1234"
+    description: Sender e-mail account password.
+  storage_address:
+    type: string
+    default: ""
+    description: |
+        Shared storage hostname / IP address (see interface mount of nfs charm).
+        The 'storage' options override and disable storage relation.
+  storage_nat_address:
+    type: string
+    default: ""
+    description: Shared storage reacheable (public) address e.g. when storage is behind a NAT/FW.
+  storage_fstype:
+    type: string
+    default: ""
+    description: Shared storage filesystem type (e.g. nfs).
+  storage_mountpoint:
+    type: string
+    default: ""
+    description: Shared storage mountpoint (e.g. for nfs - /srv/data).
+  storage_options:
+    type: string
+    default: ""
+    description: Shared storage options (e.g. for nfs - rw,sync,no_subtree_check).
