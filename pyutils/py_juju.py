@@ -40,8 +40,7 @@ except ImportError:
     subprocess.check_call([u'apt-get', u'install', u'-y', u'python-charmhelpers'])
     import charmhelpers
 
-from shelltoolbox import command
-
+from shelltoolbox import command as a_command
 
 DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {
@@ -434,10 +433,14 @@ class CharmHooks(object):
     ...         self.info(u'stop services')
     ...
 
+    >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+    >>> metadata = os.path.join(here, u'../tests/metadata.yaml')
+    >>> config = os.path.join(here, u'../tests/config.yaml')
+
     Trigger some hooks:
 
-    >>> my_hooks = MyCharmHooks(u'metadata.yaml', u'config.yaml', DEFAULT_OS_ENV, force_disable_juju=True)
-    [DEBUG] Load metadatas from file metadata.yaml
+    >>> my_hooks = MyCharmHooks(metadata, config, DEFAULT_OS_ENV, force_disable_juju=True) # doctest: +ELLIPSIS
+    [DEBUG] Load metadatas from file ...
 
     >>> my_hooks.trigger(u'install')
     [HOOK] Execute MyCharmHooks hook install
@@ -468,7 +471,7 @@ class CharmHooks(object):
             if force_disable_juju:
                 raise OSError()
             self.juju_ok = True
-            self.juju_log = command(u'juju-log')
+            self.juju_log = a_command(u'juju-log')
             self.load_config(charmhelpers.get_config())
             self.env_uuid = os.environ.get(u'JUJU_ENV_UUID')
             self.name = os.environ[u'JUJU_UNIT_NAME']
@@ -476,7 +479,7 @@ class CharmHooks(object):
             self.public_address = charmhelpers.unit_get(u'public-address')
         except (subprocess.CalledProcessError, OSError):
             self.juju_ok = False
-            self.juju_log = command(u'echo')
+            self.juju_log = a_command(u'echo')
             if default_config is not None:
                 self.load_config(default_config)
             self.env_uuid = default_os_env[u'JUJU_ENV_UUID']
@@ -653,8 +656,6 @@ class CharmHooks(object):
     def cmd(self, command, input=None, cli_input=None, fail=True):
         u"""
         Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
-
-        .. seealso:: :mod:`pyutils`
         """
         return cmd(command, input=input, cli_input=cli_input, fail=fail, log=self.debug)
 
