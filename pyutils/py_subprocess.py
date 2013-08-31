@@ -92,24 +92,26 @@ def read_async(fd):
 # --------------------------------------------------------------------------------------------------
 
 def make(archive, with_cmake=False, configure_options=u'', make_options=u'-j{0}'.format(multiprocessing.cpu_count()),
-         install=True, remove_temporary=True, log=None):
-    path = archive.split('.')[0]
+         install=True, remove_temporary=True, fail=True, log=None, **kwargs):
+    results = {}
+    here = os.getcwd()
+    path = archive.split(u'.')[0]
     shutil.rmtree(path, ignore_errors=True)
     setuptools.archive_util.unpack_archive(archive, path)
-    here = os.getcwd()
     os.chdir(path)
     if with_cmake:
         try_makedirs(u'build')
         os.chdir(u'build')
-        cmd(u'cmake -DCMAKE_BUILD_TYPE=RELEASE ..', log=log)
+        results[u'cmake'] = cmd(u'cmake -DCMAKE_BUILD_TYPE=RELEASE ..', fail=fail, log=log, **kwargs)
     else:
-        cmd(u'./configure {0}'.format(configure_options), log=log)
-    cmd(u'make {0}'.format(make_options), log=log)
+        results[u'configure'] = cmd(u'./configure {0}'.format(configure_options), fail=fail, log=log, **kwargs)
+    results[u'make'] = cmd(u'make {0}'.format(make_options), fail=fail, log=log, **kwargs)
     if install:
-        cmd(u'make install', log=log)
+        results[u'make install'] = cmd(u'make install', fail=fail, log=log, **kwargs)
     os.chdir(here)
     if remove_temporary:
         shutil.rmtree(path)
+    return results
 
 # --------------------------------------------------------------------------------------------------
 
