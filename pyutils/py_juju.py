@@ -24,23 +24,14 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import os, subprocess, sys, time, uuid, yaml
+import json, os, subprocess, sys, time, uuid, yaml
 from codecs import open
+from functools import wraps
 from kitchen.text.converters import to_bytes
 from six import string_types
 from py_console import confirm
 from py_exception import TimeoutError
 from py_subprocess import cmd
-
-try:
-    import charmhelpers
-except ImportError:
-    subprocess.check_call([u'apt-add-repository', u'-y', u'ppa:juju/pkgs'])
-    subprocess.check_call([u'apt-get', u'update'])
-    subprocess.check_call([u'apt-get', u'install', u'-y', u'python-charmhelpers'])
-    import charmhelpers
-
-from shelltoolbox import command as a_command
 
 DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {
@@ -214,6 +205,7 @@ def destroy_environment(environment, remove_default=False, remove=False, environ
             del environments_dict[u'environments'][environment]
             open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
     return result
+
 
 def get_environment(environment, get_status=False, environments=None):
     environments = environments or DEFAULT_ENVIRONMENTS_FILE
@@ -407,7 +399,7 @@ class CharmConfig(object):
 
 class CharmHooks(object):
     u"""
-    A base class to build charms based on python hooks unit-testable even if juju is not installed.
+    A base class to build charms based on python hooks, callable even if juju is not installed.
 
     The following attributes are set by ``__init__``: TODO
 
@@ -440,23 +432,28 @@ class CharmHooks(object):
     Trigger some hooks:
 
     >>> my_hooks = MyCharmHooks(metadata, config, DEFAULT_OS_ENV, force_disable_juju=True) # doctest: +ELLIPSIS
+    [DEBUG] Using juju False, reason: Disabled by user.
     [DEBUG] Load metadatas from file ...
 
     >>> my_hooks.trigger(u'install')
     [HOOK] Execute MyCharmHooks hook install
     [DEBUG] hello world, install some packages with self.cmd(...)
+    [HOOK] Exiting MyCharmHooks hook install
 
     >>> my_hooks.trigger(u'config-changed')
     [HOOK] Execute MyCharmHooks hook config-changed
     [REMARK] update services based on self.config and update self.local_config !
+    [HOOK] Exiting MyCharmHooks hook config-changed
 
     >>> my_hooks.trigger(u'start')
     [HOOK] Execute MyCharmHooks hook start
     [INFO] start services
+    [HOOK] Exiting MyCharmHooks hook start
 
     >>> my_hooks.trigger(u'stop')
     [HOOK] Execute MyCharmHooks hook stop
     [INFO] stop services
+    [HOOK] Exiting MyCharmHooks hook stop
 
     >>> my_hooks.trigger(u'not_exist')
     Traceback (most recent call last):
@@ -467,24 +464,25 @@ class CharmHooks(object):
     def __init__(self, metadata, default_config, default_os_env, force_disable_juju=False):
         self.config = CharmConfig()
         self.local_config = None
+        reason = u'Life is good !'
         try:
             if force_disable_juju:
-                raise OSError()
+                raise OSError(to_bytes(u'Disabled by user.'))
             self.juju_ok = True
-            self.juju_log = a_command(u'juju-log')
-            self.load_config(charmhelpers.get_config())
+            self.load_config(json.loads(self.cmd([u'config-get', u'--format=json'])['stdout']))
             self.env_uuid = os.environ.get(u'JUJU_ENV_UUID')
             self.name = os.environ[u'JUJU_UNIT_NAME']
-            self.private_address = charmhelpers.unit_get(u'private-address')
-            self.public_address = charmhelpers.unit_get(u'public-address')
-        except (subprocess.CalledProcessError, OSError):
+            self.private_address = self.unit_get(u'private-address')
+            self.public_address = self.unit_get(u'public-address')
+        except (subprocess.CalledProcessError, OSError) as e:
+            reason = e
             self.juju_ok = False
-            self.juju_log = a_command(u'echo')
             if default_config is not None:
                 self.load_config(default_config)
             self.env_uuid = default_os_env[u'JUJU_ENV_UUID']
             self.name = default_os_env[u'JUJU_UNIT_NAME']
             self.private_address = self.public_address = get_ip()
+        self.debug(u'Using juju {0}, reason: {1}'.format(self.juju_ok, reason))
         self.load_metadata(metadata)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -522,47 +520,53 @@ class CharmHooks(object):
 
     def log(self, message):
         if self.juju_ok:
-            return charmhelpers.log(message, self.juju_log)
+            return self.cmd([u'juju-log', message], logging=False)  # Avoid infinite loop !
         print(message)
         return None
 
     def open_port(self, port, protocol=u'TCP'):
         if self.juju_ok:
-            charmhelpers.open_port(port, protocol)
-        else:
-            self.debug(u'Open port {0} ({1})'.format(port, protocol))
+            return self.cmd([u'open-port', u'{0}/{1}'.format(port, protocol)])
+        return self.debug(u'Open port {0} ({1})'.format(port, protocol))
 
     def close_port(self, port, protocol=u'TCP'):
         if self.juju_ok:
-            charmhelpers.close_port(port, protocol)
-        else:
-            self.debug(u'Close port {0} ({1})'.format(port, protocol))
+            return self.cmd([u'close-port', u'{0}/{1}'.format(port, protocol)])
+        return self.debug(u'Close port {0} ({1})'.format(port, protocol))
 
     def unit_get(self, attribute):
         if self.juju_ok:
-            return charmhelpers.unit_get(attribute)
-        raise NotImplementedError(to_bytes(u'FIXME unit_get not yet implemented'))
+            return self.cmd([u'unit-get', attribute])['stdout'].strip()
+        raise NotImplementedError(to_bytes(u'FIXME juju-less unit_get not yet implemented'))
 
-    def relation_get(self, attribute=None, unit=None, rid=None):
+    def relation_get(self, attribute=None, unit=None, relation_id=None):
         if self.juju_ok:
-            return charmhelpers.relation_get(attribute, unit, rid)
-        raise NotImplementedError(to_bytes(u'FIXME relation_get not yet implemented'))
+            command = [u'relation-get']
+            if relation_id is not None:
+                command += [u'-r', relation_id]
+            command += filter(None, [attribute, unit])
+            return self.cmd(command)['stdout'].strip()
+        raise NotImplementedError(to_bytes(u'FIXME juju-less relation_get not yet implemented'))
 
     def relation_ids(self, relation_name):
         if self.juju_ok:
-            return [int(id) for id in charmhelpers.relation_ids(relation_name)]
-        raise NotImplementedError(to_bytes(u'FIXME relation_ids not yet implemented'))
+            return [int(id) for id in self.cmd([u'relation-ids', relation_name])['stdout'].split()]
+        raise NotImplementedError(to_bytes(u'FIXME juju-less relation_ids not yet implemented'))
 
-    def relation_list(self, rid=None):
+    def relation_list(self, relation_id=None):
         if self.juju_ok:
-            return charmhelpers.relation_list(rid)
-        raise NotImplementedError(to_bytes(u'FIXME relation_list not yet implemented'))
+            command = [u'relation-list']
+            if relation_id is not None:
+                command += [u'-r', relation_id]
+            return self.cmd(command)['stdout'].split()
+        raise NotImplementedError(to_bytes(u'FIXME juju-less relation_list not yet implemented'))
 
     def relation_set(self, **kwargs):
         if self.juju_ok:
-            charmhelpers.relation_set(**kwargs)
-        else:
-            raise NotImplementedError(to_bytes(u'FIXME relation_set not yet implemented'))
+            command = [u'relation-set']
+            command += [u'{0}={1}'.format(key, value) for key, value in kwargs.items()]
+            return self.cmd(command)
+        raise NotImplementedError(to_bytes(u'FIXME juju-less relation_set not yet implemented'))
 
     # Convenience methods for logging ----------------------------------------------------------------------------------
 
@@ -622,8 +626,7 @@ class CharmHooks(object):
 
     def save_local_config(self):
         u"""
-        Save or update local configuration file only if this instance has the attribute
-        ``local_config``.
+        Save or update local configuration file only if this instance has the attribute ``local_config``.
         """
         if self.local_config is not None:
             self.debug(u'Save (updated) local configuration {0}'.format(self.local_config))
@@ -660,11 +663,11 @@ class CharmHooks(object):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def cmd(self, command, input=None, cli_input=None, fail=True):
+    def cmd(self, command, input=None, cli_input=None, fail=True, logging=True):
         u"""
         Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
         """
-        return cmd(command, input=input, cli_input=cli_input, fail=fail, log=self.debug)
+        return cmd(command, input=input, cli_input=cli_input, fail=fail, log=self.debug if logging else None)
 
     def template2config(self, template, config, values):
         with open(template, u'r', u'utf-8') as template_file:
@@ -690,8 +693,6 @@ class CharmHooks(object):
                 raise ValueError(to_bytes(u'Usage {0} hook_name (e.g. config-changed)'.format(sys.argv[0])))
             hook_name = sys.argv[1]
 
-        if self.juju_ok:
-            charmhelpers.log_entry()
         try:  # Call the function hooks_...
             self.hook(u'Execute {0} hook {1}'.format(self.__class__.__name__, hook_name))
             getattr(self, u'hook_{0}'.format(hook_name.replace(u'-', u'_')))()
@@ -701,24 +702,21 @@ class CharmHooks(object):
             self.log(e.output)
             raise
         finally:
-            if self.juju_ok:
-                charmhelpers.log_exit()
-
-from functools import wraps
-
-def print_stdouts(func):
-    @wraps(func)
-    def with_print_stdouts(*args, **kwargs):
-        result = func(*args, **kwargs)
-        if result[0]:
-            for stdout in result[1]:
-                if stdout:
-                    print(stdout)
-        return result
-    return with_print_stdouts
+            self.hook(u'Exiting {0} hook {1}'.format(self.__class__.__name__, hook_name))
 
 
 class DeploymentScenario(object):
+
+    def print_stdouts(func):
+        @wraps(func)
+        def with_print_stdouts(*args, **kwargs):
+            result = func(*args, **kwargs)
+            if result[0]:
+                for stdout in result[1]:
+                    if stdout:
+                        print(stdout)
+            return result
+        return with_print_stdouts
 
     def main(self, **kwargs):
         parser = self.get_parser(**kwargs)
