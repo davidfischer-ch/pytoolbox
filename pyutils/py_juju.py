@@ -705,7 +705,7 @@ class CharmHooks(object):
             self.hook(u'Exiting {0} hook {1}'.format(self.__class__.__name__, hook_name))
 
 
-class DeploymentScenario(object):
+class Environment(object):
 
     def print_stdouts(func):
         @wraps(func)
@@ -718,30 +718,20 @@ class DeploymentScenario(object):
             return result
         return with_print_stdouts
 
-    def main(self, **kwargs):
-        parser = self.get_parser(**kwargs)
-        self.__dict__.update(vars(parser.parse_args()))
-        self.run()
-
-    def get_parser(self, epilog=u'', charms_path=u'.', environment=u'default', config=u'config.yaml', release=u'raring',
-                   auto=False):
-        from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-        parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
-        parser.add_argument(u'-m', u'--charms_path', action=u'store', default=charms_path)
-        parser.add_argument(u'-e', u'--environment', action=u'store', default=environment)
-        parser.add_argument(u'-c', u'--config',      action=u'store', default=config)
-        parser.add_argument(u'-r', u'--release',     action=u'store', default=release)
-        parser.add_argument(u'-a', u'--auto',        action=u'store_true', default=auto)
-        return parser
+    def __init__(self, name, config=u'config.yaml', release=None, auto=False, **kwargs):
+        self.name = name
+        self.config = config
+        self.release = release
+        self.auto = auto
+        self.__dict__.update(kwargs)
 
     @print_stdouts
-    def bootstrap(self, environment, **kwargs):
-        self.environment = environment
-        print(u'Cleanup and bootstrap environment {0}'.format(self.environment))
+    def bootstrap(self, **kwargs):
+        print(u'Cleanup and bootstrap environment {0}'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
-            destroy_environment(self.environment, remove_default=True)
-            sync_tools(self.environment, all_tools=True)
-            return (True, [bootstrap_environment(self.environment, **kwargs)])
+            destroy_environment(self.name, remove_default=True)
+            sync_tools(self.name, all_tools=True)
+            return (True, [bootstrap_environment(self.name, **kwargs)])
         return (False, [None])
 
     @print_stdouts
@@ -755,44 +745,70 @@ class DeploymentScenario(object):
         print(u'Deploy {0} as {1} ({2} instance{3})'.format(charm, service, num_units, s))
         stdouts = [None] * 2
         if self.auto and required or confirm(u'do it now', default=False):
-            stdouts[0] = add_or_deploy_units(self.environment, charm, service, config=self.config, **kwargs)
+            stdouts[0] = add_or_deploy_units(self.name, charm, service, config=self.config, **kwargs)
             if expose:
-                stdouts[1] = expose_service(self.environment, service)
+                stdouts[1] = expose_service(self.name, service)
             return (True, stdouts)
         return (False, stdouts)
 
     # Services
     def get_service_config(self, service, **kwargs):
-        return get_service_config(self.environment, service, **kwargs)
+        return get_service_config(self.name, service, **kwargs)
 
     @print_stdouts
     def unexpose_service(self, service):
         print(u'Unexpose service {0}'.format(service))
         if self.auto or confirm(u'do it now', default=False):
-            return (True, [unexpose_service(self.environment, service)])
+            return (True, [unexpose_service(self.name, service)])
         return (False, [None])
 
     # Units
     def get_unit(self, service, number):
-        return get_unit(self.environment, service, number)
+        return get_unit(self.name, service, number)
 
     def get_units(self, service):
-        return get_units(self.environment, service)
+        return get_units(self.name, service)
 
     # Relations
     @print_stdouts
     def add_relation(self, service1, service2):
         print(u'Add relation between {0} and {1}'.format(service1, service2))
         if self.auto or confirm(u'do it now', default=False):
-            return (True, [add_relation(self.environment, service1, service2)])
+            return (True, [add_relation(self.name, service1, service2)])
         return (False, [None])
 
     @print_stdouts
     def remove_relation(self, service1, service2):
         print(u'Add relation between {0} and {1}'.format(service1, service2))
         if self.auto or confirm(u'do it now', default=False):
-            return (True, [remove_relation(self.environment, service1, service2)])
+            return (True, [remove_relation(self.name, service1, service2)])
         return (False, [None])
+
+
+class DeploymentScenario(object):
+
+    def main(self, environments, **kwargs):
+        parser = self.get_parser(**kwargs)
+        args = vars(parser.parse_args())
+        charms_path = args.pop(u'charms_path')
+        release = args.pop(u'release')
+        auto = args.pop(u'auto')
+        self.environments = environments
+        for environment in environments:
+            environment.charms_path = charms_path
+            environment.release = environment.release or release
+            environment.auto = auto
+            self.__dict__.update({environment.name: environment})  # A shortcut
+        self.__dict__.update(args)
+        self.run()
+
+    def get_parser(self, epilog=u'', charms_path=u'.', release=u'raring', auto=False):
+        from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+        parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
+        parser.add_argument(u'-m', u'--charms_path', action=u'store',      default=charms_path)
+        parser.add_argument(u'-r', u'--release',     action=u'store',      default=release)
+        parser.add_argument(u'-a', u'--auto',        action=u'store_true', default=auto)
+        return parser
 
     def run(self):
         raise NotImplementedError(u'Here should be implemented the deployment scenario.')
