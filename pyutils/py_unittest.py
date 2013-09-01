@@ -96,7 +96,7 @@ def runtests(test_file, package, package_path):
     configure_unicode()
 
     nose_options = [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe',
-        u'--cover-package={0}'.format(package), u'--cover-html', u'-vv', package_path, package, test_file]
+        u'--cover-package={0}'.format(package), u'--cover-html', u'-vv', package_path, package, dirname(test_file)]
 
     os.chdir(abspath(dirname(test_file)))
     return PseudoTestCase(nose.run(argv=nose_options))

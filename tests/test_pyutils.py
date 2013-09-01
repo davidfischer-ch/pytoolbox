@@ -27,6 +27,7 @@
 
 import math, os
 from nose.tools import assert_equal, assert_raises, raises
+from py_collections import pygal_deque
 from py_unittest import mock_cmd
 from py_serialization import PickleableObject
 from py_subprocess import cmd, screen_launch, screen_list, screen_kill
@@ -113,3 +114,36 @@ class TestPyutils(object):
     def test_validate_list_fail_value(self):
         regexes = [ur'\d+', ur"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, u"call([u'my_var', recursive='error'])"], regexes)
+
+    def test_pygal_deque(self):
+        p = pygal_deque(maxlen=4)
+
+        p.append(5)
+        assert_equal(p.list, [5])
+        p.append(5)
+        p.append(5)
+        assert_equal(p.list, [5, None, 5])
+        p.append(5)
+        assert_equal(p.list, [5, None, None, 5])
+        p.append(5)
+        assert_equal(p.list, [5, None, None, 5])
+        p.append(None)
+        assert_equal(p.list, [5, None, None, 5])
+        p.append(None)
+        assert_equal(p.list, [5, None, None, 5])
+        p.append(5)
+        assert_equal(p.list, [5, None, None, 5])
+        p.append(1)
+        assert_equal(p.list, [5, None, 5, 1])
+        p.append(None)
+        assert_equal(p.list, [5, 5, 1, 1])
+        p.append(None)
+        assert_equal(p.list, [5, 1, None, 1])
+        p.append(None)
+        assert_equal(p.list, [1, None, None, 1])
+        p.append(2)
+        p.append(3)
+        assert_equal(p.list, [1, 1, 2, 3])
+        p.append(None)
+        p.append(2)
+        assert_equal(p.list, [2, 3, 3, 2])
