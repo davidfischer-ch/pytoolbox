@@ -79,6 +79,7 @@ setup(name=u'pyutils',
             u'ming',      # FIXME version
             u'mock',      # FIXME version
             u'pyaml',     # FIXME version
+            u'pygal',     # FIXME version
             u'six'],      # FIXME version
       setup_requires=[u'coverage', u'mock', u'nose'],
       tests_require=[u'coverage', u'mock', u'nose'],
