@@ -41,15 +41,21 @@ def check_id(id):
     raise ValueError(u'Wrong id format {0}'.format(id))
 
 
-def get_request_data(request, required_keys=[], fail=True):
+def get_request_data(request, accepted_keys=None, required_keys=None, fail=True):
     data = request.get_json(silent=True)
+    source = u'form-data' if data is None else u'JSON content'
     if data is None:
         data = {}
         for x in request.form:
             data[x] = request.form.get(x)
-    for key in required_keys:
-        if not key in data:
-            raise ValueError(u'Missing key "{0}" from JSON content.'.format(key))
+    if required_keys is not None:
+        for key in required_keys:
+            if not key in data:
+                raise ValueError(u'Missing key "{0}" from {1}, required: {2}.'.format(key, source, required_keys))
+    if accepted_keys is not None:
+        for key in data:
+            if not key in accepted_keys:
+                raise ValueError(u'Invalid key "{0}" from {1}, valid: {2}.'.format(key, source, accepted_keys))
     if not data and fail:
         raise ValueError(u'Requires JSON content or form-data.')
     return data or {}
