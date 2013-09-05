@@ -55,8 +55,9 @@ DEFAULT_OS_ENV = {
     u'PWD': u'/var/lib/juju/units/oscied-storage-0/charm',
     u'SHLVL': u'1'
 }
-STARTED_STATES = (u'started',)
-ERROR_STATES = (u'not-started', u'error')
+
+ALL_STATES = PENDING, STARTED, NOT_STARTED, ERROR = (u'pending', u'started', u'not-started', u'error')
+PENDING_STATES, STARTED_STATES, ERROR_STATES = (PENDING,), (STARTED,), (NOT_STARTED, ERROR)
 
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
