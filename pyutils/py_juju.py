@@ -314,7 +314,7 @@ def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
         # FIXME short by status (started last)
         for i in range(num_units):
             number, unit_dict = units.popitem()
-            destroy_unit(environment, service, number, terminate_machine=False)
+            destroy_unit(environment, service, number, terminate=False)
             destroyed[number] = unit_dict
         if terminate:
             time.sleep(5)
