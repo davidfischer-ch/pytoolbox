@@ -267,21 +267,11 @@ def destroy_service(environment, service, fail=True):
 # Units ----------------------------------------------------------------------------------------------------------------
 
 def add_units(environment, service, num_units=1, to=None, **kwargs):
-    options = [u'--num-units', unicode(num_units)]
+    options = [u'--num-units', num_units]
     if to is not None:
         options += [u'--to', to]
     options += [service]
     return juju_do(u'add-unit', environment, options=options)
-
-
-def add_or_deploy_units(environment, charm, service, num_units=1, num_is_target=False, **kwargs):
-    actual_count = get_units_count(environment, service)
-    if actual_count == 0:
-        return deploy_units(environment, charm, service, num_units, **kwargs)
-    else:
-        num_units = max(num_units - actual_count, 0) if num_is_target else num_units
-        if num_units > 0:
-            return add_units(environment, service, num_units, **kwargs)
 
 
 def deploy_units(environment, charm, service=None, num_units=1, to=None, config=None, constraints=None, local=False,
@@ -306,32 +296,59 @@ def deploy_units(environment, charm, service=None, num_units=1, to=None, config=
     return juju_do(u'deploy', environment, options=options)
 
 
+def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
+    assert(num_units >= 0 or num_units is None)
+    units = get_units(environment, service, none_if_missing=True)
+    units_count = None if units is None else len(units)
+    if num_units is None:
+        return units_count if units_count is None else destroy_service(environment, service)
+    if units_count is None:
+        return deploy_units(environment, charm, service, num_units, **kwargs)
+    if units_count < num_units:
+        num_units = num_units - units_count
+        return add_units(environment, service or charm, num_units, **kwargs)
+    if units_count > num_units:
+        destroy_machine = kwargs.get('destroy_machine', None)
+        num_units = units_count - num_units
+        destroyed = {}
+        # FIXME short by status (started last)
+        for i in range(num_units):
+            number, unit_dict = units.popitem()
+            destroy_unit(environment, service, number, destroy_machine=False)
+            destroyed[number] = unit_dict
+        if destroy_machine:
+            time.sleep(5)
+            for unit_dict in destroyed.values():
+                # FIXME handle failure (multiple units same machine, machine busy, missing ...)
+                destroy_machine(environment, unit_dict[u'machine'])
+        return destroyed
+
 def get_unit(environment, service, number):
     name = u'{0}/{1}'.format(service, number)
     return juju_do(u'status', environment)[u'services'][service][u'units'][name]
 
 
-def get_units(environment, service):
+def get_units(environment, service, none_if_missing=False):
     units = {}
     try:
         units_dict = juju_do(u'status', environment)[u'services'][service][u'units']
     except KeyError:
-        return {}
+        return None if none_if_missing else {}
     for unit in units_dict.iteritems():
         number = unit[0].split(u'/')[1]
         units[number] = unit[1]
     return units
 
 
-def get_units_count(environment, service):
+def get_units_count(environment, service, none_if_missing=False):
     try:
         units_dict = juju_do(u'status', environment)[u'services'][service][u'units']
         return len(units_dict.keys())
     except KeyError:
-        return 0
+        return None if none_if_missing else 0
 
 
-def destroy_unit(environment, service, number, destroy_machine):
+def destroy_unit(environment, service, number, destroy_machine, delay_destroy=5):
     name = u'{0}/{1}'.format(service, number)
     try:
         unit_dict = get_unit(environment, service, number)
@@ -340,12 +357,19 @@ def destroy_unit(environment, service, number, destroy_machine):
                          service, number, environment)))
     if destroy_machine:
         juju_do(u'destroy-unit', environment, options=[name])
-        return juju_do(u'destroy-machine', environment, options=[unicode(unit_dict[u'machine'])])
+        time.sleep(delay_destroy)  # FIXME ideally a --terminate flag https://bugs.launchpad.net/juju-core/+bug/1218790
+        return destroy_machine(environment, unit_dict[u'machine'])
     return juju_do(u'destroy-unit', environment, options=[name])
 
 
 def get_unit_path(service, number, *args):
     return os.path.join(u'/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
+
+
+# Machines -------------------------------------------------------------------------------------------------------------
+
+def destroy_machine(environment, machine):
+    juju_do(u'destroy-machine', environment, options=[machine])
 
 
 # Relations ------------------------------------------------------------------------------------------------------------
@@ -736,17 +760,15 @@ class Environment(object):
         return (False, [None])
 
     @print_stdouts
-    def deploy(self, charm, service, expose=False, required=True, **kwargs):
+    def ensure_num_units(self, charm, service, num_units=1, expose=False, required=True, **kwargs):
         kwargs['release'] = kwargs.get('release', self.release)
-        kwargs['num_is_target'] = kwargs.get('num_is_target', True)
         kwargs['local'] = kwargs.get('local', True)
         kwargs['repository'] = kwargs.get('repository', self.charms_path if kwargs['local'] else None)
-        num_units = kwargs.get('num_units', 1)
         s = u's' if num_units > 1 else u''
-        print(u'Deploy {0} as {1} ({2} instance{3})'.format(charm, service, num_units, s))
+        print(u'Deploy {0} as {1} (ensure {2} instance{3})'.format(charm, service, num_units, s))
         stdouts = [None] * 2
         if self.auto and required or confirm(u'do it now', default=False):
-            stdouts[0] = add_or_deploy_units(self.name, charm, service, config=self.config, **kwargs)
+            stdouts[0] = ensure_num_units(self.name, charm, service, num_units=num_units, config=self.config, **kwargs)
             if expose:
                 stdouts[1] = expose_service(self.name, service)
             return (True, stdouts)
