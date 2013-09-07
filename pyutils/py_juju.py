@@ -372,6 +372,16 @@ def destroy_machine(environment, machine):
     juju_do(u'destroy-machine', environment, options=[machine])
 
 
+def cleanup_machines(environment):
+    environment_dict = get_environment_status(environment)
+    machines, busy_machines = environment_dict.get(u'machines', {}).keys(), [u'0']
+    for s_dict in environment_dict.get(u'services', {}).values():
+        busy_machines = busy_machines + [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).values()]
+    idle_machines = [machine for machine in machines if machine not in busy_machines]
+    if idle_machines:
+        juju_do(u'destroy-machine', environment, options=idle_machines)
+
+
 # Relations ------------------------------------------------------------------------------------------------------------
 
 def add_relation(environment, service1, service2, relation1=None, relation2=None):
@@ -759,6 +769,18 @@ class Environment(object):
             return (True, [bootstrap_environment(self.name, **kwargs)])
         return (False, [None])
 
+    # Services
+    def get_service_config(self, service, **kwargs):
+        return get_service_config(self.name, service, **kwargs)
+
+    @print_stdouts
+    def unexpose_service(self, service):
+        print(u'Unexpose service {0}'.format(service))
+        if self.auto or confirm(u'do it now', default=False):
+            return (True, [unexpose_service(self.name, service)])
+        return (False, [None])
+
+    # Units
     @print_stdouts
     def ensure_num_units(self, charm, service, num_units=1, expose=False, required=True, **kwargs):
         kwargs['release'] = kwargs.get('release', self.release)
@@ -774,23 +796,15 @@ class Environment(object):
             return (True, stdouts)
         return (False, stdouts)
 
-    # Services
-    def get_service_config(self, service, **kwargs):
-        return get_service_config(self.name, service, **kwargs)
-
-    @print_stdouts
-    def unexpose_service(self, service):
-        print(u'Unexpose service {0}'.format(service))
-        if self.auto or confirm(u'do it now', default=False):
-            return (True, [unexpose_service(self.name, service)])
-        return (False, [None])
-
-    # Units
     def get_unit(self, service, number):
         return get_unit(self.name, service, number)
 
     def get_units(self, service):
         return get_units(self.name, service)
+
+    # Machines
+    def cleanup_machines(self):
+        return cleanup_machines(self.name)
 
     # Relations
     @print_stdouts
