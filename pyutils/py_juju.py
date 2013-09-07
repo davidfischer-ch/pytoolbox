@@ -331,7 +331,7 @@ def get_unit(environment, service, number):
 def get_units(environment, service, none_if_missing=False):
     units = {}
     try:
-        units_dict = juju_do(u'status', environment)[u'services'][service][u'units']
+        units_dict = juju_do(u'status', environment)[u'services'][service].get(u'units', {})
     except KeyError:
         return None if none_if_missing else {}
     for unit in units_dict.iteritems():
@@ -342,7 +342,7 @@ def get_units(environment, service, none_if_missing=False):
 
 def get_units_count(environment, service, none_if_missing=False):
     try:
-        units_dict = juju_do(u'status', environment)[u'services'][service][u'units']
+        units_dict = juju_do(u'status', environment)[u'services'][service].get(u'units', {})
         return len(units_dict.keys())
     except KeyError:
         return None if none_if_missing else 0
