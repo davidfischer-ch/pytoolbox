@@ -308,15 +308,15 @@ def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
         num_units = num_units - units_count
         return add_units(environment, service or charm, num_units, **kwargs)
     if units_count > num_units:
-        destroy_machine = kwargs.get('destroy_machine', None)
+        terminate = kwargs.get('terminate', None)
         num_units = units_count - num_units
         destroyed = {}
         # FIXME short by status (started last)
         for i in range(num_units):
             number, unit_dict = units.popitem()
-            destroy_unit(environment, service, number, destroy_machine=False)
+            destroy_unit(environment, service, number, terminate_machine=False)
             destroyed[number] = unit_dict
-        if destroy_machine:
+        if terminate:
             time.sleep(5)
             for unit_dict in destroyed.values():
                 # FIXME handle failure (multiple units same machine, machine busy, missing ...)
@@ -348,16 +348,16 @@ def get_units_count(environment, service, none_if_missing=False):
         return None if none_if_missing else 0
 
 
-def destroy_unit(environment, service, number, destroy_machine, delay_destroy=5):
+def destroy_unit(environment, service, number, terminate, delay_terminate=5):
     name = u'{0}/{1}'.format(service, number)
     try:
         unit_dict = get_unit(environment, service, number)
     except KeyError:
         raise IndexError(to_bytes(u'No unit with name {0}/{1} on environment {2}.'.format(
                          service, number, environment)))
-    if destroy_machine:
+    if terminate:
         juju_do(u'destroy-unit', environment, options=[name])
-        time.sleep(delay_destroy)  # FIXME ideally a --terminate flag https://bugs.launchpad.net/juju-core/+bug/1218790
+        time.sleep(delay_terminate)  # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1218790
         return destroy_machine(environment, unit_dict[u'machine'])
     return juju_do(u'destroy-unit', environment, options=[name])
 
