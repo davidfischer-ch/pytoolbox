@@ -49,11 +49,9 @@ class pygal_deque(deque):
         rotate(n)
     """
 
-    def __init__(self, **kwargs):
-        super(pygal_deque, self).__init__(**kwargs)
-        self.last = None
-
     def append(self, value):
+        if not hasattr(self, 'last'):
+            self.last = None
         if value != self.last and value is not None:
             try:
                 self[-1] = self.last
