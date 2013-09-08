@@ -47,26 +47,28 @@ class PickleableObject(object):
             if not create_if_error:
                 raise
             the_object = cls(**kwargs)
-            the_object.write(filename)
+            the_object.write(filename, store_filename=store_filename)
         if store_filename:
             the_object._pickle_filename = filename
         return the_object
 
-    def write(self, filename=None):
+    def write(self, filename=None, store_filename=False):
         u"""
         Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
         """
-        if hasattr(self, u'_pickle_filename'):
-            filename = filename or self._pickle_filename
-            try:
-                delattr(self, u'_pickle_filename')
-                pickle.dump(self, file(filename, u'w'))
-            finally:
-                self._pickle_filename = filename
-        elif filename is not None:
-            pickle.dump(self, file(filename, u'w'))
-        else:
+        pickle_filename = getattr(self, '_pickle_filename', None)
+        filename = filename or pickle_filename
+        if filename is None:
             raise ValueError(u'A filename must be specified')
+        try:
+            if pickle_filename:
+                del self._pickle_filename
+            pickle.dump(self, file(filename, u'w'))
+        finally:
+            if store_filename:
+                self._pickle_filename = filename
+            elif pickle_filename:
+                self._pickle_filename = pickle_filename
 
 
 # Object <-> JSON string -----------------------------------------------------------------------------------------------
@@ -215,7 +217,7 @@ class JsoneableObject(object):
         if filename is None and hasattr(self, u'_json_filename'):
             filename = self._json_filename
             try:
-                delattr(self, u'_json_filename')
+                del self._json_filename
                 with open(filename, u'w', u'utf-8') as f:
                     f.write(object2json(self, include_properties))
             finally:

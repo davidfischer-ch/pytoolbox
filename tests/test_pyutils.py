@@ -28,6 +28,7 @@
 import math, os
 from nose.tools import assert_equal, assert_raises, raises
 from py_collections import pygal_deque
+from py_filesystem import try_remove
 from py_unittest import mock_cmd
 from py_serialization import PickleableObject
 from py_subprocess import cmd, screen_launch, screen_list, screen_kill
@@ -90,11 +91,25 @@ class TestPyutils(object):
         assert_equal(p2.__dict__,
                      {u'y': -3, u'x': 6, u'_pickle_filename': u'test.pkl', u'name': u'My point'})
         p2.write()
-        delattr(p2, u'_pickle_filename')
-        try:
-            assert_raises(ValueError, p2.write)
-        finally:
-            os.remove(u'test.pkl')
+        p2.write(u'test2.pkl')
+        os.remove(u'test.pkl')
+        os.remove(u'test2.pkl')
+        p2.write()
+        assert(not os.path.exists(u'test2.pkl'))
+        assert_equal(p2._pickle_filename, u'test.pkl')
+        os.remove(u'test.pkl')
+        p2.write(u'test2.pkl', store_filename=True)
+        assert(not os.path.exists(u'test.pkl'))
+        assert_equal(p2._pickle_filename, u'test2.pkl')
+        del p2._pickle_filename
+        assert_raises(ValueError, p2.write)
+        os.remove(u'test2.pkl')
+        try_remove(u'test3.pkl')
+        p3 = MyPoint.read(u'test3.pkl', store_filename=True, create_if_error=True, name=u'Default point', x=3, y=-6)
+        assert_equal(p3.__dict__,
+                     {u'x': 3, u'y': -6, u'_pickle_filename': u'test3.pkl', u'name': u'Default point'})
+        os.remove(u'test3.pkl')
+        assert_raises(IOError, MyPoint.read, u'test3.pkl')
 
     def test_csv_reader(self):
         values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
