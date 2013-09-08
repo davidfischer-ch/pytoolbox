@@ -24,6 +24,7 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+import logging
 from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
@@ -98,6 +99,8 @@ def map_exceptions(e):
         ...
     ValueError: The value is bad.
     """
+    if isinstance(e, Exception):
+        logging.exception(e)
     if isinstance(e, dict):
         if e['status'] == 200:
             return e['value']
