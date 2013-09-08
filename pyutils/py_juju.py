@@ -754,12 +754,11 @@ class Environment(object):
             return result
         return with_print_stdouts
 
-    def __init__(self, name, config=u'config.yaml', release=None, auto=False, **kwargs):
+    def __init__(self, name, config=u'config.yaml', release=None, auto=False):
         self.name = name
         self.config = config
         self.release = release
         self.auto = auto
-        self.__dict__.update(kwargs)
 
     @print_stdouts
     def bootstrap(self, **kwargs):
