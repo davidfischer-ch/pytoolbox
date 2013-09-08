@@ -20,7 +20,7 @@ How to install it ?
 
 Install some packages that are not handled by pip:
 
-    sudo apt-get install ffmpeg git-core python-dev screen
+    sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev screen
 
 Then, you only need to run ``setup.py``::
 
@@ -53,7 +53,7 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  license='GPLv3',
 		  url='https://github.com/nickname/my-cool-project',
 		  packages=['my_cool_project'])
-		 
+
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
 2013 - David Fischer
