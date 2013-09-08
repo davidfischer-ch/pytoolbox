@@ -56,9 +56,11 @@ DEFAULT_OS_ENV = {
     u'SHLVL': u'1'
 }
 
-ALL_STATES = PENDING, INSTALLED, STARTED, NOT_STARTED, ERROR = \
-    (u'pending', u'installed', u'started', u'not-started', u'error')
-PENDING_STATES, STARTED_STATES, ERROR_STATES = (PENDING, INSTALLED), (STARTED,), (ERROR, NOT_STARTED)
+ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR = \
+    (u'pending', u'installed', u'started', u'stopped', u'not-started', u'error')
+
+PENDING_STATES, STARTED_STATES, STOPPED_STATES, ERROR_STATES = \
+    (PENDING, INSTALLED), (STARTED,), (STOPPED,), (ERROR, NOT_STARTED)
 
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
