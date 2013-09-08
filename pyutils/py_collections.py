@@ -83,9 +83,9 @@ class pygal_deque(deque):
 
 class EventsTable(object):
 
-    def __init__(self, sparse_events_table, time_range, time_speedup):
+    def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
         u"""Scan a spare events table and replace missing entry by previous (non empty) entry."""
-        self.time_range, self.time_speedup = time_range, time_speedup
+        self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
         for index in range(self.time_range):
@@ -116,7 +116,7 @@ class EventsTable(object):
         index = int((total_seconds(time) * ((time_speedup or self.time_speedup) / 3600) % self.time_range))
         return index, self.events.get(index, default_value)
 
-    def sleep_time(self, time, time_speedup=None):
+    def sleep_time(self, time, time_speedup=None, sleep_factor=None):
         u"""
         >>> from nose.tools import assert_equal
         >>> table = EventsTable({0: 'salut'}, 24, 60)
@@ -124,10 +124,16 @@ class EventsTable(object):
         >>> assert_equal(table.sleep_time(58), 2)
         >>> assert_equal(table.sleep_time(60), 60)
         >>> assert_equal(table.sleep_time(62), 58)
-        >>> assert_equal(table.sleep_time(3590, 1), 10)
-        >>> assert_equal(table.sleep_time(12543, 1), 1857)
+        >>> assert_equal(table.sleep_time(3590, time_speedup=1), 10)
+        >>> assert_equal(table.sleep_time(12543, time_speedup=1), 1857)
+        >>> assert_equal(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
+        >>> assert_equal(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
+        >>> assert_equal(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
+        >>> assert_equal(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
+        >>> assert_equal(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
         >>> table.time_range = 1
-        >>> assert_equal(table.sleep_time(1, 1), 149)
+        >>> assert_equal(table.sleep_time(1, time_speedup=1), 149)
         """
-        d = self.time_range * 150 / (time_speedup or self.time_speedup)  # 150 = 3600 / 24
+        # 150 = 3600 / 24
+        d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
         return math.ceil(d - (total_seconds(time) % d))
