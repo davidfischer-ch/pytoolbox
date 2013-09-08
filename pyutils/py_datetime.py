@@ -24,7 +24,9 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+import numbers
 from datetime import datetime
+from six import string_types
 
 
 def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
@@ -41,7 +43,6 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
 
     **Example usage**:
 
-    >>> from six import string_types
     >>> from datetime import timedelta
     >>> now = datetime_now(format=None)
     >>> future = datetime_now(offset=timedelta(hours=2, minutes=10), format=None)
@@ -61,25 +62,38 @@ def datetime2str(date_time, format=u'%Y-%m-%d %H:%M:%S', append_utc=False):
     return date_time.strftime(format) + (u' UTC' if append_utc else u'')
 
 
-def duration2secs(duration):
+def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
+    return datetime.strptime(date, format)
+
+
+def total_seconds(time):
     u"""
-    Returns the duration converted in seconds.
+    Returns the time converted in seconds.
 
     **Example usage**:
 
-    >>> duration2secs(u'00:10:00')
+    >>> total_seconds(u'00:10:00')
     600.0
-    >>> duration2secs(u'01:54:17')
+    >>> total_seconds(u'01:54:17')
     6857.0
-    >>> print(round(duration2secs(u'16.40'), 3))
+    >>> print(round(total_seconds(u'16.40'), 3))
     16.4
+    >>> total_seconds(143.2)
+    143.2
+    >>> total_seconds(datetime(2010, 6, 10, 00, 01, 30))
+    90.0
+    >>> total_seconds(datetime(2010, 6, 10, 14, 15, 23))
+    51323.0
+    >>> total_seconds(datetime(2010, 6, 10, 23, 59, 59))
+    86399.0
     """
     try:
-        hours, minutes, seconds = duration.split(u':')
+        if isinstance(time, string_types):
+            hours, minutes, seconds = time.split(u':')
+        elif isinstance(time, numbers.Number):
+            return time
+        else:
+            hours, minutes, seconds = time.hour, time.minute, time.second
         return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
     except ValueError:
-        return float(duration)
-
-
-def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
-    return datetime.strptime(date, format)
+        return float(time)

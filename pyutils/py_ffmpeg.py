@@ -27,7 +27,7 @@
 import fcntl, os, re, select, shlex, subprocess, time
 from kitchen.text.converters import to_bytes
 from xml.dom import minidom
-from py_datetime import duration2secs
+from py_datetime import total_seconds
 
 
 AUDIO_TRACKS_REGEX = re.compile(
@@ -112,7 +112,7 @@ def get_media_tracks(filename):
     duration = get_media_duration(filename)
     if not duration:
         return None
-    duration_secs = duration2secs(duration)
+    duration_secs = total_seconds(duration)
     cmd = u'ffmpeg -i "{0}"'.format(filename)
     pipe = subprocess.Popen(shlex.split(cmd), stderr=subprocess.PIPE, close_fds=True)
     output = pipe.stderr.read()
