@@ -56,8 +56,8 @@ class PickleableObject(object):
         u"""
         Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
         """
-        if filename is None and hasattr(self, u'_pickle_filename'):
-            filename = self._pickle_filename
+        if hasattr(self, u'_pickle_filename'):
+            filename = filename or self._pickle_filename
             try:
                 delattr(self, u'_pickle_filename')
                 pickle.dump(self, file(filename, u'w'))
