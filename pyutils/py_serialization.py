@@ -36,12 +36,18 @@ class PickleableObject(object):
     u"""
     An :class:`object` serializable/deserializable by :mod:`pickle`.
     """
-    @staticmethod
-    def read(filename, store_filename=False):
+    @classmethod
+    def read(cls, filename, store_filename=False, create_if_error=False, **kwargs):
         u"""
         Return a deserialized instance of a pickleable object loaded from a file.
         """
-        the_object = pickle.load(file(filename))
+        try:
+            the_object = pickle.load(file(filename))
+        except:
+            if not create_if_error:
+                raise
+            the_object = cls(**kwargs)
+            the_object.write(filename)
         if store_filename:
             the_object._pickle_filename = filename
         return the_object
