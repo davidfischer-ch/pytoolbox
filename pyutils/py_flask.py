@@ -27,7 +27,8 @@
 import logging
 from bson.objectid import ObjectId
 from flask import abort, Response
-from werkzeug.exceptions import HTTPException
+from kitchen.text.converters import to_bytes
+from werkzeug.exceptions import HTTPException, ImATeapot
 from py_serialization import object2json
 from py_validation import valid_uuid
 
@@ -85,7 +86,7 @@ def map_exceptions(e):
 
     Any instance of HTTPException is simply raised without any mapping:
 
-    >>> map_exceptions(HTTPException())
+    >>> map_exceptions(ImATeapot())
     Traceback (most recent call last):
         ...
     NotImplemented: 501: Not Implemented
