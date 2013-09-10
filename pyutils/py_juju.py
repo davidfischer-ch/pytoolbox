@@ -59,9 +59,11 @@ DEFAULT_OS_ENV = {
 ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR = \
     (u'pending', u'installed', u'started', u'stopped', u'not-started', u'error')
 
-PENDING_STATES, STARTED_STATES, STOPPED_STATES, ERROR_STATES = \
-    (PENDING, INSTALLED), (STARTED,), (STOPPED,), (ERROR, NOT_STARTED)
-
+ALL_STATES     = frozenset(ALL_STATES)
+PENDING_STATES = frozenset([PENDING, INSTALLED])
+STARTED_STATES = frozenset([STARTED])
+STOPPED_STATES = frozenset([STOPPED])
+ERROR_STATES   = frozenset([ERROR, NOT_STARTED])
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
