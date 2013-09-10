@@ -59,11 +59,10 @@ DEFAULT_OS_ENV = {
 ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR = \
     (u'pending', u'installed', u'started', u'stopped', u'not-started', u'error')
 
-ALL_STATES     = frozenset(ALL_STATES)
-PENDING_STATES = frozenset([PENDING, INSTALLED])
-STARTED_STATES = frozenset([STARTED])
-STOPPED_STATES = frozenset([STOPPED])
-ERROR_STATES   = frozenset([ERROR, NOT_STARTED])
+PENDING_STATES = (PENDING, INSTALLED)
+STARTED_STATES = (STARTED,)
+STOPPED_STATES = (STOPPED,)
+ERROR_STATES   = (ERROR, NOT_STARTED)
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
@@ -844,11 +843,16 @@ class DeploymentScenario(object):
         self.run()
 
     def get_parser(self, epilog=u'', charms_path=u'.', release=u'raring', auto=False):
+        #if not isinstance(epilog, str):
+            #raise TypeError('epilog must be an instance of string')
+        HELP_M = u'Directory (repository) of any local charm.'
+        HELP_R = u'Ubuntu serie to deploy by JuJu.'
+        HELP_A = u'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
         parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
-        parser.add_argument(u'-m', u'--charms_path', action=u'store',      default=charms_path)
-        parser.add_argument(u'-r', u'--release',     action=u'store',      default=release)
-        parser.add_argument(u'-a', u'--auto',        action=u'store_true', default=auto)
+        parser.add_argument(u'-m', u'--charms_path', action=u'store',      help=HELP_M, default=charms_path)
+        parser.add_argument(u'-r', u'--release',     action=u'store',      help=HELP_R, default=release)
+        parser.add_argument(u'-a', u'--auto',        action=u'store_true', help=HELP_A, default=auto)
         return parser
 
     def run(self):
