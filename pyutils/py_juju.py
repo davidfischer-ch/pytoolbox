@@ -64,6 +64,11 @@ STARTED_STATES = (STARTED,)
 STOPPED_STATES = (STOPPED,)
 ERROR_STATES   = (ERROR, NOT_STARTED)
 
+# Some Amazon EC2 constraints, waiting for instance-type to be implemented ...
+M1_SMALL  = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
+M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
+C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
+
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
     Execute a command ``command`` into environment ``environment``.
