@@ -25,8 +25,11 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+import os
 from codecs import open
 from setuptools import setup, sys
+
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
 major, minor = sys.version_info[:2]
 kwargs = {}
