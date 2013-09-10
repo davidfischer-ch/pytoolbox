@@ -72,6 +72,7 @@ setup(name=u'pyutils',
       keywords=[u'ffmpeg', u'flask', u'json', u'juju', u'mock', u'rsync', u'screen', u'subprocess'],
       install_requires=[
             u'argparse',  # FIXME version
+            u'django',    # FIXME version
             u'flask',     # FIXME version
             u'hashlib',   # FIXME version
             u'kitchen',   # FIXME version
