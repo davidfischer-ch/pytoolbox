@@ -335,7 +335,7 @@ def ensure_num_units(environment, charm, service, num_units=1, units_number_to_k
             for number, unit_dict in units.items():
                 if num_units == 0:
                     break
-                if number in units_number_to_keep:
+                if units_number_to_keep is not None and number in units_number_to_keep:
                     continue
                 unit_status = unit_dict.get(u'agent-state', status)
                 if unit_status == status or unit_status not in ALL_STATES:
