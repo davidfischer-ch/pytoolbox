@@ -42,13 +42,19 @@ def check_id(id):
     raise ValueError(u'Wrong id format {0}'.format(id))
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None, query_string=True, fail=True):
+def get_request_data(request, accepted_keys=None, required_keys=None, query_string=True, qs_only_first_value=False,
+                     fail=True):
     data = request.get_json(silent=True)
     source = u'form-data' if data is None else u'JSON content'
     if data is None:
-        data = urlparse.parse_qs(request.query_string) if query_string else {}
-        for x in request.form:
-            data[x] = request.form.get(x)
+        if query_string:
+            data = urlparse.parse_qs(request.query_string)
+            if qs_only_first_value:
+                data = {key: value[0] if isinstance(value, list) else value for key, value in data.items()}
+        else:
+            data = {}
+        for key in request.form:
+            data[key] = request.form.get(key)
     if required_keys is not None:
         for key in required_keys:
             if not key in data:
