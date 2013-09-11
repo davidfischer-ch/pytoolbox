@@ -24,10 +24,9 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import logging
+import logging, urlparse
 from bson.objectid import ObjectId
 from flask import abort, Response
-from kitchen.text.converters import to_bytes
 from werkzeug.exceptions import HTTPException, ImATeapot
 from py_serialization import object2json
 from py_validation import valid_uuid
@@ -43,11 +42,11 @@ def check_id(id):
     raise ValueError(u'Wrong id format {0}'.format(id))
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None, fail=True):
+def get_request_data(request, accepted_keys=None, required_keys=None, query_string=True, fail=True):
     data = request.get_json(silent=True)
     source = u'form-data' if data is None else u'JSON content'
     if data is None:
-        data = {}
+        data = urlparse.parse_qs(request.query_string) if query_string else {}
         for x in request.form:
             data[x] = request.form.get(x)
     if required_keys is not None:
