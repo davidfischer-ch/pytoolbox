@@ -305,7 +305,14 @@ def deploy_units(environment, charm, service=None, num_units=1, to=None, config=
     return juju_do(u'deploy', environment, options=options)
 
 
-def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
+def ensure_num_units(environment, charm, service, num_units=1, units_number_to_keep=None, **kwargs):
+    u"""
+    Ensure ``num_units`` units of ``service`` into ``environment`` by destroying useless units first !
+
+    At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm will
+    not destroy units with number in ``units_number_to_keep``.
+
+    """
     assert(num_units >= 0 or num_units is None)
     units = get_units(environment, service, none_if_missing=True)
     units_count = None if units is None else len(units)
@@ -328,6 +335,8 @@ def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
             for number, unit_dict in units.items():
                 if num_units == 0:
                     break
+                if number in units_number_to_keep:
+                    continue
                 unit_status = unit_dict.get(u'agent-state', status)
                 if unit_status == status or unit_status not in ALL_STATES:
                     destroy_unit(environment, service, number, terminate=False)
