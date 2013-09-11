@@ -51,7 +51,7 @@ class TestEnvironment(object):
         old_cmd = py_subprocess.cmd
         cmd = py_subprocess.cmd = mock_cmd()
         import py_juju
-        from py_juju import PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR
+        from py_juju import PENDING, STARTED, ERROR
         TEST_UNITS_SQL_5  = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR},
                              3: {}, 4: {'agent-state': ERROR}}
         py_juju.get_units = Mock(return_value=None)
