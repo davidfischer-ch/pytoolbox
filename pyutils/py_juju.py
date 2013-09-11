@@ -320,11 +320,20 @@ def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
         terminate = kwargs.get('terminate', None)
         num_units = units_count - num_units
         destroyed = {}
-        # FIXME short by status (started last)
-        for i in range(num_units):
-            number, unit_dict = units.popitem()
-            destroy_unit(environment, service, number, terminate=False)
-            destroyed[number] = unit_dict
+        # Short units by status to kill first the useless units !
+        # FIXME implement status comparison for sorting ??
+        for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
+            if num_units == 0:
+                break
+            for number, unit_dict in units.items():
+                if num_units == 0:
+                    break
+                unit_status = unit_dict.get(u'agent-state', status)
+                if unit_status == status or unit_status not in ALL_STATES:
+                    destroy_unit(environment, service, number, terminate=False)
+                    destroyed[number] = unit_dict
+                    del units[number]
+                    num_units -= 1
         if terminate:
             time.sleep(5)
             for unit_dict in destroyed.values():
