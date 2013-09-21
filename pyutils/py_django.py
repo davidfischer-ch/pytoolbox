@@ -24,14 +24,50 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+from django.contrib.gis.geos import Point
+from django.contrib.gis.maps.google import GEvent, GIcon, GMarker
+from django.core.urlresolvers import reverse
 from django.forms import ModelForm, widgets
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect
 from django.utils.html import mark_safe
 from django.views.generic.edit import DeleteView
+from os.path import join
 
 
-# Models / Forms -------------------------------------------------------------------------------------------------------
+# Models ---------------------------------------------------------------------------------------------------------------
+
+class SmartModelMixin(object):
+
+    reverse_link = None
+
+    # https://docs.djangoproject.com/en/dev/topics/class-based-views/generic-editing/
+    def get_absolute_url(self):
+        return reverse(self.reverse_link or u'{0}_detail'.format(self.__class__.__name__.lower()),
+                       kwargs={u'pk': self.pk})
+
+
+class GoogleMapMixin(object):
+
+    map_icon_varname_field = 'category'
+    map_marker_title_field = 'title'
+
+    def map_icon(self, icons_url=u'/static/markers/', size=(24, 24)):
+        varname = getattr(self, self.map_icon_varname_field)
+        if varname:
+            return GIcon(varname, image=join(icons_url, varname + '.png'), iconsize=size)
+        return None
+
+    def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=True, event_mouseup=True, **kwargs):
+        title = getattr(self, self.map_marker_title_field)
+        marker = GMarker(self.location or default_location, title=title, draggable=draggable,
+                         icon=self.map_icon(**kwargs))
+        if event_mouseup:
+            event = GEvent('mouseup', "function() { $('#id_location').val('POINT ('+this.xa.x+' '+this.xa.y+')'); }")
+            marker.add_event(event)
+        return marker
+
+# Forms ----------------------------------------------------------------------------------------------------------------
 
 class SmartModelForm(ModelForm):
 
