@@ -25,8 +25,11 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
+import os
 from codecs import open
 from setuptools import setup, sys
+
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
 major, minor = sys.version_info[:2]
 kwargs = {}
@@ -72,6 +75,7 @@ setup(name=u'pyutils',
       keywords=[u'ffmpeg', u'flask', u'json', u'juju', u'mock', u'rsync', u'screen', u'subprocess'],
       install_requires=[
             u'argparse',  # FIXME version
+            u'django',    # FIXME version
             u'flask',     # FIXME version
             u'hashlib',   # FIXME version
             u'kitchen',   # FIXME version

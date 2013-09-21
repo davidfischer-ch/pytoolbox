@@ -41,7 +41,6 @@ CFG = [u'--config', u'config.yaml']
 N, R = u'--num-units', u'--repository'
 
 TEST_UNITS_SQL_2  = {0: {}, 1: {}}
-TEST_UNITS_SQL_5  = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 TEST_UNITS_LAMP_4 = {0: {}, 1: {}, 2: {}, 3: {}}
 TEST_UNITS_LAMP_5 = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
@@ -52,6 +51,9 @@ class TestEnvironment(object):
         old_cmd = py_subprocess.cmd
         cmd = py_subprocess.cmd = mock_cmd()
         import py_juju
+        from py_juju import PENDING, STARTED, ERROR
+        TEST_UNITS_SQL_5  = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR},
+                             3: {}, 4: {'agent-state': ERROR}}
         py_juju.get_units = Mock(return_value=None)
         py_juju.get_unit = Mock(return_value=None)
         environment = py_juju.Environment(u'maas', release=u'raring', auto=True)
@@ -64,20 +66,20 @@ class TestEnvironment(object):
         py_juju.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
         print(environment.ensure_num_units(None, u'lamp', num_units=5))
         py_juju.get_units = Mock(return_value=TEST_UNITS_SQL_5)
-        print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=0))
+        print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=1, units_number_to_keep=[1]))
         py_juju.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=None))
         [call_args[1].pop(u'env') for call_args in cmd.call_args_list]
-        assert_equal(cmd.call_args_list, [
-            call(DEPLOY + [N, 2] + CFG + [R, u'.', u'local:raring/mysql', u'my_mysql'], fail=False, log=None),
-            call(DEPLOY + [N, 4] + CFG + [R, u'.', u'local:raring/lamp',  u'lamp'],     fail=False, log=None),
-            call(ADD_UNIT + [N, 3] + [u'my_mysql'], fail=False, log=None),
-            call(ADD_UNIT + [N, 1] + [u'lamp'],     fail=False, log=None),
-            call(DESTROY_UNIT + [u'my_mysql/0'], fail=False, log=None),
-            call(DESTROY_UNIT + [u'my_mysql/1'], fail=False, log=None),
-            call(DESTROY_UNIT + [u'my_mysql/2'], fail=False, log=None),
-            call(DESTROY_UNIT + [u'my_mysql/3'], fail=False, log=None),
-            call(DESTROY_UNIT + [u'my_mysql/4'], fail=False, log=None),
-            call(DESTROY_SERVICE + [u'my_mysql'], fail=False, log=None)
-        ])
+        a_eq = assert_equal
+        a = cmd.call_args_list
+        #assert_equal(len(a), 8)
+        a_eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, u'.', u'local:raring/mysql', u'my_mysql'], fail=False, log=None))
+        a_eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, u'.', u'local:raring/lamp',  u'lamp'],     fail=False, log=None))
+        a_eq(a[2], call(ADD_UNIT + [N, 3] + [u'my_mysql'], fail=False, log=None))
+        a_eq(a[3], call(ADD_UNIT + [N, 1] + [u'lamp'],     fail=False, log=None))
+        a_eq(a[4], call(DESTROY_UNIT + [u'my_mysql/2'], fail=False, log=None))
+        a_eq(a[5], call(DESTROY_UNIT + [u'my_mysql/3'], fail=False, log=None))
+        a_eq(a[6], call(DESTROY_UNIT + [u'my_mysql/4'], fail=False, log=None))
+        a_eq(a[7], call(DESTROY_UNIT + [u'my_mysql/0'], fail=False, log=None))
+        a_eq(a[8], call(DESTROY_SERVICE + [u'my_mysql'], fail=False, log=None))
         py_subprocess.cmd = old_cmd

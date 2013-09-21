@@ -89,14 +89,16 @@ class PseudoTestCase(TestCase):
         assert(self.result)
 
 
-def runtests(test_file, package, package_path):
+def runtests(test_file, cover_packages, packages, ignore=None):
     u"""Run tests and report coverage with nose and coverage."""
 
     from py_unicode import configure_unicode
     configure_unicode()
 
-    nose_options = [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe',
-        u'--cover-package={0}'.format(package), u'--cover-html', u'-vv', package_path, package, dirname(test_file)]
-
+    cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]
+    nose_options = filter(None, [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe'] +
+                          cover_packages + [u'--cover-html', u'-vv', dirname(test_file)] + packages)
+    if ignore:
+        nose_options += ['-I', ignore]
     os.chdir(abspath(dirname(test_file)))
     return PseudoTestCase(nose.run(argv=nose_options))

@@ -59,9 +59,15 @@ DEFAULT_OS_ENV = {
 ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR = \
     (u'pending', u'installed', u'started', u'stopped', u'not-started', u'error')
 
-PENDING_STATES, STARTED_STATES, STOPPED_STATES, ERROR_STATES = \
-    (PENDING, INSTALLED), (STARTED,), (STOPPED,), (ERROR, NOT_STARTED)
+PENDING_STATES = (PENDING, INSTALLED)
+STARTED_STATES = (STARTED,)
+STOPPED_STATES = (STOPPED,)
+ERROR_STATES   = (ERROR, NOT_STARTED)
 
+# Some Amazon EC2 constraints, waiting for instance-type to be implemented ...
+M1_SMALL  = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
+M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
+C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
@@ -299,7 +305,14 @@ def deploy_units(environment, charm, service=None, num_units=1, to=None, config=
     return juju_do(u'deploy', environment, options=options)
 
 
-def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
+def ensure_num_units(environment, charm, service, num_units=1, units_number_to_keep=None, **kwargs):
+    u"""
+    Ensure ``num_units`` units of ``service`` into ``environment`` by destroying useless units first !
+
+    At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm will
+    not destroy units with number in ``units_number_to_keep``.
+
+    """
     assert(num_units >= 0 or num_units is None)
     units = get_units(environment, service, none_if_missing=True)
     units_count = None if units is None else len(units)
@@ -314,11 +327,22 @@ def ensure_num_units(environment, charm, service, num_units=1, **kwargs):
         terminate = kwargs.get('terminate', None)
         num_units = units_count - num_units
         destroyed = {}
-        # FIXME short by status (started last)
-        for i in range(num_units):
-            number, unit_dict = units.popitem()
-            destroy_unit(environment, service, number, terminate=False)
-            destroyed[number] = unit_dict
+        # Short units by status to kill first the useless units !
+        # FIXME implement status comparison for sorting ??
+        for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
+            if num_units == 0:
+                break
+            for number, unit_dict in units.items():
+                if num_units == 0:
+                    break
+                if units_number_to_keep is not None and number in units_number_to_keep:
+                    continue
+                unit_status = unit_dict.get(u'agent-state', status)
+                if unit_status == status or unit_status not in ALL_STATES:
+                    destroy_unit(environment, service, number, terminate=False)
+                    destroyed[number] = unit_dict
+                    del units[number]
+                    num_units -= 1
         if terminate:
             time.sleep(5)
             for unit_dict in destroyed.values():
@@ -842,11 +866,16 @@ class DeploymentScenario(object):
         self.run()
 
     def get_parser(self, epilog=u'', charms_path=u'.', release=u'raring', auto=False):
+        #if not isinstance(epilog, str):
+            #raise TypeError('epilog must be an instance of string')
+        HELP_M = u'Directory (repository) of any local charm.'
+        HELP_R = u'Ubuntu serie to deploy by JuJu.'
+        HELP_A = u'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
         parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
-        parser.add_argument(u'-m', u'--charms_path', action=u'store',      default=charms_path)
-        parser.add_argument(u'-r', u'--release',     action=u'store',      default=release)
-        parser.add_argument(u'-a', u'--auto',        action=u'store_true', default=auto)
+        parser.add_argument(u'-m', u'--charms_path', action=u'store',      help=HELP_M, default=charms_path)
+        parser.add_argument(u'-r', u'--release',     action=u'store',      help=HELP_R, default=release)
+        parser.add_argument(u'-a', u'--auto',        action=u'store_true', help=HELP_A, default=auto)
         return parser
 
     def run(self):

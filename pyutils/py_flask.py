@@ -24,10 +24,10 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import logging
+import logging, urlparse
 from bson.objectid import ObjectId
 from flask import abort, Response
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, ImATeapot
 from py_serialization import object2json
 from py_validation import valid_uuid
 
@@ -42,13 +42,19 @@ def check_id(id):
     raise ValueError(u'Wrong id format {0}'.format(id))
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None, fail=True):
+def get_request_data(request, accepted_keys=None, required_keys=None, query_string=True, qs_only_first_value=False,
+                     fail=True):
     data = request.get_json(silent=True)
     source = u'form-data' if data is None else u'JSON content'
     if data is None:
-        data = {}
-        for x in request.form:
-            data[x] = request.form.get(x)
+        if query_string:
+            data = urlparse.parse_qs(request.query_string)
+            if qs_only_first_value:
+                data = {key: value[0] if isinstance(value, list) else value for key, value in data.items()}
+        else:
+            data = {}
+        for key in request.form:
+            data[key] = request.form.get(key)
     if required_keys is not None:
         for key in required_keys:
             if not key in data:
@@ -85,7 +91,7 @@ def map_exceptions(e):
 
     Any instance of HTTPException is simply raised without any mapping:
 
-    >>> map_exceptions(HTTPException())
+    >>> map_exceptions(ImATeapot())
     Traceback (most recent call last):
         ...
     NotImplemented: 501: Not Implemented
