@@ -279,6 +279,26 @@ def object2dict(obj, include_properties):
     return json2object(dict, object2json(obj, include_properties), inspect_constructor=False)
 
 
+def object2dictV2(obj, remove_underscore):
+    if isinstance(obj, dict):
+        something_dict = {}
+        for key, value in obj.iteritems():
+            if remove_underscore and key[0] == u'_':
+                key = key[1:]
+            something_dict[key] = object2dict(value, remove_underscore)
+        return something_dict
+    elif hasattr(obj, u'__iter__'):
+        return [object2dict(value, remove_underscore) for value in obj]
+    elif hasattr(obj, u'__dict__'):
+        something_dict = {}
+        for key, value in obj.__dict__.iteritems():
+            if remove_underscore and key[0] == u'_':
+                key = key[1:]
+            something_dict[key] = object2dict(value, remove_underscore)
+        return something_dict
+    return obj
+
+
 def dict2object(cls, the_dict, inspect_constructor):
     u"""
     Convert a python dictionary to an instance of a class.
