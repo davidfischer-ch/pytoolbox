@@ -31,6 +31,7 @@ from django.forms import ModelForm, widgets
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect
 from django.utils.html import mark_safe
+from django.utils.translation import ugettext as _
 from django.views.generic.edit import DeleteView
 from os.path import join
 
@@ -47,30 +48,34 @@ class SmartModelMixin(object):
 
 class GoogleMapMixin(object):
 
-    map_icon_varname_field = 'category'
-    map_marker_title_field = 'title'
+    map_icon_varname_field = u'category'
+    map_marker_title_field = u'title'
+    map_marker_title_field_default = u'New thing'
 
     def map_icon(self, icons_url=u'/static/markers/', size=(24, 24)):
         varname = getattr(self, self.map_icon_varname_field)
         if varname:
-            return GIcon(varname, image=join(icons_url, varname.lower() + '.png'), iconsize=size)
+            return GIcon(varname, image=join(icons_url, varname.lower() + u'.png'), iconsize=size)
         return None
 
     def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=False, form_update=False,
                    highlight_class=None, dbclick_edit=False, **kwargs):
-        title = getattr(self, self.map_marker_title_field)
-        marker = GMarker(self.location or default_location, title=title, draggable=draggable,
+        title = getattr(self, self.map_marker_title_field) or self.map_marker_title_field_default
+        marker = GMarker(self.location or default_location,
+                         title=_(unicode(title)).encode('ascii', 'xmlcharrefreplace'), draggable=draggable,
                          icon=self.map_icon(**kwargs))
         events = []
         if form_update:
-            events.append(GEvent('mouseup', "function() { $('#id_location').val('POINT ('+this.xa.x+' '+this.xa.y+')'); }"))
+            events.append(GEvent(u'mouseup',
+                          u"function() { $('#id_location').val('POINT ('+this.xa.x+' '+this.xa.y+')'); }"))
         if highlight_class:
-            events.append(GEvent('mouseover', "function() {{ $('#marker_{0}').addClass('{1}'); }}".format(
+            events.append(GEvent(u'mouseover', u"function() {{ $('#marker_{0}').addClass('{1}'); }}".format(
                           self.id, highlight_class)))
-            events.append(GEvent('mouseout', "function() {{ $('#marker_{0}').removeClass('{1}'); }}".format(
+            events.append(GEvent(u'mouseout', u"function() {{ $('#marker_{0}').removeClass('{1}'); }}".format(
                           self.id, highlight_class)))
         if dbclick_edit:
-            events.append(GEvent('dblclick', "function() {{ window.location = '{0}'; }}".format(self.get_absolute_url())))
+            events.append(GEvent(u'dblclick', u"function() {{ window.location = '{0}'; }}".format(
+                          self.get_absolute_url())))
         [marker.add_event(event) for event in events]
         return marker
 
@@ -83,10 +88,10 @@ class SmartModelForm(ModelForm):
         for name, field in self.fields.items():
             if isinstance(field.widget, widgets.DateInput):
                 field.widget = CalendarDateInput()
-                field.widget.attrs['class'] = 'dateinput input-small'
+                field.widget.attrs[u'class'] = u'dateinput input-small'
             if isinstance(field.widget, widgets.TimeInput):
                 field.widget = ClockTimeInput()
-                field.widget.attrs['class'] = 'timeinput input-small'
+                field.widget.attrs[u'class'] = u'timeinput input-small'
         try:
             self._meta.model.init_form(self)
         except AttributeError:
@@ -119,7 +124,7 @@ def conditional_required(form, required_dict, cleanup=False):
     for name, value in data.items():
         required = required_dict.get(name, None)
         if required and not value:
-            form._errors[name] = ErrorList(['This field is required.'])
+            form._errors[name] = ErrorList([u'This field is required.'])
         if required is False and cleanup:
             data[name] = None
     return data
@@ -129,7 +134,7 @@ def conditional_required(form, required_dict, cleanup=False):
 class SmartDeleteView(DeleteView):
 
     def post(self, request, *args, **kwargs):
-        if 'cancel' in request.POST:
+        if u'cancel' in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         return super(SmartDeleteView, self).post(request, *args, **kwargs)
@@ -137,9 +142,9 @@ class SmartDeleteView(DeleteView):
 
 def set_disabled(form, field_name, value=False):
     if value:
-        form.fields[field_name].widget.attrs['disabled'] = True
+        form.fields[field_name].widget.attrs[u'disabled'] = True
     else:
         try:
-            del form.fields[field_name].widget.attrs['disabled']
+            del form.fields[field_name].widget.attrs[u'disabled']
         except:
             pass
