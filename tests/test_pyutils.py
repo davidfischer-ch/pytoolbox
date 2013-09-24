@@ -27,13 +27,13 @@
 
 import math, os
 from nose.tools import assert_equal, assert_raises, raises
-from py_collections import pygal_deque
-from py_filesystem import try_remove
-from py_unittest import mock_cmd
-from py_serialization import PickleableObject
-from py_subprocess import cmd, screen_launch, screen_list, screen_kill
-from py_unicode import csv_reader
-from py_validation import validate_list
+from pyutils.py_collections import pygal_deque
+from pyutils.py_filesystem import try_remove
+from pyutils.py_unittest import mock_cmd
+from pyutils.py_serialization import PickleableObject
+from pyutils.py_subprocess import cmd, screen_launch, screen_list, screen_kill
+from pyutils.py_unicode import csv_reader
+from pyutils.py_validation import validate_list
 
 
 class MyPoint(PickleableObject):

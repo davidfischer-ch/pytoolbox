@@ -28,7 +28,7 @@
 from nose.tools import assert_equal, assert_raises
 
 from mock import call, Mock
-from py_unittest import mock_cmd
+from pyutils.py_unittest import mock_cmd
 
 DEFAULT = {u'charms_path': u'.', u'config': u'config.yaml'}
 
