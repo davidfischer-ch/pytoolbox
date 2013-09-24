@@ -53,7 +53,7 @@ class GoogleMapMixin(object):
     def map_icon(self, icons_url=u'/static/markers/', size=(24, 24)):
         varname = getattr(self, self.map_icon_varname_field)
         if varname:
-            return GIcon(varname, image=join(icons_url, varname + '.png'), iconsize=size)
+            return GIcon(varname, image=join(icons_url, varname.lower() + '.png'), iconsize=size)
         return None
 
     def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=False, form_update=False,
