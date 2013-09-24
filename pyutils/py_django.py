@@ -39,12 +39,10 @@ from os.path import join
 
 class SmartModelMixin(object):
 
-    reverse_link = None
-
     # https://docs.djangoproject.com/en/dev/topics/class-based-views/generic-editing/
     def get_absolute_url(self):
-        return reverse(self.reverse_link or u'{0}_detail'.format(self.__class__.__name__.lower()),
-                       kwargs={u'pk': self.pk})
+        return reverse(u'{0}_{1}'.format(self.__class__.__name__.lower(), u'update' if self.pk else u'create'),
+                       kwargs={u'pk': self.pk} if self.pk else None)
 
 
 class GoogleMapMixin(object):
@@ -58,13 +56,22 @@ class GoogleMapMixin(object):
             return GIcon(varname, image=join(icons_url, varname + '.png'), iconsize=size)
         return None
 
-    def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=True, event_mouseup=True, **kwargs):
+    def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=False, form_update=False,
+                   highlight_class=None, dbclick_edit=False, **kwargs):
         title = getattr(self, self.map_marker_title_field)
         marker = GMarker(self.location or default_location, title=title, draggable=draggable,
                          icon=self.map_icon(**kwargs))
-        if event_mouseup:
-            event = GEvent('mouseup', "function() { $('#id_location').val('POINT ('+this.xa.x+' '+this.xa.y+')'); }")
-            marker.add_event(event)
+        events = []
+        if form_update:
+            events.append(GEvent('mouseup', "function() { $('#id_location').val('POINT ('+this.xa.x+' '+this.xa.y+')'); }"))
+        if highlight_class:
+            events.append(GEvent('mouseover', "function() {{ $('#marker_{0}').addClass('{1}'); }}".format(
+                          self.id, highlight_class)))
+            events.append(GEvent('mouseout', "function() {{ $('#marker_{0}').removeClass('{1}'); }}".format(
+                          self.id, highlight_class)))
+        if dbclick_edit:
+            events.append(GEvent('dblclick', "function() {{ window.location = '{0}'; }}".format(self.get_absolute_url())))
+        [marker.add_event(event) for event in events]
         return marker
 
 # Forms ----------------------------------------------------------------------------------------------------------------
