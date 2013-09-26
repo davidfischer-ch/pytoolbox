@@ -54,8 +54,8 @@ class TestPyutils(object):
         cmd([u'echo', u'it seem to work'], log=cmd_log)
         assert_equal(cmd(u'cat missing_file', fail=False, log=cmd_log)[u'returncode'], 1)
         validate_list(cmd_log.call_args_list, [
-                ur"call\(u*\"Execute \[u*'echo', u*'it seem to work'\]\"\)",
-                ur"call\(u*'Execute cat missing_file'\)"])
+                r"call\(u*\"Execute \[u*'echo', u*'it seem to work'\]\"\)",
+                r"call\(u*'Execute cat missing_file'\)"])
         assert(cmd(u'my.funny.missing.script.sh', fail=False)[u'stderr'] != u'')
         result = cmd(u'cat {0}'.format(__file__))
         # There are at least 30 lines in this source file !
@@ -64,9 +64,9 @@ class TestPyutils(object):
     def test_screen(self):
         try:
             # Launch some screens
-            assert_equal(screen_launch(u'my_1st_screen', u'top', fail=False)[u'stderr'], u'')
-            assert_equal(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr'], u'')
-            assert_equal(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr'], u'')
+            assert_equal(len(screen_launch(u'my_1st_screen', u'top', fail=False)[u'stderr']), 0)
+            assert_equal(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
+            assert_equal(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
             # List the launched screen sessions
             screens = screen_list(name=u'my_1st_screen')
             assert(len(screens) >= 1 and screens[0].endswith(u'my_1st_screen'))
@@ -77,12 +77,13 @@ class TestPyutils(object):
             kill_log = mock_cmd()
             screen_kill(name=u'my_1st_screen', log=kill_log)
             screen_kill(name=u'my_2nd_screen', log=kill_log)
+            #raise NotImplementedError(kill_log.call_args_list)
             validate_list(kill_log.call_args_list, [
-                ur"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
-                ur"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
-                ur"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_2nd_screen'\]\"\)",
-                ur"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
-                ur"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
+                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_2nd_screen'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
+                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
 
     def test_PickleableObject(self):
         p1 = MyPoint(name=u'My point', x=6, y=-3)
@@ -118,7 +119,7 @@ class TestPyutils(object):
             i += 1
 
     def test_validate_list(self):
-        regexes = [ur'\d+', ur"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, "call([u'my_var', recursive=False])"], regexes)
 
     @raises(IndexError)
@@ -127,7 +128,7 @@ class TestPyutils(object):
 
     @raises(ValueError)
     def test_validate_list_fail_value(self):
-        regexes = [ur'\d+', ur"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, u"call([u'my_var', recursive='error'])"], regexes)
 
     def test_pygal_deque(self):

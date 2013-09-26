@@ -27,13 +27,13 @@
 import json, os, subprocess, sys, time, uuid, yaml
 from codecs import open
 from functools import wraps
-from kitchen.text.converters import to_bytes
-from six import string_types
+from os.path import abspath, dirname, expanduser, join
 from py_console import confirm
 from py_exception import TimeoutError
 from py_subprocess import cmd
+from py_unicode import string_types, to_bytes
 
-DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser(u'~/.juju/environments.yaml'))
+DEFAULT_ENVIRONMENTS_FILE = abspath(expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {
     u'APT_LISTCHANGES_FRONTEND': u'none',
     u'CHARM_DIR': u'/var/lib/juju/units/oscied-storage-0/charm',
@@ -93,8 +93,8 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     if isinstance(options, list):
         command += options
     env = os.environ.copy()
-    env[u'HOME'] = os.path.expanduser(u'~/')
-    env[u'JUJU_HOME'] = os.path.expanduser(u'~/.juju')
+    env[u'HOME'] = expanduser(u'~/')
+    env[u'JUJU_HOME'] = expanduser(u'~/.juju')
     result = cmd(command, fail=False, log=log, env=env, **kwargs)
     if result[u'returncode'] != 0 and fail:
         command_string = u' '.join([unicode(arg) for arg in command])
@@ -313,7 +313,7 @@ def ensure_num_units(environment, charm, service, num_units=1, units_number_to_k
     not destroy units with number in ``units_number_to_keep``.
 
     """
-    assert(num_units >= 0 or num_units is None)
+    assert(num_units is None or num_units >= 0)
     units = get_units(environment, service, none_if_missing=True)
     units_count = None if units is None else len(units)
     if num_units is None:
@@ -390,7 +390,7 @@ def destroy_unit(environment, service, number, terminate, delay_terminate=5):
 
 
 def get_unit_path(service, number, *args):
-    return os.path.join(u'/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
+    return join(u'/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
 
 
 # Machines -------------------------------------------------------------------------------------------------------------
@@ -487,9 +487,10 @@ class CharmHooks(object):
     ...         self.info(u'stop services')
     ...
 
-    >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-    >>> metadata = os.path.join(here, u'../tests/metadata.yaml')
-    >>> config = os.path.join(here, u'../tests/config.yaml')
+    >>> here = abspath(expanduser(dirname(__file__)))
+    >>> here = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests')
+    >>> metadata = join(here, u'metadata.yaml')
+    >>> config = join(here, u'config.yaml')
 
     Trigger some hooks:
 
@@ -665,8 +666,8 @@ class CharmHooks(object):
 
         **Example usage**:
 
-        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-        >>> config = os.path.join(here, u'../tests/config.yaml')
+        >>> here = abspath(expanduser(dirname(__file__)))
+        >>> config = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests/config.yaml')
 
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hasattr(hooks.config, u'pingu') or hasattr(hooks.config, u'rabbit_password')
@@ -678,9 +679,9 @@ class CharmHooks(object):
 
         >>> hooks.load_config(config)  # doctest: +ELLIPSIS
         [DEBUG] Load config from file ...
-        [DEBUG] Convert boolean option verbose true -> True
-        [DEBUG] Convert boolean option email_tls true -> True
-        [DEBUG] Convert boolean option cleanup true -> True
+        [DEBUG] Convert boolean option ... true -> True
+        [DEBUG] Convert boolean option ... true -> True
+        [DEBUG] Convert boolean option ... true -> True
         >>> hasattr(hooks.config, u'rabbit_password')
         True
         """
@@ -703,14 +704,15 @@ class CharmHooks(object):
 
         **Example usage**:
 
-        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-        >>> metadata = os.path.join(here, u'../tests/metadata.yaml')
+        >>> from nose.tools import assert_equal
+
+        >>> here = abspath(expanduser(dirname(__file__)))
+        >>> metadata = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests/metadata.yaml')
 
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.metadata
         >>> hooks.load_metadata({u'ensemble': u'oscied'})
-        >>> hooks.metadata
-        {u'ensemble': u'oscied'}
+        >>> assert_equal(hooks.metadata, {u'ensemble': u'oscied'})
         >>> hooks.config.verbose = True
         >>> hooks.load_metadata(metadata)  # doctest: +ELLIPSIS
         [DEBUG] Load metadatas from file ...
@@ -812,7 +814,7 @@ class Environment(object):
         kwargs['release'] = kwargs.get('release', self.release)
         kwargs['local'] = kwargs.get('local', True)
         kwargs['repository'] = kwargs.get('repository', self.charms_path if kwargs['local'] else None)
-        s = u's' if num_units > 1 else u''
+        s = u'' if num_units is None or num_units < 2 else u's'
         print(u'Deploy {0} as {1} (ensure {2} instance{3})'.format(charm, service, num_units, s))
         stdouts = [None] * 2
         if self.auto and required or confirm(u'do it now', default=False):

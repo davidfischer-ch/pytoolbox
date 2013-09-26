@@ -26,8 +26,8 @@
 
 import errno, grp, pwd, os, shutil, time
 from codecs import open
-from six import string_types
 from py_datetime import datetime_now
+from py_unicode import string_types
 
 
 def first_that_exist(*paths):
@@ -195,10 +195,8 @@ def try_symlink(source, link_name):
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
-    >>> try_symlink(u'/home', u'/etc')
-    Traceback (most recent call last):
-        ...
-    OSError: [Errno 17] File exists
+    >>> from nose.tools import assert_raises
+    >>> assert_raises(OSError, try_symlink, u'/home', u'/etc')
 
     Symlinking /etc to itself only returns that nothing changed:
 
@@ -211,14 +209,8 @@ def try_symlink(source, link_name):
     True
     >>> try_symlink(u'/etc', u'/tmp/link_etc')
     False
-    >>> try_symlink(u'/etc/does_not_exist', u'/tmp/link_etc')
-    Traceback (most recent call last):
-        ...
-    OSError: [Errno 17] File exists
-    >>> try_symlink(u'/home', u'/tmp/link_etc')
-    Traceback (most recent call last):
-        ...
-    OSError: [Errno 17] File exists
+    >>> assert_raises(OSError, try_symlink, u'/etc/does_not_exist', u'/tmp/link_etc')
+    >>> assert_raises(OSError, try_symlink, u'/home', u'/tmp/link_etc')
 
     Creating a symlink to a non existing has the following behaviour:
 
@@ -226,15 +218,8 @@ def try_symlink(source, link_name):
     True
     >>> try_symlink(u'~/does_not_exist', u'~/broken_link')
     False
-    >>> try_symlink(u'~/does_not_exist_2', u'~/broken_link')
-    Traceback (most recent call last):
-        ...
-    OSError: [Errno 17] File exists
-    >>> try_symlink(u'/home', u'~/broken_link')
-    Traceback (most recent call last):
-        ...
-    OSError: [Errno 17] File exists
-
+    >>> assert_raises(OSError, try_symlink, u'~/does_not_exist_2', u'~/broken_link')
+    >>> assert_raises(OSError, try_symlink, u'/home', u'~/broken_link')
     >>> os.remove(u'/tmp/link_etc')
     >>> os.remove(os.path.expanduser(u'~/broken_link'))
     """

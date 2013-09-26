@@ -24,7 +24,7 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-from kitchen.text.converters import to_bytes
+from py_unicode import to_bytes
 
 
 class ForbiddenError(Exception):
@@ -50,11 +50,11 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
     >>> assert_raises_item(ValueError, x, 3)
     Traceback (most recent call last):
         ...
-    ValueError: Exception <type 'exceptions.KeyError'> is not an instance of <type 'exceptions.ValueError'>.
+    ValueError: Exception KeyError is not an instance of ValueError.
     >>> assert_raises_item(Exception, x, 0)
     Traceback (most recent call last):
         ...
-    AssertionError: Exception <type 'exceptions.Exception'> not raised.
+    AssertionError: Exception Exception not raised.
 
     Assert that __setitem__ will fail:
 
@@ -62,7 +62,7 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
     >>> assert_raises_item(TypeError, x, 0, value=3.1415)
     Traceback (most recent call last):
         ...
-    AssertionError: Exception <type 'exceptions.TypeError'> not raised.
+    AssertionError: Exception TypeError not raised.
 
     Assert that __delitem__ will fail:
 
@@ -70,7 +70,7 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
     >>> assert_raises_item(KeyError, x, 1, delete=True)
     Traceback (most recent call last):
         ...
-    AssertionError: Exception <type 'exceptions.KeyError'> not raised.
+    AssertionError: Exception KeyError not raised.
 
     >>> x == {0: 3.1415}
     True
@@ -85,6 +85,6 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
     except Exception as e:
         if not isinstance(e, exception_cls):
             raise ValueError(to_bytes(u'Exception {0} is not an instance of {1}.'.format(
-                             e.__class__, exception_cls)))
+                             e.__class__.__name__, exception_cls.__name__)))
         return
-    raise AssertionError(to_bytes(u'Exception {0} not raised.'.format(exception_cls)))
+    raise AssertionError(to_bytes(u'Exception {0} not raised.'.format(exception_cls.__name__)))

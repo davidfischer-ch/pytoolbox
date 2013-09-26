@@ -27,7 +27,7 @@
 import inspect, json, pickle
 from bson.objectid import ObjectId
 from codecs import open
-from six import string_types
+from py_unicode import string_types, to_bytes
 
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ class PickleableObject(object):
         Return a deserialized instance of a pickleable object loaded from a file.
         """
         try:
-            the_object = pickle.load(file(filename))
+            the_object = pickle.load(open(filename, u'rb'))
         except:
             if not create_if_error:
                 raise
@@ -59,11 +59,11 @@ class PickleableObject(object):
         pickle_filename = getattr(self, '_pickle_filename', None)
         filename = filename or pickle_filename
         if filename is None:
-            raise ValueError(u'A filename must be specified')
+            raise ValueError(to_bytes(u'A filename must be specified'))
         try:
             if pickle_filename:
                 del self._pickle_filename
-            pickle.dump(self, file(filename, u'w'))
+            pickle.dump(self, open(filename, u'wb'))
         finally:
             if store_filename:
                 self._pickle_filename = filename

@@ -25,9 +25,9 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import os
+import os, sys
 from codecs import open
-from setuptools import setup, sys
+from setuptools import setup
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
@@ -62,30 +62,38 @@ Programming Language :: Python :: 3.2
 Programming Language :: Python :: 3.3
 """
 
+install_requires = [
+    u'argparse',  # FIXME version
+    u'django',    # FIXME version
+    u'flask',     # FIXME version
+    u'mock',      # FIXME version
+    u'pyaml',     # FIXME version
+    u'pymongo',   # FIXME version
+    u'pygal',     # FIXME version
+    u'six'        # FIXME version
+]
+
+if major < 3:
+    install_requires += [
+        u'hashlib',   # FIXME version
+        u'ipaddr',   # FIXME version
+        u'kitchen',  # FIXME version
+        u'ming'      # FIXME version
+    ]
+
 setup(name=u'pyutils',
-      version=u'v4.0.0-beta',
-      packages=['pyutils'],
-      description=u'Some Python utility functions',
-      long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
-      author=u'David Fischer',
-      author_email=u'david.fischer.ch@gmail.com',
-      url=u'https://github.com/davidfischer-ch/pyutils',
-      license=u'GNU GPLv3',
-      classifiers=filter(None, classifiers.split('\n')),
-      keywords=[u'ffmpeg', u'flask', u'json', u'juju', u'mock', u'rsync', u'screen', u'subprocess'],
-      install_requires=[
-            u'argparse',  # FIXME version
-            u'django',    # FIXME version
-            u'flask',     # FIXME version
-            u'hashlib',   # FIXME version
-            u'kitchen',   # FIXME version
-            u'ipaddr',    # FIXME version
-            u'ming',      # FIXME version
-            u'mock',      # FIXME version
-            u'pyaml',     # FIXME version
-            u'pygal',     # FIXME version
-            u'six'],      # FIXME version
-      setup_requires=[u'coverage', u'mock', u'nose'],
-      tests_require=[u'coverage', u'mock', u'nose'],
-      # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-      test_suite='tests.runtests.main', **kwargs)
+    version=u'v4.0.0-beta',
+    packages=['pyutils'],
+    description=u'Some Python utility functions',
+    long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
+    author=u'David Fischer',
+    author_email=u'david.fischer.ch@gmail.com',
+    url=u'https://github.com/davidfischer-ch/pyutils',
+    license=u'GNU GPLv3',
+    classifiers=filter(None, classifiers.split('\n')),
+    keywords=[u'ffmpeg', u'flask', u'json', u'juju', u'mock', u'rsync', u'screen', u'subprocess'],
+    install_requires=install_requires,
+    setup_requires=[u'coverage', u'mock', u'nose'],
+    tests_require=[u'coverage', u'mock', u'nose'],
+    # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
+    test_suite='tests.runtests.main', **kwargs)

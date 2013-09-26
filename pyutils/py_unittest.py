@@ -57,12 +57,14 @@ def mock_side_effect(*args, **kwargs):
 
     Pops return values with ``mock_side_effect``:
 
+    >>> from nose.tools import assert_equal
+
     >>> print(mock_side_effect())
     Traceback (most recent call last):
     ...
     Exception: you must set MOCK_SIDE_EFFECT_RETURNS
-    >>> print(mock_side_effect())
-    {u'title': u'2nd'}
+    >>> assert_equal(mock_side_effect(), {u'title': u'2nd'})
+
     >>> print(mock_side_effect())
     Traceback (most recent call last):
     ...

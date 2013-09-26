@@ -24,22 +24,28 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import sys
+import six, sys
 from codecs import open
-from kitchen.text.converters import getwriter
 
+string_types = six.string_types
 
-# http://pythonhosted.org/kitchen/unicode-frustrations.html
-def configure_unicode(encoding=u'utf-8'):
-    u"""
-    It is crucial to raise exceptions helped by :mod:`kitchen` ::
+if sys.version_info[0] == 2:
+    import kitchen.text.converters
+    to_bytes = kitchen.text.converters.to_bytes
+    # http://pythonhosted.org/kitchen/unicode-frustrations.html
+    def configure_unicode(encoding=u'utf-8'):
+        u"""
+        It is crucial to raise exceptions helped by :mod:`kitchen` ::
 
-        from kitchen.text.converters import to_bytes
-        configure_unicode()
-        raise NotImplementedError(to_bytes(u'Saluté'))
-    """
-    sys.stdout = getwriter(encoding)(sys.stdout)
-    sys.stderr = getwriter(encoding)(sys.stderr)
+            from kitchen.text.converters import to_bytes
+            configure_unicode()
+            raise NotImplementedError(to_bytes(u'Saluté'))
+        """
+        sys.stdout = kitchen.text.converters.getwriter(encoding)(sys.stdout)
+        sys.stderr = kitchen.text.converters.getwriter(encoding)(sys.stderr)
+else:
+    def to_bytes(message): return unicode(message)
+    def configure_unicode(encoding=u'utf-8'): pass
 
 
 def csv_reader(filename, delimiter=u';', quotechar=u'"', encoding=u'utf-8'):

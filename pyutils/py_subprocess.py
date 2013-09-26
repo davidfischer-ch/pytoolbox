@@ -25,8 +25,8 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import errno, fcntl, multiprocessing, os, re, setuptools.archive_util, shlex, shutil, subprocess
-from kitchen.text.converters import to_bytes
 from py_filesystem import try_makedirs
+from py_unicode import to_bytes
 
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 
@@ -162,8 +162,8 @@ def screen_list(name=None, log=None, **kwargs):
     u"""
     Returns a list containing all instances of screen. Can be filtered by ``name``.
     """
-    return re.findall(ur'\s+(\d+.\S+)\s+\(.*\).*',
-                      cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'])
+    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
+                      unicode(cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'], u'utf-8'))
 
 
 def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):

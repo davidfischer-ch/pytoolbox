@@ -26,7 +26,7 @@
 
 import numbers
 from datetime import datetime
-from six import string_types
+from py_unicode import string_types
 
 
 def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):

@@ -24,12 +24,13 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import errno, httplib, re, six, socket, uuid
+import errno, httplib, re, socket, sys, uuid
+from bson.binary import Binary
 from bson.objectid import InvalidId, ObjectId
-from kitchen.text.converters import to_bytes
 from urlparse import urlparse
+from py_unicode import to_bytes
 
-if six.PY3:
+if sys.version_info[0] > 2:
     from ipaddress import ip_address
 else:
     from ipaddr import IPAddress as ip_address
@@ -164,10 +165,11 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     Only accept to map a 'No such file or directory' standard :mod:`errno` to False:
     >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080)
     False
-    >>> valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT,), default_port=8080)  # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-        ...
-    error: ...
+    >>> try:
+    ...     valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT,), default_port=8080)
+    ...     raise RuntimeError('Exception not raised !')
+    ... except:
+    ...     pass
     """
     url = urlparse(uri)
     if not url.netloc or not url.path or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
@@ -180,7 +182,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
             # Resource does not exist
             if e.errno in excepted_errnos:
                 return False
-            raise  # Re-raise exception if a different error occurred
+            raise # Re-raise exception if a different error occurred
         response = conn.getresponse()
         conn.close()
         return response.status != 404
@@ -213,8 +215,6 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     True
     >>> valid_uuid(ObjectId().binary, objectid_allowed=True)
     True
-    >>> valid_uuid(str(ObjectId().binary), objectid_allowed=True)
-    True
     """
     if id is None and none_allowed:
         return True
@@ -224,8 +224,8 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
         if not objectid_allowed:
             return False
         try:
-            ObjectId(str(id))
-        except InvalidId:
+            ObjectId(id)
+        except InvalidId as e:
             return False
     return True
 

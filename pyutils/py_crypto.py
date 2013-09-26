@@ -24,8 +24,14 @@
 #
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
-import hashlib
+import hashlib, sys
 
+if sys.version_info[0] < 3:
+    def to_bytes(string):
+        return string
+else:
+    def to_bytes(string):
+        return bytes(string, u'utf-8')
 
 def githash(data):
     u"""
@@ -33,7 +39,7 @@ def githash(data):
 
     This is how Git calculates the SHA1 for a file (or, in Git terms, a "blob")::
 
-        sha1("blob " + filesize + "\0" + data)
+        sha1('blob ' + filesize + '\0' + data)
 
     .. seealso::
 
@@ -47,6 +53,6 @@ def githash(data):
     abdd1818289725c072eff0f5ce185457679650be
     """
     s = hashlib.sha1()
-    s.update(u'blob {0}\0'.format(len(data)))
-    s.update(data)
+    s.update(to_bytes(u'blob {0}\0'.format(len(data))))
+    s.update(to_bytes(data))
     return s.hexdigest()

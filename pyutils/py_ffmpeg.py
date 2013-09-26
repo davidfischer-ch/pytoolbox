@@ -25,9 +25,9 @@
 #  Retrieved from git clone https://github.com/davidfischer-ch/pyutils.git
 
 import fcntl, os, re, select, shlex, subprocess, time
-from kitchen.text.converters import to_bytes
 from xml.dom import minidom
 from py_datetime import total_seconds
+from py_unicode import to_bytes
 
 
 AUDIO_TRACKS_REGEX = re.compile(
@@ -81,7 +81,7 @@ def get_media_duration(filename):
     else:
         cmd = u'ffmpeg -i "{0}"'.format(filename)
         pipe = subprocess.Popen(shlex.split(to_bytes(cmd)), stderr=subprocess.PIPE, close_fds=True)
-        match = re.search(ur'Duration: (?P<duration>\S+),', pipe.stderr.read())
+        match = re.search(ur'Duration: (?P<duration>\S+),', unicode(pipe.stderr.read()))
         if not match:
             return None
         duration = match.group(u'duration')

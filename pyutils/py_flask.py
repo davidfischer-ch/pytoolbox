@@ -27,7 +27,7 @@
 import logging, urlparse
 from bson.objectid import ObjectId
 from flask import abort, Response
-from werkzeug.exceptions import HTTPException, ImATeapot
+from werkzeug.exceptions import HTTPException
 from py_serialization import object2dictV2, object2json
 from py_validation import valid_uuid
 
@@ -74,27 +74,16 @@ def map_exceptions(e):
 
     **Example usage**:
 
-    >>> map_exceptions(TypeError())
-    Traceback (most recent call last):
-        ...
-    ClientDisconnected: 400: Bad Request
-
-    >>> map_exceptions(IndexError())
-    Traceback (most recent call last):
-        ...
-    NotFound: 404: Not Found
-
-    >>> map_exceptions(NotImplementedError())
-    Traceback (most recent call last):
-        ...
-    NotImplemented: 501: Not Implemented
+    >>> from nose.tools import assert_raises
+    >>> import werkzeug.exceptions
+    >>> assert_raises(werkzeug.exceptions.BadRequest, map_exceptions, TypeError('test'))
+    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, IndexError(u'test'))
+    >>> assert_raises(werkzeug.exceptions.NotImplemented, map_exceptions, NotImplementedError(u'test'))
 
     Any instance of HTTPException is simply raised without any mapping:
 
-    >>> map_exceptions(ImATeapot())
-    Traceback (most recent call last):
-        ...
-    NotImplemented: 501: Not Implemented
+    >>> assert_raises(werkzeug.exceptions.ImATeapot, map_exceptions, werkzeug.exceptions.ImATeapot(u'test'))
+    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, werkzeug.exceptions.NotFound(u'test'))
 
     Convert a JSON response of kind {'status': 200, 'value': '...'}:
 
@@ -106,14 +95,17 @@ def map_exceptions(e):
     ValueError: The value is bad.
     """
     if isinstance(e, Exception):
-        logging.exception(e)
+        try:
+            logging.exception(e)
+        except AttributeError:
+            logging.exception(repr(e))
     if isinstance(e, dict):
         if e['status'] == 200:
             return e['value']
         exception = STATUS_TO_EXCEPTION.get(e['status'], Exception)
         raise exception(e['value'])
     elif isinstance(e, HTTPException):
-        raise
+        raise e
     elif isinstance(e, TypeError):
         abort(400, unicode(e))
     elif isinstance(e, KeyError):
