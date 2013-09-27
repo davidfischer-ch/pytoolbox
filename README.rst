@@ -82,6 +82,9 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  url='https://github.com/nickname/my-cool-project',
 		  packages=['my_cool_project'])
 
+
+See `pip vcs support <http://www.pip-installer.org/en/latest/logic.html#vcs-support>`_ to get further details about this.
+
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
 2013 - David Fischer
