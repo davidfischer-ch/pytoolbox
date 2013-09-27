@@ -61,25 +61,32 @@ Operating System :: MacOS :: MacOS X
 Operating System :: Unix
 """
 
-keywords = ['ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'screen', 'subprocess']
+keywords = ['celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'screen', 'subprocess']
 
 install_requires = [
     'argparse',  # FIXME version
+    'celery',    # FIXME version
     'django',    # FIXME version
     'flask',     # FIXME version
     'mock',      # FIXME version
+    'passlib',   # FIXME version
     'pyaml',     # FIXME version
     'pymongo',   # FIXME version
     'pygal',     # FIXME version
     'six'        # FIXME version
 ]
 
+# Why not installing following packages for python 3 ?
+#
+# * hashlib, ipaddr: Part of python 3 standard library
+# * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
+# * sudo pip-3.3 install ming    -> File "/tmp/pip_build_root/ming/setup.py", line 5, SyntaxError: invalid syntax
 if major < 3:
     install_requires += [
-        'hashlib',   # FIXME version
+        'hashlib',  # FIXME version
         'ipaddr',   # FIXME version
         'kitchen',  # FIXME version
-        'ming'      # FIXME version
+        'ming',     # FIXME version
     ]
 
 setup(name='pyutils',
