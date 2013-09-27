@@ -42,7 +42,7 @@ classifiers = """
 Development Status :: 4 - Beta
 Intended Audience :: Developers
 Framework :: Flask
-License :: OSI Approved :: GNU GPLv3
+License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)
 Natural Language :: English
 Operating System :: POSIX :: Linux
 Programming Language :: Python
@@ -97,7 +97,7 @@ setup(name='pyutils',
     author='David Fischer',
     author_email='david.fischer.ch@gmail.com',
     url='https://github.com/davidfischer-ch/pyutils',
-    license='GNU GPLv3',
+    license='EUPL 1.1',
     classifiers=filter(None, classifiers.split('\n')),
     keywords=keywords,
     install_requires=install_requires,
