@@ -50,6 +50,9 @@ Programming Language :: Python
 Programming Language :: Python :: 2
 Programming Language :: Python :: 2.6
 Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.2
+Programming Language :: Python :: 3.3
 Programming Language :: Python :: Implementation :: CPython
 Topic :: Software Development :: Libraries :: Python Modules
 """
@@ -57,9 +60,6 @@ Topic :: Software Development :: Libraries :: Python Modules
 not_yet_tested = """
 Operating System :: MacOS :: MacOS X
 Operating System :: Unix
-Programming Language :: Python :: 3
-Programming Language :: Python :: 3.2
-Programming Language :: Python :: 3.3
 """
 
 keywords = ['ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'screen', 'subprocess']
