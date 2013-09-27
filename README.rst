@@ -76,7 +76,7 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  author='Firstname Lastname',
 		  author_email='author@something.com',
 		  install_requires=['...', 'pyutils', '...'],
-		  dependency_links=['git+git://github.com/davidfischer-ch/pyutils.git@4.8.7-beta'],
+                  dependency_links=['git+https://github.com/davidfischer-ch/pyutils.git@v4.8.7-beta#egg=pyutils'],
 		  tests_require=['nose'],
 		  license='GPLv3',
 		  url='https://github.com/nickname/my-cool-project',
