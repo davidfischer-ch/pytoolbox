@@ -15,17 +15,43 @@ What the release number stands for ?
 
 I do my best to follow this interesting recommendation : `Semantic Versioning 2.0.0 <http://semver.org/>`_
 
-How to install it ?
--------------------
+How to install it (Python 2.7) ?
+--------------------------------
 
-Install some packages that are not handled by pip:
+Install some packages that are not handled by pip::
 
-    sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev screen
+    sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev python-pip screen
+
+Make sure that pip is up-to-date (PIPception)::
+
+    sudo pip-2.7 install --upgrade pip
 
 Then, you only need to run ``setup.py``::
 
+    python2 setup.py test
+    sudo python2 setup.py install
+
+How to install it (Python 3.3) ?
+--------------------------------
+
+Install some packages that are not handled by pip::
+
+    sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python3-dev python3-pip screen
+
+Make sure that pip is up-to-date (PIPception)::
+
+    sudo pip-3.3 install --upgrade pip
+
+Then, you only need to run ``setup.py``::
+
+    python3 setup.py test
+    sudo python3 setup.py install
+
+How to check coverage ?
+-----------------------
+
     python setup.py test
-    sudo python setup.py install
+    xdg-open tests/cover/index.html
 
 How to use it ?
 ---------------
@@ -48,7 +74,7 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  author='Firstname Lastname',
 		  author_email='author@something.com',
 		  install_requires=['...', 'pyutils', '...'],
-		  dependency_links=['git+https://github.com/davidfischer-ch/pyutils#egg=pyutils-1.0'],
+		  dependency_links=['git+git://github.com/davidfischer-ch/pyutils.git@4.8.7-beta'],
 		  tests_require=['nose'],
 		  license='GPLv3',
 		  url='https://github.com/nickname/my-cool-project',

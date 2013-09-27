@@ -1,4 +1,35 @@
+v4.0.0-beta -> v4.8.7-beta
+===========================
+
+Minor compatibility breaks
+--------------------------
+
+* Rename duration2secs -> total_seconds
+* Rename get_request_json -> get_request_data
+
+Features
+--------
+
+* Python 3 support
+* Add module py_collections
+* Add module py_django
+* Add method json_response2dict
+* Add method make
+* Add method ssh
+* Greatly improve module py_juju
+* Greatly improve module py_serialization
+
+Fixes and enhancements
+----------------------
+
+* Update README.rst
+* Update method get_request_data
+* Update method map_exceptions
+* Update method runtests
+* Update setup.py
+
 v3.10.7-beta -> v4.0.0-beta
+===========================
 
 Compatibility breaks
 --------------------
@@ -20,6 +51,7 @@ Fixes and enhancements
 * Update rsync
 
 v2.1.2-beta -> v3.10.7-beta
+===========================
 
 Compatibility breaks
 --------------------

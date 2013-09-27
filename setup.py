@@ -62,6 +62,8 @@ Programming Language :: Python :: 3.2
 Programming Language :: Python :: 3.3
 """
 
+keywords = [u'ffmpeg', u'django', u'flask', u'json', u'juju', u'mock', u'mongodb', u'rsync', u'screen', u'subprocess']
+
 install_requires = [
     u'argparse',  # FIXME version
     u'django',    # FIXME version
@@ -82,7 +84,7 @@ if major < 3:
     ]
 
 setup(name=u'pyutils',
-    version=u'v4.0.0-beta',
+    version=u'v4.8.7-beta',
     packages=['pyutils'],
     description=u'Some Python utility functions',
     long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
@@ -91,7 +93,7 @@ setup(name=u'pyutils',
     url=u'https://github.com/davidfischer-ch/pyutils',
     license=u'GNU GPLv3',
     classifiers=filter(None, classifiers.split('\n')),
-    keywords=[u'ffmpeg', u'flask', u'json', u'juju', u'mock', u'rsync', u'screen', u'subprocess'],
+    keywords=keywords,
     install_requires=install_requires,
     setup_requires=[u'coverage', u'mock', u'nose'],
     tests_require=[u'coverage', u'mock', u'nose'],
