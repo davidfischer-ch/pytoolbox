@@ -90,18 +90,18 @@ if major < 3:
     ]
 
 setup(name='pyutils',
-    version='v4.8.7-beta',
-    packages=['pyutils'],
-    description='Some Python utility functions',
-    long_description=open('README.rst', 'r', encoding='utf-8').read(),
-    author='David Fischer',
-    author_email='david.fischer.ch@gmail.com',
-    url='https://github.com/davidfischer-ch/pyutils',
-    license='EUPL 1.1',
-    classifiers=filter(None, classifiers.split('\n')),
-    keywords=keywords,
-    install_requires=install_requires,
-    setup_requires=['coverage', 'mock', 'nose'],
-    tests_require=['coverage', 'mock', 'nose'],
-    # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-    test_suite='tests.runtests.main', **kwargs)
+      version='4.8.7-beta',
+      packages=['pyutils'],
+      description='Some Python utility functions',
+      long_description=open('README.rst', 'r', encoding='utf-8').read(),
+      author='David Fischer',
+      author_email='david.fischer.ch@gmail.com',
+      url='https://github.com/davidfischer-ch/pyutils',
+      license='EUPL 1.1',
+      classifiers=filter(None, classifiers.split('\n')),
+      keywords=keywords,
+      install_requires=install_requires,
+      setup_requires=['coverage', 'mock', 'nose'],
+      tests_require=['coverage', 'mock', 'nose'],
+      # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
+      test_suite='tests.runtests.main', **kwargs)
