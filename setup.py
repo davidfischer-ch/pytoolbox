@@ -34,12 +34,12 @@ os.chdir(os.path.abspath(os.path.dirname(__file__)))
 major, minor = sys.version_info[:2]
 kwargs = {}
 if major >= 3:
-    print(u'Converting code to Python 3 helped by 2to3')
-    kwargs[u'use_2to3'] = True
+    print('Converting code to Python 3 helped by 2to3')
+    kwargs['use_2to3'] = True
 
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 
-classifiers = u"""
+classifiers = """
 Development Status :: 4 - Beta
 Intended Audience :: Developers
 Framework :: Flask
@@ -54,7 +54,7 @@ Programming Language :: Python :: Implementation :: CPython
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-not_yet_tested = u"""
+not_yet_tested = """
 Operating System :: MacOS :: MacOS X
 Operating System :: Unix
 Programming Language :: Python :: 3
@@ -62,40 +62,40 @@ Programming Language :: Python :: 3.2
 Programming Language :: Python :: 3.3
 """
 
-keywords = [u'ffmpeg', u'django', u'flask', u'json', u'juju', u'mock', u'mongodb', u'rsync', u'screen', u'subprocess']
+keywords = ['ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'screen', 'subprocess']
 
 install_requires = [
-    u'argparse',  # FIXME version
-    u'django',    # FIXME version
-    u'flask',     # FIXME version
-    u'mock',      # FIXME version
-    u'pyaml',     # FIXME version
-    u'pymongo',   # FIXME version
-    u'pygal',     # FIXME version
-    u'six'        # FIXME version
+    'argparse',  # FIXME version
+    'django',    # FIXME version
+    'flask',     # FIXME version
+    'mock',      # FIXME version
+    'pyaml',     # FIXME version
+    'pymongo',   # FIXME version
+    'pygal',     # FIXME version
+    'six'        # FIXME version
 ]
 
 if major < 3:
     install_requires += [
-        u'hashlib',   # FIXME version
-        u'ipaddr',   # FIXME version
-        u'kitchen',  # FIXME version
-        u'ming'      # FIXME version
+        'hashlib',   # FIXME version
+        'ipaddr',   # FIXME version
+        'kitchen',  # FIXME version
+        'ming'      # FIXME version
     ]
 
-setup(name=u'pyutils',
-    version=u'v4.8.7-beta',
+setup(name='pyutils',
+    version='v4.8.7-beta',
     packages=['pyutils'],
-    description=u'Some Python utility functions',
-    long_description=open(u'README.rst', u'r', encoding=u'utf-8').read(),
-    author=u'David Fischer',
-    author_email=u'david.fischer.ch@gmail.com',
-    url=u'https://github.com/davidfischer-ch/pyutils',
-    license=u'GNU GPLv3',
+    description='Some Python utility functions',
+    long_description=open('README.rst', 'r', encoding='utf-8').read(),
+    author='David Fischer',
+    author_email='david.fischer.ch@gmail.com',
+    url='https://github.com/davidfischer-ch/pyutils',
+    license='GNU GPLv3',
     classifiers=filter(None, classifiers.split('\n')),
     keywords=keywords,
     install_requires=install_requires,
-    setup_requires=[u'coverage', u'mock', u'nose'],
-    tests_require=[u'coverage', u'mock', u'nose'],
+    setup_requires=['coverage', 'mock', 'nose'],
+    tests_require=['coverage', 'mock', 'nose'],
     # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
     test_suite='tests.runtests.main', **kwargs)
