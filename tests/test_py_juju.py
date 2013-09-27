@@ -24,7 +24,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-from imp import load_module, reload
+from imp import reload
 import sys
 from nose.tools import assert_equal, assert_raises
 
