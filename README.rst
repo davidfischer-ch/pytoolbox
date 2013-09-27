@@ -50,6 +50,8 @@ Then, you only need to run ``setup.py``::
 How to check coverage ?
 -----------------------
 
+::
+
     python setup.py test
     xdg-open tests/cover/index.html
 
