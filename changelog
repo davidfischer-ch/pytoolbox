@@ -5,11 +5,19 @@ Compatibility breaks
 --------------------
 
 * Remove py_ prefix of all modules & paths
+* Change license (GNU GPLv3 -> EUPL 1.1)
+
+Features
+--------
+
+* Add module mongo
 
 Fixes and enhancements
 ----------------------
 
 * Use absolute imports
+* Update classifiers
+* Update README.rst
 
 v4.0.0-beta -> v4.8.7-beta
 ==========================
