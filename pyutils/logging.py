@@ -23,6 +23,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import logging, sys
 
 

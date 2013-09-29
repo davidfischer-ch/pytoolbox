@@ -23,11 +23,11 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-from __future__ import division
+from __future__ import absolute_import, division
 
 import math
 from collections import deque
-from .py_datetime import total_seconds
+from .datetime import total_seconds
 
 class pygal_deque(deque):
     u"""

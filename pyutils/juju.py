@@ -23,14 +23,16 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import json, os, subprocess, sys, time, uuid, yaml
 from codecs import open
 from functools import wraps
 from os.path import abspath, dirname, expanduser, join
-from .py_console import confirm
-from .py_exception import TimeoutError
-from .py_subprocess import cmd
-from .py_unicode import string_types, to_bytes
+from .console import confirm
+from .exception import TimeoutError
+from .subprocess import cmd
+from .unicode import string_types, to_bytes
 
 DEFAULT_ENVIRONMENTS_FILE = abspath(expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {
@@ -464,7 +466,7 @@ class CharmHooks(object):
 
     The following attributes are set by ``__init__``: TODO
 
-    * ``local_config`` must be set by derived class to an instance of ``py_serialization.PickelableObject``.
+    * ``local_config`` must be set by derived class to an instance of ``serialization.PickelableObject``.
     This should be loaded from a file that is local to the unit by ``__init__``. This file is used to store service/
     unit-specific configuration. In EBU's project called OSCIED, this file is even read by the encapsulated python
     code of the worker (celery daemon).

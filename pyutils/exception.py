@@ -23,7 +23,9 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-from .py_unicode import to_bytes
+from __future__ import absolute_import
+
+from .unicode import to_bytes
 
 
 class ForbiddenError(Exception):

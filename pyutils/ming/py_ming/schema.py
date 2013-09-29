@@ -26,7 +26,7 @@
 
 import uuid
 from ming.schema import FancySchemaItem, String, Invalid
-from ..py_validation import valid_filename, valid_email, valid_secret, valid_uuid
+from ..validation import valid_filename, valid_email, valid_secret, valid_uuid
 
 
 class Filename(String):

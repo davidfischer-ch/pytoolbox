@@ -23,6 +23,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 from django.contrib.gis.geos import Point
 from django.contrib.gis.maps.google import GEvent, GIcon, GMarker
 from django.core.urlresolvers import reverse

@@ -24,12 +24,11 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-from imp import reload
 import sys
-from nose.tools import assert_equal, assert_raises
-
+from imp import reload
 from mock import call, Mock
-from pyutils.py_unittest import mock_cmd
+from nose.tools import assert_equal, assert_raises
+from pyutils.unittest import mock_cmd
 
 DEFAULT = {u'charms_path': u'.', u'config': u'config.yaml'}
 
@@ -48,31 +47,31 @@ TEST_UNITS_LAMP_5 = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 class TestEnvironment(object):
 
     def test_ensure_num_units(self):
-        import pyutils.py_subprocess
-        old_cmd = pyutils.py_subprocess.cmd
-        cmd = pyutils.py_subprocess.cmd = mock_cmd()
+        import pyutils.subprocess
+        old_cmd = pyutils.subprocess.cmd
+        cmd = pyutils.subprocess.cmd = mock_cmd()
         try:  # Ensure that juju_do uses mock'ed cmd()
-            del sys.modules['pyutils.py_juju']
+            del sys.modules['pyutils.juju']
         except:
             pass
-        import pyutils.py_juju
-        from pyutils.py_juju import PENDING, STARTED, ERROR
+        import pyutils.juju
+        from pyutils.juju import PENDING, STARTED, ERROR
         TEST_UNITS_SQL_5  = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR},
                              3: {}, 4: {'agent-state': ERROR}}
-        pyutils.py_juju.get_units = Mock(return_value=None)
-        pyutils.py_juju.get_unit = Mock(return_value=None)
-        environment = pyutils.py_juju.Environment(u'maas', release=u'raring', auto=True)
+        pyutils.juju.get_units = Mock(return_value=None)
+        pyutils.juju.get_unit = Mock(return_value=None)
+        environment = pyutils.juju.Environment(u'maas', release=u'raring', auto=True)
         environment.__dict__.update(DEFAULT)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=2))
         print(environment.ensure_num_units(u'lamp',  None,        num_units=4))
         assert_raises(ValueError, environment.ensure_num_units, None, u'salut')
-        pyutils.py_juju.get_units = Mock(return_value=TEST_UNITS_SQL_2)
+        pyutils.juju.get_units = Mock(return_value=TEST_UNITS_SQL_2)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=5))
-        pyutils.py_juju.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
+        pyutils.juju.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
         print(environment.ensure_num_units(None, u'lamp', num_units=5))
-        pyutils.py_juju.get_units = Mock(return_value=TEST_UNITS_SQL_5)
+        pyutils.juju.get_units = Mock(return_value=TEST_UNITS_SQL_5)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=1, units_number_to_keep=[1]))
-        pyutils.py_juju.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
+        pyutils.juju.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=None))
         [call_args[1].pop(u'env') for call_args in cmd.call_args_list]
         a_eq = assert_equal
@@ -87,4 +86,5 @@ class TestEnvironment(object):
         a_eq(a[6], call(DESTROY_UNIT + [u'my_mysql/4'], fail=False, log=None))
         a_eq(a[7], call(DESTROY_UNIT + [u'my_mysql/0'], fail=False, log=None))
         a_eq(a[8], call(DESTROY_SERVICE + [u'my_mysql'], fail=False, log=None))
-        pyutils.py_subprocess.cmd = old_cmd
+        pyutils.subprocess.cmd = old_cmd
+

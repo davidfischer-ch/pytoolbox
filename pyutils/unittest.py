@@ -23,6 +23,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import nose, os, sys
 from os.path import abspath, dirname
 from unittest import TestCase
@@ -46,8 +48,8 @@ def mock_side_effect(*args, **kwargs):
 
     from your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this method::
 
-        import pyutils.py_unittest
-        pyutils.py_unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
+        import pyutils.unittest
+        pyutils.unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
 
     **example usage**:
 
@@ -92,7 +94,7 @@ class PseudoTestCase(TestCase):
 def runtests(test_file, cover_packages, packages, ignore=None):
     u"""Run tests and report coverage with nose and coverage."""
 
-    from .py_unicode import configure_unicode
+    from .unicode import configure_unicode
     configure_unicode()
 
     cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]

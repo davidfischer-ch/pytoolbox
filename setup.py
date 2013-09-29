@@ -90,7 +90,7 @@ if major < 3:
     ]
 
 setup(name='pyutils',
-      version='4.8.7-beta',
+      version='5.0.0-beta',
       packages=['pyutils'],
       description='Some Python utility functions',
       long_description=open('README.rst', 'r', encoding='utf-8').read(),

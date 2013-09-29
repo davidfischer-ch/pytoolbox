@@ -1,5 +1,18 @@
+v4.8.7-beta -> v5.0.0-beta
+==========================
+
+Compatibility breaks
+--------------------
+
+* Remove py_ prefix of all modules & paths
+
+Fixes and enhancements
+----------------------
+
+* Use absolute imports
+
 v4.0.0-beta -> v4.8.7-beta
-===========================
+==========================
 
 Minor compatibility breaks
 --------------------------

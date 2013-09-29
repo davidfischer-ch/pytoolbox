@@ -23,10 +23,12 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import errno, grp, pwd, os, shutil, time
 from codecs import open
-from .py_datetime import datetime_now
-from .py_unicode import string_types
+from .datetime import datetime_now
+from .unicode import string_types
 
 
 def first_that_exist(*paths):

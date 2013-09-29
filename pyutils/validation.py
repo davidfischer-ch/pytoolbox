@@ -23,11 +23,13 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import errno, httplib, re, socket, sys, uuid
 from bson.binary import Binary
 from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
-from .py_unicode import to_bytes
+from .unicode import to_bytes
 
 if sys.version_info[0] > 2:
     from ipaddress import ip_address

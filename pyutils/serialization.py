@@ -23,10 +23,12 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import inspect, json, pickle
 from bson.objectid import ObjectId
 from codecs import open
-from .py_unicode import string_types, to_bytes
+from .unicode import string_types, to_bytes
 
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------
