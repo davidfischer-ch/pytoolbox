@@ -28,7 +28,7 @@ from __future__ import absolute_import
 import inspect, json, pickle
 from bson.objectid import ObjectId
 from codecs import open
-from .unicode import string_types, to_bytes
+from .encoding import string_types, to_bytes
 
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------

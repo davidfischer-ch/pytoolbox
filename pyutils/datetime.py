@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 import numbers
 from datetime import datetime
-from .unicode import string_types
+from .encoding import string_types
 
 
 def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):

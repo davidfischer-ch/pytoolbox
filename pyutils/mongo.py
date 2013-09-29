@@ -30,8 +30,8 @@ from celery import states
 from celery.result import AsyncResult
 from passlib.hash import pbkdf2_sha512
 from passlib.utils import consteq
+from .encoding import to_bytes
 from .serialization import JsoneableObject
-from .unicode import to_bytes
 from .validation import valid_email, valid_secret, valid_uuid
 
 

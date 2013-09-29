@@ -30,9 +30,9 @@ from codecs import open
 from functools import wraps
 from os.path import abspath, dirname, expanduser, join
 from .console import confirm
+from .encoding import string_types, to_bytes
 from .exception import TimeoutError
 from .subprocess import cmd
-from .unicode import string_types, to_bytes
 
 DEFAULT_ENVIRONMENTS_FILE = abspath(expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {

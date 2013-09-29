@@ -26,8 +26,8 @@
 from __future__ import absolute_import
 
 import errno, fcntl, multiprocessing, os, re, setuptools.archive_util, shlex, shutil, subprocess
+from .encoding import to_bytes
 from .filesystem import try_makedirs
-from .unicode import to_bytes
 
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 

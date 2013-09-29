@@ -25,7 +25,7 @@
 
 from __future__ import absolute_import
 
-from .unicode import to_bytes
+from .encoding import to_bytes
 
 
 class ForbiddenError(Exception):

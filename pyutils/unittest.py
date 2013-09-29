@@ -94,7 +94,7 @@ class PseudoTestCase(TestCase):
 def runtests(test_file, cover_packages, packages, ignore=None):
     u"""Run tests and report coverage with nose and coverage."""
 
-    from .unicode import configure_unicode
+    from .encoding import configure_unicode
     configure_unicode()
 
     cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]

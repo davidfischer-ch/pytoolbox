@@ -28,7 +28,7 @@ from __future__ import absolute_import
 import errno, grp, pwd, os, shutil, time
 from codecs import open
 from .datetime import datetime_now
-from .unicode import string_types
+from .encoding import string_types
 
 
 def first_that_exist(*paths):

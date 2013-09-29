@@ -28,7 +28,7 @@ from __future__ import absolute_import
 import fcntl, os, re, select, shlex, subprocess, time
 from xml.dom import minidom
 from .datetime import total_seconds
-from .unicode import to_bytes
+from .encoding import to_bytes
 
 
 AUDIO_TRACKS_REGEX = re.compile(
