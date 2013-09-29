@@ -24,11 +24,9 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-import uuid, sys
+import uuid
 from ming.schema import FancySchemaItem, String, Invalid
-from os.path import abspath, dirname
-sys.path.append(abspath(dirname(dirname(__file__))))
-from py_validation import valid_filename, valid_email, valid_secret, valid_uuid
+from ..py_validation import valid_filename, valid_email, valid_secret, valid_uuid
 
 
 class Filename(String):

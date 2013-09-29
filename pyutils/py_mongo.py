@@ -28,9 +28,9 @@ from celery import states
 from celery.result import AsyncResult
 from passlib.hash import pbkdf2_sha512
 from passlib.utils import consteq
-from py_serialization import JsoneableObject
-from py_unicode import to_bytes
-from py_validation import valid_email, valid_secret, valid_uuid
+from .py_serialization import JsoneableObject
+from .py_unicode import to_bytes
+from .py_validation import valid_email, valid_secret, valid_uuid
 
 
 class Model(JsoneableObject):

@@ -23,7 +23,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-from py_unicode import to_bytes
+from .py_unicode import to_bytes
 
 
 class ForbiddenError(Exception):

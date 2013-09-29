@@ -27,8 +27,8 @@ import logging, urlparse
 from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
-from py_serialization import object2dictV2, object2json
-from py_validation import valid_uuid
+from .py_serialization import object2dictV2, object2json
+from .py_validation import valid_uuid
 
 STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
 

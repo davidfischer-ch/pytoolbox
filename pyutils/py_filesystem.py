@@ -25,8 +25,8 @@
 
 import errno, grp, pwd, os, shutil, time
 from codecs import open
-from py_datetime import datetime_now
-from py_unicode import string_types
+from .py_datetime import datetime_now
+from .py_unicode import string_types
 
 
 def first_that_exist(*paths):

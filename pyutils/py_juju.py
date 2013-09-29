@@ -27,10 +27,10 @@ import json, os, subprocess, sys, time, uuid, yaml
 from codecs import open
 from functools import wraps
 from os.path import abspath, dirname, expanduser, join
-from py_console import confirm
-from py_exception import TimeoutError
-from py_subprocess import cmd
-from py_unicode import string_types, to_bytes
+from .py_console import confirm
+from .py_exception import TimeoutError
+from .py_subprocess import cmd
+from .py_unicode import string_types, to_bytes
 
 DEFAULT_ENVIRONMENTS_FILE = abspath(expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {

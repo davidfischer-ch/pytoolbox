@@ -27,7 +27,7 @@ from __future__ import division
 
 import math
 from collections import deque
-from py_datetime import total_seconds
+from .py_datetime import total_seconds
 
 class pygal_deque(deque):
     u"""

@@ -34,7 +34,7 @@ def main():
         except ImportError:
             from pyutils.py_unittest import runtests
         return runtests(__file__, cover_packages=[u'pyutils'], packages=[u'pyutils'],
-                        ignore=u'py_django.py|__init__.py')
+                        ignore=u'py_django.py')
     except ImportError:
         print(sys.path)
         raise

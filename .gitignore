@@ -1,6 +1,7 @@
-.coverage
-*.pyc
 build/
 dist/
+pyutils3/
+.coverage
+*.pyc
 *.egg/
 *.egg-info/

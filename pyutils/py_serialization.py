@@ -26,7 +26,7 @@
 import inspect, json, pickle
 from bson.objectid import ObjectId
 from codecs import open
-from py_unicode import string_types, to_bytes
+from .py_unicode import string_types, to_bytes
 
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------

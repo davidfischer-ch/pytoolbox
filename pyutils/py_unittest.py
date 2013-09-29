@@ -23,12 +23,11 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-import nose, os
+import nose, os, sys
 from os.path import abspath, dirname
-from six import PY3
 from unittest import TestCase
 
-if PY3:
+if sys.version_info[0] > 2:
     from unittest.mock import Mock
 else:
     from mock import Mock
@@ -93,7 +92,7 @@ class PseudoTestCase(TestCase):
 def runtests(test_file, cover_packages, packages, ignore=None):
     u"""Run tests and report coverage with nose and coverage."""
 
-    from py_unicode import configure_unicode
+    from .py_unicode import configure_unicode
     configure_unicode()
 
     cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]
