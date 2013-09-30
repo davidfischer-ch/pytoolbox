@@ -26,7 +26,7 @@
 from __future__ import absolute_import
 
 import numbers
-from datetime import datetime
+from datetime import datetime, timedelta
 from .encoding import string_types
 
 
@@ -44,7 +44,6 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
 
     **Example usage**:
 
-    >>> from datetime import timedelta
     >>> now = datetime_now(format=None)
     >>> future = datetime_now(offset=timedelta(hours=2, minutes=10), format=None)
     >>> print(future - now)  # doctest: +ELLIPSIS
@@ -81,7 +80,7 @@ def total_seconds(time):
     16.4
     >>> total_seconds(143.2)
     143.2
-    >>> total_seconds(datetime(2010, 6, 10, 00, 01, 30))
+    >>> total_seconds(datetime(2010, 6, 10, 0, 1, 30))
     90.0
     >>> total_seconds(datetime(2010, 6, 10, 14, 15, 23))
     51323.0
