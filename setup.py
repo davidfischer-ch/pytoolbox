@@ -102,7 +102,7 @@ EPILOG = 'Some Python utility functions'
 if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install'):
     old_args = sys.argv[:]
     sys.argv = [old_args[0]] + [arg for arg in old_args if '--extra' in arg or '--help' in arg]
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, FileType
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=EPILOG)
     for extra in extras_require.keys():
         parser.add_argument('--extra-{0}'.format(extra), action='store_true',
@@ -110,7 +110,7 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install'):
     parser.add_argument('--extra-all', action='store_true', help='Install dependencies for all modules/features.')
     args = vars(parser.parse_args())
 
-    for extra, enabled in args.items():
+    for extra, enabled in sorted(args.items()):
         extra = extra.replace('extra_', '')
         if (args['extra_all'] or enabled) and extra in extras_require:
             print('Enable dependencies for feature/module {0}'.format(extra))
