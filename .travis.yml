@@ -6,6 +6,8 @@ python:
   - "3.3"
 install:
   - sudo apt-get install ffmpeg screen
+  - git clone https://github.com/davidfischer-ch/python-fastxor.git
+  - cd python-fastxor && python setup.py develop && cd ..
   - python setup.py develop
 script:
   - sudo python setup.py test
