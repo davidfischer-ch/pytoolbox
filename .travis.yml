@@ -8,7 +8,7 @@ install:
   - sudo apt-get install ffmpeg screen
   - python setup.py develop --extra-all
 script:
-  - sudo python setup.py test
+  - sudo python setup.py test --extra-all
 matrix:
   allow_failures:
     - python: "2.6"
