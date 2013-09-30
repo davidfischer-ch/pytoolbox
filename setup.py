@@ -95,13 +95,15 @@ if major < 3:
         'kitchen',  # FIXME version
     ]
 
-EPILOG = 'Some Python utility functions'
+description = 'Some Python utility functions'
+packages = find_packages()
+packages.remove('tests')
 
 if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     old_args = sys.argv[:]
     sys.argv = [old_args[0]] + [arg for arg in old_args if '--extra' in arg or '--help' in arg]
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=EPILOG)
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=description)
     for extra in extras_require.keys():
         parser.add_argument('--extra-{0}'.format(extra), action='store_true',
                             help='Install dependencies for the module/feature {0}.'.format(extra))
@@ -116,9 +118,9 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pyutils',
-      version='5.1.1-beta',
-      packages=find_packages(),
-      description=EPILOG,
+      version='5.1.2-beta',
+      packages=packages,
+      description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
       author='David Fischer',
       author_email='david.fischer.ch@gmail.com',

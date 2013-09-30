@@ -1,4 +1,4 @@
-v5.0.0-beta -> v5.1.1-beta
+v5.0.0-beta -> v5.1.2-beta
 ==========================
 
 Features
@@ -12,6 +12,7 @@ Fixes and enhancements
 
 * Lighter list of dependencies
 * Add --extra-... flags to install dependencies for the extra features/modules.
+* Filter packages to avoid installing tests module !
 
 Example usage::
 
