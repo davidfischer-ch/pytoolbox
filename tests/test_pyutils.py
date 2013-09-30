@@ -34,6 +34,9 @@ from pyutils.serialization import PickleableObject
 from pyutils.subprocess import cmd, screen_launch, screen_list, screen_kill
 from pyutils.validation import validate_list
 
+here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+here = os.path.join(here, u'../../..' if u'build/lib' in here else u'..', u'tests')
+
 
 class MyPoint(PickleableObject):
     def __init__(self, name=None, x=0, y=0):
@@ -113,7 +116,7 @@ class TestPyutils(object):
 
     def test_csv_reader(self):
         values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
-        for name, hobby in csv_reader(u'unicode.csv'):
+        for name, hobby in csv_reader(os.path.join(here, u'unicode.csv')):
             assert_equal((name, hobby), values[i])
             i += 1
 

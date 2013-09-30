@@ -278,7 +278,7 @@ class FecReceiver(object):
                     cross[u'row_sequence'] = fec.sequence
                 else:
                     raise ValueError(to_bytes(FecReceiver.ER_FEC_DIRECTION.format(fec.direction)))
-                fec.setMissing(media_test)
+                fec.set_missing(media_test)
             media_test = (media_test + fec.offset) & RtpPacket.S_MASK
         if fec.L != 0:
             self.matrixL = fec.L
@@ -526,10 +526,9 @@ class FecReceiver(object):
 
         **Example usage**
 
-        >>> print FecReceiver.compute_col_address(u'192.168.50.100:8000')
-        {u'ip': u'192.168.50.100', u'port': 8002}
-        >>> print FecReceiver.compute_col_address(IPSocket(u'50.0.0.7:4000'))
-        {u'ip': u'50.0.0.7', u'port': 4002}
+        >>> from nose.tools import assert_equal as a_e
+        >>> a_e(FecReceiver.compute_col_address(u'192.168.50.100:8000'), {u'ip': u'192.168.50.100', u'port': 8002})
+        >>> a_e(FecReceiver.compute_col_address(IPSocket(u'50.0.0.7:4000')), {u'ip': u'50.0.0.7', u'port': 4002})
         >>> print FecReceiver.compute_col_address('salut')
         Traceback (most recent call last):
             ....
@@ -547,10 +546,9 @@ class FecReceiver(object):
 
         **Example usage**
 
-        >>> print FecReceiver.compute_row_address(u'192.168.50.100:8000')
-        {u'ip': u'192.168.50.100', u'port': 8004}
-        >>> print FecReceiver.compute_row_address(IPSocket(u'50.0.0.7:4000'))
-        {u'ip': u'50.0.0.7', u'port': 4004}
+        >>> from nose.tools import assert_equal as a_e
+        >>> a_e(FecReceiver.compute_row_address(u'192.168.50.100:8000'), {u'ip': u'192.168.50.100', u'port': 8004})
+        >>> a_e(FecReceiver.compute_row_address(IPSocket(u'50.0.0.7:4000')), {u'ip': u'50.0.0.7', u'port': 4004})
         >>> print FecReceiver.compute_row_address(u'salut')
         Traceback (most recent call last):
             ....

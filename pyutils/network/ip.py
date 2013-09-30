@@ -28,7 +28,12 @@
 
 from __future__ import absolute_import
 
-from ipaddr import IPAddress
+import sys
+
+if sys.version_info[0] > 2:
+    from ipaddress import ip_address
+else:
+    from ipaddr import IPAddress as ip_address
 
 
 def IPSocket(string):
@@ -43,8 +48,9 @@ def IPSocket(string):
         ...
     ValueError: gaga:gogo is not a valid IP socket.
 
-    >>> IPSocket(u'239.232.0.222:5004')
-    {u'ip': u'239.232.0.222', u'port': 5004}
+    >>> from nose.tools import assert_equal
+    >>> assert_equal(IPSocket(u'239.232.0.222:5004'), {u'ip': u'239.232.0.222', u'port': 5004})
+
 
     .. warning::
 
@@ -53,7 +59,7 @@ def IPSocket(string):
     try:
         (ip, port) = string.rsplit(u':', 1)
         #ip = ip.translate(None, '[]')
-        IPAddress(ip)  # Seem not IPv6 ready
+        ip_address(ip)  # Seem not IPv6 ready
         port = int(port)
     except Exception:
         raise ValueError(u'{0} is not a valid IP socket.'.format(string))

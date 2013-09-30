@@ -28,7 +28,7 @@
 
 # FIXME error message is set in the constructor but it is not updated if packet become valid !
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 import struct
 from fastxor import fast_xor_inplace
@@ -432,10 +432,10 @@ class FecPacket(object):
 
         Testing valid input collection of packets:
 
-        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, bytearray('gaga')),  \
-                       RtpPacket.create(14, 14, RtpPacket.MP2T_PT, bytearray('salut')), \
-                       RtpPacket.create(18, 18, RtpPacket.MP2T_PT, bytearray('12345')), \
-                       RtpPacket.create(22, 22, RtpPacket.MP2T_PT, bytearray('robot'))]
+        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),  \
+                       RtpPacket.create(14, 14, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')), \
+                       RtpPacket.create(18, 18, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')), \
+                       RtpPacket.create(22, 22, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
         >>> fec = FecPacket.compute(2, FecPacket.XOR, FecPacket.COL, 4, 4, packets)
         >>> print(fec)
         errors                = []
@@ -541,16 +541,16 @@ class FecPacket(object):
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
 
-    def setMissing(self, media_sequence):
+    def set_missing(self, media_sequence):
         u"""
         TODO
 
         **Example usage**
 
-        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray('gaga')),  \
-                       RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray('salut')), \
-                       RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray('12345')), \
-                       RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray('robot'))]
+        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),  \
+                       RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')), \
+                       RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')), \
+                       RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
         >>> fec = FecPacket.compute(4, FecPacket.XOR, FecPacket.COL, 3, 4, packets)
         >>> print fec
         errors                = []
@@ -569,7 +569,7 @@ class FecPacket(object):
 
         Testing that bad input values effectively throws an exception:
 
-        >>> fec.setMissing(fec.snbase + fec.offset + 1)
+        >>> fec.set_missing(fec.snbase + fec.offset + 1)
         Traceback (most recent call last):
             ...
         ValueError: Unable to find a suitable j e N that satisfy : media_sequence = snbase + j * offset
@@ -580,7 +580,7 @@ class FecPacket(object):
 
         Testing set / get of a unique missing value:
 
-        >>> print fec.setMissing(1)
+        >>> print fec.set_missing(1)
         2
         >>> print fec.missing[0]
         1
@@ -596,15 +596,15 @@ class FecPacket(object):
 
         Testing set / get of multiple missing values (including re-setting of a value):
 
-        >>> print fec.setMissing(4)
+        >>> print fec.set_missing(4)
         3
-        >>> print fec.setMissing(4)
+        >>> print fec.set_missing(4)
         3
         >>> print len(fec.missing)
         1
-        >>> print fec.setMissing(fec.snbase + fec.offset)
+        >>> print fec.set_missing(fec.snbase + fec.offset)
         1
-        >>> print fec.setMissing(fec.snbase)
+        >>> print fec.set_missing(fec.snbase)
         0
         >>> print len(fec.missing)
         3
@@ -646,7 +646,7 @@ class FecPacket(object):
             delta = RtpPacket.S_MASK + delta
         if delta % self.offset != 0:
             return None
-        return delta / self.offset
+        return int(delta / self.offset)
 
     def __eq__(self, other):
         u"""

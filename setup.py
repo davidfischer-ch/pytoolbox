@@ -77,7 +77,8 @@ install_requires = [
     'pycallgraph',  # FIXME version
     'pymongo',      # FIXME version
     'pygal',        # FIXME version
-    'six'           # FIXME version
+    'six',          # FIXME version
+    'twisted'       # FIXME version
 ]
 
 # Why not installing following packages for python 3 ?

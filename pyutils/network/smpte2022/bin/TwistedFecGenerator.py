@@ -53,7 +53,7 @@ class TwistedFecGenerator(DatagramProtocol):
     >>> row = IPSocket(TwistedFecGenerator.DEFAULT_ROW)
     >>> generator = TwistedFecGenerator(media['ip'], 'MyTwistedFecGenerator', col, row, 5, 6)
     >>> reactor.listenMulticast(media['port'], generator, listenMultiple=True) # doctest: +ELLIPSIS
-    <....TwistedFecGenerator on 5004>
+    <....TwistedFecGenerator... on 5004>
     >>> print generator._generator
     Matrix size L x D            = 5 x 6
     Total invalid media packets  = 0
