@@ -26,7 +26,7 @@
 
 import os, sys
 from codecs import open
-from setuptools import setup
+from setuptools import setup, find_packages
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
@@ -61,19 +61,23 @@ Operating System :: MacOS :: MacOS X
 Operating System :: Unix
 """
 
-keywords = ['celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'screen', 'subprocess']
+keywords = [
+    'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'rtp', 'smpte 2022-1', 'screen',
+    'subprocess'
+]
 
 install_requires = [
-    'argparse',  # FIXME version
-    'celery',    # FIXME version
-    'django',    # FIXME version
-    'flask',     # FIXME version
-    'mock',      # FIXME version
-    'passlib',   # FIXME version
-    'pyaml',     # FIXME version
-    'pymongo',   # FIXME version
-    'pygal',     # FIXME version
-    'six'        # FIXME version
+    'argparse',     # FIXME version
+    'celery',       # FIXME version
+    'django',       # FIXME version
+    'flask',        # FIXME version
+    'mock',         # FIXME version
+    'passlib',      # FIXME version
+    'pyaml',        # FIXME version
+    'pycallgraph',  # FIXME version
+    'pymongo',      # FIXME version
+    'pygal',        # FIXME version
+    'six'           # FIXME version
 ]
 
 # Why not installing following packages for python 3 ?
@@ -90,8 +94,8 @@ if major < 3:
     ]
 
 setup(name='pyutils',
-      version='5.0.0-beta',
-      packages=['pyutils'],
+      version='5.1.0-beta',
+      packages=find_packages(),
       description='Some Python utility functions',
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
       author='David Fischer',
@@ -101,7 +105,9 @@ setup(name='pyutils',
       classifiers=filter(None, classifiers.split('\n')),
       keywords=keywords,
       install_requires=install_requires,
-      setup_requires=['coverage', 'mock', 'nose'],
       tests_require=['coverage', 'mock', 'nose'],
+      entry_points={'console_scripts': [
+          'socket-fec-generator=pyutils.network.smpte2022.bin.SocketFecGenerator:main',
+          'twisted-fec-generator=pyutils.network.smpte2022.bin.TwistedFecGenerator:main']},
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
       test_suite='tests.runtests.main', **kwargs)
