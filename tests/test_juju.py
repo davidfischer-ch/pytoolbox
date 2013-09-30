@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
@@ -25,7 +24,6 @@
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
 import sys
-from imp import reload
 from mock import call, Mock
 from nose.tools import assert_equal, assert_raises
 from pyutils.unittest import mock_cmd
