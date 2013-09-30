@@ -51,7 +51,7 @@ class TwistedFecGenerator(DatagramProtocol):
     >>> media = IPSocket(TwistedFecGenerator.DEFAULT_MEDIA)
     >>> col = IPSocket(TwistedFecGenerator.DEFAULT_COL)
     >>> row = IPSocket(TwistedFecGenerator.DEFAULT_ROW)
-    >>> generator = TwistedFecGenerator(media['ip'], 'MyTwistedFecGenerator', 5, 6, col, row)
+    >>> generator = TwistedFecGenerator(media['ip'], 'MyTwistedFecGenerator', col, row, 5, 6)
     >>> reactor.listenMulticast(media['port'], generator, listenMultiple=True) # doctest: +ELLIPSIS
     <....TwistedFecGenerator on 5004>
     >>> print generator._generator
