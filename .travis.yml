@@ -6,7 +6,6 @@ python:
   - "3.3"
 install:
   - sudo apt-get install ffmpeg screen
-  - python setup.py develop --extra-all
 script:
   - sudo python setup.py test --extra-all
 matrix:
