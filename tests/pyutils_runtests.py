@@ -25,15 +25,8 @@
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
 def main():
-    import sys
-    from os.path import abspath, dirname
-    sys.path.append(abspath(dirname(dirname(__file__))))
-    try:
-        from pyutils.unittest import runtests
-        return runtests(__file__, cover_packages=[u'pyutils'], packages=[u'pyutils'], ignore=u'django.py')
-    except ImportError:
-        print(sys.path)
-        raise
+    from pyutils.unittest import runtests
+    return runtests(__file__, cover_packages=[u'pyutils'], packages=[u'pyutils'], ignore=u'django.py')
 
 if __name__ == u'__main__':
     main()

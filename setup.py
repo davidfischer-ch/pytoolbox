@@ -24,11 +24,9 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
-import os, sys
+import sys
 from codecs import open
 from setuptools import setup, find_packages
-
-os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
 major, minor = sys.version_info[:2]
 kwargs = {}
@@ -136,4 +134,4 @@ setup(name='pyutils',
           'socket-fec-generator=pyutils.network.smpte2022.bin.SocketFecGenerator:main',
           'twisted-fec-generator=pyutils.network.smpte2022.bin.TwistedFecGenerator:main']},
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-      test_suite='tests.runtests.main', **kwargs)
+      test_suite='tests.pyutils_runtests.main', **kwargs)

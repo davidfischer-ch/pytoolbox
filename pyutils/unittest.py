@@ -98,10 +98,9 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
     configure_unicode()
 
     extra_options = extra_options or []
-    print extra_options
     cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]
     nose_options = filter(None, [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe'] +
-                          cover_packages + [u'--cover-html', u'-vv', dirname(test_file)] + packages + extra_options)
+                          cover_packages + [u'--cover-html', u'-vv', u'-w', dirname(test_file)] + packages + extra_options)
     if ignore:
         nose_options += ['-I', ignore]
     os.chdir(abspath(dirname(test_file)))
