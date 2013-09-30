@@ -47,6 +47,28 @@ Then, you only need to run ``setup.py``::
     python3 setup.py test
     sudo python3 setup.py install
 
+How to enable features/modules ?
+--------------------------------
+
+Example::
+
+    sudo python setup.py install --help
+    usage: setup.py [-h] [--extra-flask] [--extra-ming] [--extra-mongo]
+                    [--extra-smpte2022] [--extra-django] [--extra-all]
+
+    optional arguments:
+      -h, --help         show this help message and exit
+      --extra-flask      Install dependencies for the module/feature flask. (default: False)
+      --extra-ming       Install dependencies for the module/feature ming. (default: False)
+      --extra-mongo      Install dependencies for the module/feature mongo. (default: False)
+      --extra-smpte2022  Install dependencies for the module/feature smpte2022. (default: False)
+      --extra-django     Install dependencies for the module/feature django. (default: False)
+      --extra-all        Install dependencies for all modules/features. (default: False)
+
+    Some Python utility functions
+
+    sudo python setup.py install --extra-smpte2022
+
 How to check coverage ?
 -----------------------
 

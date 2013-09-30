@@ -68,18 +68,21 @@ keywords = [
 
 install_requires = [
     'argparse',     # FIXME version
-    'celery',       # FIXME version
-    'django',       # FIXME version
-    'flask',        # FIXME version
     'mock',         # FIXME version
     'passlib',      # FIXME version
     'pyaml',        # FIXME version
     'pycallgraph',  # FIXME version
-    'pymongo',      # FIXME version
     'pygal',        # FIXME version
+    'pymongo',      # FIXME version
     'six',          # FIXME version
-    'twisted'       # FIXME version
 ]
+
+extras_require = {
+    'mongo':     ['celery'],  # FIXME version
+    'django':    ['django'],  # FIXME version
+    'flask':     ['flask'],   # FIXME version
+    'smpte2022': ['fastxor', 'twisted'],  # FIXME version
+}
 
 # Why not installing following packages for python 3 ?
 #
@@ -87,17 +90,37 @@ install_requires = [
 # * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
 # * sudo pip-3.3 install ming    -> File "/tmp/pip_build_root/ming/setup.py", line 5, SyntaxError: invalid syntax
 if major < 3:
+    extras_require['ming'] = ['ming']  # FIXME version
     install_requires += [
         'hashlib',  # FIXME version
         'ipaddr',   # FIXME version
         'kitchen',  # FIXME version
-        'ming',     # FIXME version
     ]
 
+EPILOG = 'Some Python utility functions'
+
+if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install'):
+    old_args = sys.argv[:]
+    sys.argv = [old_args[0]] + [arg for arg in old_args if '--extra' in arg or '--help' in arg]
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, FileType
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=EPILOG)
+    for extra in extras_require.keys():
+        parser.add_argument('--extra-{0}'.format(extra), action='store_true',
+                            help='Install dependencies for the module/feature {0}.'.format(extra))
+    parser.add_argument('--extra-all', action='store_true', help='Install dependencies for all modules/features.')
+    args = vars(parser.parse_args())
+
+    for extra, enabled in args.items():
+        extra = extra.replace('extra_', '')
+        if (args['extra_all'] or enabled) and extra in extras_require:
+            print('Enable dependencies for feature/module {0}'.format(extra))
+            install_requires += extras_require[extra]
+    sys.argv = [arg for arg in old_args if not '--extra' in arg]
+
 setup(name='pyutils',
-      version='5.1.0-beta',
+      version='5.1.1-beta',
       packages=find_packages(),
-      description='Some Python utility functions',
+      description=EPILOG,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
       author='David Fischer',
       author_email='david.fischer.ch@gmail.com',
@@ -105,7 +128,9 @@ setup(name='pyutils',
       license='EUPL 1.1',
       classifiers=filter(None, classifiers.split('\n')),
       keywords=keywords,
+      extras_require=extras_require,
       install_requires=install_requires,
+      dependency_links=['git+https://github.com/davidfischer-ch/python-fastxor.git#egg=fastxor'],
       tests_require=['coverage', 'mock', 'nose'],
       entry_points={'console_scripts': [
           'socket-fec-generator=pyutils.network.smpte2022.bin.SocketFecGenerator:main',

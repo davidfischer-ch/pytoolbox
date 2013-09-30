@@ -1,4 +1,4 @@
-v5.0.0-beta -> v5.1.0-beta
+v5.0.0-beta -> v5.1.1-beta
 ==========================
 
 Features
@@ -6,6 +6,17 @@ Features
 
 * Embed smpte2022lib
 * Add entry points (socket-fec-generator + twisted-fec-generator)
+
+Fixes and enhancements
+----------------------
+
+* Lighter list of dependencies
+* Add --extra-... flags to install dependencies for the extra features/modules.
+
+Example usage::
+
+    sudo python setup.py install --help
+    sudo python setup.py install --extra-flask
 
 v4.8.7-beta -> v5.0.0-beta
 ==========================
