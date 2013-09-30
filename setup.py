@@ -99,7 +99,7 @@ if major < 3:
 
 EPILOG = 'Some Python utility functions'
 
-if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install'):
+if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     old_args = sys.argv[:]
     sys.argv = [old_args[0]] + [arg for arg in old_args if '--extra' in arg or '--help' in arg]
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
