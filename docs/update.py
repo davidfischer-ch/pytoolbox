@@ -36,8 +36,8 @@ print(u'Detected modules are: {0}'.format(modules))
 
 api_toc = u''
 for module in modules:
-    if u'django' in module:
-        continue
+    if u'django' in module or u'crypto' in module:
+        continue  # FIXME temporary hack, see issue #6
     module = u'pyutils.{0}'.format(module)
     title = module.replace(u'.', u' > ')
     api_toc += u'    {0}\n'.format(module)
