@@ -5,7 +5,8 @@ python:
   - "3.2"
   - "3.3"
 install:
-  - sudo apt-get install ffmpeg screen
+  - travis_retry sudo apt-get install ffmpeg screen
+  - travis_retry sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
 script:
   - sudo python setup.py test --extra-all
 matrix:

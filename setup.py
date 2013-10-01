@@ -76,10 +76,10 @@ install_requires = [
 ]
 
 extras_require = {
-    'mongo':     ['celery'],  # FIXME version
     'django':    ['django'],  # FIXME version
     'flask':     ['flask'],   # FIXME version
-    'smpte2022': ['fastxor', 'twisted'],  # FIXME version
+    'mongo':     ['celery'],  # FIXME version
+    'smpte2022': ['python-fastxor', 'twisted'],  # FIXME version
 }
 
 # Why not installing following packages for python 3 ?
@@ -130,7 +130,7 @@ setup(name='pyutils',
       keywords=keywords,
       extras_require=extras_require,
       install_requires=install_requires,
-      dependency_links=['git+https://github.com/davidfischer-ch/python-fastxor.git#egg=fastxor'],
+      dependency_links=['git+https://github.com/davidfischer-ch/python-fastxor.git#egg=python-fastxor'],
       tests_require=['coverage', 'mock', 'nose'],
       entry_points={'console_scripts': [
           'socket-fec-generator=pyutils.network.smpte2022.bin.SocketFecGenerator:main',
