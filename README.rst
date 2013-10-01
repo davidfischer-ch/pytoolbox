@@ -69,6 +69,10 @@ Example::
 
     sudo python setup.py install --extra-smpte2022
 
+Another way to do this, with ``pip``::
+
+    sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
+
 How to check coverage ?
 -----------------------
 
@@ -97,10 +101,9 @@ It probably requires some tweaks in order to fix this.
 
 Here is the procedure::
 
-    cd docs/
+    cd doc/
     python update.py
-    make html
-    xdg-open docs/build/html/index.html
+    xdg-open doc/build/html/index.html
 
 How to add it to dependencies of my own project ?
 -------------------------------------------------

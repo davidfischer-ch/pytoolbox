@@ -24,6 +24,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+import shutil
 from pyutils.subprocess import cmd
 from pyutils.filesystem import from_template
 
@@ -45,3 +46,7 @@ for module in modules:
                   {u'module': module, u'title': title, u'equals': u'='*len(title)})
 
 from_template(u'templates/api.rst.template', u'source/api.rst', {u'api_toc': api_toc})
+shutil.rmtree(u'build/html', ignore_errors=True)
+result = cmd(u'make html')
+for key in (u'stdout', u'stderr'):
+    print(u'\n{0}:\n{1}'.format(key, result[key]))
