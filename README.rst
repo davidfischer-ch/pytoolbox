@@ -82,7 +82,7 @@ How to use it ?
 
 Here is an example ``hello.py`` using the cmd function provided by ``pyutils``::
 
-    from pyutils.py_subprocess import cmd
+    from pyutils.subprocess import cmd
 
     print(cmd('echo Hello World!')['stdout'])
 
