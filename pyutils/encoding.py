@@ -36,9 +36,8 @@ if sys.version_info[0] == 2:
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
     def configure_unicode(encoding=u'utf-8'):
         u"""
-        It is crucial to raise exceptions helped by :mod:`kitchen` ::
+        It is crucial to raise exceptions helped with ``to_bytes``::
 
-            from kitchen.text.converters import to_bytes
             configure_unicode()
             raise NotImplementedError(to_bytes(u'Saluté'))
         """
@@ -50,9 +49,7 @@ else:
 
 
 def csv_reader(filename, delimiter=u';', quotechar=u'"', encoding=u'utf-8'):
-    u"""
-    Yield the content of a CSV file.
-    """
+    u"""Yield the content of a CSV file."""
     with open(filename, u'r', encoding) as f:
         for line in f.readlines():
             line = line.strip()
