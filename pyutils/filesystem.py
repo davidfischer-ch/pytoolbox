@@ -48,11 +48,23 @@ def first_that_exist(*paths):
     return None
 
 
+def from_template(template, destination, values):
+    u"""Generate a ``destination`` file from a ``template`` file filled with ``values``
+
+    **Example usage**:
+
+    TODO
+    """
+    with open(template, u'r', u'utf-8') as template_file:
+        with open(destination, u'w', u'utf-8') as destination_file:
+            destination_file.write(template_file.read().format(**values))
+
+
 def get_size(path):
     u"""
     Returns the size of a file or directory.
-    If given ``path`` is a directory (or symlink to a directory), then returned value is computed by
-    summing the size of all files, and that recursively.
+    If given ``path`` is a directory (or symlink to a directory), then returned value is computed by summing the size of
+    all files, and that recursively.
     """
     if os.path.isfile(path):
         return os.stat(path).st_size
@@ -68,12 +80,12 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
     Copy the content of a source directory to a destination directory.
     This method is based on a block-copy algorithm making progress update possible.
 
-    Given ``callback`` would be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*,
-    *dst_size* and *ratio*.
+    Given ``callback`` would be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
+    *ratio*.
 
     This method will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
-    At the end of the copy, if the size of the destination directory is not equal to the source then
-    a ``IOError`` is raised. The destination directory is removed in case of error.
+    At the end of the copy, if the size of the destination directory is not equal to the source then a ``IOError`` is
+    raised. The destination directory is removed in case of error.
     """
     try:
         start_date, start_time = datetime_now(), time.time()
@@ -135,8 +147,7 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
 def try_makedirs(path):
     u"""
     Tries to recursive make directories (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if directory found and re-raise any other type of
-    exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type of exception.
 
     **Example usage**:
 
@@ -160,8 +171,7 @@ def try_makedirs(path):
 def try_remove(path):
     u"""
     Tries to remove a file/directory (which may not exists) without throwing an exception.
-    Returns True if operation is successful, False if file/directory not found and re-raise any
-    other type of exception.
+    Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
 
     **Example usage**:
 
@@ -184,8 +194,8 @@ def try_remove(path):
 def try_symlink(source, link_name):
     u"""
     Tries to symlink a file/directory (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if found & target is ``link_name`` and re-raise
-    any other type of exception.
+    Returns True if operation is successful, False if found & target is ``link_name`` and re-raise any other type of
+    exception.
 
     **Example usage**:
 
@@ -248,9 +258,7 @@ def try_symlink(source, link_name):
 
 
 def chown(path, user, group, recursive=False):
-    u"""
-    Change owner/group of a path, can be recursive. User and group can be a name or an id.
-    """
+    u"""Change owner/group of a path, can be recursive. User and group can be a name or an id."""
     uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else user
     gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else group
     if recursive:

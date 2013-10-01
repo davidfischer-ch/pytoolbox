@@ -31,6 +31,7 @@ from functools import wraps
 from os.path import abspath, dirname, expanduser, join
 from .console import confirm
 from .encoding import string_types, to_bytes
+from .filesystem import from_template
 from .exception import TimeoutError
 from .subprocess import cmd
 
@@ -635,28 +636,20 @@ class CharmHooks(object):
     # Convenience methods for logging ----------------------------------------------------------------------------------
 
     def debug(self, message):
-        u"""
-        Convenience method for logging a debug-related message.
-        """
+        u"""Convenience method for logging a debug-related message."""
         if self.config.verbose:
             return self.log(u'[DEBUG] {0}'.format(message))
 
     def info(self, message):
-        u"""
-        Convenience method for logging a standard message.
-        """
+        u"""Convenience method for logging a standard message."""
         return self.log(u'[INFO] {0}'.format(message))
 
     def hook(self, message):
-        u"""
-        Convenience method for logging the triggering of a hook.
-        """
+        u"""Convenience method for logging the triggering of a hook."""
         return self.log(u'[HOOK] {0}'.format(message))
 
     def remark(self, message):
-        u"""
-        Convenience method for logging an important remark.
-        """
+        u"""Convenience method for logging an important remark."""
         return self.log(u'[REMARK] {0} !'.format(message))
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -689,9 +682,7 @@ class CharmHooks(object):
         self.config.__dict__.update(load_unit_config(config, log=self.debug))
 
     def save_local_config(self):
-        u"""
-        Save or update local configuration file only if this instance has the attribute ``local_config``.
-        """
+        u"""Save or update local configuration file only if this instance has the attribute ``local_config``."""
         if self.local_config is not None:
             self.debug(u'Save (updated) local configuration {0}'.format(self.local_config))
             self.local_config.write()
@@ -729,18 +720,12 @@ class CharmHooks(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def cmd(self, command, input=None, cli_input=None, fail=True, logging=True):
-        u"""
-        Calls the ``command`` and returns a dictionary with stdout, stderr, and the returncode.
-        """
+        u"""Calls the ``command`` and returns a dictionary with *stdout*, *stderr*, and the *returncode*."""
         return cmd(command, input=input, cli_input=cli_input, fail=fail, log=self.debug if logging else None)
 
     def template2config(self, template, config, values):
-        with open(template, u'r', u'utf-8') as template_file:
-            data = template_file.read()
-            data = data.format(**values)
-            with open(config, u'w', u'utf-8') as config_file:
-                config_file.write(data)
-                self.remark(u'File {0} successfully generated'.format(config))
+        from_template(template, config, values)
+        self.remark(u'File {0} successfully generated'.format(config))
 
     # ------------------------------------------------------------------------------------------------------------------
 
