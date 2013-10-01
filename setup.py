@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
-#                               PYUTILS - SOME PYTHON UTILITY FUNCTIONS
+#                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -95,7 +94,7 @@ if major < 3:
         'kitchen',  # FIXME version
     ]
 
-description = 'Some Python utility functions'
+description = 'Toolbox for Python scripts'
 packages = find_packages()
 packages.remove('tests')
 
