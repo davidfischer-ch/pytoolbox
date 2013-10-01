@@ -24,6 +24,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 from ming import create_datastore, Session
 from ming.odm import ThreadLocalODMSession
 

@@ -24,6 +24,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pyutils.git
 
+from __future__ import absolute_import
+
 import uuid
 from ming.schema import FancySchemaItem, String, Invalid
 from ..validation import valid_filename, valid_email, valid_secret, valid_uuid
