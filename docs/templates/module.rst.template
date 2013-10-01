@@ -1,0 +1,9 @@
+=========================={equals}
+ Pyutils API Reference > {title}
+=========================={equals}
+
+.. automodule:: {module}
+    :members:
+    :private-members:
+    :special-members:
+    :undoc-members:
