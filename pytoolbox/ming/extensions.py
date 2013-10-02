@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -24,9 +22,16 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-def main():
-    from pytoolbox.unittest import runtests
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=u'django.py')
+#from ming.odm.mapper import MapperExtension
 
-if __name__ == u'__main__':
-    main()
+# class UserExtension(MapperExtension):
+
+#     def E(self, user, text):
+#         raise ValueError('%s %s' % (user.__class__.__name__, text))
+
+#     def before_insert(self, user, state, sess):
+#         if not valid_email(user.email):
+#             self.E(user, 'email is not a valid e-mail address')
+#         if not user.is_secret_hashed and not valid_secret(user.secret, True):
+#             self.E(user, 'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
+

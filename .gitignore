@@ -1,6 +1,6 @@
 build/
 dist/
-pyutils3/
+pytoolbox3/
 .coverage
 *.pyc
 *.egg/

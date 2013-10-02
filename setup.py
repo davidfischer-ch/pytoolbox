@@ -9,7 +9,7 @@
 #
 #**********************************************************************************************************************#
 #
-# This file is part of David Fischer's pyutils Project.
+# This file is part of David Fischer's pytoolbox Project.
 #
 # This project is free software: you can redistribute it and/or modify it under the terms of the EUPL v. 1.1 as provided
 # by the European Commission. This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
@@ -21,7 +21,7 @@
 # If not, see he EUPL licence v1.1 is available in 22 languages:
 #     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
 #
-# Retrieved from https://github.com/davidfischer-ch/pyutils.git
+# Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
 import sys
 from codecs import open
@@ -116,14 +116,14 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
             install_requires += extras_require[extra]
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
-setup(name='pyutils',
+setup(name='pytoolbox',
       version='5.1.2-beta',
       packages=packages,
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
       author='David Fischer',
       author_email='david.fischer.ch@gmail.com',
-      url='https://github.com/davidfischer-ch/pyutils',
+      url='https://github.com/davidfischer-ch/pytoolbox',
       license='EUPL 1.1',
       classifiers=filter(None, classifiers.split('\n')),
       keywords=keywords,
@@ -132,7 +132,7 @@ setup(name='pyutils',
       dependency_links=['git+https://github.com/davidfischer-ch/python-fastxor.git#egg=fastxor'],
       tests_require=['coverage', 'mock', 'nose'],
       entry_points={'console_scripts': [
-          'socket-fec-generator=pyutils.network.smpte2022.bin.SocketFecGenerator:main',
-          'twisted-fec-generator=pyutils.network.smpte2022.bin.TwistedFecGenerator:main']},
+          'socket-fec-generator=pytoolbox.network.smpte2022.bin.SocketFecGenerator:main',
+          'twisted-fec-generator=pytoolbox.network.smpte2022.bin.TwistedFecGenerator:main']},
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-      test_suite='tests.pyutils_runtests.main', **kwargs)
+      test_suite='tests.pytoolbox_runtests.main', **kwargs)

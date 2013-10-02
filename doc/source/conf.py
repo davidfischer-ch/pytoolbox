@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# pyutils documentation build configuration file, created by
+# pytoolbox documentation build configuration file, created by
 # sphinx-quickstart on Tue Oct  1 11:17:20 2013.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pyutils'
+project = u'pytoolbox'
 copyright = u'2013, David Fischer'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -167,7 +167,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyutilsdoc'
+htmlhelp_basename = 'pytoolboxdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -186,7 +186,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'pyutils.tex', u'pyutils Documentation',
+  ('index', 'pytoolbox.tex', u'pytoolbox Documentation',
    u'David Fischer', 'manual'),
 ]
 
@@ -216,7 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pyutils', u'pyutils Documentation',
+    ('index', 'pytoolbox', u'pytoolbox Documentation',
      [u'David Fischer'], 1)
 ]
 
@@ -230,8 +230,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'pyutils', u'pyutils Documentation',
-   u'David Fischer', 'pyutils', 'One line description of project.',
+  ('index', 'pytoolbox', u'pytoolbox Documentation',
+   u'David Fischer', 'pytoolbox', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -251,7 +251,7 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'pyutils'
+epub_title = u'pytoolbox'
 epub_author = u'David Fischer'
 epub_publisher = u'David Fischer'
 epub_copyright = u'2013, David Fischer'

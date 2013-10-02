@@ -1,12 +1,10 @@
-pyutils
-=======
+pytoolbox
+=========
 
-.. image:: https://secure.travis-ci.org/davidfischer-ch/pyutils.png
-	:target: http://travis-ci.org/davidfischer-ch/pyutils
+.. image:: https://secure.travis-ci.org/davidfischer-ch/pytoolbox.png
+	:target: http://travis-ci.org/davidfischer-ch/pytoolbox
 
 Afraid of red status ? Please click on the link, sometimes this is not my fault ;-)
-
-Some Python utility functions.
 
 This module is a Toolbox for Python scripts.
 
@@ -84,9 +82,9 @@ How to check coverage ?
 How to use it ?
 ---------------
 
-Here is an example ``hello.py`` using the cmd function provided by ``pyutils``::
+Here is an example ``hello.py`` using the cmd function provided by ``pytoolbox``::
 
-    from pyutils.subprocess import cmd
+    from pytoolbox.subprocess import cmd
 
     print(cmd('echo Hello World!')['stdout'])
 
@@ -116,8 +114,8 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  version='0.8',
 		  author='Firstname Lastname',
 		  author_email='author@something.com',
-		  install_requires=['...', 'pyutils', '...'],
-                  dependency_links=['git+https://github.com/davidfischer-ch/pyutils.git@v4.8.7-beta#egg=pyutils'],
+		  install_requires=['...', 'pytoolbox', '...'],
+                  dependency_links=['git+https://github.com/davidfischer-ch/pytoolbox.git@v4.8.7-beta#egg=pytoolbox'],
 		  tests_require=['nose'],
 		  license='GPLv3',
 		  url='https://github.com/nickname/my-cool-project',

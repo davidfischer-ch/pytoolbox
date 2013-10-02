@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -24,9 +22,37 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-def main():
-    from pytoolbox.unittest import runtests
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=u'django.py')
+from __future__ import absolute_import
 
-if __name__ == u'__main__':
-    main()
+import hashlib, sys
+
+if sys.version_info[0] < 3:
+    def to_bytes(string):
+        return string
+else:
+    def to_bytes(string):
+        return bytes(string, u'utf-8')
+
+def githash(data):
+    u"""
+    Return the blob of some data.
+
+    This is how Git calculates the SHA1 for a file (or, in Git terms, a "blob")::
+
+        sha1('blob ' + filesize + '\0' + data)
+
+    .. seealso::
+
+        http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
+
+    **Example usage**
+
+    >>> print(githash(u''))
+    e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+    >>> print(githash(u'give me some hash please'))
+    abdd1818289725c072eff0f5ce185457679650be
+    """
+    s = hashlib.sha1()
+    s.update(to_bytes(u'blob {0}\0'.format(len(data))))
+    s.update(to_bytes(data))
+    return s.hexdigest()

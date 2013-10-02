@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -24,9 +22,41 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-def main():
-    from pytoolbox.unittest import runtests
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=u'django.py')
+from __future__ import absolute_import
 
-if __name__ == u'__main__':
-    main()
+import sys
+
+if sys.version_info[0] > 2:
+    from ipaddress import ip_address
+else:
+    from ipaddr import IPAddress as ip_address
+
+
+def IPSocket(string):
+    u"""
+    This helper create a dictionary containing address and port from a parsed IP address string.
+    Throws ValueError in case of failure (e.g. string is not a valid IP address).
+
+    **Example usage**
+
+    >>> IPSocket(u'gaga:gogo')
+    Traceback (most recent call last):
+        ...
+    ValueError: gaga:gogo is not a valid IP socket.
+
+    >>> from nose.tools import assert_equal
+    >>> assert_equal(IPSocket(u'239.232.0.222:5004'), {u'ip': u'239.232.0.222', u'port': 5004})
+
+
+    .. warning::
+
+        TODO IPv6 ready : >>> IPSocket(u'[2001:0db8:0000:0000:0000:ff00:0042]:8329')
+    """
+    try:
+        (ip, port) = string.rsplit(u':', 1)
+        #ip = ip.translate(None, '[]')
+        ip_address(ip)  # Seem not IPv6 ready
+        port = int(port)
+    except Exception:
+        raise ValueError(u'{0} is not a valid IP socket.'.format(string))
+    return {u'ip': ip, u'port': port}

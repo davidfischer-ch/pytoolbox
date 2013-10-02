@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -24,9 +22,11 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-def main():
-    from pytoolbox.unittest import runtests
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=u'django.py')
+from __future__ import absolute_import
 
-if __name__ == u'__main__':
-    main()
+from ming import create_datastore, Session
+from ming.odm import ThreadLocalODMSession
+
+bind = create_datastore(u'mim://')
+doc_session = Session(bind)
+odm_session = ThreadLocalODMSession(doc_session=doc_session)
