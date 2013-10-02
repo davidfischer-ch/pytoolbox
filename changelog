@@ -1,4 +1,4 @@
-v5.0.0-beta -> v5.1.2-beta
+v5.0.0-beta -> v5.1.9-beta
 ==========================
 
 Features
@@ -6,6 +6,7 @@ Features
 
 * Embed smpte2022lib
 * Add entry points (socket-fec-generator + twisted-fec-generator)
+* Add commit and release scripts to make it more securely (run tests before, check sphinx ...)
 
 Fixes and enhancements
 ----------------------
@@ -13,6 +14,9 @@ Fixes and enhancements
 * Lighter list of dependencies
 * Add --extra-... flags to install dependencies for the extra features/modules.
 * Filter packages to avoid installing tests module !
+* Fix docstrings
+* Fix setup.py to avoid removing tests from packages list if it did not exist.
+* Add kwargs to object2json -> json.dumps
 
 Example usage::
 
