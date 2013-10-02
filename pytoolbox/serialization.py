@@ -88,13 +88,44 @@ class SmartJSONEncoderV2(json.JSONEncoder):
             attributes[a[0]] = a[1]
         return attributes
 
-def object2json(obj, include_properties):
-    u"""Serialize an :class:`object` to a JSON string."""
-    return json.dumps(obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1))
+def object2json(obj, include_properties, **kwargs):
+    u"""
+    Serialize an :class:`object` to a JSON string. Use one of the *smart* JSON encoder of this module.
+
+    * Set include_properties to True to also include the properties of ``obj``.
+    * Set kwargs with any argument of the function :mod:`json`.dumps excepting cls.
+
+    **Example usage**
+
+    >>> import os
+    >>> from nose.tools import assert_equal
+    >>> class Point(object):
+    ...     def __init__(self, x=0, y=0):
+    ...         self.x = x
+    ...         self.y = y
+    ...     @property
+    ...     def z(self):
+    ...         return self.x + self.y
+    >>> p1 = Point(x=16, y=-5)
+    >>> assert_equal(object2json(p1, include_properties=False, sort_keys=True), u'{"x": 16, "y": -5}')
+    >>> assert_equal(object2json(p1, include_properties=True, sort_keys=True), u'{"x": 16, "y": -5, "z": 11}')
+    >>> print(object2json(p1, include_properties=True, sort_keys=True, indent=4)) # doctest: +NORMALIZE_WHITESPACE
+    {
+        "x": 16,
+        "y": -5,
+        "z": 11
+    }
+    """
+    return json.dumps(obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1), **kwargs)
 
 
 def json2object(cls, json_string, inspect_constructor):
-    u"""Deserialize the JSON string ``json_string`` to an instance of ``cls``."""
+    u"""
+    Deserialize the JSON string ``json_string`` to an instance of ``cls``.
+
+    Set ``inspect_constructor`` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
+    constructor (``__init__``) of ``cls``.
+    """
     return dict2object(cls, json.loads(json_string), inspect_constructor)
 
 
@@ -191,38 +222,36 @@ class JsoneableObject(object):
     """
     @classmethod
     def read(cls, filename, store_filename=False, inspect_constructor=True):
-        u"""
-        Return a deserialized instance of a jsoneable object loaded from a file.
-        """
+        u"""Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(filename, u'r', u'utf-8') as f:
             the_object = dict2object(cls, json.loads(f.read()), inspect_constructor)
             if store_filename:
                 the_object._json_filename = filename
             return the_object
 
-    def write(self, filename=None, include_properties=False):
-        u"""
-        Serialize ``self`` to a file, excluding the attribute ``_json_filename``.
-        """
+    def write(self, filename=None, include_properties=False, **kwargs):
+        u"""Serialize ``self`` to a file, excluding the attribute ``_json_filename``."""
         if filename is None and hasattr(self, u'_json_filename'):
             filename = self._json_filename
             try:
                 del self._json_filename
                 with open(filename, u'w', u'utf-8') as f:
-                    f.write(object2json(self, include_properties))
+                    f.write(object2json(self, include_properties, **kwargs))
             finally:
                 self._json_filename = filename
         elif filename is not None:
             with open(filename, u'w', u'utf-8') as f:
-                f.write(object2json(self, include_properties))
+                f.write(object2json(self, include_properties, **kwargs))
         else:
             raise ValueError(u'A filename must be specified')
 
-    def to_json(self, include_properties):
-        return object2json(self, include_properties)
+    def to_json(self, include_properties, **kwargs):
+        u"""Serialize this instance to a JSON string."""
+        return object2json(self, include_properties, **kwargs)
 
     @classmethod
     def from_json(cls, json_string, inspect_constructor):
+        u"""Deserialize a JSON string to an instance of ``JsoneableObject``."""
         return dict2object(cls, json.loads(json_string), inspect_constructor)
 
 
@@ -293,7 +322,7 @@ def dict2object(cls, the_dict, inspect_constructor):
     u"""
     Convert a python dictionary to an instance of a class.
 
-    Set ``inspect_constructor`` to filter input dictionary to avoid sending unexpected keyword arguments to the
+    Set ``inspect_constructor`` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
     constructor (``__init__``) of ``cls``.
 
     **Example usage**
