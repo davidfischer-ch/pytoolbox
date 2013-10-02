@@ -299,9 +299,8 @@ class RtpPacket(object):
 
         Testing header fields value (with padding, extension and ccrc):
 
-        >>> bytes = bytes.fromhex( \
-            u'b5 a1 a4 01 ca fe a4 21 b0 60 5e bb 11 11 11 11 22 22 22 22 33 \
-              33 33 33 44 44 44 44 55 55 55 55 00 00 00 04 87 65 43 21 12 34 00 02')
+        >>> bytes = bytes.fromhex(u'b5a1a401 cafea421 b0605ebb 11111111 22222222 33333333 '
+        ...                       u'44444444 55555555 00000004 87654321 12340002')
         >>> rtp = RtpPacket(bytes, len(bytes))
         >>> assert(rtp.valid)
         >>> assert(rtp.version == 2 and rtp.padding and rtp.extension and rtp.marker)

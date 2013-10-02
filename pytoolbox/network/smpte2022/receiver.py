@@ -62,9 +62,9 @@ class FecReceiver(object):
     >>> receiver.set_delay(1024, FecReceiver.PACKETS)
     >>> L, D = 4, 5
     >>> # Generate a [D][L] matrix of randomly generated RTP packets
-    >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50), \
-                  RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100)))) \
-                  for i in range(L)] for j in range(D)]
+    >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50),
+    ...           RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100))))
+    ...           for i in range(L)] for j in range(D)]
     >>> assert(len(matrix) == D and len(matrix[0]) == L)
     >>> # Retrieve the first column of the matrix
     >>> for column in matrix:

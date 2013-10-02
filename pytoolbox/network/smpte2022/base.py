@@ -70,8 +70,7 @@ class FecPacket(object):
     * 1st row: RTP header, sequence = 37 798
     * 2nd row: FEC header, SN = 50 288, PT recovery = 0, TS recovery = 7850
 
-    >>> header = bytearray.fromhex(u'80 60 93 a6 00 00 00 00 00 00 00 00 \
-                                     c4 70 00 00 80 00 00 00 00 00 1e aa 00 06 0a 00')
+    >>> header = bytearray.fromhex(u'806093a6 00000000 00000000 c4700000 80000000 00001eaa 00060a00')
     >>> length = 1344 - len(header)
     >>> print(length)
     1316
@@ -100,8 +99,7 @@ class FecPacket(object):
     * 1st row: RTP header, sequence = 63 004
     * 2nd row: FEC header, SN = 50 344, PT recovery = 0, TS recovery = 878
 
-    >>> header = bytearray.fromhex(u'80 60 f6 1c 00 00 00 00 00 00 00 00 \
-                                     c4 a8 00 00 80 00 00 00 00 00 03 6e 40 01 06 00')
+    >>> header = bytearray.fromhex(u'8060f61c 00000000 00000000 c4a80000 80000000 0000036e 40010600')
     >>> length = 1344 - len(header)
     >>> print(length)
     1316
@@ -219,8 +217,8 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)), \
-                       RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
+        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
+        ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(10, FecPacket.XOR, FecPacket.COL, 1, 2, packets)
         >>> print(fec.D)
         2
@@ -235,8 +233,8 @@ class FecPacket(object):
         **Example usage**
 
         >>> from ..rtp import RtpPacket
-        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)), \
-                       RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
+        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
+        ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(6, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
         >>> print(fec.L)
         2
@@ -251,8 +249,8 @@ class FecPacket(object):
         **Example usage**
 
         >>> from ..rtp import RtpPacket
-        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)), \
-                       RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
+        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
+        ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(1985, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
         >>> print(fec.header_size)
         16
@@ -267,8 +265,8 @@ class FecPacket(object):
         **Example usage**
 
         >>> from ..rtp import RtpPacket
-        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)), \
-                       RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
+        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
+        ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(27, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
         >>> print(fec.payload_size)
         1234
@@ -283,8 +281,8 @@ class FecPacket(object):
         *Example usage*
 
         >>> from ..rtp import RtpPacket
-        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)), \
-                       RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
+        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
+        ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(26, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
         >>> print(fec)
         errors                = []
@@ -417,8 +415,8 @@ class FecPacket(object):
         Testing invalid input collection of packets:
 
         >>> from ..rtp import RtpPacket
-        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, u'a'), \
-                       RtpPacket.create(22, 22, RtpPacket.MP2T_PT, u'b')]
+        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, u'a'),
+        ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, u'b')]
         >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, 2, 2, packets)
         Traceback (most recent call last):
             ...
@@ -426,10 +424,10 @@ class FecPacket(object):
 
         Testing valid input collection of packets:
 
-        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),  \
-                       RtpPacket.create(14, 14, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')), \
-                       RtpPacket.create(18, 18, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')), \
-                       RtpPacket.create(22, 22, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
+        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),
+        ...            RtpPacket.create(14, 14, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')),
+        ...            RtpPacket.create(18, 18, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')),
+        ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
         >>> fec = FecPacket.compute(2, FecPacket.XOR, FecPacket.COL, 4, 4, packets)
         >>> print(fec)
         errors                = []
@@ -457,9 +455,9 @@ class FecPacket(object):
         >>> D = 5
         >>> OFF = 2
         >>> # Generate a [D][L] matrix of randomly generated RTP packets
-        >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50), \
-                      RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100)))) \
-                      for i in range(L)] for j in range(D)]
+        >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50),
+        ...           RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100))))
+        ...           for i in range(L)] for j in range(D)]
         >>> assert(len(matrix) == D and len(matrix[0]) == L)
         >>> # Retrieve the OFF'th column of the matrix
         >>> expected_payload_type_recovery = 0
@@ -541,10 +539,10 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),  \
-                       RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')), \
-                       RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')), \
-                       RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
+        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),
+        ...            RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')),
+        ...            RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')),
+        ...            RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
         >>> fec = FecPacket.compute(4, FecPacket.XOR, FecPacket.COL, 3, 4, packets)
         >>> print fec
         errors                = []
@@ -660,10 +658,10 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(10)), \
-                       RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(5)), \
-                       RtpPacket.create(12, 300, RtpPacket.MP2T_PT, bytearray(7)), \
-                       RtpPacket.create(13, 400, RtpPacket.MP2T_PT, bytearray(10))]
+        >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(10)),
+        ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(5)),
+        ...            RtpPacket.create(12, 300, RtpPacket.MP2T_PT, bytearray(7)),
+        ...            RtpPacket.create(13, 400, RtpPacket.MP2T_PT, bytearray(10))]
         >>> fec = FecPacket.compute(12, FecPacket.XOR, FecPacket.ROW, 4, 1, packets)
         >>> print(fec)
         errors                = []

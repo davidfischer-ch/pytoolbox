@@ -303,13 +303,13 @@ def dict2object(cls, the_dict, inspect_constructor):
     u"""
     Convert a python dictionary to an instance of a class.
 
-    * Set ``inspect_constructor`` to filter input dictionary to avoid sending unexpected keyword arguments to the
+    Set ``inspect_constructor`` to filter input dictionary to avoid sending unexpected keyword arguments to the
     constructor (``__init__``) of ``cls``.
 
     **Example usage**:
 
     >>> from nose.tools import assert_equal
-
+    ...
     >>> class User(object):
     ...     def __init__(self, first_name, last_name=u'Fischer'):
     ...         self.first_name, self.last_name = first_name, last_name
@@ -318,12 +318,12 @@ def dict2object(cls, the_dict, inspect_constructor):
     ...        return u'{0} {1}'.format(self.first_name, self.last_name)
 
     >>> user_dict = {u'first_name': u'Victor', u'last_name': u'Fischer', u'unexpected': 10}
-
+    ...
     >>> dict2object(User, user_dict, inspect_constructor=False)
     Traceback (most recent call last):
         ...
     TypeError: __init__() got an unexpected keyword argument 'unexpected'
-
+    ...
     >>> expected = {u'first_name': 'Victor', u'last_name': 'Fischer'}
     >>> assert_equal(dict2object(User, user_dict, inspect_constructor=True).__dict__, expected)
     """

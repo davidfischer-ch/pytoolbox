@@ -74,17 +74,15 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     u"""
     Execute a command ``command`` into environment ``environment``.
 
-    **Known issue:**
+    **Known issue**:
 
     Locking Juju status 'are you sure you want to continue connecting (yes/no)'.
 
-    We need a way to confirm our choice, ``cmd(u'juju status --environment %s' % environment,
-    cli_input=u'yes\n')? ?  seem to not work as expected. This happens the first time (and only the
-    first time) juju connect to a freshly deployed environment.
+    We need a way to confirm our choice ``cmd(u'juju status --environment %s' % environment, cli_input=u'yes\\n')``
+    seem to not work as expected. This happens the first time (and only the first time) juju connect to a freshly
+    deployed environment.
 
-    Solution : http://askubuntu.com/questions/123072/ssh-automatically-accept-keys
-
-    .. code-block:: bash
+    Solution : http://askubuntu.com/questions/123072/ssh-automatically-accept-keys::
 
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
     """
@@ -106,6 +104,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
 def load_unit_config(config, log=None):
     u"""
     Returns a dictionary containing the options names as keys and options default values as values.
+
     The parameter ``config`` can be:
 
     * The filename of a charm configuration file (e.g. ``config.yaml``).
@@ -464,9 +463,7 @@ class CharmHooks(object):
     u"""
     A base class to build charms based on python hooks, callable even if juju is not installed.
 
-    The following attributes are set by ``__init__``: TODO
-
-    * ``local_config`` must be set by derived class to an instance of ``serialization.PickelableObject``.
+    Attribute ``local_config`` must be set by derived class to an instance of ``serialization.PickelableObject``.
     This should be loaded from a file that is local to the unit by ``__init__``. This file is used to store service/
     unit-specific configuration. In EBU's project called OSCIED, this file is even read by the encapsulated python
     code of the worker (celery daemon).
