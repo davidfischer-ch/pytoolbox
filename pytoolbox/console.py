@@ -31,6 +31,8 @@ def confirm(question=None, default=False):
     u"""
     Return True if user confirm the action, else False. ``default`` if user only press ENTER.
 
+    **Example usage**
+
     >> confirm(u'Do it now', default=True)
     Do it now ? [Y/n]:
     True
@@ -59,9 +61,9 @@ def print_error(message, output=sys.stderr, exit_code=1):
     u"""
     Print a error message and exit if ``exit_code`` is not None.
 
-    **Example usage**:
+    **Example usage**
 
-    In following example output is set to stdout and exit is disabled (for doctest):
+    In following example output is set to ``stdout`` and exit is disabled (for :mod:`doctest`):
 
     >>> print_error(u"It's not a bug - it's an undocumented feature.", output=sys.stdout, exit_code=None)
     [ERROR] It's not a bug - it's an undocumented feature.

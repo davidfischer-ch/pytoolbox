@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env bash
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
@@ -22,40 +22,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-from __future__ import absolute_import
-
-import sys
-
-if sys.version_info[0] > 2:
-    from ipaddress import ip_address
-else:
-    from ipaddr import IPAddress as ip_address
-
-
-def IPSocket(string):
-    u"""
-    This helper create a dictionary containing address and port from a parsed IP address string.
-    Throws ValueError in case of failure (e.g. string is not a valid IP address).
-
-    **Example usage**
-
-    >>> IPSocket(u'gaga:gogo')
-    Traceback (most recent call last):
-        ...
-    ValueError: gaga:gogo is not a valid IP socket.
-    >>>
-    >>> from nose.tools import assert_equal
-    >>> assert_equal(IPSocket(u'239.232.0.222:5004'), {u'ip': u'239.232.0.222', u'port': 5004})
-
-    .. warning::
-
-        TODO IPv6 ready : >>> IPSocket(u'[2001:0db8:0000:0000:0000:ff00:0042]:8329')
-    """
-    try:
-        (ip, port) = string.rsplit(u':', 1)
-        #ip = ip.translate(None, '[]')
-        ip_address(ip)  # Seem not IPv6 ready
-        port = int(port)
-    except Exception:
-        raise ValueError(u'{0} is not a valid IP socket.'.format(string))
-    return {u'ip': ip, u'port': port}
+sudo python2 setup.py test || { echo '[ERROR] Python 2 unit-test of pytoolbox failed'; exit 1; }
+sudo python3 setup.py test || { echo '[ERROR] Python 3 unit-test of pytoolbox failed'; exit 2; }
+git commit || exit 3
+git push || exit 4
+sudo python setup.py register && sudo python setup.py sdist upload

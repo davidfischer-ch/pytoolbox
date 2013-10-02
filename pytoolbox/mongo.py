@@ -161,7 +161,7 @@ class User(Model):
         u"""
         Hashes user's secret if it is not already hashed.
 
-        **Example usage**:
+        **Example usage**
 
         >>> user = User(first_name=u'D.', last_name=u'F.', mail=u'd@f.com', secret=u'Secr4taB', admin_platform=True)
         >>> user.is_secret_hashed
@@ -185,7 +185,7 @@ class User(Model):
         u"""
         Returns True if secret is equal to user's secret.
 
-        **Example usage**:
+        **Example usage**
 
         >>> user = User(first_name=u'D.', last_name=u'F.', mail='d@f.com', secret=u'Secr4taB', admin_platform=True)
         >>> user.verify_secret(u'bad_secret')

@@ -40,7 +40,7 @@ def valid_filename(filename):
     u"""
     Returns True if ``filename`` is a valid filename.
 
-    **Example usage**:
+    **Example usage**
 
     >>> valid_filename(u'my_file_without_extension')
     False
@@ -57,7 +57,7 @@ def valid_ip(ip):
     u"""
     Returns True if ``ip`` is a valid IP address.
 
-    **Example usage**:
+    **Example usage**
 
     >>> valid_ip(u'123.0.0.')
     False
@@ -75,7 +75,7 @@ def valid_email(email):
     u"""
     Returns True if ``email`` is a valid e-mail address.
 
-    **Example usage**:
+    **Example usage**
 
     >>> valid_email(u'Tabby@croquetes')
     False
@@ -92,7 +92,7 @@ def valid_port(port):
     u"""
     Returns True if ``port`` is a valid port.
 
-    **Example usage**:
+    **Example usage**
 
     >>> assert(not valid_port(-1))
     >>> assert(not valid_port('something not a port'))
@@ -112,7 +112,7 @@ def valid_secret(secret, none_allowed):
 
     A valid secret contains at least 8 alpha-numeric characters.
 
-    **Example usage**:
+    **Example usage**
 
     >>> valid_secret(u'1234', False)
     False
@@ -145,24 +145,29 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     False
 
     Set default value for port (using a crazy port number to ensure a 404):
+
     >>> valid_uri('//docs.python.org/2/library/httplib.html', check_404=True, default_port=88881)
     False
 
     Following the syntax ... in RFC 1808, ... input is presumed ... a path component:
+
     >>> valid_uri('docs.python.org/2/library/httplib.html', check_404=True)
     False
 
     This method does not use scheme of ``uri`` at all, so here is the proof:
+
     >>> valid_uri('gluster://docs.python.org/2/library/httplib.html', check_404=True)
     True
 
     Enforce the scheme or the port to being set:
+
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, scheme_mandatory=True)
     False
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
     False
 
     Only accept to map a 'No such file or directory' standard :mod:`errno` to False:
+
     >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080)
     False
     >>> try:
@@ -193,7 +198,7 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     u"""
     Returns True if ``id`` is a valid UUID / ObjectId.
 
-    **Example usage**:
+    **Example usage**
 
     >>> valid_uuid(None)
     False
@@ -225,15 +230,13 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
             return False
         try:
             ObjectId(id)
-        except InvalidId as e:
+        except InvalidId:
             return False
     return True
 
 
 def validate_list(the_list, regexes):
-    u"""
-    Validate every element of ``the_list`` with corresponding regular expression picked-in from ``regexes``.
-    """
+    u"""Validate every element of ``the_list`` with corresponding regular expression picked-in from ``regexes``."""
     if len(the_list) != len(regexes):
         raise IndexError(to_bytes(u'{0} elements to validate with {1} regular expressions'.format(len(the_list), len(regexes))))
     for i in range(len(regexes)):

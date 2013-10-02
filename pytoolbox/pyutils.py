@@ -29,11 +29,11 @@ import uuid
 
 class DBModel(object):
     u"""
-    Implement an ``object`` with a method called ``to_dict`` that returns a ``dict`` containing
-    fields and properties specified in ``DICT_FIELDS`` and ``DICT_PROPERTIES``.
+    Implement an ``object`` with a method called ``to_dict`` that returns a ``dict`` containing fields and properties
+    specified in ``DICT_FIELDS`` and ``DICT_PROPERTIES``.
 
-    It is useful to inherit your *ming* or *sqlalchemy* models from the ``DBModel``class to control
-    which fields and properties you want to include into the ``dict`` you may JSONify.
+    It is useful to inherit your *ming* or *sqlalchemy* models from the ``DBModel``class to control which fields and
+    properties you want to include into the ``dict`` you may JSONify.
     """
     DICT_FIELDS = DICT_PROPERTIES = None
 

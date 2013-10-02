@@ -95,22 +95,18 @@ class RtpPacket(object):
 
     @property
     def valid(self):
-        u"""
-        Returns True if this packet is a valid RTP packet.
-        """
+        u"""Returns True if this packet is a valid RTP packet."""
         return len(self.errors) == 0
 
     @property
     def validMP2T(self):
-        u"""
-        Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload.
-        """
+        u"""Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
         return self.valid and self.payload_type == RtpPacket.MP2T_PT
 
     @property
     def errors(self):
         u"""
-        Returns an array containing any errors (TODO).
+        Returns an array containing any errors.
 
         :return: array of error message(s).
 
@@ -138,9 +134,7 @@ class RtpPacket(object):
 
     @property
     def clock_rate(self):
-        u"""
-        TODO
-        """
+        u"""Return the MPEG2-TS clock rate of a MPEG2-TS payload or 1 if this is not."""
         return RtpPacket.MP2T_CLK if self.payload_type == RtpPacket.MP2T_PT else 1
 
     @property
@@ -171,15 +165,13 @@ class RtpPacket(object):
 
     @property
     def time(self):
-        u"""
-        TODO
-        """
+        u"""Return computed time (*timestamp / clock rate*)."""
         return self.timestamp / self.clock_rate
 
     @property
     def header_bytes(self):
         u"""
-        TODO
+        Return the RTP header bytes.
 
         *Example usage*
 
@@ -248,6 +240,7 @@ class RtpPacket(object):
 
     @property
     def bytes(self):
+        u"""Return the RTP packet header and payload bytes."""
         return self.header_bytes + self.payload
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -410,7 +403,7 @@ class RtpPacket(object):
 
     def __eq__(self, other):
         u"""
-        TODO
+        Equality test.
 
         .. warning::
 

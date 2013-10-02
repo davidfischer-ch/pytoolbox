@@ -34,17 +34,18 @@ class pygal_deque(deque):
 
     .. warning::
 
-        Not yet implemented :
-        appendleft(x)
-        clear()
-        count(x)
-        extend(iterable)
-        extendleft(iterable)
-        pop()
-        popleft()
-        remove(value)
-        reverse()
-        rotate(n)
+        Not yet implemented:
+
+        * appendleft(x)
+        * clear()
+        * count(x)
+        * extend(iterable)
+        * extendleft(iterable)
+        * pop()
+        * popleft()
+        * remove(value)
+        * reverse()
+        * rotate(n)
     """
 
     def append(self, value):
@@ -114,6 +115,10 @@ class EventsTable(object):
 
     def sleep_time(self, time, time_speedup=None, sleep_factor=None):
         u"""
+        Return required sleep time to wait for next scheduled event.
+
+        **Example usage**
+
         >>> from nose.tools import assert_equal
         >>> table = EventsTable({0: 'salut'}, 24, 60)
         >>> assert_equal(table.sleep_time(1), 59)

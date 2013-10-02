@@ -45,7 +45,7 @@ def mock_side_effect(*args, **kwargs):
     u"""
     Pop and return values from MOCK_SIDE_EFFECT_RETURNS.
 
-    from your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this method::
+    From your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this method::
 
         import pytoolbox.unittest
         pytoolbox.unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
@@ -57,13 +57,13 @@ def mock_side_effect(*args, **kwargs):
     Pops return values with ``mock_side_effect``:
 
     >>> from nose.tools import assert_equal
-
+    >>>
     >>> print(mock_side_effect())
     Traceback (most recent call last):
     ...
     Exception: you must set MOCK_SIDE_EFFECT_RETURNS
     >>> assert_equal(mock_side_effect(), {u'title': u'2nd'})
-
+    >>>
     >>> print(mock_side_effect())
     Traceback (most recent call last):
     ...
@@ -92,10 +92,8 @@ class PseudoTestCase(TestCase):
 
 def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
     u"""Run tests and report coverage with nose and coverage."""
-
     from .encoding import configure_unicode
     configure_unicode()
-
     extra_options = extra_options or []
     cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]
     nose_options = filter(None, [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe'] +

@@ -37,6 +37,7 @@ log = logging.getLogger(u'smpte2022lib')
 class SocketFecGenerator(object):
     u"""
     A SMPTE 2022-1 FEC streams generator with network skills based on :mod:`socket`.
+
     This generator listen to incoming RTP media stream, compute and output corresponding FEC streams.
 
     **Example usage**
@@ -46,7 +47,7 @@ class SocketFecGenerator(object):
     >>> col = IPSocket(SocketFecGenerator.DEFAULT_COL)
     >>> row = IPSocket(SocketFecGenerator.DEFAULT_ROW)
     >>> generator = SocketFecGenerator(media, col, row, 5, 6)
-    >>> print generator._generator
+    >>> print(generator._generator)
     Matrix size L x D            = 5 x 6
     Total invalid media packets  = 0
     Total media packets received = 0
@@ -110,7 +111,7 @@ class SocketFecGenerator(object):
         :param timeout: Set a timeout on blocking socket operations (in seconds, or None).
         :type timeout: float
 
-        **Example usage**:
+        **Example usage**
 
         >> print('TODO lazy developer !')
         I've done the code, but not the example ... I will do it later ...
@@ -160,7 +161,7 @@ class SocketFecGenerator(object):
 
     def on_new_col(self, col, generator):
         u"""
-        Called by self=FecGenerator when a new column FEC packet is generated and available for output.
+        Called by ``self=FecGenerator`` when a new column FEC packet is generated and available for output.
 
         Send the encapsulated column FEC packet.
 
@@ -178,7 +179,7 @@ class SocketFecGenerator(object):
 
     def on_new_row(self, row, generator):
         u"""
-        Called by self=FecGenerator when a new row FEC packet is generated and available for output.
+        Called by ``self=FecGenerator`` when a new row FEC packet is generated and available for output.
 
         Send the encapsulated row FEC packet.
 
@@ -196,7 +197,7 @@ class SocketFecGenerator(object):
 
     def on_reset(self, media, generator):
         u"""
-        Called by self=FecGenerator when the algorithm is resetted (an incoming media is out of sequence).
+        Called by ``self=FecGenerator`` when the algorithm is resetted (an incoming media is out of sequence).
 
         Log a warning message.
 
@@ -216,7 +217,6 @@ def main():
     * Parse arguments from command line
     * Register handlers to SIGTERM and SIGINT
     * Instantiate a :mod:`SocketFecGenerator` and start it
-
     """
     import doctest, errno, signal
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, FileType

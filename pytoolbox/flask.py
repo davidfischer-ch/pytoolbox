@@ -72,7 +72,7 @@ def map_exceptions(e):
     u"""
     Maps a standard exception into corresponding HTTP exception class.
 
-    **Example usage**:
+    **Example usage**
 
     >>> from nose.tools import assert_raises
     >>> import werkzeug.exceptions

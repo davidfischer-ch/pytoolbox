@@ -43,7 +43,7 @@ class FecGenerator(object):
 
         **Example usage**
 
-        >>> print FecGenerator(4, 5).L
+        >>> print(FecGenerator(4, 5).L)
         4
         """
         return self._L
@@ -55,7 +55,7 @@ class FecGenerator(object):
 
         **Example usage**
 
-        >>> print FecGenerator(4, 5).D
+        >>> print(FecGenerator(4, 5).D)
         5
         """
         return self._D
@@ -85,7 +85,7 @@ class FecGenerator(object):
         u"""
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
-        By default this method only print a message to stdout.
+        By default this method only print a message to ``stdout``.
 
         .. seealso::
 
@@ -103,7 +103,7 @@ class FecGenerator(object):
         u"""
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 
-        By default this method only print a message to stdout.
+        By default this method only print a message to ``stdout``.
 
         .. seealso::
 
@@ -121,7 +121,7 @@ class FecGenerator(object):
         u"""
         Called by FecGenerator when the algorithm is resetted (an incoming media is out of sequence).
 
-        By default this method only print a message to stdout.
+        By default this method only print a message to ``stdout``.
 
         .. seealso::
 
@@ -158,7 +158,7 @@ class FecGenerator(object):
         Media seq=2 is out of sequence (expected 5) : FEC algorithm resetted !
         >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray(u'Kuota Kharma Evo', u'utf-8')))
         Media seq=2 is out of sequence (expected 3) : FEC algorithm resetted !
-        >>> print g
+        >>> print(g)
         Matrix size L x D            = 4 x 5
         Total invalid media packets  = 0
         Total media packets received = 5
@@ -189,7 +189,7 @@ class FecGenerator(object):
         New ROW FEC packet seq=3 snbase=7 LxD=3xNone trec=536
         >>> g.put_media(RtpPacket.create(10, 1000, RtpPacket.MP2T_PT, bytearray(u'5ème élément', u'utf-8')))
         New COL FEC packet seq=1 snbase=1 LxD=3x4 trec=160
-        >>> print g
+        >>> print(g)
         Matrix size L x D            = 3 x 4
         Total invalid media packets  = 0
         Total media packets received = 10
@@ -202,7 +202,7 @@ class FecGenerator(object):
         >>> g.put_media(RtpPacket.create(12, 1200, RtpPacket.MP2T_PT, bytearray(u'Yes, it WORKS !', u'utf-8')))
         New ROW FEC packet seq=4 snbase=10 LxD=3xNone trec=788
         New COL FEC packet seq=3 snbase=3 LxD=3x4 trec=1088
-        >>> print g
+        >>> print(g)
         Matrix size L x D            = 3 x 4
         Total invalid media packets  = 0
         Total media packets received = 12
@@ -252,7 +252,7 @@ class FecGenerator(object):
 
         **Example usage**
 
-        >>> print FecGenerator(5, 6)
+        >>> print(FecGenerator(5, 6))
         Matrix size L x D            = 5 x 6
         Total invalid media packets  = 0
         Total media packets received = 0

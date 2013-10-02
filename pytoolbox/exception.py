@@ -40,7 +40,7 @@ class TimeoutError(Exception):
 def assert_raises_item(exception_cls, something, index, value=None, delete=False):
     u"""
 
-    **Example usage**:
+    **Example usage**
 
     >>> x = {0: 3.14, 1: 2.54}
 

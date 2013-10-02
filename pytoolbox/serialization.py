@@ -33,14 +33,10 @@ from .encoding import string_types, to_bytes
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------
 
 class PickleableObject(object):
-    u"""
-    An :class:`object` serializable/deserializable by :mod:`pickle`.
-    """
+    u"""An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
     def read(cls, filename, store_filename=False, create_if_error=False, **kwargs):
-        u"""
-        Return a deserialized instance of a pickleable object loaded from a file.
-        """
+        u"""Return a deserialized instance of a pickleable object loaded from a file."""
         try:
             the_object = pickle.load(open(filename, u'rb'))
         except:
@@ -53,9 +49,7 @@ class PickleableObject(object):
         return the_object
 
     def write(self, filename=None, store_filename=False):
-        u"""
-        Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``.
-        """
+        u"""Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``."""
         pickle_filename = getattr(self, '_pickle_filename', None)
         filename = filename or pickle_filename
         if filename is None:
@@ -95,16 +89,12 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 def object2json(obj, include_properties):
-    u"""
-    Serialize an :class:`object` to a JSON string.
-    """
+    u"""Serialize an :class:`object` to a JSON string."""
     return json.dumps(obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1))
 
 
 def json2object(cls, json_string, inspect_constructor):
-    u"""
-    Deserialize the JSON string ``json_string`` to an instance of ``cls``.
-    """
+    u"""Deserialize the JSON string ``json_string`` to an instance of ``cls``."""
     return dict2object(cls, json.loads(json_string), inspect_constructor)
 
 
@@ -116,7 +106,7 @@ def jsonfile2object(cls, filename_or_file, inspect_constructor):
 
         Class constructor is responsible of converting attributes to instances of classes with ``dict2object``.
 
-    **Example usage**:
+    **Example usage**
 
     Define the sample class, instantiate it and serialize it to a file:
 
@@ -154,14 +144,14 @@ class JsoneableObject(object):
     Convert-back from JSON strings containing extra parameters:
 
     >>> from nose.tools import assert_equal
-
+    >>>
     >>> class User(object):
     ...     def __init__(self, first_name, last_name):
     ...         self.first_name, self.last_name = first_name, last_name
     ...     @property
     ...     def name(self):
     ...         return u'{0} {1}'.format(self.first_name, self.last_name)
-
+    >>>
     >>> class Media(JsoneableObject):
     ...     def __init__(self, author, title):
     ...         self.author = dict2object(User, author, True) if isinstance(author, dict) else author
@@ -184,7 +174,7 @@ class JsoneableObject(object):
     ...     @property
     ...     def name(self):
     ...         return u'{0} {1}'.format(self.first_name, self.last_name)
-
+    >>>
     >>> class Media(JsoneableObject):
     ...     def __init__(self, author, title, **kwargs):
     ...         self.author = User(**author) if isinstance(author, dict) else author
@@ -247,7 +237,7 @@ def object2dict(obj, include_properties):
         Current implementation serialize ``obj`` to a JSON string and then deserialize this JSON string to an instance
         of :class:`dict`.
 
-    **Example usage**:
+    **Example usage**
 
     Define the sample class and convert some instances to a dictionary:
 
@@ -261,14 +251,14 @@ def object2dict(obj, include_properties):
     ...     @property
     ...     def z(self):
     ...         return self.x - self.y
-
+    >>>
     >>> p1_dict = {u'y': 2, u'x': 5, u'name': u'p1', u'p': {u'y': 4, u'x': 3, u'name': u'p2', u'p': None}}
     >>> assert_equal(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
-
+    >>>
     >>> p2_dict = {u'y': 4, u'p': None, u'z': -1, u'name': u'p2', u'x': 3}
     >>> p1_dict = {u'y': 2, u'p': p2_dict, u'z': 3, u'name': u'p1', u'x': 5}
     >>> assert_equal(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
-
+    >>>
     >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
     >>> p1.p, p2.p = p2, p1
     >>> print(object2dict(p1, True))
@@ -306,24 +296,24 @@ def dict2object(cls, the_dict, inspect_constructor):
     Set ``inspect_constructor`` to filter input dictionary to avoid sending unexpected keyword arguments to the
     constructor (``__init__``) of ``cls``.
 
-    **Example usage**:
+    **Example usage**
 
     >>> from nose.tools import assert_equal
-    ...
+    >>>
     >>> class User(object):
     ...     def __init__(self, first_name, last_name=u'Fischer'):
     ...         self.first_name, self.last_name = first_name, last_name
     ...     @property
     ...     def name(self):
     ...        return u'{0} {1}'.format(self.first_name, self.last_name)
-
-    >>> user_dict = {u'first_name': u'Victor', u'last_name': u'Fischer', u'unexpected': 10}
     ...
+    >>> user_dict = {u'first_name': u'Victor', u'last_name': u'Fischer', u'unexpected': 10}
+    >>>
     >>> dict2object(User, user_dict, inspect_constructor=False)
     Traceback (most recent call last):
         ...
     TypeError: __init__() got an unexpected keyword argument 'unexpected'
-    ...
+    >>>
     >>> expected = {u'first_name': 'Victor', u'last_name': 'Fischer'}
     >>> assert_equal(dict2object(User, user_dict, inspect_constructor=True).__dict__, expected)
     """

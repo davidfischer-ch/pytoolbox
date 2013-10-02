@@ -71,17 +71,13 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
 
 # http://stackoverflow.com/a/7730201/190597
 def make_async(fd):
-    u'''
-    Add the O_NONBLOCK flag to a file descriptor.
-    '''
+    u"""Add the O_NONBLOCK flag to a file descriptor."""
     fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
 
 
 # http://stackoverflow.com/a/7730201/190597
 def read_async(fd):
-    u'''
-    Read some data from a file descriptor, ignoring EAGAIN errors.
-    '''
+    u"""Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
     except IOError as e:
@@ -143,25 +139,19 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
 
 
 def screen_kill(name=None, fail=True, log=None, **kwargs):
-    u"""
-    Kill all screen instances called ``name`` or all if ``name`` is None.
-    """
+    u"""Kill all screen instances called ``name`` or all if ``name`` is None."""
     for name in screen_list(name=name, log=log):
         cmd([u'screen', u'-S', name, u'-X', u'quit'], fail=fail, log=log, **kwargs)
 
 
 def screen_launch(name, command, fail=True, log=None, **kwargs):
-    u"""
-    Launch a new named screen instance.
-    """
+    u"""Launch a new named screen instance."""
     return cmd([u'screen', u'-dmS', name] + (command if isinstance(command, list) else [command]),
                fail=fail, log=log, **kwargs)
 
 
 def screen_list(name=None, log=None, **kwargs):
-    u"""
-    Returns a list containing all instances of screen. Can be filtered by ``name``.
-    """
+    u"""Returns a list containing all instances of screen. Can be filtered by ``name``."""
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
                       unicode(cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'], u'utf-8'))
 

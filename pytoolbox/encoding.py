@@ -34,17 +34,26 @@ if sys.version_info[0] == 2:
     to_bytes = kitchen.text.converters.to_bytes
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
     def configure_unicode(encoding=u'utf-8'):
-        u"""
-        It is crucial to raise exceptions helped with ``to_bytes``::
-
-            configure_unicode()
-            raise NotImplementedError(to_bytes(u'Saluté'))
-        """
+        u"""Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
         sys.stdout = kitchen.text.converters.getwriter(encoding)(sys.stdout)
         sys.stderr = kitchen.text.converters.getwriter(encoding)(sys.stderr)
 else:
-    def to_bytes(message): return unicode(message)
-    def configure_unicode(encoding=u'utf-8'): pass
+    def to_bytes(message):
+        u"""Convert an Unicode message to bytes, useful for raising exceptions in Python 2.
+
+        **Example usage**:
+
+        >>> configure_unicode()
+        >>> raise NotImplementedError(to_bytes(u'Saluté'))
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: Saluté
+        """
+        return unicode(message)
+
+    def configure_unicode(encoding=u'utf-8'):
+        u"""Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
+        pass
 
 
 def csv_reader(filename, delimiter=u';', quotechar=u'"', encoding=u'utf-8'):

@@ -167,15 +167,13 @@ class FecPacket(object):
 
     @property
     def valid(self):
-        u"""
-        Returns True if this packet is a valid RTP packet (with FEC payload).
-        """
+        u"""Returns True if this packet is a valid RTP packet (with FEC payload)."""
         return len(self.errors) == 0
 
     @property
     def errors(self):
         u"""
-        Returns an array containing any errors (TODO).
+        Returns an array containing any errors.
 
         :return: array of error message(s).
 
@@ -183,9 +181,9 @@ class FecPacket(object):
 
         Testing invalid header:
 
-        #>>> fec = FecPacket(bytearray(FecPacket.HEADER_LENGTH-1), FecPacket.HEADER_LENGTH-1)
-        #>>> print(fec.errors)
-        #[u'RTP Header : Version must be set to 2', u'RTP packet must have a payload']
+        #TODO >>> fec = FecPacket(bytearray(FecPacket.HEADER_LENGTH-1), FecPacket.HEADER_LENGTH-1)
+        #TODO >>> print(fec.errors)
+        #TODO [u'RTP Header : Version must be set to 2', u'RTP packet must have a payload']
         """
         errors = self._errors
         if not self.extended:
@@ -278,7 +276,7 @@ class FecPacket(object):
         u"""
         Returns SMPTE 2022-1 FEC header bytes.
 
-        *Example usage*
+        **Example usage**
 
         >>> from ..rtp import RtpPacket
         >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
@@ -535,7 +533,7 @@ class FecPacket(object):
 
     def set_missing(self, media_sequence):
         u"""
-        TODO
+        Register a protected media packet as missing.
 
         **Example usage**
 
@@ -544,7 +542,7 @@ class FecPacket(object):
         ...            RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')),
         ...            RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
         >>> fec = FecPacket.compute(4, FecPacket.XOR, FecPacket.COL, 3, 4, packets)
-        >>> print fec
+        >>> print(fec)
         errors                = []
         sequence              = 4
         algorithm             = XOR
@@ -572,35 +570,35 @@ class FecPacket(object):
 
         Testing set / get of a unique missing value:
 
-        >>> print fec.set_missing(1)
+        >>> print(fec.set_missing(1))
         2
-        >>> print fec.missing[0]
+        >>> print(fec.missing[0])
         1
-        >>> print len(fec.missing)
+        >>> print(len(fec.missing))
         1
 
         Testing simple recovery of a unique value:
 
-        >>> print fec.set_recovered(1)
+        >>> print(fec.set_recovered(1))
         2
-        >>> print len(fec.missing)
+        >>> print(len(fec.missing))
         0
 
         Testing set / get of multiple missing values (including re-setting of a value):
 
-        >>> print fec.set_missing(4)
+        >>> print(fec.set_missing(4))
         3
-        >>> print fec.set_missing(4)
+        >>> print(fec.set_missing(4))
         3
-        >>> print len(fec.missing)
+        >>> print(len(fec.missing))
         1
-        >>> print fec.set_missing(fec.snbase + fec.offset)
+        >>> print(fec.set_missing(fec.snbase + fec.offset))
         1
-        >>> print fec.set_missing(fec.snbase)
+        >>> print(fec.set_missing(fec.snbase))
         0
-        >>> print len(fec.missing)
+        >>> print(len(fec.missing))
         3
-        >>> print fec.missing
+        >>> print(fec.missing)
         [4, 65533, 65530]
 
         Testing re-recovery of a value:
@@ -609,7 +607,7 @@ class FecPacket(object):
         Traceback (most recent call last):
             ...
         ValueError: list.remove(x): x not in list
-        >>> print fec.missing
+        >>> print(fec.missing)
         [65533, 65530]
         """
         j = self.computeJ(media_sequence)

@@ -50,7 +50,7 @@ class FecReceiver(object):
     >>> receiver.flush()
     >>> assert(output.getvalue() == u''.join(str(i) for i in range(1024)))
 
-    Testing fec algorithm correctness:
+    Testing FEC algorithm correctness:
 
     >>> import random
     >>> from io import BytesIO
@@ -72,10 +72,10 @@ class FecReceiver(object):
     ...         if media.sequence != 0:
     ...             receiver.put_media(media, True)
     >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, L, D, [p[0] for p in matrix[0:]])
-    >>> print u'dir={0} snbase={1} offset={2} na={3}'.format(fec.direction, fec.snbase, fec.offset, fec.na)
+    >>> print(u'dir={0} snbase={1} offset={2} na={3}'.format(fec.direction, fec.snbase, fec.offset, fec.na))
     dir=0 snbase=0 offset=4 na=5
     >>> receiver.put_fec(fec)
-    >>> print receiver
+    >>> print(receiver)
     Name  Received Buffered Maximum Dropped
     Media       19       20      20
     Col          1        0       1       0
@@ -91,9 +91,9 @@ class FecReceiver(object):
 
     The output does begin by recovered first packet of the matrix:
 
-    >>> print matrix[0][1].payload == output.getvalue()[:len(matrix[0][1].payload)]
+    >>> print(matrix[0][1].payload == output.getvalue()[:len(matrix[0][1].payload)])
     False
-    >>> print matrix[0][0].payload == output.getvalue()[:len(matrix[0][0].payload)]
+    >>> print(matrix[0][0].payload == output.getvalue()[:len(matrix[0][0].payload)])
     True
     """
 
@@ -136,7 +136,7 @@ class FecReceiver(object):
         Traceback (most recent call last):
             ...
         ValueError: output is None
-
+        >>>
         >>> from StringIO import StringIO
         >>> output = StringIO()
         >>> receiver = FecReceiver(output)
@@ -181,7 +181,7 @@ class FecReceiver(object):
 
     @property
     def current_delay(self):
-        u"""TODO"""
+        u"""Return current delay based on the length of the media buffer."""
         if len(self.medias) == 0:
             return 0
         if self.delay_units == FecReceiver.PACKETS:
@@ -438,7 +438,7 @@ class FecReceiver(object):
                     raise NotImplementedError(to_bytes(FecReceiver.ER_GET_ROW_CASCADE.format(fec_row)))
 
     def out(self):
-        u"""TODO"""
+        u"""Extract packets to output in order to keep a 'certain' amount of them in the buffer."""
         units = FecReceiver.PACKETS if self.flushing else self.delay_units
         value = 0 if self.flushing else self.delay_value
         missing_count = 0
@@ -476,11 +476,11 @@ class FecReceiver(object):
 
     def __str__(self):
         u"""
-        TODO
+        Return a string representing this instance.
 
         **Example usage**
 
-        >>> print FecReceiver(u'salut')
+        >>> print(FecReceiver(u'salut'))
         Name  Received Buffered Maximum Dropped
         Media        0        0       0
         Col          0        0       0       0
@@ -525,7 +525,7 @@ class FecReceiver(object):
         >>> from nose.tools import assert_equal as a_e
         >>> a_e(FecReceiver.compute_col_address(u'192.168.50.100:8000'), {u'ip': u'192.168.50.100', u'port': 8002})
         >>> a_e(FecReceiver.compute_col_address(IPSocket(u'50.0.0.7:4000')), {u'ip': u'50.0.0.7', u'port': 4002})
-        >>> print FecReceiver.compute_col_address('salut')
+        >>> print(FecReceiver.compute_col_address('salut'))
         Traceback (most recent call last):
             ....
         ValueError: salut is not a valid IP socket.
@@ -545,7 +545,7 @@ class FecReceiver(object):
         >>> from nose.tools import assert_equal as a_e
         >>> a_e(FecReceiver.compute_row_address(u'192.168.50.100:8000'), {u'ip': u'192.168.50.100', u'port': 8004})
         >>> a_e(FecReceiver.compute_row_address(IPSocket(u'50.0.0.7:4000')), {u'ip': u'50.0.0.7', u'port': 4004})
-        >>> print FecReceiver.compute_row_address(u'salut')
+        >>> print(FecReceiver.compute_row_address(u'salut'))
         Traceback (most recent call last):
             ....
         ValueError: salut is not a valid IP socket.

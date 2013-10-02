@@ -22,4 +22,6 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-sudo python setup.py register && sudo python setup.py sdist upload
+sudo python2 setup.py test || { echo '[ERROR] Python 2 unit-test of pytoolbox failed'; exit 1; }
+sudo python3 setup.py test || { echo '[ERROR] Python 3 unit-test of pytoolbox failed'; exit 2; }
+git commit

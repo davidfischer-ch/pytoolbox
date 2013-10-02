@@ -37,6 +37,7 @@ log = logging.getLogger(u'smpte2022lib')
 class TwistedFecGenerator(DatagramProtocol):
     u"""
     A SMPTE 2022-1 FEC streams generator with network skills based on :mod:`twisted`.
+
     This generator listen to incoming RTP media stream, compute and output corresponding FEC streams.
     It is required to use reactor in order to run the generator.
 
@@ -50,7 +51,7 @@ class TwistedFecGenerator(DatagramProtocol):
     >>> generator = TwistedFecGenerator(media['ip'], 'MyTwistedFecGenerator', col, row, 5, 6)
     >>> reactor.listenMulticast(media['port'], generator, listenMultiple=True) # doctest: +ELLIPSIS
     <....TwistedFecGenerator... on 5004>
-    >>> print generator._generator
+    >>> print(generator._generator)
     Matrix size L x D            = 5 x 6
     Total invalid media packets  = 0
     Total media packets received = 0
@@ -113,7 +114,7 @@ class TwistedFecGenerator(DatagramProtocol):
 
     def on_new_col(self, col, generator):
         u"""
-        Called by self=FecGenerator when a new column FEC packet is generated and available for output.
+        Called by ``self=FecGenerator`` when a new column FEC packet is generated and available for output.
 
         Send the encapsulated column FEC packet.
 
@@ -131,7 +132,7 @@ class TwistedFecGenerator(DatagramProtocol):
 
     def on_new_row(self, row, generator):
         u"""
-        Called by self=FecGenerator when a new row FEC packet is generated and available for output.
+        Called by ``self=FecGenerator`` when a new row FEC packet is generated and available for output.
 
         Send the encapsulated row FEC packet.
 
@@ -149,7 +150,7 @@ class TwistedFecGenerator(DatagramProtocol):
 
     def on_reset(self, media, generator):
         u"""
-        Called by self=FecGenerator when the algorithm is resetted (an incoming media is out of sequence).
+        Called by ``self=FecGenerator`` when the algorithm is resetted (an incoming media is out of sequence).
 
         Log a warning message.
 

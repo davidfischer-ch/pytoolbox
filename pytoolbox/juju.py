@@ -311,7 +311,6 @@ def ensure_num_units(environment, charm, service, num_units=1, units_number_to_k
 
     At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm will
     not destroy units with number in ``units_number_to_keep``.
-
     """
     assert(num_units is None or num_units >= 0)
     units = get_units(environment, service, none_if_missing=True)
@@ -468,7 +467,7 @@ class CharmHooks(object):
     unit-specific configuration. In EBU's project called OSCIED, this file is even read by the encapsulated python
     code of the worker (celery daemon).
 
-    **Example usage**:
+    **Example usage**
 
     >>> class MyCharmHooks(CharmHooks):
     ...
@@ -495,27 +494,27 @@ class CharmHooks(object):
     >>> my_hooks = MyCharmHooks(metadata, config, DEFAULT_OS_ENV, force_disable_juju=True) # doctest: +ELLIPSIS
     [DEBUG] Using juju False, reason: Disabled by user.
     [DEBUG] Load metadatas from file ...
-
+    >>>
     >>> my_hooks.trigger(u'install')
     [HOOK] Execute MyCharmHooks hook install
     [DEBUG] hello world, install some packages with self.cmd(...)
     [HOOK] Exiting MyCharmHooks hook install
-
+    >>>
     >>> my_hooks.trigger(u'config-changed')
     [HOOK] Execute MyCharmHooks hook config-changed
     [REMARK] update services based on self.config and update self.local_config !
     [HOOK] Exiting MyCharmHooks hook config-changed
-
+    >>>
     >>> my_hooks.trigger(u'start')
     [HOOK] Execute MyCharmHooks hook start
     [INFO] start services
     [HOOK] Exiting MyCharmHooks hook start
-
+    >>>
     >>> my_hooks.trigger(u'stop')
     [HOOK] Execute MyCharmHooks hook stop
     [INFO] stop services
     [HOOK] Exiting MyCharmHooks hook stop
-
+    >>>
     >>> my_hooks.trigger(u'not_exist')
     Traceback (most recent call last):
         ...
@@ -553,7 +552,7 @@ class CharmHooks(object):
         u"""
         Returns the id extracted from the unit's name.
 
-        **Example usage**:
+        **Example usage**
 
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.name = u'oscied-storage/3'
@@ -654,11 +653,11 @@ class CharmHooks(object):
         u"""
         Updates ``config`` attribute with given configuration.
 
-        **Example usage**:
+        **Example usage**
 
         >>> here = abspath(expanduser(dirname(__file__)))
         >>> config = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests/config.yaml')
-
+        >>>
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hasattr(hooks.config, u'pingu') or hasattr(hooks.config, u'rabbit_password')
         False
@@ -666,7 +665,7 @@ class CharmHooks(object):
         >>> print(hooks.config.pingu)
         bi bi
         >>> hooks.config.verbose = True
-
+        >>>
         >>> hooks.load_config(config)  # doctest: +ELLIPSIS
         [DEBUG] Load config from file ...
         [DEBUG] Convert boolean option ... true -> True
@@ -690,10 +689,10 @@ class CharmHooks(object):
         * The filename of a charm metadata file (e.g. ``metadata.yaml``)
         * A dictionary containing the metadatas.
 
-        **Example usage**:
+        **Example usage**
 
         >>> from nose.tools import assert_equal
-
+        >>>
         >>> here = abspath(expanduser(dirname(__file__)))
         >>> metadata = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests/metadata.yaml')
 

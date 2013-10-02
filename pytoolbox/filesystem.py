@@ -34,7 +34,7 @@ def first_that_exist(*paths):
     u"""
     Returns the first file/directory that exist.
 
-    **Example usage**:
+    **Example usage**
 
     >>> print(first_that_exist(u'', u'/etc', u'.'))
     /etc
@@ -48,12 +48,7 @@ def first_that_exist(*paths):
 
 
 def from_template(template, destination, values):
-    u"""Generate a ``destination`` file from a ``template`` file filled with ``values``
-
-    **Example usage**:
-
-    TODO
-    """
+    u"""Generate a ``destination`` file from a ``template`` file filled with ``values``"""
     with open(template, u'r', u'utf-8') as template_file:
         with open(destination, u'w', u'utf-8') as destination_file:
             destination_file.write(template_file.read().format(**values))
@@ -62,6 +57,7 @@ def from_template(template, destination, values):
 def get_size(path):
     u"""
     Returns the size of a file or directory.
+
     If given ``path`` is a directory (or symlink to a directory), then returned value is computed by summing the size of
     all files, and that recursively.
     """
@@ -148,7 +144,7 @@ def try_makedirs(path):
     Tries to recursive make directories (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if directory found and re-raise any other type of exception.
 
-    **Example usage**:
+    **Example usage**
 
     >>> import shutil
     >>> try_makedirs(u'/etc')
@@ -172,7 +168,7 @@ def try_remove(path):
     Tries to remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
 
-    **Example usage**:
+    **Example usage**
 
     >>> open(u'try_remove.example', u'w', encoding=u'utf-8').write(u'salut les pépés')
     >>> try_remove(u'try_remove.example')
@@ -196,7 +192,7 @@ def try_symlink(source, link_name):
     Returns True if operation is successful, False if found & target is ``link_name`` and re-raise any other type of
     exception.
 
-    **Example usage**:
+    **Example usage**
 
     >>> a = try_remove(u'/tmp/does_not_exist')
     >>> a = try_remove(u'/tmp/does_not_exist_2')

@@ -55,7 +55,7 @@ def get_media_duration(filename):
     *mediaPresentationDuration*. For any other type of file, this is a *ffmpeg* subprocess
     that detect duration of the media.
 
-    **Example usage**:
+    **Example usage**
 
     >>> from codecs import open
     >>> open(u'/tmp/test.txt', u'w', encoding=u'utf-8').write(u'Hey, I am not a MPD nor a média')
@@ -66,7 +66,7 @@ def get_media_duration(filename):
     >>> print(get_media_duration(u'/tmp/test.mpd'))
     00:06:07.83
     >>> os.remove(u'/tmp/test.mpd')
-
+    >>>
     >> print(get_media_duration(u'test.mp4'))
     01:45:23.62
     """
@@ -92,7 +92,7 @@ def get_media_duration(filename):
 
 def get_media_tracks(filename):
     u"""
-    **Example usage**::
+    **Example usage**:
 
         >> from pytoolbox.ffmpeg import get_media_tracks
         >> pprint(get_media_tracks('test.mp4')
@@ -158,8 +158,8 @@ def encode(in_filename, out_filename, encoder_string, overwrite, sleep_time=1, c
     return True
 
 #def test_callback(dict):
-#    print dict
+#    print(dict)
 #
 #if __name__ == '__main__':
-#    print FFmpeg.duration(movie)
+#    print(FFmpeg.duration(movie))
 #    FFmpeg.encode(movie, movie_out, '-acodec copy -vcodec copy', True, test_callback)

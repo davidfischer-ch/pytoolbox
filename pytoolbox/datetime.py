@@ -31,8 +31,7 @@ from .encoding import string_types
 
 def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     u"""
-    Return the current UTC date and time.
-    If format is not None, the date will be returned in a formatted string.
+    Return the current UTC date and time. If format is not None, the date will be returned in a formatted string.
 
     :param offset: Offset added to datetime.utcnow() if set
     :type offset: datetime.timedelta
@@ -41,7 +40,7 @@ def datetime_now(offset=None, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     :param append_utc: Append ' UTC' to date string
     :type append_utc: bool
 
-    **Example usage**:
+    **Example usage**
 
     >>> now = datetime_now(format=None)
     >>> future = datetime_now(offset=timedelta(hours=2, minutes=10), format=None)
@@ -69,7 +68,7 @@ def total_seconds(time):
     u"""
     Returns the time converted in seconds.
 
-    **Example usage**:
+    **Example usage**
 
     >>> total_seconds(u'00:10:00')
     600.0
