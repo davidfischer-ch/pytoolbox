@@ -92,7 +92,7 @@ def get_media_duration(filename):
 
 def get_media_tracks(filename):
     u"""
-    **Example usage**:
+    **Example usage**::
 
         >> from pytoolbox.ffmpeg import get_media_tracks
         >> pprint(get_media_tracks('test.mp4')

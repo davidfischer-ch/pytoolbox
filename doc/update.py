@@ -24,9 +24,12 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-import shutil
+import shutil, sys
+from pytoolbox.encoding import configure_unicode
 from pytoolbox.subprocess import cmd
 from pytoolbox.filesystem import from_template
+
+configure_unicode()
 
 # Detect modules, thanks to find !
 modules = sorted(m.replace(u'.py', u'').replace(u'./', u'').replace(u'/', u'.')
@@ -50,3 +53,5 @@ shutil.rmtree(u'build/html', ignore_errors=True)
 result = cmd(u'make html')
 for key in (u'stdout', u'stderr'):
     print(u'\n{0}:\n{1}'.format(key, result[key]))
+
+sys.exit (0 if not result[u'stderr'] else 1)
