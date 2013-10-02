@@ -135,7 +135,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
               excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH)):
     u"""
 
-    *Example usage**:
+    *Example usage**
 
     >>> valid_uri('http://docs.python.org/2/library/httplib.html', check_404=True)
     True

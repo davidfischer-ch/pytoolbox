@@ -60,10 +60,9 @@ class GoogleMapMixin(object):
 
     def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=False, form_update=False,
                    highlight_class=None, dbclick_edit=False, **kwargs):
-        title = getattr(self, self.map_marker_title_field) or self.map_marker_title_field_default
-        marker = GMarker(self.location or default_location,
-                         title=_(unicode(title)).encode('ascii', 'xmlcharrefreplace'), draggable=draggable,
-                         icon=self.map_icon(**kwargs))
+        title = unicode(getattr(self, self.map_marker_title_field)) or self.map_marker_title_field_default
+        marker = GMarker(self.location or default_location, title=_(title).encode('ascii', 'xmlcharrefreplace'),
+                         draggable=draggable, icon=self.map_icon(**kwargs))
         events = []
         if form_update:
             events.append(GEvent(u'mouseup',

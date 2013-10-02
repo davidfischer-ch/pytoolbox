@@ -41,7 +41,7 @@ class Model(JsoneableObject):
 
     .. seealso::
 
-        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/oscied_models.py>`.
+        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
     def __init__(self, _id=None):
@@ -65,7 +65,7 @@ class TaskModel(Model):
 
     .. seealso::
 
-        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/oscied_models.py>`.
+        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
     ALL_STATUS = PENDING, RECEIVED, STARTED, PROGRESS, SUCCESS, FAILURE, REVOKING, REVOKED, RETRY, IGNORED, UNKNOWN = \
@@ -120,7 +120,7 @@ class User(Model):
 
     .. seealso::
 
-        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/oscied_models.py>`.
+        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
     def __init__(self, first_name=None, last_name=None, mail=None, secret=None, admin_platform=False, _id=None):

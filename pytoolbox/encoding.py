@@ -41,7 +41,7 @@ else:
     def to_bytes(message):
         u"""Convert an Unicode message to bytes, useful for raising exceptions in Python 2.
 
-        **Example usage**:
+        **Example usage**
 
         >>> configure_unicode()
         >>> raise NotImplementedError(to_bytes(u'Saluté'))

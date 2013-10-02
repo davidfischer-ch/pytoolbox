@@ -50,7 +50,7 @@ def mock_side_effect(*args, **kwargs):
         import pytoolbox.unittest
         pytoolbox.unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
 
-    **example usage**:
+    **example usage**
 
     Set content (only required for this doctest, see previous remark):
 
