@@ -96,7 +96,10 @@ if major < 3:
 
 description = 'Toolbox for Python scripts'
 packages = find_packages()
-packages.remove('tests')
+try:
+    packages.remove('tests')
+except:
+    pass
 
 if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     old_args = sys.argv[:]
@@ -117,7 +120,7 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pytoolbox',
-      version='5.1.3-beta',
+      version='5.1.4-beta',
       packages=packages,
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
