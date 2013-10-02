@@ -24,9 +24,12 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
+import sys
+from pytoolbox.unittest import runtests
+
 def main():
-    from pytoolbox.unittest import runtests
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=u'django.py')
+    ignore=u'django.py' + (u'|session.py|schema.py' if sys.version_info[0] > 2 else u'')
+    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=ignore)
 
 if __name__ == u'__main__':
     main()

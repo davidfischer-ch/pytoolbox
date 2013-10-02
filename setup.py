@@ -129,7 +129,6 @@ setup(name='pytoolbox',
       keywords=keywords,
       extras_require=extras_require,
       install_requires=install_requires,
-      dependency_links=['git+https://github.com/davidfischer-ch/python-fastxor.git#egg=fastxor'],
       tests_require=['coverage', 'mock', 'nose'],
       entry_points={'console_scripts': [
           'socket-fec-generator=pytoolbox.network.smpte2022.bin.SocketFecGenerator:main',
