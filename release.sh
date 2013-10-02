@@ -24,6 +24,5 @@
 
 sudo python2 setup.py test || { echo '[ERROR] Python 2 unit-test of pytoolbox failed'; exit 1; }
 sudo python3 setup.py test || { echo '[ERROR] Python 3 unit-test of pytoolbox failed'; exit 2; }
-git commit || exit 3
-git push || exit 4
+git push || exit 3
 sudo python setup.py register && sudo python setup.py sdist upload
