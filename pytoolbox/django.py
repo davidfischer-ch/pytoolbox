@@ -24,10 +24,11 @@
 
 from __future__ import absolute_import
 
+from copy import copy
 from django.contrib.gis.geos import Point
 from django.contrib.gis.maps.google import GEvent, GIcon, GMarker
 from django.core.urlresolvers import reverse
-from django.forms import ModelForm, widgets
+from django.forms import ModelForm, fields, widgets
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect
 from django.utils.html import mark_safe
@@ -80,17 +81,43 @@ class GoogleMapMixin(object):
 
 # Forms ----------------------------------------------------------------------------------------------------------------
 
+class CalendarDateInput(widgets.DateInput):
+    def render(self, *args, **kwargs):
+        html = super(CalendarDateInput, self).render(*args, **kwargs)
+        return mark_safe(u'<div class="input-append date">{0}'
+                         '<span class="add-on"><i class="icon-calendar"></i></span></div>'.format(html))
+
+
+class ClockTimeInput(widgets.TimeInput):
+    def render(self, *args, **kwargs):
+        html = super(ClockTimeInput, self).render(*args, **kwargs)
+        return mark_safe(u'<div class="input-append bootstrap-timepicker">{0}'
+                         '<span class="add-on"><i class="icon-time"></i></span></div>'.format(html))
+
+
 class SmartModelForm(ModelForm):
+
+    # Attributes & replacement class applied depending of the form field's class
+    rules = {  # class -> replacement class, attributes update list
+        fields.DateField: [CalendarDateInput, {u'class': u'+dateinput +input-small'}],
+        fields.TimeField: [ClockTimeInput,    {u'class': u'+timeinput +input-small'}],
+    }
+
+    common_attrs = {}  # Attributes that are applied to all widgets of the form
 
     def __init__(self, *args, **kwargs):
         super(SmartModelForm, self).__init__(*args, **kwargs)
         for name, field in self.fields.items():
-            if isinstance(field.widget, widgets.DateInput):
-                field.widget = CalendarDateInput()
-                field.widget.attrs[u'class'] = u'dateinput input-small'
-            if isinstance(field.widget, widgets.TimeInput):
-                field.widget = ClockTimeInput()
-                field.widget.attrs[u'class'] = u'timeinput input-small'
+            updates = self.rules.get(field.__class__)
+            # May Update widget class with rules-based replacement class
+            if updates and updates[0]:
+                field.widget = updates[0]()
+            # May update widget attributes with common attributes
+            if self.common_attrs:
+                update_widget_attributes(field.widget, self.common_attrs)
+            # May update widget attributes with rules-based attributes
+            if updates and updates[1]:
+                update_widget_attributes(field.widget, updates[1])
         try:
             self._meta.model.init_form(self)
         except AttributeError:
@@ -104,18 +131,35 @@ class SmartModelForm(ModelForm):
             return self.cleaned_data
 
 
-class CalendarDateInput(widgets.DateInput):
-    def render(self, *args, **kwargs):
-        html = super(CalendarDateInput, self).render(*args, **kwargs)
-        return mark_safe(u'<div class="input-append date">{0}'
-                         '<span class="add-on"><i class="icon-calendar"></i></span></div>'.format(html))
+def update_widget_attributes(widget, updates):
+    u"""
+    Update attributes of a ``widget`` with content of ``updates`` handling classes addition [+], removal [-] and
+    toggle [^].
 
+    **Example usage**
 
-class ClockTimeInput(widgets.TimeInput):
-    def render(self, *args, **kwargs):
-        html = super(ClockTimeInput, self).render(*args, **kwargs)
-        return mark_safe(u'<div class="input-append bootstrap-timepicker">{0}'
-                         '<span class="add-on"><i class="icon-time"></i></span></div>'.format(html))
+    >>> from nose.tools import assert_equal
+    >>> widget = type('', (), {})
+    >>> widget.attrs = {u'class': u'mondiale'}
+    >>> update_widget_attributes(widget, {u'class': u'+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
+    >>> assert_equal(widget.attrs, {u'class': u'pigeon voyageur'})
+    >>> update_widget_attributes(widget, {u'class': '+le', u'cols': 100})
+    >>> assert_equal(widget.attrs, {u'class': u'le pigeon voyageur', u'cols': 100})
+    """
+    updates = copy(updates)
+    if u'class' in updates:
+        class_set = set([c for c in widget.attrs.get(u'class', u'').split(u' ') if c])
+        for cls in set([c for c in updates[u'class'].split(u' ') if c]):
+            operation, cls = cls[0], cls[1:]
+            if operation == u'+' or (operation == u'^' and not cls in class_set):
+                class_set.add(cls)
+            elif operation in (u'-', u'^'):
+                class_set.discard(cls)
+            else:
+                raise ValueError('updates must be a valid string containing "<op>class <op>..." with op in [+-^].')
+        widget.attrs[u'class'] = u' '.join(sorted(class_set))
+        del updates[u'class']
+    widget.attrs.update(updates)
 
 
 def conditional_required(form, required_dict, cleanup=False):

@@ -1,5 +1,5 @@
-v5.0.0-beta -> v5.1.9-beta
-==========================
+v5.0.0-beta -> v5.2.10-beta
+===========================
 
 Features
 --------
@@ -7,6 +7,7 @@ Features
 * Embed smpte2022lib
 * Add entry points (socket-fec-generator + twisted-fec-generator)
 * Add commit and release scripts to make it more securely (run tests before, check sphinx ...)
+* Add update_widget_attributes
 
 Fixes and enhancements
 ----------------------
@@ -17,6 +18,8 @@ Fixes and enhancements
 * Fix docstrings
 * Fix setup.py to avoid removing tests from packages list if it did not exist.
 * Add kwargs to object2json -> json.dumps
+* map_marker : Convert to unicode sooner (to handle special field class)
+* SmartModelForm : Attributes & replacement class applied depending of the form field's class
 
 Example usage::
 
