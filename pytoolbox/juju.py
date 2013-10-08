@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import
 
-import json, os, subprocess, sys, time, uuid, yaml
+import json, os, random, subprocess, sys, time, uuid, yaml
 from codecs import open
 from functools import wraps
 from os.path import abspath, dirname, expanduser, join
@@ -69,6 +69,7 @@ ERROR_STATES   = (ERROR, NOT_STARTED)
 M1_SMALL  = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
 M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
 C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
+
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
@@ -307,7 +308,7 @@ def deploy_units(environment, charm, service=None, num_units=1, to=None, config=
 
 def ensure_num_units(environment, charm, service, num_units=1, units_number_to_keep=None, **kwargs):
     u"""
-    Ensure ``num_units`` units of ``service`` into ``environment`` by destroying useless units first !
+    Ensure ``num_units`` units of ``service`` into ``environment`` by adding new or destroying useless units first !
 
     At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm will
     not destroy units with number in ``units_number_to_keep``.
@@ -323,10 +324,10 @@ def ensure_num_units(environment, charm, service, num_units=1, units_number_to_k
         num_units = num_units - units_count
         return add_units(environment, service or charm, num_units, **kwargs)
     if units_count > num_units:
-        terminate = kwargs.get('terminate', None)
+        terminate = kwargs.get(u'terminate', None)
         num_units = units_count - num_units
         destroyed = {}
-        # Short units by status to kill first the useless units !
+        # Sort units by status to kill the useless units before any others !
         # FIXME implement status comparison for sorting ??
         for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
             if num_units == 0:
@@ -864,3 +865,85 @@ class DeploymentScenario(object):
 
     def run(self):
         raise NotImplementedError(u'Here should be implemented the deployment scenario.')
+
+
+# Simulation -----------------------------------------------------------------------------------------------------------
+
+# DISCLAIMER: Ideally this module will implement a simulated juju_do to make it possible to use the same methods to
+# drive a real or a simulated juju process ... The following code is a partial/light implementation of ...
+# Do not use it for your own purposes !!!
+
+class SimulatedUnit(object):
+    u"""A simulated unit with a really simple state machine having a latency to start and stop."""
+
+    def __init__(self, start_latency_range, stop_latency_range, state=PENDING):
+        self.counter = self.next_state = None
+        self.state = state
+        self.start_latency_range = start_latency_range
+        self.stop_latency_range = stop_latency_range
+
+    def start(self):
+        self.counter = random.randint(*self.start_latency_range)
+        self.next_state = STARTED
+
+    def stop(self):
+        self.counter = random.randint(*self.stop_latency_range)
+        self.next_state = STOPPED
+
+    def tick(self):
+        if self.counter:
+            self.counter -= 1
+            if self.counter == 0:
+                self.state = self.next_state
+                self.next_state = None
+
+
+class SimulatedUnits(object):
+    u"""Manage a set of simulated units."""
+
+    def __init__(self, start_latency_range, stop_latency_range):
+        self.start_latency_range = start_latency_range
+        self.stop_latency_range = stop_latency_range  # FIXME not yet used by this simulator ...
+        self.units = {}
+        self.number = 0
+
+    def ensure_num_units(self, num_units=1, units_number_to_keep=None):
+        u"""Ensure ``num_units`` units by adding new units or destroying useless units first !"""
+        assert(num_units is None or num_units >= 0)
+        units_count = len(self.units)
+        if num_units is None:
+            self.units = {}
+            return u'Simulate destruction of service.'
+        if units_count < num_units:
+            num_units = num_units - units_count
+            for i in xrange(num_units):
+                unit = SimulatedUnit(self.start_latency_range, self.stop_latency_range)
+                unit.start()
+                self.units[self.number] = unit
+                self.number += 1
+            return u'Simulate deployment of {0} units.'.format(num_units)
+        if units_count > num_units:
+            num_units = units_count - num_units
+            destroyed = {}
+            # Sort units by status to kill the useless units before any others !
+            # FIXME implement status comparison for sorting ??
+            for state in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
+                if num_units == 0:
+                    break
+                for number, unit in self.units.items():
+                    if num_units == 0:
+                        break
+                    if units_number_to_keep is not None and number in units_number_to_keep:
+                        continue
+                    if unit.state == state or unit.state not in ALL_STATES:
+                        destroyed[number] = unit
+                        unit.stop()
+                        num_units -= 1
+            return destroyed
+
+    def tick(self):
+        u"""Increment time of 1 tick and remove units that are in STOPPED state."""
+        for number, unit in self.units.items():
+            unit.tick()
+            if unit.state == STOPPED:
+                del self.units[number]
