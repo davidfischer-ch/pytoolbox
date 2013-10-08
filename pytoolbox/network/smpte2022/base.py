@@ -527,7 +527,7 @@ class FecPacket(object):
                 payload = payload + bytearray(size - len(packet.payload))
             fast_xor_inplace(fec.payload_recovery, payload)
             # NUMPY fec.payload_recovery = bytearray(numpy.bitwise_xor(fec.payload_recovery, payload))
-            # XOR LOOP for i in xxrange(min(size, len(packet.payload))):
+            # XOR LOOP for i in xrange(min(size, len(packet.payload))):
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
 

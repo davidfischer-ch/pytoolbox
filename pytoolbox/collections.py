@@ -67,14 +67,20 @@ class pygal_deque(deque):
         if self[0] is None:
             self[0] = first
 
-    @property
-    def list(self):
+    def list(self, fill=False):
         self_list = list(self)
         try:
             if self.last is not None:
                 self_list[-1] = self.last
         except:
             pass
+        if fill and self_list:
+            previous = None
+            for i in xrange(len(self_list)):
+                if self_list[i] is None:
+                    self_list[i] = previous
+                else:
+                    previous = self_list[i]
         return self_list
 
 
