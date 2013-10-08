@@ -206,7 +206,7 @@ class TwistedFecGenerator(DatagramProtocol):
 
     #     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     #     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-    #     for i in range(5*6+1):
+    #     for i in xrange(5*6+1):
     #         packet = RtpPacket.create(i, i*100, RtpPacket.MP2T_PT, 'salut les loulous')
     #         sock.sendto(packet.bytes, (media['ip'], media['port']))
 

@@ -48,7 +48,7 @@ class FecReceiver(object):
     >>> for i in source:
     ...     receiver.put_media(RtpPacket.create(i, i * 100, RtpPacket.MP2T_PT, str(i)), True)
     >>> receiver.flush()
-    >>> assert(output.getvalue() == u''.join(str(i) for i in range(1024)))
+    >>> assert(output.getvalue() == u''.join(str(i) for i in xrange(1024)))
 
     Testing FEC algorithm correctness:
 
@@ -64,7 +64,7 @@ class FecReceiver(object):
     >>> # Generate a [D][L] matrix of randomly generated RTP packets
     >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50),
     ...           RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100))))
-    ...           for i in range(L)] for j in range(D)]
+    ...           for i in xrange(L)] for j in xrange(D)]
     >>> assert(len(matrix) == D and len(matrix[0]) == L)
     >>> # Retrieve the first column of the matrix
     >>> for column in matrix:
@@ -116,7 +116,7 @@ class FecReceiver(object):
     ER_VALID_RTP = u'packet is not valid (expected RTP packet)'
 
     DELAY_NAMES = [u'packets', u'seconds']
-    DELAY_RANGE = range(len(DELAY_NAMES))
+    DELAY_RANGE = xrange(len(DELAY_NAMES))
     PACKETS, SECONDS = DELAY_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -378,7 +378,7 @@ class FecReceiver(object):
                 media.timestamp ^= friend.timestamp
                 payload_size ^= friend.payload_size
                 # FIXME FIXME FIXME FIXME FIXME OPTIMIZATION FIXME FIXME FIXME FIXME
-                for no in range(min(len(media.payload), len(friend.payload))):
+                for no in xrange(min(len(media.payload), len(friend.payload))):
                     media.payload[no] ^= friend.payload[no]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK
 
@@ -446,7 +446,8 @@ class FecReceiver(object):
         if units == FecReceiver.PACKETS:  # based on buffer size
             while len(self.medias) > value:
                 # Initialize or increment actual position (expected sequence number)
-                self.position = (self.medias.keys()[0] if self.startup else (self.position + 1)) & RtpPacket.S_MASK
+                self.position = ((self.medias.iterkeys().next() if self.startup else (self.position + 1))
+                                 & RtpPacket.S_MASK)
                 self.startup = False
                 media = self.medias.get(self.position)
                 if media:

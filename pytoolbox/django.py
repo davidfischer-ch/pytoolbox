@@ -107,7 +107,7 @@ class SmartModelForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SmartModelForm, self).__init__(*args, **kwargs)
-        for name, field in self.fields.items():
+        for name, field in self.fields.iteritems():
             updates = self.rules.get(field.__class__)
             # May Update widget class with rules-based replacement class
             if updates and updates[0]:
@@ -164,7 +164,7 @@ def update_widget_attributes(widget, updates):
 
 def conditional_required(form, required_dict, cleanup=False):
     data = form.cleaned_data
-    for name, value in data.items():
+    for name, value in data.iteritems():
         required = required_dict.get(name, None)
         if required and not value:
             form._errors[name] = ErrorList([u'This field is required.'])

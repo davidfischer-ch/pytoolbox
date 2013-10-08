@@ -331,7 +331,7 @@ def ensure_num_units(environment, charm, service, num_units=1, units_number_to_k
         for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
             if num_units == 0:
                 break
-            for number, unit_dict in units.items():
+            for number, unit_dict in units.iteritems():
                 if num_units == 0:
                     break
                 if units_number_to_keep is not None and number in units_number_to_keep:
@@ -344,7 +344,7 @@ def ensure_num_units(environment, charm, service, num_units=1, units_number_to_k
                     num_units -= 1
         if terminate:
             time.sleep(5)
-            for unit_dict in destroyed.values():
+            for unit_dict in destroyed.itervalues():
                 # FIXME handle failure (multiple units same machine, machine busy, missing ...)
                 destroy_machine(environment, unit_dict[u'machine'])
         return destroyed
@@ -369,7 +369,7 @@ def get_units(environment, service, none_if_missing=False):
 def get_units_count(environment, service, none_if_missing=False):
     try:
         units_dict = juju_do(u'status', environment)[u'services'][service].get(u'units', {})
-        return len(units_dict.keys())
+        return len(units_dict.iterkeys())
     except KeyError:
         return None if none_if_missing else 0
 
@@ -400,9 +400,10 @@ def destroy_machine(environment, machine):
 
 def cleanup_machines(environment):
     environment_dict = get_environment_status(environment)
-    machines, busy_machines = environment_dict.get(u'machines', {}).keys(), [u'0']
-    for s_dict in environment_dict.get(u'services', {}).values():
-        busy_machines = busy_machines + [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).values()]
+    machines, busy_machines = environment_dict.get(u'machines', {}).iterkeys(), [u'0']
+    for s_dict in environment_dict.get(u'services', {}).itervalues():
+        busy_machines = (busy_machines +
+                         [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).itervalues()])
     idle_machines = [machine for machine in machines if machine not in busy_machines]
     if idle_machines:
         juju_do(u'destroy-machine', environment, options=idle_machines)
@@ -624,7 +625,7 @@ class CharmHooks(object):
     def relation_set(self, **kwargs):
         if self.juju_ok:
             command = [u'relation-set']
-            command += [u'{0}={1}'.format(key, value) for key, value in kwargs.items()]
+            command += [u'{0}={1}'.format(key, value) for key, value in kwargs.iteritems()]
             return self.cmd(command)
         raise NotImplementedError(to_bytes(u'FIXME juju-less relation_set not yet implemented'))
 

@@ -156,11 +156,11 @@ class FecPacket(object):
     SNBE_SHIFT = 16
 
     DIRECTION_NAMES = (u'COL', u'ROW')
-    DIRECTION_RANGE = range(len(DIRECTION_NAMES))
+    DIRECTION_RANGE = xrange(len(DIRECTION_NAMES))
     COL, ROW = DIRECTION_RANGE
 
     ALGORITHM_NAMES = (u'XOR', u'Hamming', u'ReedSolomon')
-    ALGORITHM_RANGE = range(len(ALGORITHM_NAMES))
+    ALGORITHM_RANGE = xrange(len(ALGORITHM_NAMES))
     XOR, Hamming, ReedSolomon = ALGORITHM_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -455,7 +455,7 @@ class FecPacket(object):
         >>> # Generate a [D][L] matrix of randomly generated RTP packets
         >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50),
         ...           RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100))))
-        ...           for i in range(L)] for j in range(D)]
+        ...           for i in xrange(L)] for j in xrange(D)]
         >>> assert(len(matrix) == D and len(matrix[0]) == L)
         >>> # Retrieve the OFF'th column of the matrix
         >>> expected_payload_type_recovery = 0
@@ -463,14 +463,14 @@ class FecPacket(object):
         >>> expected_lenght_recovery = 0
         >>> expected_payload_recovery = bytearray(100)
         >>> packets = []
-        >>> for i in range(D):
+        >>> for i in xrange(D):
         ...     packet = matrix[i][OFF]
         ...     packets.append(packet)
         ...     # Compute expected recovery fields values
         ...     expected_payload_type_recovery ^= packet.payload_type
         ...     expected_timestamp_recovery ^= packet.timestamp
         ...     expected_lenght_recovery ^= packet.payload_size
-        ...     for j in range(packet.payload_size):
+        ...     for j in xrange(packet.payload_size):
         ...         expected_payload_recovery[j] ^= packet.payload[j]
         >>> fec = FecPacket.compute(15, FecPacket.XOR, FecPacket.COL, L, D, packets)
         >>> assert(fec.valid)
@@ -479,7 +479,7 @@ class FecPacket(object):
         >>> assert(fec.payload_type_recovery == expected_payload_type_recovery)
         >>> assert(fec.timestamp_recovery == expected_timestamp_recovery)
         >>> assert(fec.length_recovery == expected_lenght_recovery)
-        >>> for i in range(fec.payload_size):
+        >>> for i in xrange(fec.payload_size):
         ...     if fec.payload_recovery[i] != expected_payload_recovery[i]:
         ...         print(u'Payload recovery test failed with i = ' + i)
         """
@@ -527,7 +527,7 @@ class FecPacket(object):
                 payload = payload + bytearray(size - len(packet.payload))
             fast_xor_inplace(fec.payload_recovery, payload)
             # NUMPY fec.payload_recovery = bytearray(numpy.bitwise_xor(fec.payload_recovery, payload))
-            # XOR LOOP for i in xrange(min(size, len(packet.payload))):
+            # XOR LOOP for i in xxrange(min(size, len(packet.payload))):
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
 

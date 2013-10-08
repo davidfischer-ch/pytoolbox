@@ -85,7 +85,7 @@ class EventsTable(object):
         self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
-        for index in range(self.time_range):
+        for index in xrange(self.time_range):
             event = sparse_events_table.get(index, previous_event)
             self.events[index] = event
             previous_event = event
@@ -96,7 +96,7 @@ class EventsTable(object):
         # >>> def test_get_index(time_range, time_speedup):
         # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
         # ...     modulo = previous = 0
-        # ...     for t in range(24*3600+1):
+        # ...     for t in xrange(24*3600+1):
         # ...         index = table.get(t+2*60, time_range, time_speedup)[0]
         # ...         if previous > index:
         # ...             modulo += 1

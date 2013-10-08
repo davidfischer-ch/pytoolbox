@@ -63,7 +63,7 @@ class DBModel(object):
 
 
 def sorted_dict(dictionary):
-    return sorted(dictionary.items(), key=lambda x: x[0])
+    return sorted(dictionary.iteritems(), key=lambda x: x[0])
 
 
 UUID_ZERO = unicode(uuid.UUID(u'{00000000-0000-0000-0000-000000000000}'))

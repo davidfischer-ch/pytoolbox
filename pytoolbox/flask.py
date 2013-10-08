@@ -50,7 +50,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None, query_stri
         if query_string:
             data = urlparse.parse_qs(request.query_string)
             if qs_only_first_value:
-                data = {key: value[0] if isinstance(value, list) else value for key, value in data.items()}
+                data = {key: value[0] if isinstance(value, list) else value for key, value in data.iteritems()}
         else:
             data = {}
         for key in request.form:
