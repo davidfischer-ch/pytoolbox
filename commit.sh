@@ -24,7 +24,7 @@
 
 warning()
 {
-    echo "[WARNING] $1"
+    echo "[WARNING] $1" 1>&2
     echo 'press enter to continue or ctrl+c to exit ...'
     read a
 }
@@ -32,4 +32,5 @@ warning()
 sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
 sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
 cd doc && sudo python2 update.py || warning 'Sphinx is not fully happy with our docstrings'
+cd ..
 git commit

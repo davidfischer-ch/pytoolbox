@@ -24,21 +24,22 @@
 
 warning()
 {
-    echo "[WARNING] $1" 1&>2
+    echo "[WARNING] $1" 1>&2
     echo 'press enter to continue or ctrl+c to exit ...'
     read a
 }
 
 error()
 {
-    echo "[ERROR] $1" 1&>2
+    echo "[ERROR] $1" 1>&2
     exit $2
 }
 
 sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
 sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
-cd doc && sudo python2 update.py && cd .. || warning 'Sphinx is not fully happy with our docstrings'
-version=$(cat setup.py | grep version= | cut -d'=' -f2 | sed "s:',*::g")
+cd doc && sudo python2 update.py || warning 'Sphinx is not fully happy with our docstrings'
+cd ..
+version=$(cat setup.py | grep 'version=' | cut -d'=' -f2 | sed "s:',*::g")
 echo "Release version $version, press enter to continue ..."
 read a
 git push || error 'Unable to push to GitHub' 1
