@@ -55,17 +55,17 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
 
     Restrict valid keys:
 
-    >>> get_request_data(r, accepted_keys=[u'foo'])
+    >>> get_request_data(r, accepted_keys=[u'foo']) # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
-    ValueError: Invalid key "blah" from the request, valid: [u'foo'].
+    ValueError: Invalid key "..." from the request, valid: [...'foo'].
 
     Requires specific keys:
 
-    >>> get_request_data(r, required_keys=[u'foo', u'THE_key'])
+    >>> get_request_data(r, required_keys=[u'foo', u'THE_key']) # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
-    ValueError: Missing key "THE_key from the request, required: [u'foo', u'THE_key'].
+    ValueError: Missing key "THE_key from the request, required: [...'foo', ...'THE_key'].
 
     Retrieve data with or without a fallback to an empty string (JSON content):
 
