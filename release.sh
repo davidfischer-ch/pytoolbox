@@ -22,12 +22,25 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-sudo python2 setup.py test || { echo '[ERROR] Python 2 unit-test of pytoolbox failed'; exit 1; }
-sudo python3 setup.py test || { echo '[ERROR] Python 3 unit-test of pytoolbox failed'; exit 2; }
-cd doc && python update.py && cd .. || { echo '[ERROR] Sphinx is not fully happy with our docstrings'; exit 3; }
+warning()
+{
+    echo "[WARNING] $1" 1&>2
+    echo 'press enter to continue or ctrl+c to exit ...'
+    read a
+}
+
+error()
+{
+    echo "[ERROR] $1" 1&>2
+    exit $2
+}
+
+sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
+sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
+cd doc && sudo python2 update.py && cd .. || warning 'Sphinx is not fully happy with our docstrings'
 version=$(cat setup.py | grep version= | cut -d'=' -f2 | sed "s:',*::g")
 echo "Release version $version, press enter to continue ..."
 read a
-git push || { echo '[ERROR] Unable to push to GitHub'; exit 3; }
-git tag "$version" && git push origin "$version" || { echo '[ERROR] Unable to add release tag'; exit 4; }
-sudo python setup.py register && sudo python setup.py sdist upload
+git push || error 'Unable to push to GitHub' 1
+git tag "$version" && git push origin "$version" || error 'Unable to add release tag' 2
+sudo python2 setup.py register && sudo python2 setup.py sdist upload

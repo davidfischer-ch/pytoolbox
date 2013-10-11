@@ -50,8 +50,11 @@ for module in modules:
 
 from_template(u'templates/api.rst.template', u'source/api.rst', {u'api_toc': api_toc})
 shutil.rmtree(u'build/html', ignore_errors=True)
-result = cmd(u'make html')
-for key in (u'stdout', u'stderr'):
-    print(u'\n{0}:\n{1}'.format(key, result[key]))
+result = cmd(u'make html', fail=False)
 
-sys.exit (0 if not result[u'stderr'] else 1)
+print(u'\nOutputs\n=======\n')
+print(result[u'stdout'])
+print(u'\nErrors\n======\n')
+print(result[u'stderr'])
+
+sys.exit(0 if not result[u'stderr'] else 1)

@@ -22,7 +22,14 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-sudo python2 setup.py test || { echo '[ERROR] Python 2 unit-test of pytoolbox failed'; exit 1; }
-sudo python3 setup.py test || { echo '[ERROR] Python 3 unit-test of pytoolbox failed'; exit 2; }
-cd doc && python update.py || { echo '[ERROR] Sphinx is not fully happy with our docstrings'; exit 3; }
+warning()
+{
+    echo "[WARNING] $1"
+    echo 'press enter to continue or ctrl+c to exit ...'
+    read a
+}
+
+sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
+sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
+cd doc && sudo python2 update.py || warning 'Sphinx is not fully happy with our docstrings'
 git commit
