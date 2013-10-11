@@ -26,6 +26,7 @@ from __future__ import absolute_import
 
 import numbers
 from datetime import datetime, timedelta
+from time import mktime
 from .encoding import string_types
 
 
@@ -66,7 +67,7 @@ def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
 
 def total_seconds(time):
     u"""
-    Returns the time converted in seconds.
+    Return the time converted in seconds.
 
     **Example usage**
 
@@ -95,3 +96,38 @@ def total_seconds(time):
         return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
     except ValueError:
         return float(time)
+
+
+def datetime2epoch(date_time, factor=1):
+    u"""
+    Return the datetime/date converted into an Unix epoch. Default ``factor`` means that the result is in seconds.
+
+    **Example usage**
+
+    >>> datetime2epoch(datetime(1970, 1, 1, 1, 0), factor=1)
+    0
+    >>> datetime2epoch(datetime(2010, 6, 10))
+    1276120800
+    >>> datetime2epoch(datetime(2010, 6, 10), factor=1000)
+    1276120800000
+    """
+    return int(mktime(date_time.timetuple()) * factor)
+
+
+def epoch2datetime(unix_epoch, factor=1):
+    u"""
+    Return the Unix epoch converted to a datetime. Default ``factor`` means that the ``unix_epoch`` is in seconds.
+
+    **Example usage**
+
+    >>> from nose.tools import assert_equal
+    >>> epoch2datetime(0, factor=1)
+    datetime.datetime(1970, 1, 1, 1, 0)
+    >>> epoch2datetime(1276120800, factor=1)
+    datetime.datetime(2010, 6, 10, 0, 0)
+    >>> epoch2datetime(1276120800000, factor=1000)
+    datetime.datetime(2010, 6, 10, 0, 0)
+    >>> today = datetime(1985, 6, 1, 5, 2, 0)
+    >>> assert_equal(epoch2datetime(datetime2epoch(today, factor=1000), factor=1000), today)
+    """
+    return datetime.fromtimestamp(unix_epoch / factor)
