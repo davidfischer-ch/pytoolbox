@@ -1,5 +1,15 @@
-v5.0.0-beta -> v5.2.10-beta
+v5.0.0-beta -> v5.4.13-beta
 ===========================
+
+Deprecated
+----------
+
+* flask.get_request_data replaced by network.http.get_request_data
+
+Minor compatibility breaks
+--------------------------
+
+* Split django module into submodules
 
 Features
 --------
@@ -7,7 +17,8 @@ Features
 * Embed smpte2022lib
 * Add entry points (socket-fec-generator + twisted-fec-generator)
 * Add commit and release scripts to make it more securely (run tests before, check sphinx ...)
-* Add update_widget_attributes
+* Add module network.http and classes juju.SimulatedUnit(s)
+* Add method django.forms.update_widget_attributes
 
 Fixes and enhancements
 ----------------------
@@ -15,11 +26,13 @@ Fixes and enhancements
 * Lighter list of dependencies
 * Add --extra-... flags to install dependencies for the extra features/modules.
 * Filter packages to avoid installing tests module !
-* Fix docstrings
 * Fix setup.py to avoid removing tests from packages list if it did not exist.
-* Add kwargs to object2json -> json.dumps
+* Add kwargs to serialization.object2json -> json.dumps
 * map_marker : Convert to unicode sooner (to handle special field class)
-* SmartModelForm : Attributes & replacement class applied depending of the form field's class
+* django.forms.SmartModelForm : Attributes & replacement class applied depending of the form field's class
+* Add fill option to collections.pygal_deque.list()
+* Replace range by xrange, values by itervalues, ...
+* Fix docstrings
 
 Example usage::
 
