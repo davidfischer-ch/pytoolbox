@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -24,13 +22,21 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-import sys
-from pytoolbox.unittest import runtests
+from __future__ import absolute_import
 
-def main():
-    # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = u'forms.py|models.py|views.py|widgets.py' + (u'|session.py|schema.py' if sys.version_info[0] > 2 else u'')
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=ignore)
+from django.forms import widgets
+from django.utils.html import mark_safe
 
-if __name__ == u'__main__':
-    main()
+
+class CalendarDateInput(widgets.DateInput):
+    def render(self, *args, **kwargs):
+        html = super(CalendarDateInput, self).render(*args, **kwargs)
+        return mark_safe(u'<div class="input-append date">{0}'
+                         '<span class="add-on"><i class="icon-calendar"></i></span></div>'.format(html))
+
+
+class ClockTimeInput(widgets.TimeInput):
+    def render(self, *args, **kwargs):
+        html = super(ClockTimeInput, self).render(*args, **kwargs)
+        return mark_safe(u'<div class="input-append bootstrap-timepicker">{0}'
+                         '<span class="add-on"><i class="icon-time"></i></span></div>'.format(html))
