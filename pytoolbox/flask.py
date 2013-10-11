@@ -24,10 +24,11 @@
 
 from __future__ import absolute_import
 
-import logging, urlparse
+import logging, urlparse, warnings
 from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
+from .encoding import to_bytes
 from .serialization import object2dictV2, object2json
 from .validation import valid_uuid
 
@@ -44,6 +45,10 @@ def check_id(id):
 
 def get_request_data(request, accepted_keys=None, required_keys=None, query_string=True, qs_only_first_value=False,
                      fail=True):
+
+    warnings.warn(to_bytes(u'Please use the new implementation from the module pytoolbox.network.http'),
+                  DeprecationWarning, stacklevel=2)
+
     data = request.get_json(silent=True)
     source = u'form-data' if data is None else u'JSON content'
     if data is None:
@@ -58,13 +63,15 @@ def get_request_data(request, accepted_keys=None, required_keys=None, query_stri
     if required_keys is not None:
         for key in required_keys:
             if not key in data:
-                raise ValueError(u'Missing key "{0}" from {1}, required: {2}.'.format(key, source, required_keys))
+                raise ValueError(to_bytes(u'Missing key "{0}" from {1}, required: {2}.'.format(
+                                 key, source, required_keys)))
     if accepted_keys is not None:
         for key in data:
             if not key in accepted_keys:
-                raise ValueError(u'Invalid key "{0}" from {1}, valid: {2}.'.format(key, source, accepted_keys))
+                raise ValueError(to_bytes(u'Invalid key "{0}" from {1}, valid: {2}.'.format(
+                                 key, source, accepted_keys)))
     if not data and fail:
-        raise ValueError(u'Requires JSON content or form-data.')
+        raise ValueError(to_bytes(u'Requires JSON content or form-data.'))
     return data or {}
 
 
