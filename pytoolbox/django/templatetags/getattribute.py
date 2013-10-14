@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -24,14 +22,32 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-import sys
-from pytoolbox.unittest import runtests
+import re
+from django import template
+from django.conf import settings
 
-def main():
-    # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = (u'forms.py|models.py|templatetags.py|views.py|widgets.py' +
-              (u'|session.py|schema.py' if sys.version_info[0] > 2 else u''))
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=ignore)
 
-if __name__ == u'__main__':
-    main()
+numeric_test = re.compile('^\d+$')
+register = template.Library()
+
+
+def getattribute(value, attribute):
+    u"""
+    Gets an attribute of an object dynamically from a string name.
+
+    Source : https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
+    """
+    if hasattr(value, str(attribute)):
+        return getattr(value, attribute)
+    elif hasattr(value, u'has_key') and value.has_key(attribute):
+        return value[attribute]
+    elif numeric_test.match(str(attribute)) and len(value) > int(attribute):
+        return value[int(attribute)]
+    else:
+        return settings.TEMPLATE_STRING_IF_INVALID
+
+register.filter(u'getattribute', getattribute)
+
+# Then, in template:
+# {% load getattribute %}
+# {{ object|getattribute:dynamic_string_var }}
