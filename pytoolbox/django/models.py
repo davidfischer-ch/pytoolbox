@@ -27,20 +27,44 @@ from __future__ import absolute_import
 from django.contrib.gis.geos import Point
 from django.contrib.gis.maps.google import GEvent, GIcon, GMarker
 from django.core.urlresolvers import reverse
+from django.db.models.fields.files import FileField
 from django.utils.translation import ugettext as _
 from os.path import join
 
 
-class SmartModelMixin(object):
-
+class AbsoluteUrlMixin(object):
+    u"""
+    Implement get_absolute_path based on the convention that the views URLs are based on the lower-case model's name.
+    """
     # https://docs.djangoproject.com/en/dev/topics/class-based-views/generic-editing/
     def get_absolute_url(self):
         return reverse(u'{0}_{1}'.format(self.__class__.__name__.lower(), u'update' if self.pk else u'create'),
                        kwargs={u'pk': self.pk} if self.pk else None)
 
 
-class GoogleMapMixin(object):
+class SaveInstanceFilesMixin(object):
+    u"""
+    Overrides saves() with a method that saves the instance first and then the instance's file fields this ensure
+    that the upload_path method will get a valid instance id / private key.
+    """
+    def save(self, *args, **kwargs):
+        saved_fields = {}
+        if self.id is None:
+            for field in self._meta.fields:
+                if isinstance(field, FileField):
+                    saved_fields[field.name] = getattr(self, field.name)
+                    setattr(self, field.name, None)
+            super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
+            for name, value in saved_fields.iteritems():
+                setattr(self, name, value)
+        super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
 
+
+class GoogleMapMixin(object):
+    u"""
+    Implement map_icon and map_marker to return some GeoDjango Google Maps widgets filled with values from the location
+    field of the model's instance. The location field must be a PointField (Python: or duck-type it correctly).
+    """
     map_icon_varname_field = u'category'
     map_marker_title_field = u'title'
     map_marker_title_field_default = u'New thing'
