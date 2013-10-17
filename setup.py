@@ -71,6 +71,7 @@ install_requires = [
     'pycallgraph',  # FIXME version
     'pygal',        # FIXME version
     'pymongo',      # FIXME version
+    'pytz',         # FIXME version
     'six',          # FIXME version
 ]
 
@@ -120,7 +121,7 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pytoolbox',
-      version='5.4.15-beta',
+      version='5.4.16-beta',
       packages=packages,
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
