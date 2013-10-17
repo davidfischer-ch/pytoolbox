@@ -24,9 +24,8 @@
 
 from __future__ import absolute_import
 
-import numbers, pytz
+import datetime, numbers, pytz
 from calendar import timegm
-from datetime import datetime, timedelta
 from time import mktime
 from .encoding import string_types
 
@@ -50,7 +49,7 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     Add an offset:
 
     >>> now = datetime_now(format=None)
-    >>> future = datetime_now(offset=timedelta(hours=2, minutes=10), format=None)
+    >>> future = datetime_now(offset=datetime.timedelta(hours=2, minutes=10), format=None)
     >>> print(future - now)  # doctest: +ELLIPSIS
     2:10:00...
 
@@ -69,7 +68,7 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     >> datetime_now(tz=pytz.timezone(u'US/Eastern'))
     u'2013-10-17 03:54:08'
     """
-    now = datetime.now(tz)
+    now = datetime.datetime.now(tz)
     if offset:
         now += offset
     return (now.strftime(format) + (u' UTC' if tz == pytz.utc and append_utc else u'')) if format else now
@@ -97,11 +96,11 @@ def total_seconds(time):
     16.4
     >>> total_seconds(143.2)
     143.2
-    >>> total_seconds(datetime(2010, 6, 10, 0, 1, 30))
+    >>> total_seconds(datetime.datetime(2010, 6, 10, 0, 1, 30))
     90.0
-    >>> total_seconds(datetime(2010, 6, 10, 14, 15, 23))
+    >>> total_seconds(datetime.datetime(2010, 6, 10, 14, 15, 23))
     51323.0
-    >>> total_seconds(datetime(2010, 6, 10, 23, 59, 59))
+    >>> total_seconds(datetime.datetime(2010, 6, 10, 23, 59, 59))
     86399.0
     """
     try:
@@ -123,19 +122,28 @@ def datetime2epoch(date_time, utc=True, factor=1):
 
     **Example usage**
 
-    >>> datetime2epoch(datetime(1970, 1, 1), factor=1)
+    >>> datetime2epoch(datetime.datetime(1970, 1, 1), factor=1)
     0
-    >>> datetime2epoch(datetime(2010, 6, 10))
+    >>> datetime2epoch(datetime.datetime(2010, 6, 10))
     1276128000
-    >>> datetime2epoch(datetime(2010, 6, 10), factor=1000)
+    >>> datetime2epoch(datetime.datetime(2010, 6, 10), factor=1000)
     1276128000000
+    >>> datetime2epoch(datetime.date(2010, 6, 10), factor=1000)
+    1276128000000
+    >>> datetime2epoch(datetime.date(1987, 6, 10), factor=1000)
+    550281600000
 
     In Switzerland:
 
-    >> datetime2epoch(datetime(1970, 1, 1), utc=False, factor=1)
+    >> datetime2epoch(datetime.datetime(1970, 1, 1), utc=False, factor=1)
+    -3600
+    >> datetime2epoch(datetime.date(1970, 1, 1), utc=False, factor=1)
     -3600
     """
-    return int((timegm(date_time.utctimetuple()) if utc else mktime(date_time.timetuple())) * factor)
+    if utc:
+        time_tuple = date_time.utctimetuple() if hasattr(date_time, 'utctimetuple') else date_time.timetuple()
+        return int(timegm(time_tuple) * factor)
+    return int(mktime(date_time.timetuple()) * factor)
 
 
 def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
@@ -153,7 +161,7 @@ def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
     datetime.datetime(2010, 6, 10, 2, 0, tzinfo=<DstTzInfo 'Europe/Zurich' CEST+2:00:00 DST>)
     >>> epoch2datetime(1276128000000, factor=1000)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
-    >>> today = datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
+    >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
     >>> assert_equal(epoch2datetime(datetime2epoch(today, factor=1000), factor=1000), today)
     """
-    return datetime.fromtimestamp(unix_epoch / factor, tz)
+    return datetime.datetime.fromtimestamp(unix_epoch / factor, tz)
