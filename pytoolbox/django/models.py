@@ -37,8 +37,9 @@ class AbsoluteUrlMixin(object):
     Implement get_absolute_path based on the convention that the views URLs are based on the lower-case model's name.
     """
     # https://docs.djangoproject.com/en/dev/topics/class-based-views/generic-editing/
-    def get_absolute_url(self):
-        return reverse(u'{0}_{1}'.format(self.__class__.__name__.lower(), u'update' if self.pk else u'create'),
+    def get_absolute_url(self, suffix=None):
+        return reverse(u'{0}_{1}'.format(self.__class__.__name__.lower(),
+                       suffix or (u'update' if self.pk else u'create')),
                        kwargs={u'pk': self.pk} if self.pk else None)
 
 
