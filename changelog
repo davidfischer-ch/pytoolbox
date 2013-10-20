@@ -1,4 +1,4 @@
-v5.0.0-beta -> v5.4.13-beta
+v5.0.0-beta -> v5.4.18-beta
 ===========================
 
 Deprecated
@@ -10,6 +10,7 @@ Minor compatibility breaks
 --------------------------
 
 * Split django module into submodules
+* Rename SmartModel to AbsoluteUrlMixin
 
 Features
 --------
@@ -18,6 +19,8 @@ Features
 * Add entry points (socket-fec-generator + twisted-fec-generator)
 * Add commit and release scripts to make it more securely (run tests before, check sphinx ...)
 * Add module network.http and classes juju.SimulatedUnit(s)
+* Add module django.templatetags with getattribute method
+* Add class django.models.SaveInstanceFilesMixin
 * Add method django.forms.update_widget_attributes
 
 Fixes and enhancements
@@ -32,6 +35,8 @@ Fixes and enhancements
 * django.forms.SmartModelForm : Attributes & replacement class applied depending of the form field's class
 * Add fill option to collections.pygal_deque.list()
 * Replace range by xrange, values by itervalues, ...
+* Handle datetime.date class (method datetime.dateime2epoch)
+* Add suffix parameter to AbsoluteUrlMixin.get_absolute_url
 * Fix docstrings
 
 Example usage::
