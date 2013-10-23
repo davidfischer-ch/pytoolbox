@@ -310,12 +310,12 @@ class FecPacket(object):
         """
         # FIXME map type string to enum
         bytes = bytearray(FecPacket.HEADER_LENGTH)
-        struct.pack_into('!H', bytes, 0, self.snbase & FecPacket.SNBL_MASK)
-        struct.pack_into('!H', bytes, 2, self.length_recovery)
-        struct.pack_into('!I', bytes, 4, self.mask)
+        struct.pack_into(b'!H', bytes, 0, self.snbase & FecPacket.SNBL_MASK)
+        struct.pack_into(b'!H', bytes, 2, self.length_recovery)
+        struct.pack_into(b'!I', bytes, 4, self.mask)
         bytes[4] = ((self.payload_type_recovery & FecPacket.PT_MASK) +
                     (FecPacket.E_MASK if self.extended else 0))
-        struct.pack_into('!I', bytes, 8, self.timestamp_recovery)
+        struct.pack_into(b'!I', bytes, 8, self.timestamp_recovery)
         bytes[12] = ((self.N_MASK if self.n else 0) +
                      (self.D_MASK if self.direction else 0) +
                      ((self.algorithm << FecPacket.T_SHIFT) & self.T_MASK) +

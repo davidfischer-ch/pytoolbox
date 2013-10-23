@@ -1,4 +1,4 @@
-v5.0.0-beta -> v5.4.18-beta
+v5.0.0-beta -> v5.4.19-beta
 ===========================
 
 Deprecated
@@ -37,6 +37,7 @@ Fixes and enhancements
 * Replace range by xrange, values by itervalues, ...
 * Handle datetime.date class (method datetime.dateime2epoch)
 * Add suffix parameter to AbsoluteUrlMixin.get_absolute_url
+* Ensure import from future of great things
 * Fix docstrings
 
 Example usage::

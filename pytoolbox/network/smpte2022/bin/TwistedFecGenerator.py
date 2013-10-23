@@ -190,7 +190,7 @@ class TwistedFecGenerator(DatagramProtocol):
     #         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     #         sock.bind((fec_socket['ip'], fec_socket['port']))
     #         #sock.bind(('', fec_socket['port']))
-    #         #mreq = struct.pack("4sl", socket.inet_aton(fec_socket['ip']), socket.INADDR_ANY)
+    #         #mreq = struct.pack(b'4sl', socket.inet_aton(fec_socket['ip']), socket.INADDR_ANY)
     #         #sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
     #         while True:
     #             data = bytearray(sock.recv(10240))

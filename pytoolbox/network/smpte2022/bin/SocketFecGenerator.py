@@ -130,7 +130,7 @@ class SocketFecGenerator(object):
             sock.bind((self.media_socket[u'ip'], self.media_socket[u'port']))
             # Tell the operating system to add the socket to the multicast group on all interfaces
             group = socket.inet_aton(self.media_socket[u'ip'])
-            mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+            mreq = struct.pack(b'4sL', group, socket.INADDR_ANY)
             sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
             sock.settimeout(timeout)  # Time-out must be enabled to react to stop requests
             while self._running:      # Receive loop
