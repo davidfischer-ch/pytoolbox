@@ -22,7 +22,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from django.forms import widgets
 from django.utils.html import mark_safe

@@ -22,7 +22,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
 

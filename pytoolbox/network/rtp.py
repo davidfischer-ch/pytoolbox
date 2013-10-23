@@ -22,7 +22,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import struct
 
@@ -229,12 +229,12 @@ class RtpPacket(object):
                     (cc & RtpPacket.CC_MASK))
         bytes[1] = ((RtpPacket.M_MASK if self.marker else 0) +
                     (self.payload_type & RtpPacket.PT_MASK))
-        struct.pack_into('!H', bytes, 2, self.sequence)
-        struct.pack_into('!I', bytes, 4, self.timestamp)
-        struct.pack_into('!I', bytes, 8, self.ssrc)
+        struct.pack_into(b'!H', bytes, 2, self.sequence)
+        struct.pack_into(b'!I', bytes, 4, self.timestamp)
+        struct.pack_into(b'!I', bytes, 8, self.ssrc)
         i = 12
         for contributor in self.csrc:
-            struct.pack_into('!I', bytes, i, contributor)
+            struct.pack_into(b'!I', bytes, i, contributor)
             i += 4
         return bytes
 

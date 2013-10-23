@@ -23,7 +23,7 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging, socket
 from twisted.internet.protocol import DatagramProtocol
@@ -48,8 +48,8 @@ class TwistedFecGenerator(DatagramProtocol):
     >>> media = IPSocket(TwistedFecGenerator.DEFAULT_MEDIA)
     >>> col = IPSocket(TwistedFecGenerator.DEFAULT_COL)
     >>> row = IPSocket(TwistedFecGenerator.DEFAULT_ROW)
-    >>> generator = TwistedFecGenerator(media['ip'], 'MyTwistedFecGenerator', col, row, 5, 6)
-    >>> reactor.listenMulticast(media['port'], generator, listenMultiple=True) # doctest: +ELLIPSIS
+    >>> generator = TwistedFecGenerator(media[u'ip'], u'MyTwistedFecGenerator', col, row, 5, 6)
+    >>> reactor.listenMulticast(media[u'port'], generator, listenMultiple=True) # doctest: +ELLIPSIS
     <....TwistedFecGenerator... on 5004>
     >>> print(generator._generator)
     Matrix size L x D            = 5 x 6
