@@ -28,10 +28,32 @@ from django.http import HttpResponseRedirect
 from django.views.generic.edit import DeleteView
 
 
-class SmartDeleteView(DeleteView):
+def only_published(queryset, request):
+    u"""
+    Filter the queryset to remove the unpublished entries if the user is not authenticated and the model does have a
+    published field, defaults to the unfiltered queryset.
+    """
+    if not request.user.is_authenticated():
+        try:
+            return queryset.filter(published=True)
+        except:
+            # FIXME a better way to handle models w/o published attribute
+            return queryset
+    else:
+        return queryset
+
+
+class PublishedMixin(object):
+    u"""Filter the queryset with the method :function:`only_published`."""
+
+    def get_queryset(self):
+        return only_published(super(PublishedMixin, self).get_queryset(), self.request)
+
+
+class CancellableDeleteView(DeleteView):
+    u"""Handle the cancel action (detect a cancel parameter in the POST request)."""
 
     def post(self, request, *args, **kwargs):
         if u'cancel' in request.POST:
-            url = self.get_success_url()
-            return HttpResponseRedirect(url)
-        return super(SmartDeleteView, self).post(request, *args, **kwargs)
+            return HttpResponseRedirect(self.success_url)
+        return super(CancellableDeleteView, self).post(request, *args, **kwargs)
