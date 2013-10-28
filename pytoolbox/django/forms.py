@@ -25,31 +25,67 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from copy import copy
-from django.forms import ModelForm, fields
+from django.forms import fields, widgets
 from django.forms.util import ErrorList
 from .widgets import CalendarDateInput, ClockTimeInput
 
 
-class SmartModelForm(ModelForm):
+class HelpTextToPlaceholderMixin(object):
+    u"""Update the widgets of the form to copy (and remove) the field's help text to the widget's placeholder."""
 
-    # Attributes & replacement class applied depending of the form field's class
-    rules = {  # class -> replacement class, attributes update list
+    #: Add a placeholder to the fields listed here.
+    placeholder_fields = (widgets.TextInput, widgets.DateInput)
+    #: Remove the help text after having copied it to the placeholder.
+    placeholder_remove_help_text = True
+
+    def __init__(self, *args, **kwargs):
+        super(HelpTextToPlaceholderMixin, self).__init__(*args, **kwargs)
+        for name, field in self.fields.iteritems():
+            if field and type(field.widget) in self.placeholder_fields:
+                field.widget.attrs['placeholder'] = field.help_text
+                if self.placeholder_remove_help_text:
+                    field.help_text = None
+
+
+class ModelBasedFormCleanupMixin(object):
+    u"""
+    Make possible the cleanup of the form by the model through a class method called ``clean_form``.
+    Useful to cleanup the form based on complex conditions, e.g. if two fields are inter-related (start/end dates, ...).
+    """
+
+    def clean(self):
+        super(ModelBasedFormCleanupMixin, self).clean()
+        try:
+            return self._meta.model.clean_form(self)
+        except AttributeError:
+            return self.cleaned_data
+
+
+class UpdateWidgetAttributeMixin(object):
+    u"""
+    Update the widgets of the form based on a set of rules applied depending of the form field's class.
+    The rules can change the class of the widget and/or update the attributes of the widget with
+    :function:`update_widget_attributes`.
+    """
+
+    #: Set of rules linking the form field's class to the replacement class and the attributes update list.
+    widgets_rules = {
         fields.DateField: [CalendarDateInput, {u'class': u'+dateinput +input-small'}],
         fields.TimeField: [ClockTimeInput,    {u'class': u'+timeinput +input-small'}],
     }
-
-    common_attrs = {}  # Attributes that are applied to all widgets of the form
+    #: Attributes that are applied to all widgets of the form
+    widgets_common_attrs = {}
 
     def __init__(self, *args, **kwargs):
-        super(SmartModelForm, self).__init__(*args, **kwargs)
+        super(UpdateWidgetAttributeMixin, self).__init__(*args, **kwargs)
         for name, field in self.fields.iteritems():
-            updates = self.rules.get(field.__class__)
+            updates = self.widgets_rules.get(field.__class__)
             # May Update widget class with rules-based replacement class
             if updates and updates[0]:
                 field.widget = updates[0]()
             # May update widget attributes with common attributes
-            if self.common_attrs:
-                update_widget_attributes(field.widget, self.common_attrs)
+            if self.widgets_common_attrs:
+                update_widget_attributes(field.widget, self.widgets_common_attrs)
             # May update widget attributes with rules-based attributes
             if updates and updates[1]:
                 update_widget_attributes(field.widget, updates[1])
@@ -57,13 +93,6 @@ class SmartModelForm(ModelForm):
             self._meta.model.init_form(self)
         except AttributeError:
             pass
-
-    def clean(self):
-        super(SmartModelForm, self).clean()
-        try:
-            return self._meta.model.clean_form(self)
-        except AttributeError:
-            return self.cleaned_data
 
 
 def update_widget_attributes(widget, updates):
@@ -97,8 +126,9 @@ def update_widget_attributes(widget, updates):
     widget.attrs.update(updates)
 
 
-def conditional_required(form, required_dict, cleanup=False):
-    data = form.cleaned_data
+def conditional_required(form, required_dict, data=None, cleanup=False):
+    u"""Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'."""
+    data = data or form.cleaned_data
     for name, value in data.iteritems():
         required = required_dict.get(name, None)
         if required and not value:
@@ -108,7 +138,17 @@ def conditional_required(form, required_dict, cleanup=False):
     return data
 
 
+def validate_start_end(form, data=None, start_name=u'start_date', end_name=u'end_date'):
+    u"""Check that the field containing the value of the start field (time, ...) is not bigger (>) than the stop."""
+    data = data or form.cleaned_data
+    start, end = data[start_name], data[end_name]
+    if start and end and start > end:
+        form._errors[end_name] = ErrorList([u'The {0} cannot be before the {1}.'.format(
+                                           start_name.replace(u'_', u' '), end_name.replace(u'_', u' '))])
+
+
 def set_disabled(form, field_name, value=False):
+    u"""Toggle the disabled attribute of a form's field."""
     if value:
         form.fields[field_name].widget.attrs[u'disabled'] = True
     else:
