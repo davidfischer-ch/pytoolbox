@@ -25,24 +25,28 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from copy import copy
-from django.forms import fields, widgets
+from django.forms import fields
 from django.forms.util import ErrorList
 from .widgets import CalendarDateInput, ClockTimeInput
+from ..encoding import to_bytes
 
 
 class HelpTextToPlaceholderMixin(object):
     u"""Update the widgets of the form to copy (and remove) the field's help text to the widget's placeholder."""
 
-    #: Add a placeholder to the fields listed here.
-    placeholder_fields = (widgets.TextInput, widgets.DateInput)
+    #: Add a placeholder to the type of fields listed here.
+    placeholder_fields = (
+        fields.CharField, fields.DateField, fields.DateTimeField, fields.DecimalField, fields.EmailField,
+        fields.FloatField, fields.IntegerField, fields.RegexField, fields.SlugField, fields.TimeField
+    )
     #: Remove the help text after having copied it to the placeholder.
     placeholder_remove_help_text = True
 
     def __init__(self, *args, **kwargs):
         super(HelpTextToPlaceholderMixin, self).__init__(*args, **kwargs)
         for name, field in self.fields.iteritems():
-            if field and type(field.widget) in self.placeholder_fields:
-                field.widget.attrs['placeholder'] = field.help_text
+            if field and isinstance(field, self.placeholder_fields):
+                field.widget.attrs[u'placeholder'] = field.help_text
                 if self.placeholder_remove_help_text:
                     field.help_text = None
 
@@ -120,7 +124,8 @@ def update_widget_attributes(widget, updates):
             elif operation in (u'-', u'^'):
                 class_set.discard(cls)
             else:
-                raise ValueError('updates must be a valid string containing "<op>class <op>..." with op in [+-^].')
+                raise ValueError(to_bytes(
+                    u'updates must be a valid string containing "<op>class <op>..." with op in [+-^].'))
         widget.attrs[u'class'] = u' '.join(sorted(class_set))
         del updates[u'class']
     widget.attrs.update(updates)
