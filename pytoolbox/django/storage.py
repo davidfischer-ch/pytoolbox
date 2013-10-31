@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from ..filesystem import try_remove
 
 
@@ -35,3 +36,6 @@ class OverwriteMixin(object):
     def get_available_name(self, name):
         try_remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
+
+class OverwriteFileSystemStorage(OverwriteMixin, FileSystemStorage):
+    u"""A file-system based storage that let overwrite files with the same name."""

@@ -1,3 +1,11 @@
+v5.4.19-beta -> v5.4.24-beta
+============================
+
+Fixes and enhancements
+----------------------
+
+* Add some django mixins
+
 v5.0.0-beta -> v5.4.19-beta
 ===========================
 
