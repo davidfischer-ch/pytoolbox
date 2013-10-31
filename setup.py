@@ -89,10 +89,14 @@ extras_require = {
 # * hashlib, ipaddr: Part of python 3 standard library
 # * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
 # * sudo pip-3.3 install ming    -> File "/tmp/pip_build_root/ming/setup.py", line 5, SyntaxError: invalid syntax
+
 if major < 3:
     extras_require['ming'] = ['ming']  # FIXME version
+    try:
+        import hashlib
+    except ImportError:
+        install_requires.append('hashlib')  # FIXME version
     install_requires += [
-        'hashlib',  # FIXME version
         'ipaddr',   # FIXME version
         'kitchen',  # FIXME version
     ]
@@ -123,7 +127,7 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pytoolbox',
-      version='5.4.24-beta',
+      version='5.4.25-beta',
       packages=packages,
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
