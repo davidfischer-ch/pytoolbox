@@ -1,10 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
 #                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
 #
-#  Description    : Toolbox for Python scripts
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
 #
@@ -26,14 +24,24 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
-from pytoolbox.unittest import runtests
+import errno, os
+from django.db.models.fields.files import FileField
 
-def main():
-    # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = (u'getattribute.py|forms.py|models.py|signals.py|storage.py|views.py|widgets.py' +
-              (u'|session.py|schema.py' if sys.version_info[0] > 2 else u''))
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=ignore)
 
-if __name__ == u'__main__':
-    main()
+def clean_files_delete_handler(instance, signal, **kwargs):
+    u"""
+    Remove the files of the instance's file fields when it is removed from the database.
+
+    Simply use ``post_delete.connect(clean_files_delete_handler, sender=<your_model_class>)``
+
+    .. warning:: This function remove the file without worrying about any other instance using this file !
+    """
+    for field in kwargs[u'sender']._meta.fields:
+        if isinstance(field, FileField):
+            try:
+                filename = getattr(instance, field.name).path
+                if filename:
+                    os.remove(filename)
+            except IOError as e:
+                if e.errno != errno.ENOENT:
+                    raise
