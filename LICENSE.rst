@@ -1,3 +1,4 @@
+================================
 Introduction to the EUPL licence
 ================================
 
@@ -15,6 +16,7 @@ More than 100 other F/OSS licences exist. The purpose of the EUPL is not to comp
 
 The EUPL is compatible with some other copyleft licences, including the GPLv2. The first applications developed inside the European Commission or by national public administration have already been published under the EUPL.
 
+-----------------
 What is the EUPL?
 -----------------
 
@@ -26,6 +28,7 @@ By a second Decision of 9 January 2008, the European Commission validated the EU
 
 By a third Decision of 9 January 2009, the European Commission clarified specific points of the EUPL, publishing the version 1.1 in all the official languages of the European Union.
 
+-------------
 Why the EUPL?
 -------------
 
@@ -37,6 +40,7 @@ But why creating a new legal instrument from scratch when more than 100 other F/
 * The terminology regarding intellectual property rights had to be conformant with European law requirements ;
 * To be valid in all Member States, limitations of liability or warranty had to be precise, and not formulated “to the extend allowed by the law” as in most licences designed with the legal environment of the United States in mind.
 
+----------
 Objectives
 ----------
 
@@ -46,6 +50,7 @@ The EUPL is however written in neutral terms so that a broader use might be envi
 
 In addition, distribution of software should avoid the exclusive appropriation of the software even after improvement by a third party (therefore, the EUPL is a "copyleft" licence).
 
+---------------------
 Who may use the EUPL?
 ---------------------
 
@@ -54,15 +59,16 @@ Although the potential users of European Institutions' software are mostly other
 Nevertheless, the EUPL purpose is not to compete with other licences. It might be used primarily by public administrations, either European or national, that would need a common licensing instrument to mutualise or share software and knowledge.
 
 Is the EUPL compatible with the GPL and other F/OSS licences?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================================================
 
 Yes, it is. The EUPL contains a unique compatibility clause and provides for a list of compatible copyleft licences. The GPL is one of them.
 
 For example, how would the interaction between the EUPL and the GPL play out in the case of CIRCA, an application a already distributed  under the EUPL?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+========================================================================================================================================================
 
 A developer may improve CIRCA by integrating a GPL component in it, and then could license the improved or derivative work under the GPL. A developer will be also able to integrate CIRCA in existing GPL work called e.g. “MY-GPL-PROGRAM” and continue to license this improved work under the GPL licence that he had chosen originally.
 
+-------------
 OSI certified
 -------------
 

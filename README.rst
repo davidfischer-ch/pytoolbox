@@ -1,3 +1,4 @@
+=========
 pytoolbox
 =========
 
@@ -8,11 +9,13 @@ Afraid of red status ? Please click on the link, sometimes this is not my fault 
 
 This module is a Toolbox for Python scripts.
 
+------------------------------------
 What the release number stands for ?
 ------------------------------------
 
 I do my best to follow this interesting recommendation : `Semantic Versioning 2.0.0 <http://semver.org/>`_
 
+--------------------------------
 How to install it (Python 2.7) ?
 --------------------------------
 
@@ -29,6 +32,7 @@ Then, you only need to run ``setup.py``::
     python2 setup.py test
     sudo python2 setup.py install
 
+--------------------------------
 How to install it (Python 3.3) ?
 --------------------------------
 
@@ -45,6 +49,7 @@ Then, you only need to run ``setup.py``::
     python3 setup.py test
     sudo python3 setup.py install
 
+--------------------------------
 How to enable features/modules ?
 --------------------------------
 
@@ -71,6 +76,7 @@ Another way to do this, with ``pip``::
 
     sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
 
+-----------------------
 How to check coverage ?
 -----------------------
 
@@ -79,6 +85,7 @@ How to check coverage ?
     python setup.py test
     xdg-open tests/cover/index.html
 
+---------------
 How to use it ?
 ---------------
 
@@ -88,6 +95,7 @@ Here is an example ``hello.py`` using the cmd function provided by ``pytoolbox``
 
     print(cmd('echo Hello World!')['stdout'])
 
+-------------------------------
 How to generate documentation ?
 -------------------------------
 
@@ -103,6 +111,7 @@ Here is the procedure::
     python update.py
     xdg-open doc/build/html/index.html
 
+-------------------------------------------------
 How to add it to dependencies of my own project ?
 -------------------------------------------------
 

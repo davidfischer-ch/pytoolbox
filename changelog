@@ -1,27 +1,33 @@
+=========
+changelog
+=========
+
+----------------------------
 v5.4.19-beta -> v5.4.24-beta
-============================
+----------------------------
 
 Fixes and enhancements
-----------------------
+======================
 
 * Add some django mixins
 
+---------------------------
 v5.0.0-beta -> v5.4.19-beta
-===========================
+---------------------------
 
 Deprecated
-----------
+==========
 
 * flask.get_request_data replaced by network.http.get_request_data
 
 Minor compatibility breaks
---------------------------
+==========================
 
 * Split django module into submodules
 * Rename SmartModel to AbsoluteUrlMixin
 
 Features
---------
+========
 
 * Embed smpte2022lib
 * Add entry points (socket-fec-generator + twisted-fec-generator)
@@ -32,7 +38,7 @@ Features
 * Add method django.forms.update_widget_attributes
 
 Fixes and enhancements
-----------------------
+======================
 
 * Lighter list of dependencies
 * Add --extra-... flags to install dependencies for the extra features/modules.
@@ -53,38 +59,40 @@ Example usage::
     sudo python setup.py install --help
     sudo python setup.py install --extra-flask
 
+--------------------------
 v4.8.7-beta -> v5.0.0-beta
-==========================
+--------------------------
 
 Compatibility breaks
---------------------
+====================
 
 * Remove py_ prefix of all modules & paths
 * Change license (GNU GPLv3 -> EUPL 1.1)
 
 Features
---------
+========
 
 * Add module mongo
 
 Fixes and enhancements
-----------------------
+======================
 
 * Use absolute imports
 * Update classifiers
 * Update README.rst
 
+--------------------------
 v4.0.0-beta -> v4.8.7-beta
-==========================
+--------------------------
 
 Minor compatibility breaks
---------------------------
+==========================
 
 * Rename duration2secs -> total_seconds
 * Rename get_request_json -> get_request_data
 
 Features
---------
+========
 
 * Python 3 support
 * Add module py_collections
@@ -96,7 +104,7 @@ Features
 * Greatly improve module py_serialization
 
 Fixes and enhancements
-----------------------
+======================
 
 * Update README.rst
 * Update method get_request_data
@@ -104,39 +112,41 @@ Fixes and enhancements
 * Update method runtests
 * Update setup.py
 
+---------------------------
 v3.10.7-beta -> v4.0.0-beta
-===========================
+---------------------------
 
 Compatibility breaks
---------------------
+====================
 
 * Greatly improve module py_serialization
 
 Features
---------
+========
 
 * Greatly improve module py_juju
 * Add class TimeoutError
 * Add method print_error
 
 Fixes and enhancements
-----------------------
+======================
 
 * Fix setup.py
 * Update cmd
 * Update rsync
 
+---------------------------
 v2.1.2-beta -> v3.10.7-beta
-===========================
+---------------------------
 
 Compatibility breaks
---------------------
+====================
 
 * Rename module py_mock -> py_unittest
 * Remove method unicode_csv_reader
 
 Features
---------
+========
 
 * Add module py_console
 * Add module py_unicode
@@ -149,7 +159,7 @@ Features
 * Greatly improve setup and unit-testing
 
 Fixes and enhancements
-----------------------
+======================
 
 * Fix shebangs
 * Handle unicode

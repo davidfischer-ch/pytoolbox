@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
-#                                       PYUTILS - TOOLBOX FOR PYTHON SCRIPTS
+#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
