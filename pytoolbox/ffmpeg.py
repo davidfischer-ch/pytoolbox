@@ -238,7 +238,7 @@ def encode(in_filename, out_filename, encoder_string, ratio_delta=0.01, time_del
 
     # Output media file sanity check
     out_duration = get_media_duration(out_filename)
-    ratio = get_ratio(in_duration, out_duration)
+    ratio = get_ratio(in_duration, out_duration) if out_duration else 0.0
     yield {
         u'status': u'ERROR' if returncode else u'SUCCESS',
         u'output': output,
