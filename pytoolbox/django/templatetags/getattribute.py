@@ -38,6 +38,13 @@ def getattribute(value, attribute):
     Gets an attribute of an object dynamically from a string name.
 
     Source : https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
+
+    **Example usage**
+
+    In template::
+
+        {% load getattribute %}
+        {{ object|getattribute:dynamic_string_var }}
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
@@ -45,11 +52,6 @@ def getattribute(value, attribute):
         return value[attribute]
     elif numeric_test.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
-    else:
-        return settings.TEMPLATE_STRING_IF_INVALID
+    return settings.TEMPLATE_STRING_IF_INVALID
 
 register.filter(u'getattribute', getattribute)
-
-# Then, in template:
-# {% load getattribute %}
-# {{ object|getattribute:dynamic_string_var }}
