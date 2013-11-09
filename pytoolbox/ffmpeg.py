@@ -58,11 +58,13 @@ def get_media_duration(filename):
     **Example usage**
 
     >>> from codecs import open
-    >>> open(u'/tmp/test.txt', u'w', encoding=u'utf-8').write(u'Hey, I am not a MPD nor a média')
+    >>> with open(u'/tmp/test.txt', u'w', encoding=u'utf-8') as f:
+    ...     f.write(u'Hey, I am not a MPD nor a média')
     >>> print(get_media_duration(u'/tmp/test.txt'))
     None
     >>> os.remove(u'/tmp/test.txt')
-    >>> open(u'/tmp/test.mpd', u'w', encoding=u'utf-8').write(MPD_TEST)
+    >>> with open(u'/tmp/test.mpd', u'w', encoding=u'utf-8') as f:
+    ...     f.write(MPD_TEST)
     >>> print(get_media_duration(u'/tmp/test.mpd'))
     00:06:07.83
     >>> os.remove(u'/tmp/test.mpd')
