@@ -24,18 +24,24 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re
 from django import template
 from django.conf import settings
 
 
-numeric_test = re.compile('^\d+$')
 register = template.Library()
 
 
-def getattribute(value, attribute):
+def rst_title(value, level):
     u"""
-    Gets an attribute of an object dynamically from a string name.
+    Return a title formatted with reSTructuredtext markup.
+
+    level as number: (1, 2, 3, 4, 5)
+    level as text: ('document', 'subtitle', 'chapter', 'section', 'subsection')
+
+    Output::
+
+        'Document Title'|rst_title:'document' -> ==============\nDocument Title\n==============\n
+        'My Subtitle'|rst_title:'subtitle' -> -----------\nMy Subtitle\n-----------\n
 
     Source : https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
 
@@ -43,15 +49,21 @@ def getattribute(value, attribute):
 
     In template::
 
-        {% load getattribute %}
-        {{ object|getattribute:dynamic_string_var }}
+        {% load rst_title %}
+        {{ 'My chapter'|rst_title:'chapter' }}
     """
-    if hasattr(value, str(attribute)):
-        return getattr(value, attribute)
-    elif hasattr(value, u'has_key') and value.has_key(attribute):
-        return value[attribute]
-    elif numeric_test.match(str(attribute)) and len(value) > int(attribute):
-        return value[int(attribute)]
+    value, level = unicode(value), unicode(level)
+    length = len(value)
+    if level in (u'1', u'document'):
+        return u'{0}\n{1}\n{2}\n'.format(u'=' * length, value, u'=' * length)
+    elif level in (u'2', u'subtitle'):
+        return u'{0}\n{1}\n{2}\n'.format(u'-' * length, value, u'-' * length)
+    elif level in (u'3', u'chapter'):
+        return u'{0}\n{1}\n'.format(value, u'=' * length)
+    elif level in (u'4', u'section'):
+        return u'{0}\n{1}\n'.format(value, u'-' * length)
+    elif level in (u'5', u'subsection'):
+        return u'{0}\n{1}\n'.format(value, u'~' * length)
     return settings.TEMPLATE_STRING_IF_INVALID
 
-register.filter(u'getattribute', getattribute)
+register.filter(u'rst_title', rst_title)

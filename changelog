@@ -3,13 +3,18 @@ changelog
 =========
 
 ----------------------------
-v5.4.19-beta -> v5.4.24-beta
+v5.4.19-beta -> v5.4.30-beta
 ----------------------------
 
 Fixes and enhancements
 ======================
 
-* Add some django mixins
+* Add new django-related modules
+* Add some django mixins + template tags
+* Make class django.models.GoogleMapsMixin more generic
+* Do not add hashlib to requirements if already part of the stdlib
+* Fix headers + rest markup + update title
+* Enhance method ffmpeg.encode
 
 ---------------------------
 v5.0.0-beta -> v5.4.19-beta

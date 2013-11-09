@@ -28,8 +28,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.maps.google import GEvent, GIcon, GMarker
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FileField
-from django.utils.translation import ugettext as _
-from os.path import join
+from os.path import join, splitext
 
 
 class AbsoluteUrlMixin(object):
@@ -66,21 +65,21 @@ class GoogleMapMixin(object):
     Implement map_icon and map_marker to return some GeoDjango Google Maps widgets filled with values from the location
     field of the model's instance. The location field must be a PointField (Python: or duck-type it correctly).
     """
-    map_icon_varname_field = u'category'
-    map_marker_title_field = u'title'
-    map_marker_title_field_default = u'New thing'
+    map_icon_filename = None
+    map_marker_title = u'Marker title'
+    map_marker_title_default = u'New thing'
 
     def map_icon(self, icons_url=u'/static/markers/', size=(24, 24)):
-        varname = getattr(self, self.map_icon_varname_field)
-        if varname:
-            return GIcon(varname, image=join(icons_url, varname.lower() + u'.png'), iconsize=size)
+        filename = self.map_icon_filename
+        if filename:
+            return GIcon(splitext(filename)[0], image=join(icons_url, filename), iconsize=size)
         return None
 
     def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=False, form_update=False,
                    highlight_class=None, dbclick_edit=False, **kwargs):
-        title = unicode(getattr(self, self.map_marker_title_field)) or self.map_marker_title_field_default
-        marker = GMarker(self.location or default_location, title=_(title),
-                         draggable=draggable, icon=self.map_icon(**kwargs))
+        title = unicode(self.map_marker_title) or self.map_marker_title_default
+        marker = GMarker(self.location or default_location, title=title, draggable=draggable,
+                         icon=self.map_icon(**kwargs))
         events = []
         if form_update:
             events.append(GEvent(u'mouseup',
