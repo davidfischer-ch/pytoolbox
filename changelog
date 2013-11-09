@@ -3,7 +3,7 @@ changelog
 =========
 
 ----------------------------
-v5.4.19-beta -> v5.4.30-beta
+v5.4.19-beta -> v5.4.31-beta
 ----------------------------
 
 Fixes and enhancements
@@ -15,6 +15,7 @@ Fixes and enhancements
 * Do not add hashlib to requirements if already part of the stdlib
 * Fix headers + rest markup + update title
 * Enhance method ffmpeg.encode
+* Call log more often
 
 ---------------------------
 v5.0.0-beta -> v5.4.19-beta

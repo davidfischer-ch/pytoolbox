@@ -25,7 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import errno, fcntl, multiprocessing, os, re, setuptools.archive_util, shlex, shutil, subprocess
-from .encoding import to_bytes
+from .encoding import to_bytes, string_types
 from .filesystem import try_makedirs
 
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
@@ -44,14 +44,19 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
     * Set ``communicate`` to True to communicate with the process, this is a locking call.
     * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
     """
+    if isinstance(command, string_types):
+        args_list, args_string = shlex.split(to_bytes(command)), command
+    else:
+        args_list, args_string = [to_bytes(a) for a in command if a], u' '.join(command)
     if hasattr(log, u'__call__'):
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
-            command, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
-    args = [to_bytes(arg) for arg in command if arg] if isinstance(command, list) else shlex.split(to_bytes(command))
+            args_string, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
     try:
-        process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, **kwargs)
     except OSError as e:
+        if hasattr(log, u'__call__'):
+            log(e)
         if fail:
             raise
         return {u'process': None, u'stdout': u'', u'stderr': e, u'returncode': 2}
@@ -60,10 +65,11 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
     if communicate:
         stdout, stderr = process.communicate(input=input)
         result = {u'process': process, u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
-        if fail and process.returncode != 0:
-            if hasattr(log, u'__call__'):
-                log(result)
-            raise subprocess.CalledProcessError(process.returncode, command, stderr)
+        if hasattr(log, u'__call__'):
+            log(result)
+        if process.returncode != 0:
+            if fail:
+                raise subprocess.CalledProcessError(process.returncode, args_string, stderr)
         return result
     process.poll()  # To get a returncode that may be None of course ...
     return  {u'process': process, u'stdout': None, u'stderr': None, u'returncode': process.returncode}
