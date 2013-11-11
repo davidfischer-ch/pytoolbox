@@ -127,7 +127,7 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pytoolbox',
-      version='5.4.30-beta',
+      version='5.4.31-beta',
       packages=packages,
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
