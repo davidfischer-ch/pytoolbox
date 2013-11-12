@@ -30,7 +30,8 @@ from pytoolbox.unittest import runtests
 
 def main():
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = (u'getattribute.py|forms.py|models.py|signals.py|storage.py|views.py|widgets.py' +
+    ignore = (u'forms.py|models.py|signals.py|storage.py|views.py|widgets.py|' +
+              u'getattribute.py|rst_title.py|status_label.py' +
               (u'|session.py|schema.py' if sys.version_info[0] > 2 else u''))
     return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=ignore)
 
