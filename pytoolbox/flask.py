@@ -94,8 +94,8 @@ def map_exceptions(e):
 
     Convert a JSON response of kind {'status': 200, 'value': '...'}:
 
-    >>> map_exceptions({'status': 200, 'value': 'The good value.'})
-    u'The good value.'
+    >>> print(map_exceptions({'status': 200, 'value': 'The good value.'}))
+    The good value.
     >>> map_exceptions({'status': 415, 'value': 'The value is bad.'})
     Traceback (most recent call last):
         ...
