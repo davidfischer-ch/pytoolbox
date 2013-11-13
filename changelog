@@ -3,8 +3,13 @@ changelog
 =========
 
 ----------------------------
-v5.4.19-beta -> v5.4.32-beta
+v5.4.19-beta -> v5.4.33-beta
 ----------------------------
+
+Features
+========
+
+* Add method serialization.to_file and use it to improve PickeableObject and JsoneableObject write methods.
 
 Fixes and enhancements
 ======================

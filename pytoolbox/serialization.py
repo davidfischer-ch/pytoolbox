@@ -24,11 +24,56 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import inspect, json, pickle
+import inspect, json, os, pickle, shutil
 from bson.objectid import ObjectId
 from codecs import open
 from .encoding import string_types, to_bytes
 
+
+# Data -> File ---------------------------------------------------------------------------------------------------------
+
+def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, backup=False):
+    u"""
+    Write some data to a file, can be safe (tmp file -> rename), may create a backup before any write operation.
+    Return the name of the backup filename or None.
+
+    **Example usage**
+
+    In-place write operation:
+
+    >>> from nose.tools import assert_equal, assert_raises
+    >>> assert_equal(to_file(u'/tmp/to_file', data=u'bonjour'), None)
+    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'bonjour')
+
+    In-place write operation after having copied the file into a backup:
+
+    >>> assert_equal(to_file(u'/tmp/to_file', data=u'ça va ?', backup=True), u'/tmp/to_file.bkp')
+    >>> assert_equal(open(u'/tmp/to_file.bkp', u'r', u'utf-8').read(), u'bonjour')
+    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'ça va ?')
+
+    The most secure, do a backup, write into a temporary file, and rename the temporary file to the destination:
+
+    >>> assert_equal(to_file(u'/tmp/to_file', data=u'oui et toi ?', safe=True, backup=True), u'/tmp/to_file.bkp')
+    >>> assert_equal(open(u'/tmp/to_file.bkp', u'r', u'utf-8').read(), u'ça va ?')
+    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
+
+    The content of the destination is not broken if the write operation fails:
+
+    >>> assert_raises(TypeError, to_file, u'/tmp/to_file', data=assert_equal, safe=True)
+    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
+    """
+    if backup:
+        backup_filename = u'{0}.bkp'.format(filename)
+        shutil.copy2(filename, backup_filename)
+    write_filename = u'{0}.tmp'.format(filename) if safe else filename
+    with open(write_filename, u'wb' if binary else u'w', None if binary else u'utf-8') as f:
+        if data:
+            f.write(data)
+        if pickle_data:
+            pickle.dump(pickle_data, f)
+    if safe:
+        os.rename(write_filename, filename)
+    return backup_filename if backup else None
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------
 
@@ -38,7 +83,8 @@ class PickleableObject(object):
     def read(cls, filename, store_filename=False, create_if_error=False, **kwargs):
         u"""Return a deserialized instance of a pickleable object loaded from a file."""
         try:
-            the_object = pickle.load(open(filename, u'rb'))
+            with open(filename, u'rb') as f:
+                the_object = pickle.load(f)
         except:
             if not create_if_error:
                 raise
@@ -48,7 +94,7 @@ class PickleableObject(object):
             the_object._pickle_filename = filename
         return the_object
 
-    def write(self, filename=None, store_filename=False):
+    def write(self, filename=None, store_filename=False, safe=False, backup=False):
         u"""Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``."""
         pickle_filename = getattr(self, '_pickle_filename', None)
         filename = filename or pickle_filename
@@ -57,13 +103,12 @@ class PickleableObject(object):
         try:
             if pickle_filename:
                 del self._pickle_filename
-            pickle.dump(self, open(filename, u'wb'))
+            to_file(filename, pickle_data=self, binary=True, safe=safe, backup=backup)
         finally:
             if store_filename:
                 self._pickle_filename = filename
             elif pickle_filename:
                 self._pickle_filename = pickle_filename
-
 
 # Object <-> JSON string -----------------------------------------------------------------------------------------------
 
@@ -229,19 +274,19 @@ class JsoneableObject(object):
                 the_object._json_filename = filename
             return the_object
 
-    def write(self, filename=None, include_properties=False, **kwargs):
+    def write(self, filename=None, include_properties=False, safe=False, backup=False, **kwargs):
         u"""Serialize ``self`` to a file, excluding the attribute ``_json_filename``."""
         if filename is None and hasattr(self, u'_json_filename'):
             filename = self._json_filename
             try:
                 del self._json_filename
-                with open(filename, u'w', u'utf-8') as f:
-                    f.write(object2json(self, include_properties, **kwargs))
+                to_file(filename, data=object2json(self, include_properties, **kwargs),
+                        binary=False, safe=safe, backup=backup)
             finally:
                 self._json_filename = filename
         elif filename is not None:
-            with open(filename, u'w', u'utf-8') as f:
-                f.write(object2json(self, include_properties, **kwargs))
+            to_file(filename, data=object2json(self, include_properties, **kwargs),
+                    binary=False, safe=safe, backup=backup)
         else:
             raise ValueError(u'A filename must be specified')
 
@@ -253,7 +298,6 @@ class JsoneableObject(object):
     def from_json(cls, json_string, inspect_constructor):
         u"""Deserialize a JSON string to an instance of ``JsoneableObject``."""
         return dict2object(cls, json.loads(json_string), inspect_constructor)
-
 
 # Object <-> Dictionary ------------------------------------------------------------------------------------------------
 
