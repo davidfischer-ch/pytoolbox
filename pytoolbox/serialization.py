@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import inspect, json, os, pickle, shutil
+import errno, inspect, json, os, pickle, shutil
 from bson.objectid import ObjectId
 from codecs import open
 from .encoding import string_types, to_bytes
@@ -45,6 +45,12 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
     >>> assert_equal(to_file(u'/tmp/to_file', data=u'bonjour'), None)
     >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'bonjour')
 
+    No backup is created if the destination file does not exist:
+
+    >>> from .filesystem import try_remove
+    >>> _ = try_remove(u'/tmp/to_file')
+    >>> assert_equal(to_file(u'/tmp/to_file', data=u'bonjour', backup=True), None)
+
     In-place write operation after having copied the file into a backup:
 
     >>> assert_equal(to_file(u'/tmp/to_file', data=u'ça va ?', backup=True), u'/tmp/to_file.bkp')
@@ -64,7 +70,12 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
     """
     if backup:
         backup_filename = u'{0}.bkp'.format(filename)
-        shutil.copy2(filename, backup_filename)
+        try:
+            shutil.copy2(filename, backup_filename)
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            backup_filename = None
     write_filename = u'{0}.tmp'.format(filename) if safe else filename
     with open(write_filename, u'wb' if binary else u'w', None if binary else u'utf-8') as f:
         if data:
