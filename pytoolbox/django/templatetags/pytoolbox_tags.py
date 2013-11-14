@@ -123,7 +123,7 @@ def rst_title(value, level):
 
 
 @register.filter(is_safe=True)
-def secs_to_time(value, none_is_zero=False):
+def secs_to_time(value, defaults_to_zero=False):
     u"""
     Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
 
@@ -135,8 +135,8 @@ def secs_to_time(value, none_is_zero=False):
     """
     try:
         return (datetime.datetime.min + datetime.timedelta(seconds=float(value))).time()
-    except TypeError:
-        if none_is_zero and value is None:
+    except (TypeError, ValueError):
+        if defaults_to_zero and not value:
             return datetime.time(second=0)
         return settings.TEMPLATE_STRING_IF_INVALID
 
