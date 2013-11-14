@@ -35,6 +35,8 @@ def clean_files_delete_handler(instance, signal, **kwargs):
     Simply use ``post_delete.connect(clean_files_delete_handler, sender=<your_model_class>)``
 
     .. warning:: This function remove the file without worrying about any other instance using this file !
+
+    .. note:: Project `django-cleanup <https://github.com/un1t/django-cleanup>`_ is a more complete alternative.
     """
     for field in kwargs[u'sender']._meta.fields:
         if isinstance(field, FileField):
