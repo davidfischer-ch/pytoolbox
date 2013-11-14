@@ -3,8 +3,13 @@ changelog
 =========
 
 ----------------------------
-v5.4.19-beta -> v5.4.33-beta
+v5.4.19-beta -> v5.4.34-beta
 ----------------------------
+
+Minor compatibility breaks
+==========================
+
+* Move all django template tags into module pytooblox_tags
 
 Features
 ========
