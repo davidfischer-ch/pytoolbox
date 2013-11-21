@@ -118,9 +118,9 @@ def make(archive, with_cmake=False, configure_options=u'', make_options=u'-j{0}'
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False,
-          progress=False, recursive=False, simulate=False, excludes=None, includes=None,
-          rsync_path=None, extra=None, fail=True, log=None, **kwargs):
+def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False, progress=False,
+          recursive=False, simulate=False, excludes=None, includes=None, rsync_path=None, size_only=False, extra=None,
+          fail=True, log=None, **kwargs):
     if makedest and not os.path.exists(destination):
         os.makedirs(destination)
     source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else u'')
@@ -130,7 +130,8 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
                u'--delete' if delete else None,
                u'--progress' if progress else None,
                u'-r' if recursive else None,
-               u'--dry-run' if simulate else None]
+               u'--dry-run' if simulate else None,
+               u'--size-only' if size_only else None]
     if rsync_path is not None:
         command += [u'--rsync-path', rsync_path]
     if extra is not None:
