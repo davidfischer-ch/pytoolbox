@@ -24,7 +24,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, os
 from django.db.models.fields.files import FileField
 
 
@@ -40,10 +39,6 @@ def clean_files_delete_handler(instance, signal, **kwargs):
     """
     for field in kwargs[u'sender']._meta.fields:
         if isinstance(field, FileField):
-            try:
-                filename = getattr(instance, field.name).path
-                if filename:
-                    os.remove(filename)
-            except IOError as e:
-                if e.errno != errno.ENOENT:
-                    raise
+            file_field = getattr(instance, field.name)
+            if file_field.path:
+                file_field.delete(save=False)
