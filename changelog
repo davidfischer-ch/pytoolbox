@@ -3,7 +3,7 @@ changelog
 =========
 
 ----------------------------
-v5.4.19-beta -> v5.4.39-beta
+v5.4.19-beta -> v5.4.40-beta
 ----------------------------
 
 Minor compatibility breaks
@@ -19,6 +19,7 @@ Features
 Fixes and enhancements
 ======================
 
+* Add missing MANIFEST.in
 * Add new django-related modules
 * Add some django mixins + template tags
 * Make class django.models.GoogleMapsMixin more generic
