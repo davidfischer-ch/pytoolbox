@@ -774,6 +774,7 @@ class Environment(object):
     @print_stdouts
     def bootstrap(self, synchronize_tools=False, **kwargs):
         print(u'Cleanup and bootstrap environment {0}'.format(self.name))
+        print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
             destroy_environment(self.name, remove_default=True)
             if synchronize_tools:
