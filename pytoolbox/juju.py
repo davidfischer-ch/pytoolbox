@@ -772,11 +772,12 @@ class Environment(object):
         self.auto = auto
 
     @print_stdouts
-    def bootstrap(self, **kwargs):
+    def bootstrap(self, synchronize_tools=False, **kwargs):
         print(u'Cleanup and bootstrap environment {0}'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
             destroy_environment(self.name, remove_default=True)
-            sync_tools(self.name, all_tools=True)
+            if synchronize_tools:
+                sync_tools(self.name, all_tools=True)
             return (True, [bootstrap_environment(self.name, **kwargs)])
         return (False, [None])
 
