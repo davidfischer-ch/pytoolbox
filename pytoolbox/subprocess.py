@@ -48,7 +48,8 @@ def cmd(command, input=None, cli_input=None, cli_output=False, fail=True, log=No
     if isinstance(command, string_types):
         args_list, args_string = shlex.split(to_bytes(command)), command
     else:
-        args_list, args_string = [to_bytes(a) for a in command if a], u' '.join(command)
+        args_list = [to_bytes(a) for a in command if a is not None]
+        args_string = u' '.join([unicode(a) for a in command if a is not None])
     if hasattr(log, u'__call__'):
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             args_string, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
