@@ -24,18 +24,16 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os
-from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from ..filesystem import try_remove
 
 
 class OverwriteMixin(object):
     u"""Update get_available_name to remove any previously stored file (if any) before returning the name."""
 
     def get_available_name(self, name):
-        try_remove(os.path.join(settings.MEDIA_ROOT, name))
+        self.delete(name)
         return name
+
 
 class OverwriteFileSystemStorage(OverwriteMixin, FileSystemStorage):
     u"""A file-system based storage that let overwrite files with the same name."""

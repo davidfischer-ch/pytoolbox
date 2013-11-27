@@ -31,7 +31,7 @@ from .filesystem import try_makedirs
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 
 
-def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=True, **kwargs):
+def cmd(command, input=None, cli_input=None, cli_output=False, fail=True, log=None, communicate=True, **kwargs):
     u"""
     Calls the ``command`` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -39,6 +39,7 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
 
     * Pipe some content to the command with ``input``.
     * Answer to interactive CLI questions with ``cli_input``.
+    * Set ``cli_output`` to output (in real-time) stdout to stdout and stderr to stderr.
     * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
     * Set ``log`` to a method to log / print details about what is executed / any failure.
     * Set ``communicate`` to True to communicate with the process, this is a locking call.
@@ -52,8 +53,8 @@ def cmd(command, input=None, cli_input=None, fail=True, log=None, communicate=Tr
         log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
             args_string, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
     try:
-        process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, **kwargs)
+        process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
+                                   stderr=None if cli_output else subprocess.PIPE, **kwargs)
     except OSError as e:
         if hasattr(log, u'__call__'):
             log(e)
@@ -91,7 +92,7 @@ def read_async(fd):
             return u''
         raise
 
-# --------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 def make(archive, with_cmake=False, configure_options=u'', make_options=u'-j{0}'.format(multiprocessing.cpu_count()),
          install=True, remove_temporary=True, fail=True, log=None, **kwargs):
@@ -115,11 +116,11 @@ def make(archive, with_cmake=False, configure_options=u'', make_options=u'-j{0}'
         shutil.rmtree(path)
     return results
 
-# --------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
-def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False,
-          progress=False, recursive=False, simulate=False, excludes=None, includes=None,
-          rsync_path=None, extra=None, fail=True, log=None, **kwargs):
+def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False, progress=False,
+          recursive=False, simulate=False, excludes=None, includes=None, rsync_path=None, size_only=False, extra=None,
+          fail=True, log=None, **kwargs):
     if makedest and not os.path.exists(destination):
         os.makedirs(destination)
     source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else u'')
@@ -129,7 +130,8 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
                u'--delete' if delete else None,
                u'--progress' if progress else None,
                u'-r' if recursive else None,
-               u'--dry-run' if simulate else None]
+               u'--dry-run' if simulate else None,
+               u'--size-only' if size_only else None]
     if rsync_path is not None:
         command += [u'--rsync-path', rsync_path]
     if extra is not None:

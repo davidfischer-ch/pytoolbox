@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re
+import re, datetime
 from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -73,7 +73,7 @@ def getattribute(value, attribute):
 
     In template::
 
-        {% load getattribute %}
+        {% load pytoolbox_tags %}
         {{ object|getattribute:dynamic_string_var }}
     """
     if hasattr(value, str(attribute)):
@@ -104,7 +104,7 @@ def rst_title(value, level):
 
     In template::
 
-        {% load rst_title %}
+        {% load pytoolbox_tags %}
         {{ 'My chapter'|rst_title:'chapter' }}
     """
     value, level = unicode(value), unicode(level)
@@ -122,6 +122,25 @@ def rst_title(value, level):
     return settings.TEMPLATE_STRING_IF_INVALID
 
 
+@register.filter(is_safe=True)
+def secs_to_time(value, defaults_to_zero=False):
+    u"""
+    Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
+
+    Output::
+
+        83707.0035|secs_to_time|time:"H:i:s.u" -> 23:15:07.003500
+        None|secs_to_time|time:"H:i:s.u"       -> (nothing)
+        None|secs_to_time:True|time:"H:i:s.u"  -> 00:00:00.000000
+    """
+    try:
+        return (datetime.datetime.min + datetime.timedelta(seconds=float(value))).time()
+    except (TypeError, ValueError):
+        if defaults_to_zero and not value:
+            return datetime.time(second=0)
+        return settings.TEMPLATE_STRING_IF_INVALID
+
+
 @register.filter(needs_autoescape=True)
 @stringfilter
 def status_label(value, autoescape=None, default=u''):
@@ -136,7 +155,7 @@ def status_label(value, autoescape=None, default=u''):
 
     In template::
 
-        {% load status_label %}
+        {% load pytoolbox_tags %}
         {{ my_status_variable|status_label }}
     """
     esc = conditional_escape if autoescape else lambda x: x

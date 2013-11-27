@@ -3,7 +3,7 @@ changelog
 =========
 
 ----------------------------
-v5.4.19-beta -> v5.4.34-beta
+v5.4.19-beta -> v5.4.40-beta
 ----------------------------
 
 Minor compatibility breaks
@@ -19,9 +19,12 @@ Features
 Fixes and enhancements
 ======================
 
+* Add missing MANIFEST.in
 * Add new django-related modules
 * Add some django mixins + template tags
 * Make class django.models.GoogleMapsMixin more generic
+* Add cli_output argument to subprocess.cmd
+* Add size_only argument to subprocess.rsync
 * Do not add hashlib to requirements if already part of the stdlib
 * Fix headers + rest markup + update title
 * Enhance method ffmpeg.encode
