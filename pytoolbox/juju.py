@@ -565,6 +565,10 @@ class CharmHooks(object):
         return int(self.name.split(u'/')[1])
 
     @property
+    def name_slug(self):
+        return self.name.replace(u'/', u'-')
+
+    @property
     def is_leader(self):
         u"""
         Returns True if current unit is the leader of the peer-relation.
