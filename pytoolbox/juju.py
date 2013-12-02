@@ -30,7 +30,7 @@ from functools import wraps
 from os.path import abspath, dirname, expanduser, join
 from .console import confirm
 from .encoding import string_types, to_bytes
-from .filesystem import from_template
+from .filesystem import from_template, try_symlink
 from .exception import TimeoutError
 from .subprocess import cmd
 
@@ -765,11 +765,16 @@ class Environment(object):
             return result
         return with_print_stdouts
 
-    def __init__(self, name, config=u'config.yaml', release=None, auto=False):
+    def __init__(self, name, charms_path=u'charms', config=u'config.yaml', release=None, auto=False):
         self.name = name
+        self.charms_path = charms_path
         self.config = config
         self.release = release
         self.auto = auto
+
+    def symlink_local_charms(self, default_path=u'default'):
+        u"""Symlink charms default directory to directory of current release."""
+        try_symlink(abspath(join(self.charms_path, default_path)), abspath(join(self.charms_path, self.release)))
 
     @print_stdouts
     def bootstrap(self, synchronize_tools=False, **kwargs):
@@ -840,29 +845,28 @@ class DeploymentScenario(object):
     def main(self, environments, **kwargs):
         parser = self.get_parser(**kwargs)
         args = vars(parser.parse_args())
+        auto = args.pop(u'auto')
         charms_path = args.pop(u'charms_path')
         release = args.pop(u'release')
-        auto = args.pop(u'auto')
         self.environments = environments
         for environment in environments:
+            environment.auto = auto
             environment.charms_path = charms_path
             environment.release = environment.release or release
-            environment.auto = auto
             self.__dict__.update({environment.name: environment})  # A shortcut
+        # FIXME use metaclass instead of updating __dict__ if it does add attributes to the class.
         self.__dict__.update(args)
         self.run()
 
-    def get_parser(self, epilog=u'', charms_path=u'.', release=u'raring', auto=False):
-        #if not isinstance(epilog, str):
-            #raise TypeError('epilog must be an instance of string')
+    def get_parser(self, epilog=u'', charms_path=u'charms', release=u'raring', auto=False):
+        HELP_A = u'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         HELP_M = u'Directory (repository) of any local charm.'
         HELP_R = u'Ubuntu serie to deploy by JuJu.'
-        HELP_A = u'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
         parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
+        parser.add_argument(u'-a', u'--auto',        action=u'store_true', help=HELP_A, default=auto)
         parser.add_argument(u'-m', u'--charms_path', action=u'store',      help=HELP_M, default=charms_path)
         parser.add_argument(u'-r', u'--release',     action=u'store',      help=HELP_R, default=release)
-        parser.add_argument(u'-a', u'--auto',        action=u'store_true', help=HELP_A, default=auto)
         return parser
 
     def run(self):
