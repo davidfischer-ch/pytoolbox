@@ -544,6 +544,7 @@ class CharmHooks(object):
             self.env_uuid = default_os_env[u'JUJU_ENV_UUID']
             self.name = default_os_env[u'JUJU_UNIT_NAME']
             self.private_address = self.public_address = get_ip()
+        self.directory = os.getcwd()
         self.debug(u'Using juju {0}, reason: {1}'.format(self.juju_ok, reason))
         self.load_metadata(metadata)
 
