@@ -57,6 +57,35 @@ def confirm(question=None, default=False):
         print(u'please enter y or n.')
 
 
+def choice(question='', choices=[]):
+    u"""
+    Prompt the user for a choice and return his/her answer.
+    
+    **Example of usage**
+    
+    >> choice('What is your favorite color?', ['blue', 'orange', 'red'])
+    What is your favourite color? [blue, orange, red]: orange
+    orange
+    >> choice(['male', 'female'])
+    [male, female]? male
+    male
+    """
+
+    # generate question and choices list
+    choices_list = ''.join(s + u', ' for s in choices).rstrip(u', ')
+    if question is None:
+        question = u'[{0}]? '.format(choices_list)
+    else:
+        question = u'{0} [{1}]: '.format(question, choices_list)
+
+    # loop until an acceptable choice has been answered
+    while True:
+        ans = raw_input(question)
+        if ans in choices:
+            return ans
+        print(u'Please choose between {0}.'.format(choices_list))
+
+
 def print_error(message, output=sys.stderr, exit_code=1):
     u"""
     Print a error message and exit if ``exit_code`` is not None.
