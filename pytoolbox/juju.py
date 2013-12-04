@@ -135,32 +135,7 @@ def save_unit_config(filename, service, config, log=None):
         config = {service: config}
         f.write(yaml.safe_dump(config))
 
-
-# Tools ----------------------------------------------------------------------------------------------------------------
-
-def sync_tools(environment, all_tools=True):
-    options = [u'--all'] if all_tools else None
-    return juju_do(u'sync-tools', environment, options=options)
-
-
 # Environments ---------------------------------------------------------------------------------------------------------
-
-def bootstrap_environment(environment, wait_started=False, started_states=STARTED_STATES, error_states=ERROR_STATES,
-                          timeout=600, polling_delay=10):
-    result = juju_do(u'bootstrap', environment)
-    if wait_started:
-        start_time = time.time()
-        while True:
-            state = get_environment_status(environment)[u'machines'][u'0'][u'agent-state']
-            if state in started_states:
-                break
-            elif state in error_states:
-                raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
-            if time.time() - start_time > timeout:
-                raise TimeoutError(u'Bootstrap time-out with state {0}.'.format(state))
-            time.sleep(polling_delay)
-    return result
-
 
 def add_environment(environment, type, region, access_key, secret_key, control_bucket,
                     default_series, environments=None):
@@ -193,31 +168,6 @@ def add_environment(environment, type, region, access_key, secret_key, control_b
         raise
 
 
-def destroy_environment(environment, remove_default=False, remove=False, environments=None):
-    environments = environments or DEFAULT_ENVIRONMENTS_FILE
-    environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
-    environment = environments_dict[u'default'] if environment == u'default' else environment
-    if environment not in environments_dict[u'environments']:
-        raise IndexError(to_bytes(u'No environment with name {0}.'.format(environment)))
-    if not remove_default and environment == environments_dict[u'default']:
-        raise RuntimeError(to_bytes(u'Cannot remove default environment {0}.'.format(environment)))
-    try:
-        get_environment_status(environment)
-        alive = True
-    except:
-        alive = False
-    result = juju_do(u'destroy-environment', environment) if alive else None
-    if remove:
-        try:
-            # Check if environment destroyed otherwise a lot of trouble with $/€ !
-            get_environment_status(environment)
-            raise RuntimeError(to_bytes(u'Environment {0} not removed, it is still alive.'.format(environment)))
-        except:
-            del environments_dict[u'environments'][environment]
-            open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
-    return result
-
-
 def get_environment(environment, get_status=False, environments=None):
     environments = environments or DEFAULT_ENVIRONMENTS_FILE
     environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
@@ -227,12 +177,8 @@ def get_environment(environment, get_status=False, environments=None):
     except KeyError:
         raise ValueError(to_bytes(u'No environment with name {0}.'.format(environment)))
     if get_status:
-        environment_dict[u'status'] = get_environment_status(environment)
+        environment_dict[u'status'] = Environment(name=environment).status
     return environment_dict
-
-
-def get_environment_status(environment):
-    return juju_do(u'status', environment)
 
 
 def get_environments(get_status=False, environments=None):
@@ -243,7 +189,7 @@ def get_environments(get_status=False, environments=None):
         informations = environment[1]
         if get_status:
             try:
-                informations[u'status'] = get_environment_status(environment[0])
+                informations[u'status'] = Environment(name=environment[0]).status
             except RuntimeError:
                 informations[u'status'] = u'UNKNOWN'
         environments[environment[0]] = informations
@@ -255,185 +201,10 @@ def get_environments_count(environments=None):
     environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     return len(environments_dict[u'environments'])
 
-
-# Services -------------------------------------------------------------------------------------------------------------
-
-def get_service_config(environment, service, options=None, fail=True):
-    return juju_do(u'get', environment, options=[service], fail=fail)
-
-
-def expose_service(environment, service, fail=True):
-    return juju_do(u'expose', environment, options=[service], fail=fail)
-
-
-def unexpose_service(environment, service, fail=True):
-    return juju_do(u'unexpose', environment, options=[service], fail=fail)
-
-
-def destroy_service(environment, service, fail=True):
-    return juju_do(u'destroy-service', environment, options=[service], fail=fail)
-
-
 # Units ----------------------------------------------------------------------------------------------------------------
-
-def add_units(environment, service, num_units=1, to=None, **kwargs):
-    options = [u'--num-units', num_units]
-    if to is not None:
-        options += [u'--to', to]
-    options += [service]
-    return juju_do(u'add-unit', environment, options=options)
-
-
-def deploy_units(environment, charm, service=None, num_units=1, to=None, config=None, constraints=None, local=False,
-                 release=None, repository=None):
-    service = service or charm
-    if not charm:
-        raise ValueError('Charm is required.')
-    options = [u'--num-units', num_units]
-    if to is not None:
-        options += [u'--to', to]
-    if config is not None:
-        options += [u'--config', config]
-    if constraints is not None:
-        options += [u'--constraints', constraints]
-    if release is not None:
-        charm = u'{0}/{1}'.format(release, charm)
-    if local:
-        charm = u'local:{0}'.format(charm)
-    if repository is not None:
-        options += [u'--repository', repository]
-    options += filter(None, [charm, service])
-    return juju_do(u'deploy', environment, options=options)
-
-
-def ensure_num_units(environment, charm, service, num_units=1, units_number_to_keep=None, **kwargs):
-    u"""
-    Ensure ``num_units`` units of ``service`` into ``environment`` by adding new or destroying useless units first !
-
-    At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm will
-    not destroy units with number in ``units_number_to_keep``.
-    """
-    assert(num_units is None or num_units >= 0)
-    units = get_units(environment, service, none_if_missing=True)
-    units_count = None if units is None else len(units)
-    if num_units is None:
-        return units_count if units_count is None else destroy_service(environment, service)
-    if units_count is None:
-        return deploy_units(environment, charm, service, num_units, **kwargs)
-    if units_count < num_units:
-        num_units = num_units - units_count
-        return add_units(environment, service or charm, num_units, **kwargs)
-    if units_count > num_units:
-        terminate = kwargs.get(u'terminate', None)
-        num_units = units_count - num_units
-        destroyed = {}
-        # Sort units by status to kill the useless units before any others !
-        # FIXME implement status comparison for sorting ??
-        for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
-            if num_units == 0:
-                break
-            for number, unit_dict in units.iteritems():
-                if num_units == 0:
-                    break
-                if units_number_to_keep is not None and number in units_number_to_keep:
-                    continue
-                unit_status = unit_dict.get(u'agent-state', status)
-                if unit_status == status or unit_status not in ALL_STATES:
-                    destroy_unit(environment, service, number, terminate=False)
-                    destroyed[number] = unit_dict
-                    del units[number]
-                    num_units -= 1
-        if terminate:
-            time.sleep(5)
-            for unit_dict in destroyed.itervalues():
-                # FIXME handle failure (multiple units same machine, machine busy, missing ...)
-                destroy_machine(environment, unit_dict[u'machine'])
-        return destroyed
-
-def get_unit(environment, service, number):
-    name = u'{0}/{1}'.format(service, number)
-    return juju_do(u'status', environment)[u'services'][service][u'units'][name]
-
-
-def get_units(environment, service, none_if_missing=False):
-    units = {}
-    try:
-        units_dict = juju_do(u'status', environment)[u'services'][service].get(u'units', {})
-    except KeyError:
-        return None if none_if_missing else {}
-    for unit in units_dict.iteritems():
-        number = unit[0].split(u'/')[1]
-        units[number] = unit[1]
-    return units
-
-
-def get_units_count(environment, service, none_if_missing=False):
-    try:
-        units_dict = juju_do(u'status', environment)[u'services'][service].get(u'units', {})
-        return len(units_dict.iterkeys())
-    except KeyError:
-        return None if none_if_missing else 0
-
-
-def destroy_unit(environment, service, number, terminate, delay_terminate=5):
-    name = u'{0}/{1}'.format(service, number)
-    try:
-        unit_dict = get_unit(environment, service, number)
-    except KeyError:
-        raise IndexError(to_bytes(u'No unit with name {0}/{1} on environment {2}.'.format(
-                         service, number, environment)))
-    if terminate:
-        juju_do(u'destroy-unit', environment, options=[name])
-        time.sleep(delay_terminate)  # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1218790
-        return destroy_machine(environment, unit_dict[u'machine'])
-    return juju_do(u'destroy-unit', environment, options=[name])
-
 
 def get_unit_path(service, number, *args):
     return join(u'/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
-
-
-# Machines -------------------------------------------------------------------------------------------------------------
-
-def destroy_machine(environment, machine):
-    juju_do(u'destroy-machine', environment, options=[machine])
-
-
-def cleanup_machines(environment):
-    environment_dict = get_environment_status(environment)
-    machines, busy_machines = environment_dict.get(u'machines', {}).iterkeys(), [u'0']
-    for s_dict in environment_dict.get(u'services', {}).itervalues():
-        busy_machines = (busy_machines +
-                         [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).itervalues()])
-    idle_machines = [machine for machine in machines if machine not in busy_machines]
-    if idle_machines:
-        juju_do(u'destroy-machine', environment, options=idle_machines)
-
-
-# Relations ------------------------------------------------------------------------------------------------------------
-
-def add_relation(environment, service1, service2, relation1=None, relation2=None):
-    u"""Add a relation between 2 services. Knowing that the relation may already exists."""
-    member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
-    member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
-    try:
-        return juju_do(u'add-relation', environment, options=[member1, member2])
-    except RuntimeError as e:
-        # FIXME get status of service before adding relation may be cleaner.
-        if not u'already exists' in unicode(e):
-            raise
-
-def remove_relation(environment, service1, service2, relation1=None, relation2=None):
-    u"""Remove a relation between 2 services. Knowing that the relation may not exists."""
-    member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
-    member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
-    try:
-        return juju_do(u'remove-relation', environment, options=[member1, member2])
-    except RuntimeError as e:
-        # FIXME get status of service before removing relation may be cleaner.
-        if not u'exists' in unicode(e):
-            raise
-
 
 # Helpers --------------------------------------------------------------------------------------------------------------
 
@@ -770,78 +541,271 @@ class Environment(object):
             return result
         return with_print_stdouts
 
-    def __init__(self, name, charms_path=u'charms', config=u'config.yaml', release=None, auto=False):
+    def __init__(self, name=u'default', charms_path=u'charms', config=u'config.yaml', release=None, auto=False):
         self.name = name
         self.charms_path = charms_path
         self.config = config
         self.release = release
         self.auto = auto
 
+    @property
+    def status(self):
+        return juju_do(u'status', self.name)
+
     def symlink_local_charms(self, default_path=u'default'):
         u"""Symlink charms default directory to directory of current release."""
         try_symlink(abspath(join(self.charms_path, default_path)), abspath(join(self.charms_path, self.release)))
 
+    def sync_tools(self, all_tools=True):
+        options = [u'--all'] if all_tools else None
+        return juju_do(u'sync-tools', self.name, options=options)
+
     @print_stdouts
-    def bootstrap(self, synchronize_tools=False, **kwargs):
-        print(u'Cleanup and bootstrap environment {0}'.format(self.name))
-        print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
+    def bootstrap(self, destroy_before=True, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
+                  error_states=ERROR_STATES, timeout=600, polling_delay=10, **kwargs):
+        if destroy_before:
+            print(u'Cleanup and bootstrap environment {0}'.format(self.name))
+            print(u'[WARNING] This will terminate all units deployed in this environment !')
+        else:
+            print(u'Bootstrap environment {0}'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
-            destroy_environment(self.name, remove_default=True)
+            self.destroy(remove_default=True)
             if synchronize_tools:
-                sync_tools(self.name, all_tools=True)
-            return (True, [bootstrap_environment(self.name, **kwargs)])
+                self.sync_tools(all_tools=True)
+            result = juju_do(u'bootstrap', self.name)
+            if wait_started:
+                start_time = time.time()
+                while True:
+                    state = self.status[u'machines'][u'0'][u'agent-state']
+                    if state in started_states:
+                        break
+                    elif state in error_states:
+                        raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
+                    if time.time() - start_time > timeout:
+                        raise TimeoutError(u'Bootstrap time-out with state {0}.'.format(state))
+                    time.sleep(polling_delay)
+            return (True, [result])
         return (False, [None])
+
+    def destroy(self, remove_default=False, remove=False, environments=None):
+        # FIXME simpler algorithm
+        environments = environments or DEFAULT_ENVIRONMENTS_FILE
+        environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
+        name = environments_dict[u'default'] if self.name == u'default' else self.name
+        if name not in environments_dict[u'environments']:
+            raise IndexError(to_bytes(u'No environment with name {0}.'.format(name)))
+        if not remove_default and name == environments_dict[u'default']:
+            raise RuntimeError(to_bytes(u'Cannot remove default environment {0}.'.format(name)))
+        try:
+            self.status
+            alive = True
+        except:
+            alive = False
+        result = juju_do(u'destroy-environment', name) if alive else None
+        if remove:
+            try:
+                # Check if environment destroyed otherwise a lot of trouble with $/€ !
+                self.status
+                raise RuntimeError(to_bytes(u'Environment {0} not removed, it is still alive.'.format(name)))
+            except:
+                del environments_dict[u'environments'][name]
+                open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
+        return result
 
     # Services
-    def get_service_config(self, service, **kwargs):
-        return get_service_config(self.name, service, **kwargs)
+
+    def get_service_config(self, service, options=None, fail=True):
+        return juju_do(u'get', self.name, options=[service], fail=fail)
+
+    def expose_service(self, service, fail=True):
+        return juju_do(u'expose', self.name, options=[service], fail=fail)
 
     @print_stdouts
-    def unexpose_service(self, service):
+    def unexpose_service(self, service, fail=True):
         print(u'Unexpose service {0}'.format(service))
         if self.auto or confirm(u'do it now', default=False):
-            return (True, [unexpose_service(self.name, service)])
+            return (True, [juju_do(u'unexpose', self.name, options=[service], fail=fail)])
         return (False, [None])
 
+    def destroy_service(self, service, fail=True):
+        return juju_do(u'destroy-service', self.name, options=[service], fail=fail)
+
     # Units
+
     @print_stdouts
-    def ensure_num_units(self, charm, service, num_units=1, expose=False, required=True, **kwargs):
-        kwargs['release'] = kwargs.get('release', self.release)
-        kwargs['local'] = kwargs.get('local', True)
-        kwargs['repository'] = kwargs.get('repository', self.charms_path if kwargs['local'] else None)
+    def ensure_num_units(self, charm, service, constraints=None, expose=False, local=True, num_units=1, release=None,
+                         repository=None, required=True, terminate=False, to=None, units_number_to_keep=None):
+        u"""
+        Ensure ``num_units`` units of ``service`` into ``environment`` by adding new or destroying useless units first !
+
+        At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm
+        will not destroy units with number in ``units_number_to_keep``.
+
+        Some of the argument are forwarded to underlying methods (add_units, deploy_units, destroy_unit or nothing)
+        depending on the required action.
+
+        * Set local to False to deploy non-local charms.
+        * Set required to False to bypass this method in automatic mode.
+        * Set units_number_to_keep to a (list, tuple, ...) with the units you want to protect against destruction.
+        """
+        release = release or self.release
+        repository = repository or (self.charms_path if local else None)
         s = u'' if num_units is None or num_units < 2 else u's'
         print(u'Deploy {0} as {1} (ensure {2} instance{3})'.format(charm, service, num_units, s))
         stdouts = [None] * 2
         if self.auto and required or confirm(u'do it now', default=False):
-            stdouts[0] = ensure_num_units(self.name, charm, service, num_units=num_units, config=self.config, **kwargs)
+            assert(num_units is None or num_units >= 0)
+            units = self.get_units(service, none_if_missing=True)
+            units_count = None if units is None else len(units)
+            if num_units is None:
+                stdouts[0] = units_count if units_count is None else self.destroy_service(service)
+            elif units_count is None:
+                stdouts[0] = self.deploy_units(charm, service, num_units=num_units, to=to, config=self.config,
+                                               constraints=constraints, local=local, release=release,
+                                               repository=repository)
+            elif units_count < num_units:
+                num_units = num_units - units_count
+                stdouts[0] = self.add_units(service or charm, num_units=num_units, to=to)
+            elif units_count > num_units:
+                num_units = units_count - num_units
+                destroyed = {}
+                # Sort units by status to kill the useless units before any others !
+                # FIXME implement status comparison for sorting ??
+                for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
+                    if num_units == 0:
+                        break
+                    for number, unit_dict in units.iteritems():
+                        if num_units == 0:
+                            break
+                        if units_number_to_keep is not None and number in units_number_to_keep:
+                            continue
+                        unit_status = unit_dict.get(u'agent-state', status)
+                        if unit_status == status or unit_status not in ALL_STATES:
+                            self.destroy_unit(service, number, terminate=False)
+                            destroyed[number] = unit_dict
+                            del units[number]
+                            num_units -= 1
+                if terminate:
+                    time.sleep(5)
+                    for unit_dict in destroyed.itervalues():
+                        # FIXME handle failure (multiple units same machine, machine busy, missing ...)
+                        self.destroy_machine(unit_dict[u'machine'])
+                return destroyed
             if expose:
-                stdouts[1] = expose_service(self.name, service)
+                stdouts[1] = self.expose_service(service)
             return (True, stdouts)
         return (False, stdouts)
 
-    def get_unit(self, service, number):
-        return get_unit(self.name, service, number)
+    def destroy_unit(self, service, number, terminate, delay_terminate=5):
+        name = u'{0}/{1}'.format(service, number)
+        try:
+            unit_dict = self.get_unit(service, number)
+        except KeyError:
+            raise IndexError(to_bytes(u'No unit with name {0}/{1} on environment {2}.'.format(
+                             service, number, self.name)))
+        if terminate:
+            juju_do(u'destroy-unit', self.name, options=[name])
+            time.sleep(delay_terminate)  # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1218790
+            return self.destroy_machine(unit_dict[u'machine'])
+        return juju_do(u'destroy-unit', self.name, options=[name])
 
-    def get_units(self, service):
-        return get_units(self.name, service)
+    def get_unit(self, service, number):
+        name = u'{0}/{1}'.format(service, number)
+        return juju_do(u'status', self.name)[u'services'][service][u'units'][name]
+
+    def add_units(self, service, num_units=1, to=None):
+        options = [u'--num-units', num_units]
+        if to is not None:
+            options += [u'--to', to]
+        options += [service]
+        return juju_do(u'add-unit', self.name, options=options)
+
+    def deploy_units(self, charm, service=None, num_units=1, to=None, config=None, constraints=None, local=False,
+                     release=None, repository=None):
+        service = service or charm
+        if not charm:
+            raise ValueError('Charm is required.')
+        options = [u'--num-units', num_units]
+        if to is not None:
+            options += [u'--to', to]
+        if config is not None:
+            options += [u'--config', config]
+        if constraints is not None:
+            options += [u'--constraints', constraints]
+        if release is not None:
+            charm = u'{0}/{1}'.format(release, charm)
+        if local:
+            charm = u'local:{0}'.format(charm)
+        if repository is not None:
+            options += [u'--repository', repository]
+        options += filter(None, [charm, service])
+        return juju_do(u'deploy', self.name, options=options)
+
+    def get_units(self, service, none_if_missing=False):
+        units = {}
+        try:
+            units_dict = juju_do(u'status', self.name)[u'services'][service].get(u'units', {})
+        except KeyError:
+            return None if none_if_missing else {}
+        for unit in units_dict.iteritems():
+            number = unit[0].split(u'/')[1]
+            units[number] = unit[1]
+        return units
+
+    def get_units_count(self, service, none_if_missing=False):
+        try:
+            units_dict = juju_do(u'status', self.name)[u'services'][service].get(u'units', {})
+            return len(units_dict.iterkeys())
+        except KeyError:
+            return None if none_if_missing else 0
 
     # Machines
+
     def cleanup_machines(self):
-        return cleanup_machines(self.name)
+        environment_dict = self.status
+        machines, busy_machines = environment_dict.get(u'machines', {}).iterkeys(), [u'0']
+        for s_dict in environment_dict.get(u'services', {}).itervalues():
+            busy_machines = (busy_machines +
+                             [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).itervalues()])
+        idle_machines = [machine for machine in machines if machine not in busy_machines]
+        if idle_machines:
+            return juju_do(u'destroy-machine', self.name, options=idle_machines)
+
+    def destroy_machine(self, machine):
+        return juju_do(u'destroy-machine', self.name, options=[machine])
 
     # Relations
+
     @print_stdouts
-    def add_relation(self, service1, service2):
+    def add_relation(self, service1, service2, relation1=None, relation2=None):
+        u"""Add a relation between 2 services. Knowing that the relation may already exists."""
         print(u'Add relation between {0} and {1}'.format(service1, service2))
         if self.auto or confirm(u'do it now', default=False):
-            return (True, [add_relation(self.name, service1, service2)])
+            member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
+            member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
+            try:
+                result = juju_do(u'add-relation', self.name, options=[member1, member2])
+            except RuntimeError as e:
+                # FIXME get status of service before adding relation may be cleaner.
+                if not u'already exists' in unicode(e):
+                    raise
+            return (True, [result])
         return (False, [None])
 
     @print_stdouts
-    def remove_relation(self, service1, service2):
+    def remove_relation(self, service1, service2, relation1=None, relation2=None):
+        u"""Remove a relation between 2 services. Knowing that the relation may not exists."""
         print(u'Add relation between {0} and {1}'.format(service1, service2))
         if self.auto or confirm(u'do it now', default=False):
-            return (True, [remove_relation(self.name, service1, service2)])
+            member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
+            member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
+            try:
+                result = juju_do(u'remove-relation', self.name, options=[member1, member2])
+            except RuntimeError as e:
+                # FIXME get status of service before removing relation may be cleaner.
+                if not u'exists' in unicode(e):
+                    raise
+            return (True, [result])
         return (False, [None])
 
 
