@@ -87,6 +87,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
 
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
     """
+    is_destroy = (command == u'destroy-environment')
     command = [u'sudo', u'juju', command] if command == u'destroy-environment' else [u'juju', command]
     if isinstance(environment, string_types) and environment != u'default':
         command += [u'--environment', environment]
@@ -95,6 +96,10 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     env = os.environ.copy()
     env[u'HOME'] = expanduser(u'~/')
     env[u'JUJU_HOME'] = expanduser(u'~/.juju')
+    if is_destroy:
+        # FIXME Automate yes answer to destroy-environment
+        c_string = u' '.join([unicode(arg) for arg in command])
+        return subprocess.check_call(c_string, shell=True) if fail else subprocess.call(c_string, shell=True)
     result = cmd(command, fail=False, log=log, env=env, **kwargs)
     if result[u'returncode'] != 0 and fail:
         command_string = u' '.join([unicode(arg) for arg in command])
@@ -550,7 +555,16 @@ class Environment(object):
 
     @property
     def status(self):
+        # FIXME read status async (use pytoolbox.subprocess.make_async + pytoolbox.subprocess.read_async)
         return juju_do(u'status', self.name)
+
+    @property
+    def is_bootstrapped(self):
+        try:
+            self.status
+            return True
+        except:
+            return False
 
     def symlink_local_charms(self, default_path=u'default'):
         u"""Symlink charms default directory to directory of current release."""
@@ -561,13 +575,10 @@ class Environment(object):
         return juju_do(u'sync-tools', self.name, options=options)
 
     @print_stdouts
-    def bootstrap(self, destroy_before=True, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
-                  error_states=ERROR_STATES, timeout=600, polling_delay=10, **kwargs):
-        if destroy_before:
-            print(u'Cleanup and bootstrap environment {0}'.format(self.name))
-            print(u'[WARNING] This will terminate all units deployed in this environment !')
-        else:
-            print(u'Bootstrap environment {0}'.format(self.name))
+    def bootstrap(self, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
+                  error_states=ERROR_STATES, timeout=600, min_polling_delay=10, **kwargs):
+        print(u'Cleanup and bootstrap environment {0}'.format(self.name))
+        print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
             self.destroy(remove_default=True)
             if synchronize_tools:
@@ -576,14 +587,19 @@ class Environment(object):
             if wait_started:
                 start_time = time.time()
                 while True:
+                    time.sleep(min_polling_delay)
                     state = self.status[u'machines'][u'0'][u'agent-state']
+                    delta_time = time.time() - start_time
+                    timeout_time = timeout - delta_time
+                    print(u'State of juju bootstrap machine is {0}, time-out{1}'.format(
+                          state, u' in {0} seconds'.format(timeout_time) if timeout_time > 0 else u'!'))
                     if state in started_states:
+                        print(u'Environment bootstrapped in approximatively {0} seconds'.format(delta_time))
                         break
                     elif state in error_states:
                         raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
-                    if time.time() - start_time > timeout:
+                    if delta_time > timeout:
                         raise TimeoutError(u'Bootstrap time-out with state {0}.'.format(state))
-                    time.sleep(polling_delay)
             return (True, [result])
         return (False, [None])
 
@@ -596,18 +612,12 @@ class Environment(object):
             raise IndexError(to_bytes(u'No environment with name {0}.'.format(name)))
         if not remove_default and name == environments_dict[u'default']:
             raise RuntimeError(to_bytes(u'Cannot remove default environment {0}.'.format(name)))
-        try:
-            self.status
-            alive = True
-        except:
-            alive = False
-        result = juju_do(u'destroy-environment', name) if alive else None
+        result = juju_do(u'destroy-environment', name) if self.is_bootstrapped else None
         if remove:
-            try:
-                # Check if environment destroyed otherwise a lot of trouble with $/€ !
-                self.status
+            # Check if environment destroyed otherwise a lot of trouble with $/€ !
+            if self.is_boostrapped:
                 raise RuntimeError(to_bytes(u'Environment {0} not removed, it is still alive.'.format(name)))
-            except:
+            else:
                 del environments_dict[u'environments'][name]
                 open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
         return result
