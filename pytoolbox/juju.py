@@ -793,6 +793,7 @@ class Environment(object):
         if self.auto or confirm(u'do it now', default=False):
             member1 = service1 if relation1 is None else u'{0}:{1}'.format(service1, relation1)
             member2 = service2 if relation2 is None else u'{0}:{1}'.format(service2, relation2)
+            result = None
             try:
                 result = juju_do(u'add-relation', self.name, options=[member1, member2])
             except RuntimeError as e:
