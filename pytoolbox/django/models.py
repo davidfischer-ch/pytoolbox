@@ -24,11 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from django.contrib.gis.geos import Point
-from django.contrib.gis.maps.google import GEvent, GIcon, GMarker
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FileField
-from os.path import join, splitext
 
 
 class AbsoluteUrlMixin(object):
@@ -59,38 +56,3 @@ class SaveInstanceFilesMixin(object):
                 setattr(self, name, value)
         super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
 
-
-class GoogleMapMixin(object):
-    u"""
-    Implement map_icon and map_marker to return some GeoDjango Google Maps widgets filled with values from the location
-    field of the model's instance. The location field must be a PointField (Python: or duck-type it correctly).
-    """
-    map_icon_filename = None
-    map_marker_title = u'Marker title'
-    map_marker_title_default = u'New thing'
-
-    def map_icon(self, icons_url=u'/static/markers/', size=(24, 24)):
-        filename = self.map_icon_filename
-        if filename:
-            return GIcon(splitext(filename)[0], image=join(icons_url, filename), iconsize=size)
-        return None
-
-    def map_marker(self, default_location=Point(6.146805, 46.227574), draggable=False, form_update=False,
-                   highlight_class=None, dbclick_edit=False, **kwargs):
-        title = unicode(self.map_marker_title) or self.map_marker_title_default
-        marker = GMarker(self.location or default_location, title=title, draggable=draggable,
-                         icon=self.map_icon(**kwargs))
-        events = []
-        if form_update:
-            events.append(GEvent(u'mouseup',
-                          u"function() { $('#id_location').val('POINT ('+this.xa.x+' '+this.xa.y+')'); }"))
-        if highlight_class:
-            events.append(GEvent(u'mouseover', u"function() {{ $('#marker_{0}').addClass('{1}'); }}".format(
-                          self.id, highlight_class)))
-            events.append(GEvent(u'mouseout', u"function() {{ $('#marker_{0}').removeClass('{1}'); }}".format(
-                          self.id, highlight_class)))
-        if dbclick_edit:
-            events.append(GEvent(u'dblclick', u"function() {{ window.location = '{0}'; }}".format(
-                          self.get_absolute_url())))
-        [marker.add_event(event) for event in events]
-        return marker

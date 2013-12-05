@@ -2,18 +2,20 @@
 changelog
 =========
 
-----------------------------
-v5.4.19-beta -> v5.4.40-beta
-----------------------------
+---------------------------
+v5.4.19-beta -> v5.5.0-beta
+---------------------------
 
 Minor compatibility breaks
 ==========================
 
 * Move all django template tags into module pytooblox_tags
+* Move juju methods to the Environment class
 
 Features
 ========
 
+* Add console.choice() (by kyouko-taiga)
 * Add method serialization.to_file and use it to improve PickeableObject and JsoneableObject write methods.
 
 Fixes and enhancements
