@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
@@ -57,7 +58,7 @@ def confirm(question=None, default=False):
         print(u'please enter y or n.')
 
 
-def choice(question='', choices=[]):
+def choice(question=u'', choices=[]):
     u"""
     Prompt the user for a choice and return his/her answer.
     
@@ -67,23 +68,23 @@ def choice(question='', choices=[]):
     What is your favourite color? [blue, orange, red]: orange
     orange
     >> choice(['male', 'female'])
-    [male, female]? male
-    male
+    [male, female]? female
+    female
     """
 
     # generate question and choices list
-    choices_list = ''.join(s + u', ' for s in choices).rstrip(u', ')
+    choices_string = u', '.join(choices)
     if question is None:
-        question = u'[{0}]? '.format(choices_list)
+        question = u'[{0}]? '.format(choices_string)
     else:
-        question = u'{0} [{1}]: '.format(question, choices_list)
+        question = u'{0} [{1}]: '.format(question, choices_string)
 
     # loop until an acceptable choice has been answered
     while True:
         ans = raw_input(question)
         if ans in choices:
             return ans
-        print(u'Please choose between {0}.'.format(choices_list))
+        print(u'Please choose between {0}.'.format(choices_string))
 
 
 def print_error(message, output=sys.stderr, exit_code=1):
@@ -100,3 +101,12 @@ def print_error(message, output=sys.stderr, exit_code=1):
     print(u'[ERROR] {0}'.format(message), file=output)
     if exit_code is not None:
         sys.exit(exit_code)
+
+if __name__ == u'__main__':
+
+    if confirm('Please confirm this'):
+        print(u'You confirmed')
+    else:
+        print(u'You do not like my question')
+
+    print(choice(u'Select a language', [u'Italian', u'French']))
