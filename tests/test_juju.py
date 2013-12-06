@@ -43,6 +43,7 @@ TEST_UNITS_SQL_2  = {0: {}, 1: {}}
 TEST_UNITS_LAMP_4 = {0: {}, 1: {}, 2: {}, 3: {}}
 TEST_UNITS_LAMP_5 = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
+
 class TestEnvironment(object):
 
     def test_ensure_num_units(self):
