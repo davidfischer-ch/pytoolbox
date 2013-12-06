@@ -137,11 +137,11 @@ def read_async(fd):
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def make(archive, with_cmake=False, configure_options=u'', make_options=u'-j{0}'.format(multiprocessing.cpu_count()),
-         install=True, remove_temporary=True, fail=True, log=None, **kwargs):
+def make(archive, path=None, with_cmake=False, configure_options=u'', install=True, remove_temporary=True,
+         make_options=u'-j{0}'.format(multiprocessing.cpu_count()), fail=True, log=None, **kwargs):
     results = {}
     here = os.getcwd()
-    path = archive.split(u'.')[0]
+    path = path or archive.split(u'.')[0]
     shutil.rmtree(path, ignore_errors=True)
     setuptools.archive_util.unpack_archive(archive, path)
     os.chdir(path)
