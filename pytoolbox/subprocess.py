@@ -77,40 +77,46 @@ def cmd(command, input=None, cli_input=None, cli_output=False, communicate=True,
     if log_debug:
         log_debug(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
                   args_string, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
-    # create the sub-process
-    try:
-        process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
-                                   stderr=None if cli_output else subprocess.PIPE, **kwargs)
-    except OSError as e:
-        # unable to execute the program (e.g. does not exist)
-        if log_exception:
-            log_exception(e)
-        if fail:
-            raise
-        return {u'process': None, u'stdout': u'', u'stderr': e, u'returncode': 2}
-    # write to stdin (answer to questions, ...)
-    if cli_input is not None:
-        process.stdin.write(to_bytes(cli_input))
-    # interact with the process and wait for the process to terminate
-    if communicate:
-        for trial in range(tries):
+
+    for trial in range(tries):
+        # create the sub-process
+        try:
+            process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
+                                       stderr=None if cli_output else subprocess.PIPE, **kwargs)
+        except OSError as e:
+            # unable to execute the program (e.g. does not exist)
+            if log_exception:
+                log_exception(e)
+            if fail:
+                raise
+            return {u'process': None, u'stdout': u'', u'stderr': e, u'returncode': 2}
+        # write to stdin (answer to questions, ...)
+        if cli_input is not None:
+            process.stdin.write(to_bytes(cli_input))
+            process.stdin.flush()
+        # interact with the process and wait for the process to terminate
+        if communicate:
             stdout, stderr = process.communicate(input=input)
-            result = {u'process': process, u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
-            if log_debug:
-                log_debug(result)
-            if process.returncode != 0:
-                if trial < tries - 1:
-                    if log_warning:
-                        delay = random.uniform(delay_min, delay_max)
-                        log_warning(u'Attempt {0} out of {1}, Will retry in {2} seconds'.format(trial+1, tries, delay))
-                    time.sleep(delay)
-                    continue
-                if fail:
-                    raise subprocess.CalledProcessError(process.returncode, args_string, stderr)
-            return result
-    # get a return code that may be None of course ...
-    process.poll()
-    return {u'process': process, u'stdout': None, u'stderr': None, u'returncode': process.returncode}
+        else:
+            # get a return code that may be None of course ...
+            process.poll()
+            stdout = stderr = None
+        result = {u'process': process, u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
+        if process.returncode == 0:
+            break
+        # failed attempt, may retry
+        do_retry = trial < tries - 1
+        if log_warning:
+            delay = random.uniform(delay_min, delay_max)
+            log_warning(u'Attempt {0} out of {1}: {2}'.format(trial+1, tries,
+                        u'Will retry in {0} seconds'.format(delay) if do_retry else u'Failed'))
+        # raise if this is the last try
+        if fail and not do_retry:
+            raise subprocess.CalledProcessError(process.returncode, args_string, stderr)
+        if do_retry:
+            time.sleep(delay)
+
+    return result
 
 
 # http://stackoverflow.com/a/7730201/190597
@@ -198,7 +204,7 @@ def screen_launch(name, command, fail=True, log=None, **kwargs):
 def screen_list(name=None, log=None, **kwargs):
     u"""Returns a list containing all instances of screen. Can be filtered by ``name``."""
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*',
-                      unicode(cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'], u'utf-8'))
+                      cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout'])
 
 
 def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):

@@ -535,17 +535,6 @@ class CharmHooks(object):
 
 class Environment(object):
 
-    def print_stdouts(func):
-        @wraps(func)
-        def with_print_stdouts(*args, **kwargs):
-            result = func(*args, **kwargs)
-            if result[0]:
-                for stdout in result[1]:
-                    if stdout:
-                        print(stdout)
-            return result
-        return with_print_stdouts
-
     def __init__(self, name=u'default', charms_path=u'charms', config=u'config.yaml', release=None, auto=False):
         self.name = name
         self.charms_path = charms_path
@@ -574,9 +563,8 @@ class Environment(object):
         options = [u'--all'] if all_tools else None
         return juju_do(u'sync-tools', self.name, options=options)
 
-    @print_stdouts
     def bootstrap(self, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
-                  error_states=ERROR_STATES, timeout=600, min_polling_delay=10, **kwargs):
+                  error_states=ERROR_STATES, timeout=600, min_polling_delay=10):
         print(u'Cleanup and bootstrap environment {0}'.format(self.name))
         print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
@@ -600,8 +588,7 @@ class Environment(object):
                         raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
                     if delta_time > timeout:
                         raise TimeoutError(u'Bootstrap time-out with state {0}.'.format(state))
-            return (True, [result])
-        return (False, [None])
+            return result
 
     def destroy(self, remove_default=False, remove=False, environments=None):
         # FIXME simpler algorithm
@@ -630,19 +617,14 @@ class Environment(object):
     def expose_service(self, service, fail=True):
         return juju_do(u'expose', self.name, options=[service], fail=fail)
 
-    @print_stdouts
     def unexpose_service(self, service, fail=True):
-        print(u'Unexpose service {0}'.format(service))
-        if self.auto or confirm(u'do it now', default=False):
-            return (True, [juju_do(u'unexpose', self.name, options=[service], fail=fail)])
-        return (False, [None])
+        return juju_do(u'unexpose', self.name, options=[service], fail=fail)
 
     def destroy_service(self, service, fail=True):
         return juju_do(u'destroy-service', self.name, options=[service], fail=fail)
 
     # Units
 
-    @print_stdouts
     def ensure_num_units(self, charm, service, constraints=None, expose=False, local=True, num_units=1, release=None,
                          repository=None, required=True, terminate=False, to=None, units_number_to_keep=None):
         u"""
@@ -658,24 +640,25 @@ class Environment(object):
         * Set required to False to bypass this method in automatic mode.
         * Set units_number_to_keep to a (list, tuple, ...) with the units you want to protect against destruction.
         """
+        results = {}
         release = release or self.release
         repository = repository or (self.charms_path if local else None)
         s = u'' if num_units is None or num_units < 2 else u's'
-        print(u'Deploy {0} as {1} (ensure {2} instance{3})'.format(charm, service, num_units, s))
-        stdouts = [None] * 2
+        print(u'Deploy {0} as {1} (ensure {2} instance{3})'.format(charm, service or charm, num_units, s))
         if self.auto and required or confirm(u'do it now', default=False):
             assert(num_units is None or num_units >= 0)
             units = self.get_units(service, none_if_missing=True)
             units_count = None if units is None else len(units)
-            if num_units is None:
-                stdouts[0] = units_count if units_count is None else self.destroy_service(service)
+            if num_units is None and units_count:
+                results[u'destroy_service'] = self.destroy_service(service)
             elif units_count is None:
-                stdouts[0] = self.deploy_units(charm, service, num_units=num_units, to=to, config=self.config,
-                                               constraints=constraints, local=local, release=release,
-                                               repository=repository)
+                results[u'deploy_units'] = self.deploy_units(
+                    charm, service, num_units=num_units, to=to, config=self.config, constraints=constraints,
+                    local=local, release=release, repository=repository
+                )
             elif units_count < num_units:
                 num_units = num_units - units_count
-                stdouts[0] = self.add_units(service or charm, num_units=num_units, to=to)
+                results[u'add_units'] = self.add_units(service or charm, num_units=num_units, to=to)
             elif units_count > num_units:
                 num_units = units_count - num_units
                 destroyed = {}
@@ -684,7 +667,7 @@ class Environment(object):
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
-                    for number, unit_dict in units.iteritems():
+                    for number, unit_dict in units.items():
                         if num_units == 0:
                             break
                         if units_number_to_keep is not None and number in units_number_to_keep:
@@ -700,11 +683,11 @@ class Environment(object):
                     for unit_dict in destroyed.itervalues():
                         # FIXME handle failure (multiple units same machine, machine busy, missing ...)
                         self.destroy_machine(unit_dict[u'machine'])
-                return destroyed
+                results[u'destroy_unit'] = destroyed
+                return results
             if expose:
-                stdouts[1] = self.expose_service(service)
-            return (True, stdouts)
-        return (False, stdouts)
+                results[u'expose_service'] = self.expose_service(service)
+            return results
 
     def destroy_unit(self, service, number, terminate, delay_terminate=5):
         name = u'{0}/{1}'.format(service, number)
@@ -715,13 +698,13 @@ class Environment(object):
                              service, number, self.name)))
         if terminate:
             juju_do(u'destroy-unit', self.name, options=[name])
-            time.sleep(delay_terminate)  # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1218790
+            time.sleep(delay_terminate)  # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
             return self.destroy_machine(unit_dict[u'machine'])
         return juju_do(u'destroy-unit', self.name, options=[name])
 
     def get_unit(self, service, number):
         name = u'{0}/{1}'.format(service, number)
-        return juju_do(u'status', self.name)[u'services'][service][u'units'][name]
+        return self.status[u'services'][service][u'units'][name]
 
     def add_units(self, service, num_units=1, to=None):
         options = [u'--num-units', num_units]
@@ -754,7 +737,7 @@ class Environment(object):
     def get_units(self, service, none_if_missing=False):
         units = {}
         try:
-            units_dict = juju_do(u'status', self.name)[u'services'][service].get(u'units', {})
+            units_dict = self.status[u'services'][service].get(u'units', {})
         except KeyError:
             return None if none_if_missing else {}
         for unit in units_dict.iteritems():
@@ -764,7 +747,7 @@ class Environment(object):
 
     def get_units_count(self, service, none_if_missing=False):
         try:
-            units_dict = juju_do(u'status', self.name)[u'services'][service].get(u'units', {})
+            units_dict = self.status[u'services'][service].get(u'units', {})
             return len(units_dict.iterkeys())
         except KeyError:
             return None if none_if_missing else 0
@@ -786,7 +769,6 @@ class Environment(object):
 
     # Relations
 
-    @print_stdouts
     def add_relation(self, service1, service2, relation1=None, relation2=None):
         u"""Add a relation between 2 services. Knowing that the relation may already exists."""
         print(u'Add relation between {0} and {1}'.format(service1, service2))
@@ -800,10 +782,8 @@ class Environment(object):
                 # FIXME get status of service before adding relation may be cleaner.
                 if not u'already exists' in unicode(e):
                     raise
-            return (True, [result])
-        return (False, [None])
+            return result
 
-    @print_stdouts
     def remove_relation(self, service1, service2, relation1=None, relation2=None):
         u"""Remove a relation between 2 services. Knowing that the relation may not exists."""
         print(u'Add relation between {0} and {1}'.format(service1, service2))
@@ -816,8 +796,7 @@ class Environment(object):
                 # FIXME get status of service before removing relation may be cleaner.
                 if not u'exists' in unicode(e):
                     raise
-            return (True, [result])
-        return (False, [None])
+            return result
 
 
 class DeploymentScenario(object):

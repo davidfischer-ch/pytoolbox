@@ -32,7 +32,7 @@ def main():
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
     ignore = (u'forms.py|models.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_tags.py' +
               (u'|session.py|schema.py' if sys.version_info[0] > 2 else u''))
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox'], ignore=ignore)
+    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox', u'tests'], ignore=ignore)
 
 if __name__ == u'__main__':
     main()

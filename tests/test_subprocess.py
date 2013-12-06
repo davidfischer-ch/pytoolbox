@@ -24,29 +24,65 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from nose.tools import assert_equal
-from pytoolbox.unittest import mock_cmd
+from nose.tools import assert_equal, assert_raises
+from pytoolbox.unittest import Mock
 from pytoolbox.subprocess import cmd, screen_launch, screen_list, screen_kill
 from pytoolbox.validation import validate_list
 
 
 class TestSubprocess(object):
 
+    def main(self):
+        self.test_screen()
+
     def test_cmd(self):
-        cmd_log = mock_cmd()
-        cmd([u'echo', u'it seem to work'], log=cmd_log)
-        assert_equal(cmd(u'cat missing_file', fail=False, log=cmd_log)[u'returncode'], 1)
-        validate_list(cmd_log.call_args_list, [
-                r"call\(u*\"Execute \[u*'echo', u*'it seem to work'\]\"\)",
-                r"call\(u*'Execute cat missing_file'\)"])
+        log = Mock()
+        cmd([u'echo', u'it seem to work'], log=log)
+        assert_equal(cmd(u'cat missing_file', fail=False, log=log)[u'returncode'], 1)
+        validate_list(log.call_args_list, [
+            r"call\(u*'Execute echo it seem to work'\)",
+            r"call\(u*'Execute cat missing_file'\)",
+            r"call\(u*'Attempt 1 out of 1: Failed'\)"
+        ])
         assert(cmd(u'my.funny.missing.script.sh', fail=False)[u'stderr'] != u'')
         result = cmd(u'cat {0}'.format(__file__))
         # There are at least 30 lines in this source file !
         assert(len(result[u'stdout'].splitlines()) > 30)
 
+    def test_cmd_missing_binary(self):
+        assert_equal(cmd(u'hfuejnvwqkdivengz', fail=False)[u'returncode'], 2)
+
+    def test_retry_first_try(self):
+        log = Mock()
+        cmd(u'ls', log=log, tries=5, delay_min=1, delay_max=1)
+        validate_list(log.call_args_list, [
+            r"call\(u*'Execute ls'\)"
+        ])
+
+    def test_retry_missing_binary_no_retry(self):
+        log = Mock()
+        assert_raises(OSError, cmd, u'hfuejnvwqkdivengz', log=log, tries=5)
+        validate_list(log.call_args_list, [
+            r"call\(u*'Execute hfuejnvwqkdivengz'\)", r"call\(OSError.*\)"
+        ])
+
+    def test_retry_no_success(self):
+        log = Mock()
+        cmd(u'ls hfuejnvwqkdivengz', log=log, fail=False, tries=5, delay_min=0.0, delay_max=0.95)
+        validate_list(log.call_args_list, [
+            r"call\(u*'Execute ls hfuejnvwqkdivengz'\)",
+            r"call\(u*'Attempt 1 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\(u*'Attempt 2 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\(u*'Attempt 3 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\(u*'Attempt 4 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\(u*'Attempt 5 out of 5: Failed'\)"
+        ])
+
     def test_screen(self):
         try:
             # Launch some screens
+            screen_kill(u'my_1st_screen', fail=False)
+            screen_kill(u'my_2nd_screen', fail=False)
             assert_equal(len(screen_launch(u'my_1st_screen', u'top', fail=False)[u'stderr']), 0)
             assert_equal(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
             assert_equal(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
@@ -57,13 +93,15 @@ class TestSubprocess(object):
             assert(len(screens) >= 1 and screens[0].endswith(u'my_2nd_screen'))
         finally:
             # Cleanup
-            kill_log = mock_cmd()
-            screen_kill(name=u'my_1st_screen', log=kill_log)
-            screen_kill(name=u'my_2nd_screen', log=kill_log)
-            #raise NotImplementedError(kill_log.call_args_list)
-            validate_list(kill_log.call_args_list, [
-                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_1st_screen'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_1st_screen', u*'-X', u*'quit'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-ls', u*'my_2nd_screen'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)",
-                r"call\(u*\"Execute \[u*'screen', u*'-S', u*'\d+\.my_2nd_screen', u*'-X', u*'quit'\]\"\)"])
+            log = Mock()
+            screen_kill(name=u'my_1st_screen', log=log)
+            screen_kill(name=u'my_2nd_screen', log=log)
+            validate_list(log.call_args_list, [
+                r"call\(u*'Execute screen -ls my_1st_screen'\)",
+                r"call\(u*'Attempt 1 out of 1: Failed'\)",
+                r"call\(u*'Execute screen -S \d+\.my_1st_screen -X quit'\)",
+                r"call\(u*'Execute screen -ls my_2nd_screen'\)",
+                r"call\(u*'Attempt 1 out of 1: Failed'\)",
+                r"call\(u*'Execute screen -S \d+\.my_2nd_screen -X quit'\)",
+                r"call\(u*'Execute screen -S \d+\.my_2nd_screen -X quit'\)"
+            ])

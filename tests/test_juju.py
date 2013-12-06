@@ -58,20 +58,20 @@ class TestEnvironment(object):
         from pytoolbox.juju import PENDING, STARTED, ERROR
         TEST_UNITS_SQL_5  = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR},
                              3: {}, 4: {'agent-state': ERROR}}
-        pytoolbox.juju.get_units = Mock(return_value=None)
-        pytoolbox.juju.get_unit = Mock(return_value=None)
         environment = pytoolbox.juju.Environment(u'maas', release=u'raring', auto=True)
+        environment.get_units = Mock(return_value=None)
+        environment.get_unit = Mock(return_value=None)
         environment.__dict__.update(DEFAULT)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=2))
         print(environment.ensure_num_units(u'lamp',  None,        num_units=4))
         assert_raises(ValueError, environment.ensure_num_units, None, u'salut')
-        pytoolbox.juju.get_units = Mock(return_value=TEST_UNITS_SQL_2)
+        environment.get_units = Mock(return_value=TEST_UNITS_SQL_2)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=5))
-        pytoolbox.juju.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
+        environment.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
         print(environment.ensure_num_units(None, u'lamp', num_units=5))
-        pytoolbox.juju.get_units = Mock(return_value=TEST_UNITS_SQL_5)
+        environment.get_units = Mock(return_value=TEST_UNITS_SQL_5)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=1, units_number_to_keep=[1]))
-        pytoolbox.juju.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
+        environment.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=None))
         [call_args[1].pop(u'env') for call_args in cmd.call_args_list]
         a_eq = assert_equal
@@ -87,4 +87,3 @@ class TestEnvironment(object):
         a_eq(a[7], call(DESTROY_UNIT + [u'my_mysql/0'], fail=False, log=None))
         a_eq(a[8], call(DESTROY_SERVICE + [u'my_mysql'], fail=False, log=None))
         pytoolbox.subprocess.cmd = old_cmd
-
