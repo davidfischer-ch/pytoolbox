@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import six
 from nose.tools import assert_equal, assert_raises
 from pytoolbox.unittest import Mock
 from pytoolbox.subprocess import cmd, screen_launch, screen_list, screen_kill
@@ -63,7 +64,8 @@ class TestSubprocess(object):
         log = Mock()
         assert_raises(OSError, cmd, u'hfuejnvwqkdivengz', log=log, tries=5)
         validate_list(log.call_args_list, [
-            r"call\(u*'Execute hfuejnvwqkdivengz'\)", r"call\(OSError.*\)"
+            r"call\(u*'Execute hfuejnvwqkdivengz'\)",
+            r"call\(FileNotFoundError.*\)" if six.PY3 else r"call\(OSError.*\)"
         ])
 
     def test_retry_no_success(self):
