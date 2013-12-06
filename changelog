@@ -2,6 +2,15 @@
 changelog
 =========
 
+--------------------------
+v5.5.0-beta -> v5.5.1-beta
+--------------------------
+
+Fixes and enhancements
+======================
+
+* Method subprocess.cmd : Handle logging.Logger as log, improve docstring, add retry loop
+
 ---------------------------
 v5.4.19-beta -> v5.5.0-beta
 ---------------------------

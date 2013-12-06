@@ -24,57 +24,93 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, fcntl, multiprocessing, os, re, setuptools.archive_util, shlex, shutil, subprocess
+import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess, time
 from .encoding import to_bytes, string_types
 from .filesystem import try_makedirs
 
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 
 
-def cmd(command, input=None, cli_input=None, cli_output=False, fail=True, log=None, communicate=True, **kwargs):
+def cmd(command, input=None, cli_input=None, cli_output=False, communicate=True, fail=True, log=None, tries=1,
+        delay_min=5, delay_max=10, **kwargs):
     u"""
     Calls the ``command`` and returns a dictionary with process, stdout, stderr, and the returncode.
 
-    Returned stdout and stderr will be None if ``communicate`` is set to False.
+    Returned returncode, stdout and stderr will be None if ``communicate`` is set to False.
 
-    * Pipe some content to the command with ``input``.
-    * Answer to interactive CLI questions with ``cli_input``.
-    * Set ``cli_output`` to output (in real-time) stdout to stdout and stderr to stderr.
-    * Set ``fail`` to False to avoid the exception ``subprocess.CalledProcessError``.
-    * Set ``log`` to a method to log / print details about what is executed / any failure.
-    * Set ``communicate`` to True to communicate with the process, this is a locking call.
+    :param input: If set, sended to stdin (if ``communicate`` is True).
+    :type input: unicode
+    :param cli_input: If set, sended to stdin (no condition).
+    :type cli_input: unicode
+    :param cli_output: Set to True to output (in real-time) stdout to stdout and stderr to stderr.
+    :type cli_output: bool
+    :param fail: Set to False to avoid the exception ``subprocess.CalledProcessError``.
+    :type fail: bool
+    :param log: A method to log/print details about what is executed/any failure, can be a standard logger.
+    :type log: callable, logging.Logger
+    :param communicate: Set to True to communicate with the process, this is a locking call.
+    :type communicate: bool
+    :param tries: How many times you want the command to be retried ?
+    :type tries: int
+    :param delay_min: Minimum delay to sleep after every attempt communicate must be True.
+    :type delay: float, int
+    :param delay_max: Maximum delay to sleep after every attempt communicate must be True.
+    :type delay: float, int
+
+    * Delay will be a random number in range (``delay_min``, ``delay_max``)
     * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
+
     """
+    # convert log argument to logging methods
+    log_debug = log_warning = log_exception = None
+    if isinstance(log, logging.Logger):
+        log_debug, log_warning, log_exception = log.debug, log.warning, log.exception
+    elif hasattr(log, u'__call__'):
+        log_debug = log_warning = log_exception = log
+    # create a list and a string of the arguments
     if isinstance(command, string_types):
         args_list, args_string = shlex.split(to_bytes(command)), command
     else:
         args_list = [to_bytes(a) for a in command if a is not None]
         args_string = u' '.join([unicode(a) for a in command if a is not None])
-    if hasattr(log, u'__call__'):
-        log(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
-            args_string, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
+    # log the execution
+    if log_debug:
+        log_debug(u'Execute {0}{1}{2}'.format(u'' if input is None else u'echo {0}|'.format(repr(input)),
+                  args_string, u'' if cli_input is None else u' < {0}'.format(repr(cli_input))))
+    # create the sub-process
     try:
         process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
                                    stderr=None if cli_output else subprocess.PIPE, **kwargs)
     except OSError as e:
-        if hasattr(log, u'__call__'):
-            log(e)
+        # unable to execute the program (e.g. does not exist)
+        if log_exception:
+            log_exception(e)
         if fail:
             raise
         return {u'process': None, u'stdout': u'', u'stderr': e, u'returncode': 2}
+    # write to stdin (answer to questions, ...)
     if cli_input is not None:
         process.stdin.write(to_bytes(cli_input))
+    # interact with the process and wait for the process to terminate
     if communicate:
-        stdout, stderr = process.communicate(input=input)
-        result = {u'process': process, u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
-        if hasattr(log, u'__call__'):
-            log(result)
-        if process.returncode != 0:
-            if fail:
-                raise subprocess.CalledProcessError(process.returncode, args_string, stderr)
-        return result
-    process.poll()  # To get a returncode that may be None of course ...
-    return  {u'process': process, u'stdout': None, u'stderr': None, u'returncode': process.returncode}
+        for trial in range(tries):
+            stdout, stderr = process.communicate(input=input)
+            result = {u'process': process, u'stdout': stdout, u'stderr': stderr, u'returncode': process.returncode}
+            if log_debug:
+                log_debug(result)
+            if process.returncode != 0:
+                if trial < tries - 1:
+                    if log_warning:
+                        delay = random.uniform(delay_min, delay_max)
+                        log_warning(u'Attempt {0} out of {1}, Will retry in {2} seconds'.format(trial+1, tries, delay))
+                    time.sleep(delay)
+                    continue
+                if fail:
+                    raise subprocess.CalledProcessError(process.returncode, args_string, stderr)
+            return result
+    # get a return code that may be None of course ...
+    process.poll()
+    return {u'process': process, u'stdout': None, u'stderr': None, u'returncode': process.returncode}
 
 
 # http://stackoverflow.com/a/7730201/190597
