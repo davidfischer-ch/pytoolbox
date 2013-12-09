@@ -31,13 +31,15 @@ from .filesystem import try_makedirs
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 
 
-def cmd(command, input=None, cli_input=None, cli_output=False, communicate=True, fail=True, log=None, tries=1,
-        delay_min=5, delay_max=10, **kwargs):
+def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True, fail=True, log=None,
+        tries=1, delay_min=5, delay_max=10, **kwargs):
     u"""
     Calls the ``command`` and returns a dictionary with process, stdout, stderr, and the returncode.
 
     Returned returncode, stdout and stderr will be None if ``communicate`` is set to False.
 
+    :param user: If set, this will use ``sudo -u <user> ...`` to execute ``command`` as ``user``.
+    :type user: unicode
     :param input: If set, sended to stdin (if ``communicate`` is True).
     :type input: unicode
     :param cli_input: If set, sended to stdin (no condition).
@@ -69,8 +71,12 @@ def cmd(command, input=None, cli_input=None, cli_output=False, communicate=True,
         log_debug = log_warning = log_exception = log
     # create a list and a string of the arguments
     if isinstance(command, string_types):
+        if user:
+            command = u'sudo -u {0} {1}'.format(user, command)
         args_list, args_string = shlex.split(to_bytes(command)), command
     else:
+        if user:
+            command = [u'sudo', u'-u', user] + command
         args_list = [to_bytes(a) for a in command if a is not None]
         args_string = u' '.join([unicode(a) for a in command if a is not None])
     # log the execution
