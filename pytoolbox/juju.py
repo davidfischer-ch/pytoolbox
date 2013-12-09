@@ -580,9 +580,9 @@ class Environment(object):
                     delta_time = time.time() - start_time
                     timeout_time = timeout - delta_time
                     print(u'State of juju bootstrap machine is {0}, time-out{1}'.format(
-                          state, u' in {0} seconds'.format(timeout_time) if timeout_time > 0 else u'!'))
+                          state, u' in {0:d} seconds'.format(timeout_time) if timeout_time > 0 else u'!'))
                     if state in started_states:
-                        print(u'Environment bootstrapped in approximatively {0} seconds'.format(delta_time))
+                        print(u'Environment bootstrapped in approximatively {0:d} seconds'.format(delta_time))
                         break
                     elif state in error_states:
                         raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
