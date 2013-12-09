@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import json, os, random, subprocess, sys, time, uuid, yaml
 from codecs import open
-from functools import wraps
 from os.path import abspath, dirname, expanduser, join
 from .console import confirm
 from .encoding import string_types, to_bytes
@@ -497,9 +496,9 @@ class CharmHooks(object):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def cmd(self, command, input=None, cli_input=None, fail=True, logging=True):
+    def cmd(self, command, logging=True, **kwargs):
         u"""Calls the ``command`` and returns a dictionary with *stdout*, *stderr*, and the *returncode*."""
-        return cmd(command, input=input, cli_input=cli_input, fail=fail, log=self.debug if logging else None)
+        return cmd(command, log=self.debug if logging else None, **kwargs)
 
     def template2config(self, template, config, values):
         from_template(template, config, values)
@@ -580,9 +579,9 @@ class Environment(object):
                     delta_time = time.time() - start_time
                     timeout_time = timeout - delta_time
                     print(u'State of juju bootstrap machine is {0}, time-out{1}'.format(
-                          state, u' in {0:d} seconds'.format(timeout_time) if timeout_time > 0 else u'!'))
+                          state, u' in {0:.0f} seconds'.format(timeout_time) if timeout_time > 0 else u'!'))
                     if state in started_states:
-                        print(u'Environment bootstrapped in approximatively {0:d} seconds'.format(delta_time))
+                        print(u'Environment bootstrapped in approximatively {0:.0f} seconds'.format(delta_time))
                         break
                     elif state in error_states:
                         raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
