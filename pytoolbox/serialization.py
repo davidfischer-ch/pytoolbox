@@ -28,11 +28,12 @@ import errno, inspect, json, os, pickle, shutil
 from bson.objectid import ObjectId
 from codecs import open
 from .encoding import string_types, to_bytes
+from .filesystem import try_makedirs
 
 
 # Data -> File ---------------------------------------------------------------------------------------------------------
 
-def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, backup=False):
+def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, backup=False, makedirs=False):
     u"""
     Write some data to a file, can be safe (tmp file -> rename), may create a backup before any write operation.
     Return the name of the backup filename or None.
@@ -68,6 +69,8 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
     >>> assert_raises(TypeError, to_file, u'/tmp/to_file', data=assert_equal, safe=True)
     >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
     """
+    if makedirs:
+        try_makedirs(os.path.dirname(filename))
     if backup:
         backup_filename = u'{0}.bkp'.format(filename)
         try:
@@ -105,7 +108,7 @@ class PickleableObject(object):
             the_object._pickle_filename = filename
         return the_object
 
-    def write(self, filename=None, store_filename=False, safe=False, backup=False):
+    def write(self, filename=None, store_filename=False, safe=False, backup=False, makedirs=False):
         u"""Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``."""
         pickle_filename = getattr(self, '_pickle_filename', None)
         filename = filename or pickle_filename
@@ -114,7 +117,7 @@ class PickleableObject(object):
         try:
             if pickle_filename:
                 del self._pickle_filename
-            to_file(filename, pickle_data=self, binary=True, safe=safe, backup=backup)
+            to_file(filename, pickle_data=self, binary=True, safe=safe, backup=backup, makedirs=makedirs)
         finally:
             if store_filename:
                 self._pickle_filename = filename
@@ -285,19 +288,19 @@ class JsoneableObject(object):
                 the_object._json_filename = filename
             return the_object
 
-    def write(self, filename=None, include_properties=False, safe=False, backup=False, **kwargs):
+    def write(self, filename=None, include_properties=False, safe=False, backup=False, makedirs=False, **kwargs):
         u"""Serialize ``self`` to a file, excluding the attribute ``_json_filename``."""
         if filename is None and hasattr(self, u'_json_filename'):
             filename = self._json_filename
             try:
                 del self._json_filename
                 to_file(filename, data=object2json(self, include_properties, **kwargs),
-                        binary=False, safe=safe, backup=backup)
+                        binary=False, safe=safe, backup=backup, makedirs=makedirs)
             finally:
                 self._json_filename = filename
         elif filename is not None:
             to_file(filename, data=object2json(self, include_properties, **kwargs),
-                    binary=False, safe=safe, backup=backup)
+                    binary=False, safe=safe, backup=backup, makedirs=makedirs)
         else:
             raise ValueError(u'A filename must be specified')
 
