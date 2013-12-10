@@ -3,11 +3,18 @@ changelog
 =========
 
 --------------------------
-v5.5.0-beta -> v5.5.2-beta
+v5.5.0-beta -> v5.5.8-beta
 --------------------------
 
 Fixes and enhancements
 ======================
+
+* Add constants to juju module
+* Juju bootstrap will print time as int
+* Add makedirs argument to some methods of the objects of serialization
+* Add user argument to method subprocess.cmd
+* Add path argument to subprocess.make
+* Add extra_args (list) to method subprocess.rsync
 
 * Fix juju and subprocess modules, update tests
 * Method subprocess.cmd : Handle logging.Logger as log, improve docstring, add retry loop
