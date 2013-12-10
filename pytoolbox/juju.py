@@ -33,6 +33,9 @@ from .filesystem import from_template, try_symlink
 from .exception import TimeoutError
 from .subprocess import cmd
 
+CONFIG_FILENAME = u'config.yaml'
+METADATA_FILENAME = u'metadata.yaml'
+
 DEFAULT_ENVIRONMENTS_FILE = abspath(expanduser(u'~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {
     u'APT_LISTCHANGES_FRONTEND': u'none',
@@ -534,7 +537,7 @@ class CharmHooks(object):
 
 class Environment(object):
 
-    def __init__(self, name=u'default', charms_path=u'charms', config=u'config.yaml', release=None, auto=False):
+    def __init__(self, name=u'default', charms_path=u'charms', config=CONFIG_FILENAME, release=None, auto=False):
         self.name = name
         self.charms_path = charms_path
         self.config = config
