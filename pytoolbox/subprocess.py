@@ -169,7 +169,7 @@ def make(archive, path=None, with_cmake=False, configure_options=u'', install=Tr
 
 def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False, progress=False,
           recursive=False, simulate=False, excludes=None, includes=None, rsync_path=None, size_only=False, extra=None,
-          fail=True, log=None, **kwargs):
+          extra_args=None, fail=True, log=None, **kwargs):
     if makedest and not os.path.exists(destination):
         os.makedirs(destination)
     source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else u'')
@@ -191,6 +191,8 @@ def rsync(source, destination, makedest=False, archive=True, delete=False, exclu
         command += [u'--include={0}'.format(i) for i in includes]
     if exclude_vcs:
         command += [u'--exclude=.svn', u'--exclude=.git']
+    if extra_args:
+        command += extra_args
     command += [source, destination]
     return cmd(filter(None, command), fail=fail, log=log, **kwargs)
 
