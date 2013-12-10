@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import json, os, random, subprocess, sys, time, uuid, yaml
+import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from codecs import open
 from os.path import abspath, dirname, expanduser, join
 from .console import confirm
@@ -32,6 +32,7 @@ from .encoding import string_types, to_bytes
 from .filesystem import from_template, try_symlink
 from .exception import TimeoutError
 from .subprocess import cmd
+
 
 CONFIG_FILENAME = u'config.yaml'
 METADATA_FILENAME = u'metadata.yaml'
@@ -221,7 +222,6 @@ __get_ip = None
 def get_ip():
     global __get_ip
     if __get_ip is None:
-        import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect((u'8.8.8.8', 80))
         __get_ip = s.getsockname()[0]
@@ -312,8 +312,8 @@ class CharmHooks(object):
             self.load_config(json.loads(self.cmd([u'config-get', u'--format=json'])['stdout']))
             self.env_uuid = os.environ.get(u'JUJU_ENV_UUID')
             self.name = os.environ[u'JUJU_UNIT_NAME']
-            self.private_address = self.unit_get(u'private-address')
-            self.public_address = self.unit_get(u'public-address')
+            self.private_address = socket.getfqdn(self.unit_get(u'private-address'))
+            self.public_address = socket.getfqdn(self.unit_get(u'public-address'))
         except (subprocess.CalledProcessError, OSError) as e:
             reason = e
             self.juju_ok = False
@@ -321,7 +321,7 @@ class CharmHooks(object):
                 self.load_config(default_config)
             self.env_uuid = default_os_env[u'JUJU_ENV_UUID']
             self.name = default_os_env[u'JUJU_UNIT_NAME']
-            self.private_address = self.public_address = get_ip()
+            self.private_address = self.public_address = socket.getfqdn(get_ip())
         self.directory = os.getcwd()
         self.debug(u'Using juju {0}, reason: {1}'.format(self.juju_ok, reason))
         self.load_metadata(metadata)
