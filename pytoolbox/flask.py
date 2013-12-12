@@ -29,7 +29,7 @@ from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
 from .encoding import to_bytes
-from .serialization import object2dictV2, object2json
+from .serialization import object2json
 from .validation import valid_uuid
 
 STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
@@ -134,13 +134,3 @@ def json_response(status, value=None, include_properties=False):
     response.status_code = status
     return response
 
-
-def json_response2dict(response, remove_underscore):
-    value = []
-    if response[u'status'] == 200:
-        try:
-            for thing in response[u'value']:
-                value.append(object2dictV2(thing, remove_underscore=remove_underscore))
-        except TypeError:
-            value.append(object2dictV2(response[u'value'], remove_underscore=remove_underscore))
-    return value
