@@ -362,16 +362,16 @@ def object2dictV2(obj, remove_underscore):
         for key, value in obj.iteritems():
             if remove_underscore and key[0] == u'_':
                 key = key[1:]
-            something_dict[key] = object2dict(value, remove_underscore)
+            something_dict[key] = object2dictV2(value, remove_underscore)
         return something_dict
     elif hasattr(obj, u'__iter__'):
-        return [object2dict(value, remove_underscore) for value in obj]
+        return [object2dictV2(value, remove_underscore) for value in obj]
     elif hasattr(obj, u'__dict__'):
         something_dict = {}
         for key, value in obj.__dict__.iteritems():
             if remove_underscore and key[0] == u'_':
                 key = key[1:]
-            something_dict[key] = object2dict(value, remove_underscore)
+            something_dict[key] = object2dictV2(value, remove_underscore)
         return something_dict
     return obj
 
