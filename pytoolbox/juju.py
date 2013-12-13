@@ -218,7 +218,7 @@ def get_unit_path(service, number, *args):
 
 __get_ip = None
 
-
+# add cache decorator
 def get_ip():
     global __get_ip
     if __get_ip is None:
@@ -346,6 +346,7 @@ class CharmHooks(object):
     def name_slug(self):
         return self.name.replace(u'/', u'-')
 
+    # FIXME add cache decorator
     @property
     def is_leader(self):
         u"""
@@ -354,11 +355,15 @@ class CharmHooks(object):
         By convention, the leader is the unit with the *smallest* id (the *oldest* unit).
         """
         try:
-            ids = [int(i.split(u'/')[1]) for i in self.relation_list(None)]
-            self.debug(u'id={0} ids={1}'.format(self.id, ids))
-            return len(ids) == 0 or self.id <= min(ids)
+            rel_ids = self.relation_ids(u'peer')
+            if not rel_ids:
+                return True  # no peer relation, so we're a leader that feels alone !
+            assert len(rel_ids) == 1, u'Expect only 1 peer relation id: {0}'.format(rel_ids)
+            peers = self.relation_list(rel_ids[0])
+            self.debug(u'us={0} peers={1}'.format(self.name, peers))
+            return len(peers) == 0 or self.name <= min(peers)
         except Exception as e:
-            self.debug(u'Bug during leader detection: {0}'.format(repr(e)))
+            self.remark(u'Bug during leader detection: {0}'.format(repr(e)))
             return True
 
     # Maps calls to charm helpers methods and replace them if called in standalone -------------------------------------
@@ -379,11 +384,13 @@ class CharmHooks(object):
             return self.cmd([u'close-port', u'{0}/{1}'.format(port, protocol)])
         return self.debug(u'Close port {0} ({1})'.format(port, protocol))
 
+    # FIXME add memoize decorator
     def unit_get(self, attribute):
         if self.juju_ok:
             return self.cmd([u'unit-get', attribute])['stdout'].strip()
         raise NotImplementedError(to_bytes(u'FIXME juju-less unit_get not yet implemented'))
 
+    # FIXME add memoize decorator
     def relation_get(self, attribute=None, unit=None, relation_id=None):
         if self.juju_ok:
             command = [u'relation-get']
@@ -393,17 +400,21 @@ class CharmHooks(object):
             return self.cmd(command)['stdout'].strip()
         raise NotImplementedError(to_bytes(u'FIXME juju-less relation_get not yet implemented'))
 
-    def relation_ids(self, relation_name):
+    # FIXME add memoize decorator
+    def relation_ids(self, relation_name=u''):
         if self.juju_ok:
-            return [int(id) for id in self.cmd([u'relation-ids', relation_name])['stdout'].split()]
+            result = self.cmd([u'relation-ids', u'--format', u'json', relation_name], fail=False)
+            return json.loads(result[u'stdout']) if result[u'returncode'] == 0 else None
         raise NotImplementedError(to_bytes(u'FIXME juju-less relation_ids not yet implemented'))
 
+    # FIXME add memoize decorator
     def relation_list(self, relation_id=None):
         if self.juju_ok:
-            command = [u'relation-list']
+            command = [u'relation-list', u'--format', u'json']
             if relation_id is not None:
                 command += [u'-r', relation_id]
-            return self.cmd(command)['stdout'].split()
+            result = self.cmd(command, fail=False)
+            return json.loads(result[u'stdout']) if result[u'returncode'] == 0 else None
         raise NotImplementedError(to_bytes(u'FIXME juju-less relation_list not yet implemented'))
 
     def relation_set(self, **kwargs):
