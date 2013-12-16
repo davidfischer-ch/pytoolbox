@@ -548,25 +548,34 @@ class CharmHooks(object):
 
 class Environment(object):
 
-    def __init__(self, name=u'default', charms_path=u'charms', config=CONFIG_FILENAME, release=None, auto=False):
+    def __init__(self, name=u'default', charms_path=u'charms', config=CONFIG_FILENAME, release=None, auto=False,
+                 status_timeout=15):
         self.name = name
         self.charms_path = charms_path
         self.config = config
         self.release = release
         self.auto = auto
+        self.status_timeout = status_timeout
+        self._validate()
 
     @property
     def status(self):
-        # FIXME read status async (use pytoolbox.subprocess.make_async + pytoolbox.subprocess.read_async)
-        return juju_do(u'status', self.name)
+        self._validate()
+        return juju_do(u'status', self.name, timeout=self.status_timeout, fail=False)
 
     @property
     def is_bootstrapped(self):
         try:
-            self.status
-            return True
+            return bool(self.status)
         except:
             return False
+
+    def _validate(self):
+        u"""Validate the attributes of the instance to avoid some bad "surprises"."""
+        # FIXME validate more attributes
+        if self.status_timeout is not None and self.status_timeout < 15:
+            raise ValueError(to_bytes(u'A time-out of {0} for status is dangerous, please increase it to 15+ or set it '
+                             u'to None'.format(self.status_timeout)))
 
     def symlink_local_charms(self, default_path=u'default'):
         u"""Symlink charms default directory to directory of current release."""
@@ -591,7 +600,10 @@ class Environment(object):
                 start_time = time.time()
                 while True:
                     time.sleep(min_polling_delay)
-                    state = self.status[u'machines'][u'0'][u'agent-state']
+                    try:
+                        state = self.status[u'machines'][u'0'][u'agent-state']
+                    except KeyError:
+                        state = u'unknown'
                     delta_time = time.time() - start_time
                     timeout_time = timeout - delta_time
                     print(u'State of juju bootstrap machine is {0}, time-out{1}'.format(
@@ -718,6 +730,7 @@ class Environment(object):
         return juju_do(u'destroy-unit', self.name, options=[name])
 
     def get_unit(self, service, number):
+        # FIXME maybe none if missing or something else
         name = u'{0}/{1}'.format(service, number)
         return self.status[u'services'][service][u'units'][name]
 
@@ -771,7 +784,8 @@ class Environment(object):
 
     def cleanup_machines(self):
         environment_dict = self.status
-        machines, busy_machines = environment_dict.get(u'machines', {}).iterkeys(), [u'0']
+        machines = environment_dict.get(u'machines', {}).iterkeys()
+        busy_machines = [u'0'] # the machine running the juju daemon !
         for s_dict in environment_dict.get(u'services', {}).itervalues():
             busy_machines = (busy_machines +
                              [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).itervalues()])

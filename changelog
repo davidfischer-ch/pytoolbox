@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.0-beta -> v5.6.2-beta
+v5.6.0-beta -> v5.6.3-beta
 --------------------------
 
 Fixes and enhancements
@@ -11,6 +11,7 @@ Fixes and enhancements
 
 * Add timeout argument to cmd()
 * Remove symlink first, to avoid boring exceptions
+* Add timeout to juju status !
 
 --------------------------
 v5.5.0-beta -> v5.6.0-beta
