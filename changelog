@@ -3,6 +3,15 @@ changelog
 =========
 
 --------------------------
+v5.6.0-beta -> v5.6.1-beta
+--------------------------
+
+Fixes and enhancements
+======================
+
+* Remove symlink first, to avoid boring exceptions
+
+--------------------------
 v5.5.0-beta -> v5.6.0-beta
 --------------------------
 
