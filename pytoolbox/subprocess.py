@@ -24,15 +24,16 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess, time
+import errno, fcntl, logging, multiprocessing, os, random, re
+import setuptools.archive_util, shlex, shutil, subprocess, threading, time
 from .encoding import to_bytes, string_types
 from .filesystem import try_makedirs
 
 EMPTY_CMD_RETURN = {u'process': None, u'stdout': None, u'stderr': None, u'returncode': None}
 
 
-def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True, fail=True, log=None,
-        tries=1, delay_min=5, delay_max=10, **kwargs):
+def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True, timeout=None, fail=True,
+        log=None, tries=1, delay_min=5, delay_max=10, **kwargs):
     u"""
     Calls the ``command`` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -50,8 +51,10 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     :type fail: bool
     :param log: A method to log/print details about what is executed/any failure, can be a standard logger.
     :type log: callable, logging.Logger
-    :param communicate: Set to True to communicate with the process, this is a locking call.
+    :param communicate: Set to True to communicate with the process, this is a locking call (if timeout is None).
     :type communicate: bool
+    :param timeout: Time-out for the communication with the process, in seconds.
+    :type timeout: float
     :param tries: How many times you want the command to be retried ?
     :type tries: int
     :param delay_min: Minimum delay to sleep after every attempt communicate must be True.
@@ -102,7 +105,22 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
             process.stdin.flush()
         # interact with the process and wait for the process to terminate
         if communicate:
-            stdout, stderr = process.communicate(input=input)
+            data = {}
+            # thanks http://stackoverflow.com/questions/1191374/subprocess-with-timeout
+            def communicate_with_timeout(data=None):
+                data[u'stdout'], data[u'stderr'] = process.communicate(input=input)
+            thread = threading.Thread(target=communicate_with_timeout, kwargs={u'data': data})
+            thread.start()
+            thread.join(timeout=timeout)
+            if thread.is_alive():
+                try:
+                    process.terminate()
+                    thread.join()
+                except OSError as e:
+                    # Manage race condition with process that may terminate just after the call to thread.is_alive() !
+                    if e.errno != errno.ESRCH:
+                        raise
+            stdout, stderr = data[u'stdout'], data[u'stderr']
         else:
             # get a return code that may be None of course ...
             process.poll()
@@ -112,8 +130,8 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
             break
         # failed attempt, may retry
         do_retry = trial < tries - 1
+        delay = random.uniform(delay_min, delay_max)
         if log_warning:
-            delay = random.uniform(delay_min, delay_max)
             log_warning(u'Attempt {0} out of {1}: {2}'.format(trial+1, tries,
                         u'Will retry in {0} seconds'.format(delay) if do_retry else u'Failed'))
         # raise if this is the last try
