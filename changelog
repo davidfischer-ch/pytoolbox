@@ -3,13 +3,18 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.0.0-beta
+v5.6.3-beta -> v6.0.1-beta
 --------------------------
 
 Compatibility breaks
 ====================
 
 * Improve errors and time-outs handling in juju module (for the best).
+
+Fixes and enhancements
+======================
+
+* Set default time-outs to None and update juju module (fixes).
 
 --------------------------
 v5.6.0-beta -> v5.6.3-beta
