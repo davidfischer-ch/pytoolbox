@@ -3,13 +3,18 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.0.2-beta
+v5.6.3-beta -> v6.0.3-beta
 --------------------------
 
 Compatibility breaks
 ====================
 
 * Improve errors and time-outs handling in juju module (for the best).
+
+Minor compatibility breaks
+==========================
+
+* SmartJSONEncoderV2 now filter the class attributes.
 
 Fixes and enhancements
 ======================

@@ -144,8 +144,11 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith(u'__'):
                 continue
+            if hasattr(obj.__class__, a[0]):
+                continue
             attributes[a[0]] = a[1]
         return attributes
+
 
 def object2json(obj, include_properties, **kwargs):
     u"""
