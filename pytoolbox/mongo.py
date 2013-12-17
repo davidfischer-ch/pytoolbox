@@ -103,7 +103,7 @@ class TaskModel(Model):
         async_result = AsyncResult(self._id)
         if async_result:
             try:
-                if self.status not in (TaskModel.REVOKED, TaskModel.REVOKING):
+                if self.status not in TaskModel.CANCELED_STATUS:
                     self.status = async_result.status
                 try:
                     self.statistic.update(async_result.result)
