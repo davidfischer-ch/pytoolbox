@@ -710,7 +710,7 @@ class Environment(object):
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
-                    for number, unit_dict in units.items():
+                    for number, unit_dict in units_dict.items():
                         if num_units == 0:
                             break
                         if units_number_to_keep is not None and number in units_number_to_keep:
