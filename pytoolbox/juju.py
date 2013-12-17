@@ -60,9 +60,10 @@ DEFAULT_OS_ENV = {
     u'SHLVL': u'1'
 }
 
-ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR = \
-    (u'pending', u'installed', u'started', u'stopped', u'not-started', u'error')
+ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR, UNKNOWN = \
+    (u'pending', u'installed', u'started', u'stopped', u'not-started', u'error', u'unknown')
 
+UNKNOWN_STATES = (UNKNOWN,)
 PENDING_STATES = (PENDING, INSTALLED)
 STARTED_STATES = (STARTED,)
 STOPPED_STATES = (STOPPED,)
@@ -145,8 +146,8 @@ def save_unit_config(filename, service, config, log=None):
 
 # Environments ---------------------------------------------------------------------------------------------------------
 
-def add_environment(environment, type, region, access_key, secret_key, control_bucket,
-                    default_series, environments=None):
+def add_environment(environment, type, region, access_key, secret_key, control_bucket, default_series,
+                    environments=None):
     environments = environments or DEFAULT_ENVIRONMENTS_FILE
 #    environments_dict = EnvironmentsConfig()
 #    environments_dict.load(environments)
@@ -176,7 +177,7 @@ def add_environment(environment, type, region, access_key, secret_key, control_b
         raise
 
 
-def get_environment(environment, get_status=False, environments=None):
+def get_environment(environment, environments=None, get_status=False, status_timeout=None):
     environments = environments or DEFAULT_ENVIRONMENTS_FILE
     environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     environment = environments_dict[u'default'] if environment == u'default' else environment
@@ -185,11 +186,11 @@ def get_environment(environment, get_status=False, environments=None):
     except KeyError:
         raise ValueError(to_bytes(u'No environment with name {0}.'.format(environment)))
     if get_status:
-        environment_dict[u'status'] = Environment(name=environment).status
+        environment_dict[u'status'] = Environment(name=environment).status(timeout=status_timeout)
     return environment_dict
 
 
-def get_environments(get_status=False, environments=None):
+def get_environments(environments=None, get_status=False, status_timeout=None):
     environments = environments or DEFAULT_ENVIRONMENTS_FILE
     environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     environments = {}
@@ -197,9 +198,9 @@ def get_environments(get_status=False, environments=None):
         informations = environment[1]
         if get_status:
             try:
-                informations[u'status'] = Environment(name=environment[0]).status
+                informations[u'status'] = Environment(name=environment[0]).status(timeout=status_timeout)
             except RuntimeError:
-                informations[u'status'] = u'UNKNOWN'
+                informations[u'status'] = UNKNOWN
         environments[environment[0]] = informations
     return (environments, environments_dict[u'default'])
 
@@ -549,33 +550,30 @@ class CharmHooks(object):
 class Environment(object):
 
     def __init__(self, name=u'default', charms_path=u'charms', config=CONFIG_FILENAME, release=None, auto=False,
-                 status_timeout=15):
+                 min_timeout=15):
         self.name = name
         self.charms_path = charms_path
         self.config = config
         self.release = release
         self.auto = auto
-        self.status_timeout = status_timeout
-        self._validate()
+        self.min_timeout = min_timeout
 
-    @property
-    def status(self):
-        self._validate()
-        return juju_do(u'status', self.name, timeout=self.status_timeout, fail=False)
+    def status(self, fail=False, timeout=15):
+        u"""Return the status of the environment or None in case of time-out [TODO verify other conditions]."""
+        if timeout is not None and timeout < self.min_timeout:
+            raise ValueError(to_bytes(u'A time-out of {0} for status is dangerous, please increase it to {1}+ or set it'
+                             u' to None'.format(timeout, self.min_timeout)))
+        status = juju_do(u'status', self.name, timeout=timeout, fail=fail)
+        if fail and not status:
+            raise RuntimeError(to_bytes(u'Unable to retrieve status of environment {0}.'.format(self.name)))
+        return status
 
-    @property
-    def is_bootstrapped(self):
+    def is_bootstrapped(self, fail=False, timeout=15):
+        u"""Return True if the environment is bootstrapped (status returns something)."""
         try:
-            return bool(self.status)
+            return bool(self.status(fail=fail, timeout=timeout))
         except:
             return False
-
-    def _validate(self):
-        u"""Validate the attributes of the instance to avoid some bad "surprises"."""
-        # FIXME validate more attributes
-        if self.status_timeout is not None and self.status_timeout < 15:
-            raise ValueError(to_bytes(u'A time-out of {0} for status is dangerous, please increase it to 15+ or set it '
-                             u'to None'.format(self.status_timeout)))
 
     def symlink_local_charms(self, default_path=u'default'):
         u"""Symlink charms default directory to directory of current release."""
@@ -584,11 +582,17 @@ class Environment(object):
         try_symlink(abspath(join(self.charms_path, default_path)), release_symlink)
 
     def sync_tools(self, all_tools=True):
+        u"""Copy tools from the official bucket into a local environment."""
         options = [u'--all'] if all_tools else None
         return juju_do(u'sync-tools', self.name, options=options)
 
     def bootstrap(self, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
-                  error_states=ERROR_STATES, timeout=600, min_polling_delay=10):
+                  error_states=ERROR_STATES, timeout=600, status_timeout=15, polling_delay=30):
+        u"""
+        Terminate all machines and other associated resources for an environment and bootstrap it.
+
+        :param kwargs: Extra arguments for juju_do(), options is not allowed.
+        """
         print(u'Cleanup and bootstrap environment {0}'.format(self.name))
         print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
@@ -599,11 +603,11 @@ class Environment(object):
             if wait_started:
                 start_time = time.time()
                 while True:
-                    time.sleep(min_polling_delay)
+                    time_zero = time.time()
                     try:
-                        state = self.status[u'machines'][u'0'][u'agent-state']
+                        state = self.status(timeout=status_timeout)[u'machines'][u'0'][u'agent-state']
                     except KeyError:
-                        state = u'unknown'
+                        state = UNKNOWN
                     delta_time = time.time() - start_time
                     timeout_time = timeout - delta_time
                     print(u'State of juju bootstrap machine is {0}, time-out{1}'.format(
@@ -615,9 +619,10 @@ class Environment(object):
                         raise RuntimeError(u'Bootstrap failed with state {0}.'.format(state))
                     if delta_time > timeout:
                         raise TimeoutError(u'Bootstrap time-out with state {0}.'.format(state))
+                    time.sleep(max(0, polling_delay - (time.time() - time_zero)))
             return result
 
-    def destroy(self, remove_default=False, remove=False, environments=None):
+    def destroy(self, environments=None, remove_default=False, remove=False, timeout=15):
         # FIXME simpler algorithm
         environments = environments or DEFAULT_ENVIRONMENTS_FILE
         environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
@@ -626,10 +631,10 @@ class Environment(object):
             raise IndexError(to_bytes(u'No environment with name {0}.'.format(name)))
         if not remove_default and name == environments_dict[u'default']:
             raise RuntimeError(to_bytes(u'Cannot remove default environment {0}.'.format(name)))
-        result = juju_do(u'destroy-environment', name) if self.is_bootstrapped else None
+        result = juju_do(u'destroy-environment', name) if self.is_bootstrapped(timeout=timeout) else None
         if remove:
             # Check if environment destroyed otherwise a lot of trouble with $/€ !
-            if self.is_boostrapped:
+            if self.is_boostrapped(timeout=timeout):
                 raise RuntimeError(to_bytes(u'Environment {0} not removed, it is still alive.'.format(name)))
             else:
                 del environments_dict[u'environments'][name]
@@ -640,6 +645,17 @@ class Environment(object):
 
     def get_service_config(self, service, options=None, fail=True):
         return juju_do(u'get', self.name, options=[service], fail=fail)
+
+    def get_service(self, service, default=None, fail=True, timeout=15):
+        status = self.status(fail=fail, timeout=timeout)
+        if not status:
+            return default
+        try:
+            return status[u'services'][service]
+        except KeyError:
+            if fail:
+                raise RuntimeError(to_bytes(u'Service {0} not found in environment {1}.'.format(service, self.name)))
+        return default
 
     def expose_service(self, service, fail=True):
         return juju_do(u'expose', self.name, options=[service], fail=fail)
@@ -729,10 +745,17 @@ class Environment(object):
             return self.destroy_machine(unit_dict[u'machine'])
         return juju_do(u'destroy-unit', self.name, options=[name])
 
-    def get_unit(self, service, number):
+    def get_unit(self, service, number, default=None, fail=True, timeout=15):
         # FIXME maybe none if missing or something else
         name = u'{0}/{1}'.format(service, number)
-        return self.status[u'services'][service][u'units'][name]
+        service = self.get_service(default=None, fail=fail, timeout=timeout)
+        if service is not None:
+            try:
+                return service[u'units'][name]
+            except KeyError:
+                if fail:
+                    raise RuntimeError(to_bytes(u'Unit {0} not found in environment {1}.'.format(name, self.name)))
+        return default
 
     def add_units(self, service, num_units=1, to=None):
         options = [u'--num-units', num_units]
@@ -762,28 +785,28 @@ class Environment(object):
         options += filter(None, [charm, service])
         return juju_do(u'deploy', self.name, options=options)
 
-    def get_units(self, service, none_if_missing=False):
-        units = {}
-        try:
-            units_dict = self.status[u'services'][service].get(u'units', {})
-        except KeyError:
-            return None if none_if_missing else {}
-        for unit in units_dict.iteritems():
-            number = unit[0].split(u'/')[1]
-            units[number] = unit[1]
-        return units
+    def get_units(self, service, default=None, fail=True, timeout=15):
+        service = self.get_service(default=None, fail=fail, timeout=timeout)
+        if service is None:
+            return default
+        units_dict = service.get(u'units', None)
+        if units_dict is None:
+            return default
+        return {name.split(u'/')[1]: infos for name, infos in units_dict.iteritems()}
 
-    def get_units_count(self, service, none_if_missing=False):
-        try:
-            units_dict = self.status[u'services'][service].get(u'units', {})
-            return len(units_dict.iterkeys())
-        except KeyError:
-            return None if none_if_missing else 0
+    def get_units_count(self, service, default=None, fail=True, timeout=15):
+        service = self.get_service(default=None, fail=fail, timeout=timeout)
+        if service is None:
+            return default
+        units_dict = service.get(u'units', None)
+        if units_dict is None:
+            return default
+        return len(units_dict)
 
     # Machines
 
-    def cleanup_machines(self):
-        environment_dict = self.status
+    def cleanup_machines(self, fail=True, timeout=None):
+        environment_dict = self.status(fail=fail, timeout=timeout) or {}
         machines = environment_dict.get(u'machines', {}).iterkeys()
         busy_machines = [u'0'] # the machine running the juju daemon !
         for s_dict in environment_dict.get(u'services', {}).itervalues():
