@@ -144,7 +144,7 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith(u'__'):
                 continue
-            if hasattr(obj.__class__, a[0]):
+            if hasattr(obj.__dict__, a[0]) and not isinstance(a[1], property):
                 continue
             attributes[a[0]] = a[1]
         return attributes

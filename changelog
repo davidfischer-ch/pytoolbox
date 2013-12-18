@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.0.3-beta
+v5.6.3-beta -> v6.0.4-beta
 --------------------------
 
 Compatibility breaks
@@ -15,6 +15,7 @@ Minor compatibility breaks
 ==========================
 
 * SmartJSONEncoderV2 now filter the class attributes.
+* Fix SmartJSONEncoderV2!
 
 Fixes and enhancements
 ======================
