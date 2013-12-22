@@ -3,8 +3,44 @@ changelog
 =========
 
 --------------------------
-v5.5.0-beta -> v5.5.8-beta
+v5.6.3-beta -> v6.0.4-beta
 --------------------------
+
+Compatibility breaks
+====================
+
+* Improve errors and time-outs handling in juju module (for the best).
+
+Minor compatibility breaks
+==========================
+
+* SmartJSONEncoderV2 now filter the class attributes.
+* Fix SmartJSONEncoderV2!
+
+Fixes and enhancements
+======================
+
+* Set default time-outs to None and update juju module (fixes).
+
+--------------------------
+v5.6.0-beta -> v5.6.3-beta
+--------------------------
+
+Fixes and enhancements
+======================
+
+* Add timeout argument to cmd()
+* Remove symlink first, to avoid boring exceptions
+* Add timeout to juju status !
+
+--------------------------
+v5.5.0-beta -> v5.6.0-beta
+--------------------------
+
+Features
+========
+
+* Add method validation.valid_int()
 
 Fixes and enhancements
 ======================
@@ -16,8 +52,9 @@ Fixes and enhancements
 * Add path argument to subprocess.make
 * Add extra_args (list) to method subprocess.rsync
 
-* Fix juju and subprocess modules, update tests
+* Fix juju, serialization, subprocess modules, update tests
 * Method subprocess.cmd : Handle logging.Logger as log, improve docstring, add retry loop
+* Upgrade relation_ methods
 
 ---------------------------
 v5.4.19-beta -> v5.5.0-beta

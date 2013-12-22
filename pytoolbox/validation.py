@@ -87,6 +87,24 @@ def valid_email(email):
         return False
 
 
+def valid_int(value):
+    u"""
+    Returns True if ``value`` is a valid integer (can be converted to an int).
+
+    **Example usage**
+
+    >>> valid_int(u'dimitri is not a valid integer')
+    False
+    >>> valid_int(u'-10')
+    True
+    """
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False
+
+
 def valid_port(port):
     u"""
     Returns True if ``port`` is a valid port.

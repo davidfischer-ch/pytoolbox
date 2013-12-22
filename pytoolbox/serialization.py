@@ -144,8 +144,11 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith(u'__'):
                 continue
+            if hasattr(obj.__dict__, a[0]) and not isinstance(a[1], property):
+                continue
             attributes[a[0]] = a[1]
         return attributes
+
 
 def object2json(obj, include_properties, **kwargs):
     u"""
@@ -362,16 +365,16 @@ def object2dictV2(obj, remove_underscore):
         for key, value in obj.iteritems():
             if remove_underscore and key[0] == u'_':
                 key = key[1:]
-            something_dict[key] = object2dict(value, remove_underscore)
+            something_dict[key] = object2dictV2(value, remove_underscore)
         return something_dict
     elif hasattr(obj, u'__iter__'):
-        return [object2dict(value, remove_underscore) for value in obj]
+        return [object2dictV2(value, remove_underscore) for value in obj]
     elif hasattr(obj, u'__dict__'):
         something_dict = {}
         for key, value in obj.__dict__.iteritems():
             if remove_underscore and key[0] == u'_':
                 key = key[1:]
-            something_dict[key] = object2dict(value, remove_underscore)
+            something_dict[key] = object2dictV2(value, remove_underscore)
         return something_dict
     return obj
 
