@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.0.6-beta
+v5.6.3-beta -> v6.0.7-beta
 --------------------------
 
 Compatibility breaks
@@ -20,6 +20,7 @@ Minor compatibility breaks
 Fixes and enhancements
 ======================
 
+* Fix test_ensure_num_units
 * Use renamed IP class (previously IPAddress) fallback import to IPAddress
 * Set default time-outs to None and update juju module (fixes)
 
