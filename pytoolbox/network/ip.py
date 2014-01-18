@@ -29,7 +29,10 @@ import sys
 if sys.version_info[0] > 2:
     from ipaddress import ip_address
 else:
-    from ipaddr import IP as ip_address
+    try:
+        from ipaddr import IP as ip_address
+    except ImportError:  # previously IPAddress ...
+        from ipaddr import IPAddress as ip_address
 
 
 def IPSocket(string):
