@@ -232,7 +232,7 @@ def screen_launch(name, command, fail=True, log=None, **kwargs):
 def screen_list(name=None, log=None, **kwargs):
     u"""Returns a list containing all instances of screen. Can be filtered by ``name``."""
     screens = cmd([u'screen', u'-ls', name], fail=False, log=log, **kwargs)[u'stdout']
-    return re.findall(ur'\s+(\d+.\S+)\s+\(.*\).*', unicode(screens, u'utf-8'))
+    return re.findall(ur'\s+(\d+.\S+)\s+\(.*\).*', unicode(screens))
 
 
 def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):

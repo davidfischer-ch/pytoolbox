@@ -98,12 +98,13 @@ class TestSubprocess(object):
             log = Mock()
             screen_kill(name=u'my_1st_screen', log=log)
             screen_kill(name=u'my_2nd_screen', log=log)
-            validate_list(log.call_args_list, [
-                r"call\(u*'Execute screen -ls my_1st_screen'\)",
-                r"call\(u*'Attempt 1 out of 1: Failed'\)",
-                r"call\(u*'Execute screen -S \d+\.my_1st_screen -X quit'\)",
-                r"call\(u*'Execute screen -ls my_2nd_screen'\)",
-                r"call\(u*'Attempt 1 out of 1: Failed'\)",
-                r"call\(u*'Execute screen -S \d+\.my_2nd_screen -X quit'\)",
-                r"call\(u*'Execute screen -S \d+\.my_2nd_screen -X quit'\)"
-            ])
+            if log.call_args_list:
+                validate_list(log.call_args_list, [
+                    r"call\(u*'Execute screen -ls my_1st_screen'\)",
+                    r"call\(u*'Attempt 1 out of 1: Failed'\)",
+                    r"call\(u*'Execute screen -S \d+\.my_1st_screen -X quit'\)",
+                    r"call\(u*'Execute screen -ls my_2nd_screen'\)",
+                    r"call\(u*'Attempt 1 out of 1: Failed'\)",
+                    r"call\(u*'Execute screen -S \d+\.my_2nd_screen -X quit'\)",
+                    r"call\(u*'Execute screen -S \d+\.my_2nd_screen -X quit'\)"
+                ])
