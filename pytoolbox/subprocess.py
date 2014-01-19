@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import errno, fcntl, logging, multiprocessing, os, random, re
+from os.path import exists, isdir, normpath
 import setuptools.archive_util, shlex, shutil, subprocess, threading, time
 from .encoding import to_bytes, string_types
 from .filesystem import try_makedirs
@@ -185,15 +186,15 @@ def make(archive, path=None, with_cmake=False, configure_options=u'', install=Tr
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def rsync(source, destination, makedest=False, archive=True, delete=False, exclude_vcs=False, progress=False,
-          recursive=False, simulate=False, excludes=None, includes=None, rsync_path=None, size_only=False, extra=None,
-          extra_args=None, fail=True, log=None, **kwargs):
-    if makedest and not os.path.exists(destination):
+def rsync(source, destination, source_is_dir=False, destination_is_dir=False, makedest=False, archive=True,
+          delete=False, exclude_vcs=False, progress=False, recursive=False, simulate=False, excludes=None,
+          includes=None, rsync_path=None, size_only=False, extra=None, extra_args=None, fail=True, log=None, **kwargs):
+    if makedest and not exists(destination):
         # FIXME if dest = remote -> ssh to make dest else make dest
         if u'ssh' not in extra:
             os.makedirs(destination)
-    source = os.path.normpath(source) + (os.sep if os.path.isdir(source) else u'')
-    destination = os.path.normpath(destination) + (os.sep if os.path.isdir(destination) else u'')
+    source = normpath(source) + (os.sep if isdir(source) or source_is_dir else u'')
+    destination = normpath(destination) + (os.sep if isdir(destination) or destination_is_dir else u'')
     command = [u'rsync',
                u'-a' if archive else None,
                u'--delete' if delete else None,
