@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.0.7-beta
+v5.6.3-beta -> v6.0.8-beta
 --------------------------
 
 Compatibility breaks
@@ -23,6 +23,7 @@ Fixes and enhancements
 * Fix test_ensure_num_units
 * Use renamed IP class (previously IPAddress) fallback import to IPAddress
 * Set default time-outs to None and update juju module (fixes)
+* Add some arguments to rsync
 
 --------------------------
 v5.6.0-beta -> v5.6.3-beta
