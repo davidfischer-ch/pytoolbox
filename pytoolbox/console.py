@@ -61,9 +61,9 @@ def confirm(question=None, default=False):
 def choice(question=u'', choices=[]):
     u"""
     Prompt the user for a choice and return his/her answer.
-    
+
     **Example of usage**
-    
+
     >> choice('What is your favorite color?', ['blue', 'orange', 'red'])
     What is your favourite color? [blue, orange, red]: orange
     orange
