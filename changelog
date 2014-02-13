@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.1.0-beta
+v5.6.3-beta -> v6.1.1-beta
 --------------------------
 
 Compatibility breaks
@@ -21,6 +21,7 @@ Features
 ========
 
 * Add module decorators
+* Add method network.http.download
 
 Fixes and enhancements
 ======================

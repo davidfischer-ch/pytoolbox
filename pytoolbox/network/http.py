@@ -24,9 +24,15 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import urlparse
-#from ..serialization import json2object
+import urllib2, urlparse
+from codecs import open
 from ..encoding import to_bytes
+
+
+def download(url, filename):
+    u"""Read the content of given ``url`` and save it as a file ``filename``."""
+    with open(filename, u'wb') as f:
+        f.write(urllib2.urlopen(url).read())
 
 
 def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u'query', u'form', u'json'],
