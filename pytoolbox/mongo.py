@@ -207,5 +207,7 @@ class User(Model):
 def mongo_do(action, database=None, fail=True, log=None, **kwargs):
     action_file = tempfile.NamedTemporaryFile(mode=u'w', suffix=u'.js')
     action_file.write(action)
-    cmd(filter(None, [u'mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
-    action_file.close()
+    try:
+        return cmd(filter(None, [u'mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
+    finally:
+        action_file.close()
