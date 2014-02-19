@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.1.1-beta
+v5.6.3-beta -> v6.1.2-beta
 --------------------------
 
 Compatibility breaks
@@ -22,6 +22,8 @@ Features
 
 * Add module decorators
 * Add method network.http.download
+* Add method mongo.mongo_do
+* Add method subprocess.git_clone_or_pull
 
 Fixes and enhancements
 ======================

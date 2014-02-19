@@ -24,9 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, fcntl, logging, multiprocessing, os, random, re
+import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess
+import threading, time
 from os.path import exists, isdir, normpath
-import setuptools.archive_util, shlex, shutil, subprocess, threading, time
 from .encoding import to_bytes, string_types
 from .filesystem import try_makedirs
 
@@ -159,6 +159,16 @@ def read_async(fd):
         if e.errno == errno.EAGAIN:
             return u''
         raise
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=None, **kwargs):
+    if exists(directory):
+        if reset:
+            cmd([u'git', u'reset', u'--hard'], cwd=directory, fail=fail, log=log, **kwargs)
+        cmd([u'git', u'pull'], cwd=directory, fail=fail, log=log, **kwargs)
+    else:
+        cmd([u'git', u'clone', u'--depth', unicode(clone_depth), url, directory], fail=fail, log=log, **kwargs)
 
 # ----------------------------------------------------------------------------------------------------------------------
 

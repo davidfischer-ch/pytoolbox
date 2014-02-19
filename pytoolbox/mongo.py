@@ -24,13 +24,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import uuid
+import uuid, tempfile
 from celery import states
 from celery.result import AsyncResult
 from passlib.hash import pbkdf2_sha512
 from passlib.utils import consteq
 from .encoding import to_bytes
 from .serialization import JsoneableObject
+from .subprocess import cmd
 from .validation import valid_email, valid_secret, valid_uuid
 
 
@@ -201,3 +202,10 @@ class User(Model):
         if self.is_secret_hashed:
             return pbkdf2_sha512.verify(secret, self.secret)
         return consteq(secret, self.secret)
+
+
+def mongo_do(action, database=None, fail=True, log=None, **kwargs):
+    action_file = tempfile.NamedTemporaryFile(mode=u'w', suffix=u'.js')
+    action_file.write(action)
+    cmd(filter(None, [u'mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
+    action_file.close()
