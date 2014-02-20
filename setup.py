@@ -78,10 +78,10 @@ install_requires = [
 ]
 
 extras_require = {
-    'django':    ['django'],  # FIXME version
-    'flask':     ['flask'],   # FIXME version
-    'mongo':     ['celery'],  # FIXME version
-    'smpte2022': ['fastxor', 'twisted'],  # FIXME version
+    'django':    ['django'],   # FIXME version
+    'flask':     ['flask'],    # FIXME version
+    'mongo':     ['celery'],   # FIXME version
+    'smpte2022': ['fastxor'],  # FIXME version
 }
 
 # Why not installing following packages for python 3 ?
@@ -127,7 +127,7 @@ if len(sys.argv) > 1 and sys.argv[1] in (u'develop', u'install', u'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pytoolbox',
-      version='6.1.3-beta',
+      version='6.2.0-beta',
       packages=packages,
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
@@ -140,8 +140,5 @@ setup(name='pytoolbox',
       extras_require=extras_require,
       install_requires=install_requires,
       tests_require=['coverage', 'mock', 'nose'],
-      entry_points={'console_scripts': [
-          'socket-fec-generator=pytoolbox.network.smpte2022.bin.SocketFecGenerator:main',
-          'twisted-fec-generator=pytoolbox.network.smpte2022.bin.TwistedFecGenerator:main']},
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
       test_suite='tests.pytoolbox_runtests.main', **kwargs)
