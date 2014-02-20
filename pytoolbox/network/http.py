@@ -102,7 +102,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
         if source == u'form':
             data.update(getattr(request, u'form', {}))  # werkzeug
         elif source == u'json':
-            data.update(getattr(request, u'get_json', {}))  # werkzeug
+            data.update(getattr(request, u'get_json', lambda: {})() or {})  # werkzeug
         elif source == u'query':
             query_dict = getattr(request, u'args',  # werkzeug
                                  urlparse.parse_qs(getattr(request, u'META', {}).get(u'QUERY_STRING', u'')))  # django
