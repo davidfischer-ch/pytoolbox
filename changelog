@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.2.0-beta
+v5.6.3-beta -> v6.2.1-beta
 --------------------------
 
 Compatibility breaks
@@ -15,6 +15,7 @@ Compatibility breaks
 Minor compatibility breaks
 ==========================
 
+* Remove deprecated flask.get_request_data (replaced by network.http.get_requests_data)
 * SmartJSONEncoderV2 now filter the class attributes
 * Fix SmartJSONEncoderV2!
 

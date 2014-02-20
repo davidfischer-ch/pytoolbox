@@ -24,11 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import logging, urlparse, warnings
+import logging
 from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
-from .encoding import to_bytes
 from .serialization import object2json
 from .validation import valid_uuid
 
@@ -41,38 +40,6 @@ def check_id(id):
     elif valid_uuid(id, objectid_allowed=True, none_allowed=False):
         return ObjectId(id)
     raise ValueError(u'Wrong id format {0}'.format(id))
-
-
-def get_request_data(request, accepted_keys=None, required_keys=None, query_string=True, qs_only_first_value=False,
-                     fail=True):
-
-    warnings.warn(to_bytes(u'Please use the new implementation from the module pytoolbox.network.http'),
-                  DeprecationWarning, stacklevel=2)
-
-    data = request.get_json(silent=True)
-    source = u'form-data' if data is None else u'JSON content'
-    if data is None:
-        if query_string:
-            data = urlparse.parse_qs(request.query_string)
-            if qs_only_first_value:
-                data = {key: value[0] if isinstance(value, list) else value for key, value in data.iteritems()}
-        else:
-            data = {}
-        for key in request.form:
-            data[key] = request.form.get(key)
-    if required_keys is not None:
-        for key in required_keys:
-            if not key in data:
-                raise ValueError(to_bytes(u'Missing key "{0}" from {1}, required: {2}.'.format(
-                                 key, source, required_keys)))
-    if accepted_keys is not None:
-        for key in data:
-            if not key in accepted_keys:
-                raise ValueError(to_bytes(u'Invalid key "{0}" from {1}, valid: {2}.'.format(
-                                 key, source, accepted_keys)))
-    if not data and fail:
-        raise ValueError(to_bytes(u'Requires JSON content or form-data.'))
-    return data or {}
 
 
 def map_exceptions(e):
