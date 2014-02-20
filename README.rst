@@ -2,8 +2,14 @@
 pytoolbox
 =========
 
+.. image:: https://badge.fury.io/py/pytoolbox.png
+    :target: http://badge.fury.io/py/requests
+
+.. image:: https://pypip.in/d/pytoolbox/badge.png
+    :target: https://crate.io/packages/requests/
+
 .. image:: https://secure.travis-ci.org/davidfischer-ch/pytoolbox.png
-	:target: http://travis-ci.org/davidfischer-ch/pytoolbox
+    :target: http://travis-ci.org/davidfischer-ch/pytoolbox
 
 Afraid of red status ? Please click on the link, sometimes this is not my fault ;-)
 
