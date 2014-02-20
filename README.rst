@@ -3,10 +3,10 @@ pytoolbox
 =========
 
 .. image:: https://badge.fury.io/py/pytoolbox.png
-    :target: http://badge.fury.io/py/requests
+    :target: http://badge.fury.io/py/pytoolbox
 
 .. image:: https://pypip.in/d/pytoolbox/badge.png
-    :target: https://crate.io/packages/requests/
+    :target: https://crate.io/packages/pytoolbox/
 
 .. image:: https://secure.travis-ci.org/davidfischer-ch/pytoolbox.png
     :target: http://travis-ci.org/davidfischer-ch/pytoolbox
