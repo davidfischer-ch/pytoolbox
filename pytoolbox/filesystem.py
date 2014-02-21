@@ -70,17 +70,18 @@ def get_size(path):
     return size
 
 
-def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, time_delta=1):
+def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, time_delta=1, check_size=True,
+                   remove_on_error=True):
     u"""
     Copy the content of a source directory to a destination directory.
     This method is based on a block-copy algorithm making progress update possible.
 
     Given ``callback`` would be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
-    *ratio*.
+    *ratio*. Set ``remove_on_error`` to remove the destination directory in case of error.
 
     This method will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
     At the end of the copy, if the size of the destination directory is not equal to the source then a ``IOError`` is
-    raised. The destination directory is removed in case of error.
+    raised.
     """
     try:
         start_date, start_time = datetime_now(), time.time()
@@ -126,16 +127,16 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
                 dst_file.close()
 
         # Output directory sanity check
-        dst_size = get_size(destination_path)
-        if dst_size != src_size:
-            raise IOError(
-                u'Destination size does not match source ({0} vs {1})'.format(src_size, dst_size))
+        if check_size:
+            dst_size = get_size(destination_path)
+            if dst_size != src_size:
+                raise IOError(u'Destination size does not match source ({0} vs {1})'.format(src_size, dst_size))
 
         elapsed_time = time.time() - start_time
         return {u'start_date': start_date, u'elapsed_time': elapsed_time, u'src_size': src_size}
     except:
-        # Cleanup - remove output directory
-        shutil.rmtree(destination_path, ignore_errors=True)
+        if remove_on_error:
+            shutil.rmtree(destination_path, ignore_errors=True)
         raise
 
 
