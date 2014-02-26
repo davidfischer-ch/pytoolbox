@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from collections import defaultdict
 from ...encoding import to_bytes
 from ..ip import IPSocket
 from ..rtp import RtpPacket
@@ -52,11 +53,9 @@ class FecReceiver(object):
 
     Testing FEC algorithm correctness:
 
-    >>> import random
     >>> from io import BytesIO
     >>> from os import urandom
     >>> from random import randint
-    >>> from .base import FecPacket
     >>> output = BytesIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1024, FecReceiver.PACKETS)
@@ -175,7 +174,8 @@ class FecReceiver(object):
         self.max_cross = 0     # Largest amount of stored elements in the crosses buffer
         self.max_col = 0       # Largest amount of stored elements in the columns buffer
         self.max_row = 0       # Largest amount of stored elements in the rows buffer
-        self.lostogram = {}    # Statistics about lost medias
+        self.lostogram = defaultdict(int)  # Statistics about lost medias
+        self.lostogram_counter = 0;        # Incremented while there are lost media packets
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -441,7 +441,7 @@ class FecReceiver(object):
         u"""Extract packets to output in order to keep a 'certain' amount of them in the buffer."""
         units = FecReceiver.PACKETS if self.flushing else self.delay_units
         value = 0 if self.flushing else self.delay_value
-        missing_count = 0
+        lostogram_counter = 0
         # Extract packets to output in order to keep a 'certain' amount of them in the buffer
         if units == FecReceiver.PACKETS:  # based on buffer size
             while len(self.medias) > value:
@@ -451,12 +451,14 @@ class FecReceiver(object):
                 self.startup = False
                 media = self.medias.get(self.position)
                 if media:
+                    self.lostogram[lostogram_counter] += 1
+                    lostogram_counter = 0
                     del self.medias[media.sequence]
                     if self.output:
                         self.output.write(media.payload)
                 else:
                     self.media_missing += 1
-                    missing_count += 1
+                    lostogram_counter += 1
                 # Remove any fec packet linked to current media packet
                 cross = self.crosses.get(self.position)
                 if cross:
@@ -470,10 +472,6 @@ class FecReceiver(object):
             raise NotImplementedError()
         else:
             raise ValueError(FecReceiver.ER_DELAY_UNITS.format(units))
-        if missing_count in self.lostogram:
-            self.lostogram[missing_count] = self.lostogram[missing_count] + 1
-        else:
-            self.lostogram[missing_count] = 1
 
     def __str__(self):
         u"""
