@@ -85,6 +85,7 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'test.m4a':
 At least one output file must be specified
 """
 
+
 def get_media_duration(filename):
     u"""
     Returns the duration of a media as a string.

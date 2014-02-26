@@ -100,4 +100,3 @@ def json_response(status, value=None, include_properties=False):
         status=status, mimetype=u'application/json')
     response.status_code = status
     return response
-

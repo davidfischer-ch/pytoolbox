@@ -107,6 +107,7 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
         # interact with the process and wait for the process to terminate
         if communicate:
             data = {}
+
             # thanks http://stackoverflow.com/questions/1191374/subprocess-with-timeout
             def communicate_with_timeout(data=None):
                 data[u'stdout'], data[u'stderr'] = process.communicate(input=input)

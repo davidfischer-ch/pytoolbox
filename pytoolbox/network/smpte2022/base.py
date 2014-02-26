@@ -29,6 +29,7 @@ from fastxor import fast_xor_inplace
 from ...encoding import to_bytes
 from ..rtp import RtpPacket
 
+
 class FecPacket(object):
     u"""
     This represent a real-time transport protocol (RTP) packet.

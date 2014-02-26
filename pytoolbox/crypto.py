@@ -33,6 +33,7 @@ else:
     def to_bytes(string):
         return bytes(string, u'utf-8')
 
+
 def githash(data):
     u"""
     Return the blob of some data.

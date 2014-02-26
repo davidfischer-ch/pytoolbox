@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from codecs import open
-from os.path import abspath, dirname, expanduser, join
+from os.path import abspath, expanduser, join
 from .console import confirm
 from .encoding import string_types, to_bytes
 from .filesystem import from_template, try_remove, try_symlink
@@ -67,10 +67,10 @@ UNKNOWN_STATES = (UNKNOWN,)
 PENDING_STATES = (PENDING, INSTALLED)
 STARTED_STATES = (STARTED,)
 STOPPED_STATES = (STOPPED,)
-ERROR_STATES   = (ERROR, NOT_STARTED)
+ERROR_STATES = (ERROR, NOT_STARTED)
 
 # Some Amazon EC2 constraints, waiting for instance-type to be implemented ...
-M1_SMALL  = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
+M1_SMALL = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
 M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
 C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
@@ -219,7 +219,7 @@ def get_unit_path(service, number, *args):
 
 __get_ip = None
 
-# add cache decorator
+
 def get_ip():
     global __get_ip
     if __get_ip is None:
@@ -805,7 +805,7 @@ class Environment(object):
     def cleanup_machines(self, fail=True, timeout=None):
         environment_dict = self.status(fail=fail, timeout=timeout) or {}
         machines = environment_dict.get(u'machines', {}).iterkeys()
-        busy_machines = [u'0'] # the machine running the juju daemon !
+        busy_machines = [u'0']  # the machine running the juju daemon !
         for s_dict in environment_dict.get(u'services', {}).itervalues():
             busy_machines = (busy_machines +
                              [u_dict.get(u'machine', None) for u_dict in s_dict.get(u'units', {}).itervalues()])

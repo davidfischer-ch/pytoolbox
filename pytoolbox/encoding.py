@@ -32,6 +32,7 @@ string_types = six.string_types
 if sys.version_info[0] == 2:
     import kitchen.text.converters
     to_bytes = kitchen.text.converters.to_bytes
+
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
     def configure_unicode(encoding=u'utf-8'):
         u"""Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""

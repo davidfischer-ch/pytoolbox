@@ -28,6 +28,7 @@ import math
 from collections import deque
 from .datetime import total_seconds
 
+
 class pygal_deque(deque):
     u"""
     A deque None'ing duplicated values to produce nicer pygal line charts (e.g. 5555322211111 -> 5__532_21___1).

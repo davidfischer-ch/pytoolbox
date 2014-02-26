@@ -28,6 +28,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 from pytoolbox.unittest import runtests
 
+
 def main():
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
     ignore = (u'forms.py|models.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_tags.py' +

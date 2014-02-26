@@ -31,15 +31,15 @@ from pytoolbox.unittest import mock_cmd
 
 DEFAULT = {u'charms_path': u'.', u'config': u'config.yaml'}
 
-ADD_UNIT        = [u'juju', u'add-unit',        u'--environment', u'maas']
-DEPLOY          = [u'juju', u'deploy',          u'--environment', u'maas']
-DESTROY_UNIT    = [u'juju', u'destroy-unit',    u'--environment', u'maas']
+ADD_UNIT = [u'juju', u'add-unit', u'--environment', u'maas']
+DEPLOY = [u'juju', u'deploy', u'--environment', u'maas']
+DESTROY_UNIT = [u'juju', u'destroy-unit', u'--environment', u'maas']
 DESTROY_SERVICE = [u'juju', u'destroy-service', u'--environment', u'maas']
 
 CFG = [u'--config', u'config.yaml']
 N, R = u'--num-units', u'--repository'
 
-TEST_UNITS_SQL_2  = {0: {}, 1: {}}
+TEST_UNITS_SQL_2 = {0: {}, 1: {}}
 TEST_UNITS_LAMP_4 = {0: {}, 1: {}, 2: {}, 3: {}}
 TEST_UNITS_LAMP_5 = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
@@ -56,8 +56,8 @@ class TestEnvironment(object):
             pass
         import pytoolbox.juju
         from pytoolbox.juju import PENDING, STARTED, ERROR
-        TEST_UNITS_SQL_5  = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR},
-                             3: {}, 4: {'agent-state': ERROR}}
+        TEST_UNITS_SQL_5 = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR}, 3: {},
+                            4: {'agent-state': ERROR}}
         environment = pytoolbox.juju.Environment(u'maas', release=u'raring', auto=True)
         environment.get_units = Mock(return_value=None)
         environment.get_unit = Mock(return_value=None)

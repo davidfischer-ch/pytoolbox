@@ -55,4 +55,3 @@ class SaveInstanceFilesMixin(object):
             for name, value in saved_fields.iteritems():
                 setattr(self, name, value)
         super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
-

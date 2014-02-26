@@ -207,7 +207,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
             # Resource does not exist
             if e.errno in excepted_errnos:
                 return False
-            raise # Re-raise exception if a different error occurred
+            raise  # Re-raise exception if a different error occurred
         response = conn.getresponse()
         conn.close()
         return response.status != 404

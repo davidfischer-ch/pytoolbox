@@ -175,7 +175,7 @@ class FecReceiver(object):
         self.max_col = 0       # Largest amount of stored elements in the columns buffer
         self.max_row = 0       # Largest amount of stored elements in the rows buffer
         self.lostogram = defaultdict(int)  # Statistics about lost medias
-        self.lostogram_counter = 0;        # Incremented while there are lost media packets
+        self.lostogram_counter = 0         # Incremented while there are lost media packets
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -416,8 +416,8 @@ class FecReceiver(object):
                     else:
                         raise NotImplementedError(
                             to_bytes(u'recover_media_packet({0}, {1}, {2}):\n{3}\nmedia sequence : {4}\n{5}\n'.format(
-                            media_sequence, cross, fec, FecReceiver.ER_NULL_COL_CASCADE, cascade_media_sequence,
-                            fec_col)))
+                                     media_sequence, cross, fec, FecReceiver.ER_NULL_COL_CASCADE,
+                                     cascade_media_sequence, fec_col)))
                 else:
                     raise NotImplementedError(to_bytes(FecReceiver.ER_GET_COL_CASCADE.format(fec_col)))
 
@@ -432,8 +432,8 @@ class FecReceiver(object):
                     else:
                         raise NotImplementedError(
                             to_bytes(u'{0}\nrecover_media_packet({1}, {2}, {3}):\nmedia sequence : {4}\n{5}\n'.format(
-                            FecReceiver.ER_NULL_ROW_CASCADE, media_sequence, cross, fec, cascade_media_sequence,
-                            fec_row)))
+                                     FecReceiver.ER_NULL_ROW_CASCADE, media_sequence, cross, fec,
+                                     cascade_media_sequence, fec_row)))
                 else:
                     raise NotImplementedError(to_bytes(FecReceiver.ER_GET_ROW_CASCADE.format(fec_row)))
 
