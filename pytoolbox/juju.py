@@ -265,6 +265,7 @@ class CharmHooks(object):
     ...         self.info(u'stop services')
     ...
 
+    >>> from os.path import dirname
     >>> here = abspath(expanduser(dirname(__file__)))
     >>> here = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests')
     >>> metadata = join(here, u'metadata.yaml')
@@ -452,6 +453,7 @@ class CharmHooks(object):
 
         **Example usage**
 
+        >>> from os.path import dirname
         >>> here = abspath(expanduser(dirname(__file__)))
         >>> config = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests/config.yaml')
         >>>
@@ -489,7 +491,7 @@ class CharmHooks(object):
         **Example usage**
 
         >>> from nose.tools import assert_equal
-        >>>
+        >>> from os.path import dirname
         >>> here = abspath(expanduser(dirname(__file__)))
         >>> metadata = join(here, u'../../..' if u'build/lib' in here else u'..', u'tests/metadata.yaml')
 
