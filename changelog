@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.2.4-beta
+v5.6.3-beta -> v6.2.5-beta
 --------------------------
 
 Compatibility breaks
@@ -35,6 +35,7 @@ Fixes and enhancements
 * Use renamed IP class (previously IPAddress) fallback import to IPAddress
 * Set default time-outs to None and update juju module (fixes)
 * Add some arguments to recursive_copy and rsync
+* Append sudo to juju bootstrap
 
 --------------------------
 v5.6.0-beta -> v5.6.3-beta

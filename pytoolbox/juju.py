@@ -74,6 +74,8 @@ M1_SMALL = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
 M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
 C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
+SUPER_COMMANDS = (u'bootstrap', u'destroy-environment')
+
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     u"""
@@ -92,7 +94,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
     """
     is_destroy = (command == u'destroy-environment')
-    command = [u'sudo', u'juju', command] if command == u'destroy-environment' else [u'juju', command]
+    command = [u'sudo', u'juju', command] if command in SUPER_COMMANDS else [u'juju', command]
     if isinstance(environment, string_types) and environment != u'default':
         command += [u'--environment', environment]
     if isinstance(options, list):
