@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.2.5-beta
+v5.6.3-beta -> v6.3.0-beta
 --------------------------
 
 Compatibility breaks
@@ -23,8 +23,9 @@ Features
 ========
 
 * Add module decorators
-* Add method network.http.download
+* Add method datetime.secs_to_time
 * Add method mongo.mongo_do
+* Add method network.http.download
 * Add method subprocess.git_clone_or_pull
 
 Fixes and enhancements

@@ -82,6 +82,26 @@ def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
     return datetime.strptime(date, format)
 
 
+def secs_to_time(value, defaults_to_zero=False):
+    u"""
+    Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
+
+    **Example usage**
+
+    >>> secs_to_time(83707.0035)
+    datetime.time(23, 15, 7, 3500)
+    >>> secs_to_time(None)
+    >>> secs_to_time(None, defaults_to_zero=True)
+    datetime.time(0, 0)
+    """
+    try:
+        return (datetime.datetime.min + datetime.timedelta(seconds=float(value))).time()
+    except (TypeError, ValueError):
+        if defaults_to_zero and not value:
+            return datetime.time(second=0)
+        return None
+
+
 def total_seconds(time):
     u"""
     Return the time converted in seconds.
