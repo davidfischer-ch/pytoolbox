@@ -3,19 +3,19 @@ pytoolbox
 =========
 
 .. image:: https://badge.fury.io/py/pytoolbox.png
-    :target: http://badge.fury.io/py/pytoolbox
+   :target: http://badge.fury.io/py/pytoolbox
 
 .. image:: https://pypip.in/d/pytoolbox/badge.png
-    :target: https://crate.io/packages/pytoolbox/
+   :target: https://crate.io/packages/pytoolbox/
 
 .. image:: https://secure.travis-ci.org/davidfischer-ch/pytoolbox.png
-    :target: http://travis-ci.org/davidfischer-ch/pytoolbox
+   :target: http://travis-ci.org/davidfischer-ch/pytoolbox
 
 .. image:: https://coveralls.io/repos/davidfischer-ch/pytoolbox/badge.png
-    :target: https://coveralls.io/r/davidfischer-ch/pytoolbox
+   :target: https://coveralls.io/r/davidfischer-ch/pytoolbox
 
 .. image:: https://landscape.io/github/davidfischer-ch/pytoolbox/master/landscape.png
-    :target: https://landscape.io/github/davidfischer-ch/pytoolbox/master
+   :target: https://landscape.io/github/davidfischer-ch/pytoolbox/master
 
 Afraid of red status ? Please click on the link, sometimes this is not my fault ;-)
 
@@ -150,4 +150,4 @@ See `pip vcs support <http://www.pip-installer.org/en/latest/logic.html#vcs-supp
 
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
-2013 - David Fischer
+2014 - David Fischer
