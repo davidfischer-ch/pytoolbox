@@ -30,6 +30,8 @@ How to install it (Python 2.7) ?
 
 Install some packages that are not handled by pip::
 
+    sudo apt-add-repository ppa:jon-severinsson/ffmpeg
+    sudo apt-get update
     sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev python-pip screen
 
 Make sure that pip is up-to-date (PIPception)::
@@ -47,6 +49,8 @@ How to install it (Python 3.3) ?
 
 Install some packages that are not handled by pip::
 
+    sudo apt-add-repository ppa:jon-severinsson/ffmpeg
+    sudo apt-get update
     sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python3-dev python3-pip screen
 
 Make sure that pip is up-to-date (PIPception)::
