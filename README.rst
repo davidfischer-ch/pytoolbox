@@ -11,8 +11,11 @@ pytoolbox
 .. image:: https://secure.travis-ci.org/davidfischer-ch/pytoolbox.png
     :target: http://travis-ci.org/davidfischer-ch/pytoolbox
 
+.. image:: https://coveralls.io/repos/davidfischer-ch/pytoolbox/badge.png
+    :target: https://coveralls.io/r/davidfischer-ch/pytoolbox
+
 .. image:: https://landscape.io/github/davidfischer-ch/pytoolbox/master/landscape.png
-   :target: https://landscape.io/github/davidfischer-ch/pytoolbox/master
+    :target: https://landscape.io/github/davidfischer-ch/pytoolbox/master
 
 Afraid of red status ? Please click on the link, sometimes this is not my fault ;-)
 

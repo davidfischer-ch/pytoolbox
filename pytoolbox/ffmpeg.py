@@ -42,6 +42,8 @@ VIDEO_TRACKS_REGEX = re.compile(
     ur'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s),\s+(?P<framerate>\S+)\s+fps,')
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+SIZE_REGEX = re.compile(ur'(?P<width>[0-9]+)x(?P<height>[0-9]+).*')
+WIDTH, HEIGHT = range(2)  # The indexes of the width and the height in size [width, height]
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
@@ -107,9 +109,8 @@ def get_media_duration(filename):
     >>> print(get_media_duration(u'/tmp/test.mpd'))
     00:06:07.83
     >>> os.remove(u'/tmp/test.mpd')
-    >>>
-    >> print(get_media_duration(u'test.mp4'))
-    01:45:23.62
+    >>> print(get_media_duration(u'small.mp4'))
+    00:00:05.56
     """
     if os.path.splitext(filename)[1] == u'.mpd':
         mpd = minidom.parse(filename)
@@ -131,32 +132,57 @@ def get_media_duration(filename):
     return None
 
 
+def get_media_resolution(filename_or_tracks=None):
+    u"""
+    Return [width, height] of the first video track in ``filename_or_tracks`` or None.
+
+    **Example usage**
+
+    >>> print(get_media_resolution(get_media_tracks(u'small.mp4')))
+    [560, 320]
+    >>> print(get_media_resolution(u'small.mp4'))
+    [560, 320]
+    >>> print(get_media_resolution(u'small.mp4')[HEIGHT])
+    320
+    >>> print(get_media_resolution({u'video': {u'0:0': {u'size': u'1920x1080 [SAR 1:1 DAR 16:9]'}}}))
+    [1920, 1080]
+    """
+    try:
+        if not isinstance(filename_or_tracks, dict):
+            filename_or_tracks = get_media_tracks(filename_or_tracks)
+        first_video_track = next(filename_or_tracks[u'video'].itervalues())[u'size']
+        match = SIZE_REGEX.search(first_video_track)
+        if not match:
+            return None
+        return [int(match.group(u'width')), int(match.group(u'height'))]
+    except:
+        return None
+
+
 def get_media_tracks(filename):
     u"""
+    Return a Python dictionary containing informations about the media tracks or None in case of error.
 
     .. warning:: FIXME Add unit-test to update REGEX by mocking ffmpeg with TEST_VECTOR and checking the output !
 
     **Example usage**
 
-    ::
-        >> from pytoolbox.ffmpeg import get_media_tracks
-        >> pprint(get_media_tracks('test.mp4')
-        {
-            'audio': {
-                '0.1': {
-                    'bit_depth': '16', 'bitrate': '155 kb/s', 'channels': 'stereo', 'codec': 'aac',
-                    'sample_rate': '44100'
-                }
-            },
-            'duration': '00:02:44.88',
-            'video': {
-                '0.0': {
-                    'bitrate': '2504 kb/s', 'codec': 'h264 (High)', 'colorimetry': 'yuv420p', 'estimated_frames': 4941,
-                    'framerate': '29.97', 'size': '1280x720 [PAR 1:1 DAR 16:9]'
-                }
-            }
-        }
+    Remark: In some systems the tracks are numbered with a dot (0.1) and sometimes with a : (0:1).
 
+    >>> from pprint import pprint
+    >>> pprint(get_media_tracks(u'small.mp4'))  # doctest: +ELLIPSIS
+    {u'audio': {'0...1': {u'bit_depth': '16',
+                        u'bitrate': '83 kb/s',
+                        u'channels': 'mono',
+                        u'codec': 'aac...',
+                        u'sample_rate': '48000'}},
+     u'duration': u'00:00:05.56',
+     u'video': {'0...0': {u'bitrate': '465 kb/s',
+                        u'codec': 'h264 (Constrained Baseline)...',
+                        u'colorimetry': 'yuv420p',
+                        u'estimated_frames': 166,
+                        u'framerate': '30',
+                        u'size': '560x320'}}}
     """
     duration = get_media_duration(filename)
     if not duration:

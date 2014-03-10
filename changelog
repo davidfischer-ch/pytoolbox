@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.3.0-beta
+v5.6.3-beta -> v6.4.0-beta
 --------------------------
 
 Compatibility breaks
@@ -24,6 +24,7 @@ Features
 
 * Add module decorators
 * Add method datetime.secs_to_time
+* Add method ffmpeg.get_media_resolution
 * Add method mongo.mongo_do
 * Add method network.http.download
 * Add method subprocess.git_clone_or_pull
