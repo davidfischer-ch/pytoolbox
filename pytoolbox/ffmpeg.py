@@ -28,7 +28,7 @@ import os, re, select, shlex, time
 from subprocess import Popen, PIPE
 from xml.dom import minidom
 from .datetime import datetime_now, total_seconds
-from .encoding import to_bytes
+from .encoding import string_types, to_bytes
 from .filesystem import get_size
 from .subprocess import make_async
 
@@ -204,7 +204,7 @@ def get_media_tracks(filename):
     return {u'duration': duration, u'audio': audio, u'video': video}
 
 
-def encode(in_filename, out_filename, encoder_string, ratio_delta=0.01, time_delta=1, max_time_delta=5,
+def encode(in_filenames, out_filename, encoder_string, base_track=0, ratio_delta=0.01, time_delta=1, max_time_delta=5,
            sanity_min_ratio=0.95, sanity_max_ratio=1.05):
 
     def get_ratio(in_duration, out_duration):
@@ -213,9 +213,16 @@ def encode(in_filename, out_filename, encoder_string, ratio_delta=0.01, time_del
             return 0.0 if ratio < 0.0 else 1.0 if ratio > 1.0 else ratio
         except ZeroDivisionError:
             return 1.0
+        except ValueError:
+            if u'N/A' in (out_duration, in_duration):
+                return 1.0
+            raise
 
-   # Get input media duration and size to be able to estimate ETA
-    in_duration, in_size = get_media_duration(in_filename), get_size(in_filename)
+    if isinstance(in_filenames, string_types):
+        in_filenames = [in_filenames]
+
+    # Get input media duration and size to be able to estimate ETA
+    in_duration, in_size = get_media_duration(in_filenames[base_track]), get_size(in_filenames[base_track])
 
     # Initialize metrics
     output = u''
@@ -224,7 +231,8 @@ def encode(in_filename, out_filename, encoder_string, ratio_delta=0.01, time_del
     prev_ratio = prev_time = ratio = 0
 
     # Create FFmpeg subprocess
-    cmd = u'ffmpeg -y -i "{0}" {1} "{2}"'.format(in_filename, encoder_string, out_filename)
+    in_filenames_string = u' '.join(u'-i "' + f + u'"' for f in in_filenames)
+    cmd = u'ffmpeg -y {0} {1} "{2}"'.format(in_filenames_string, encoder_string, out_filename)
     ffmpeg = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
     make_async(ffmpeg.stderr)
 

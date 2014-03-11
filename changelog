@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.4.0-beta
+v5.6.3-beta -> v6.4.1-beta
 --------------------------
 
 Compatibility breaks
@@ -38,6 +38,7 @@ Fixes and enhancements
 * Set default time-outs to None and update juju module (fixes)
 * Add some arguments to recursive_copy and rsync
 * Append sudo to juju bootstrap
+* Improve ffmpeg.encode, accept multiple input filenames + get_ratio handle N/A
 
 --------------------------
 v5.6.0-beta -> v5.6.3-beta
