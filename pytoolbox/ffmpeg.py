@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, re, select, shlex, time
 from subprocess import Popen, PIPE
 from xml.dom import minidom
-from .datetime import datetime_now, total_seconds
+from .datetime import datetime_now, time_ratio, total_seconds
 from .encoding import string_types, to_bytes
 from .filesystem import get_size
 from .subprocess import make_async
@@ -39,7 +39,7 @@ AUDIO_TRACKS_REGEX = re.compile(
 
 VIDEO_TRACKS_REGEX = re.compile(
     ur'Stream #(?P<track>\d+.\d+)\s*\S+ Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
-    ur'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s),\s+(?P<framerate>\S+)\s+fps,')
+    ur'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s)?[^,]*,\s+(?P<framerate>\S+)\s+fps,')
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 SIZE_REGEX = re.compile(ur'(?P<width>[0-9]+)x(?P<height>[0-9]+).*')
@@ -54,37 +54,6 @@ MPD_TEST = u"""<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
   <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
-"""
-
-TEST_VECTOR = u"""
-ffmpeg version N-54336-g38f1d56 Copyright (c) 2000-2013 the FFmpeg developers
-  built on Jul  1 2013 15:15:08 with gcc 4.7 (Ubuntu/Linaro 4.7.3-1ubuntu1)
-  configuration: --enable-gpl --enable-libx264 --disable-yasm --enable-libvo-aacenc --enable-version3 --enable-opencl --enable-libopenjpeg --enable-libmp3lame
-  libavutil      52. 38.100 / 52. 38.100
-  libavcodec     55. 18.100 / 55. 18.100
-  libavformat    55. 10.100 / 55. 10.100
-  libavdevice    55.  2.100 / 55.  2.100
-  libavfilter     3. 77.101 /  3. 77.101
-  libswscale      2.  3.100 /  2.  3.100
-  libswresample   0. 17.102 /  0. 17.102
-  libpostproc    52.  3.100 / 52.  3.100
-Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'test.m4a':
-  Metadata:
-    major_brand     : M4A
-    minor_version   : 512
-    compatible_brands: isomiso2
-    title           : Donjon de Naheulbeuk 01
-    artist          : Aventures
-    album           : Donjon de Naheulbeuk
-    date            : 2008
-    encoder         : Lavf55.10.100
-    genre           : Aventures
-    track           : 1
-  Duration: 00:03:46.01, start: 0.000000, bitrate: 65 kb/s
-    Stream #0:0(und): Audio: aac (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 64 kb/s
-    Metadata:
-      handler_name    : SoundHandler
-At least one output file must be specified
 """
 
 
@@ -123,7 +92,7 @@ def get_media_duration(filename):
     else:
         cmd = u'ffmpeg -i "{0}"'.format(filename)
         pipe = Popen(shlex.split(to_bytes(cmd)), stderr=PIPE, close_fds=True)
-        match = re.search(ur'Duration: (?P<duration>\S+),', unicode(pipe.stderr.read()))
+        match = re.search(ur'Duration: (?P<duration>[\d:\.]+),', unicode(pipe.stderr.read()))
         if not match:
             return None
         duration = match.group(u'duration')
@@ -185,9 +154,7 @@ def get_media_tracks(filename):
                         u'size': '560x320'}}}
     """
     duration = get_media_duration(filename)
-    if not duration:
-        return None
-    duration_secs = total_seconds(duration)
+    duration_secs = total_seconds(duration) if duration else 0
     cmd = u'ffmpeg -i "{0}"'.format(filename)
     pipe = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
     output = pipe.stderr.read()
@@ -204,25 +171,15 @@ def get_media_tracks(filename):
     return {u'duration': duration, u'audio': audio, u'video': video}
 
 
-def encode(in_filenames, out_filename, encoder_string, base_track=0, ratio_delta=0.01, time_delta=1, max_time_delta=5,
-           sanity_min_ratio=0.95, sanity_max_ratio=1.05):
-
-    def get_ratio(in_duration, out_duration):
-        try:
-            ratio = total_seconds(out_duration) / total_seconds(in_duration)
-            return 0.0 if ratio < 0.0 else 1.0 if ratio > 1.0 else ratio
-        except ZeroDivisionError:
-            return 1.0
-        except ValueError:
-            if u'N/A' in (out_duration, in_duration):
-                return 1.0
-            raise
+def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:00:00', base_track=0, ratio_delta=0.01,
+           time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05):
 
     if isinstance(in_filenames, string_types):
         in_filenames = [in_filenames]
 
     # Get input media duration and size to be able to estimate ETA
-    in_duration, in_size = get_media_duration(in_filenames[base_track]), get_size(in_filenames[base_track])
+    in_duration = get_media_duration(in_filenames[base_track]) or default_in_duration
+    in_size = get_size(in_filenames[base_track])
 
     # Initialize metrics
     output = u''
@@ -246,7 +203,7 @@ def encode(in_filenames, out_filename, encoder_string, base_track=0, ratio_delta
         if match:
             stats = match.groupdict()
             out_duration = stats[u'time']
-            ratio = get_ratio(in_duration, out_duration)
+            ratio = time_ratio(in_duration, out_duration)
             delta_time = elapsed_time - prev_time
             if (ratio - prev_ratio > ratio_delta and delta_time > time_delta) or delta_time > max_time_delta:
                 prev_ratio, prev_time = ratio, elapsed_time
@@ -275,7 +232,7 @@ def encode(in_filenames, out_filename, encoder_string, base_track=0, ratio_delta
 
     # Output media file sanity check
     out_duration = get_media_duration(out_filename)
-    ratio = get_ratio(in_duration, out_duration) if out_duration else 0.0
+    ratio = time_ratio(in_duration, out_duration) if out_duration else 0.0
     yield {
         u'status': u'ERROR' if returncode else u'SUCCESS',
         u'output': output,
