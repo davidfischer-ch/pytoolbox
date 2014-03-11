@@ -102,6 +102,28 @@ def secs_to_time(value, defaults_to_zero=False):
         return None
 
 
+def time_ratio(numerator, denominator, zero_div_result=1.0):
+    u"""
+    Return the ratio between two times.
+
+    **Example usage**
+
+    >>> print(time_ratio(u'0:30:00', u'01:30:00'))  # doctest: +ELLIPSIS
+    0.33...
+    >>> print(time_ratio(u'0:00:05', u'00:00:00'))  # doctest: +ELLIPSIS
+    1.0
+    >>> print(time_ratio(u'01:42:34', u'N/A'))
+    Traceback (most recent call last):
+        ...
+    ValueError: could not convert string to float: N/A
+    """
+    try:
+        ratio = total_seconds(numerator) / total_seconds(denominator)
+        return 0.0 if ratio < 0.0 else 1.0 if ratio > 1.0 else ratio
+    except ZeroDivisionError:
+        return zero_div_result
+
+
 def total_seconds(time):
     u"""
     Return the time converted in seconds.
