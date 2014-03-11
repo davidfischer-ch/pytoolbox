@@ -203,7 +203,7 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
         if match:
             stats = match.groupdict()
             out_duration = stats[u'time']
-            ratio = time_ratio(in_duration, out_duration)
+            ratio = time_ratio(out_duration, in_duration)
             delta_time = elapsed_time - prev_time
             if (ratio - prev_ratio > ratio_delta and delta_time > time_delta) or delta_time > max_time_delta:
                 prev_ratio, prev_time = ratio, elapsed_time
@@ -232,7 +232,7 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
 
     # Output media file sanity check
     out_duration = get_media_duration(out_filename)
-    ratio = time_ratio(in_duration, out_duration) if out_duration else 0.0
+    ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
     yield {
         u'status': u'ERROR' if returncode else u'SUCCESS',
         u'output': output,

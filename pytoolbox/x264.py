@@ -98,7 +98,7 @@ def encode(in_filename, out_filename, encoder_string, default_in_duration=u'00:0
 
     # Output media file sanity check
     out_duration = ffmpeg.get_media_duration(out_filename)
-    ratio = time_ratio(in_duration, out_duration) if out_duration else 0.0
+    ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
     yield {
         # FIXME report frame_total ?
         u'status': u'ERROR' if returncode else u'SUCCESS',
