@@ -253,10 +253,10 @@ def try_symlink(source, link_name):
         raise  # Re-raise exception if a different error occurred
 
 
-def chown(path, user, group, recursive=False):
-    u"""Change owner/group of a path, can be recursive. User and group can be a name or an id."""
-    uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else user
-    gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else group
+def chown(path, user=None, group=None, recursive=False):
+    u"""Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
+    uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
+    gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
     if recursive:
         for root, dirnames, filenames in os.walk(path):
             os.chown(root, uid, gid)
