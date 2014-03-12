@@ -79,7 +79,19 @@ def datetime2str(date_time, format=u'%Y-%m-%d %H:%M:%S', append_utc=False):
 
 
 def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
-    return datetime.strptime(date, format)
+    u"""
+    Return the date string converted into an instance of datetime.
+
+    **Example usage**
+
+    >>> str2datetime(u'1985-01-06 05:02:00')
+    datetime.datetime(1985, 1, 6, 5, 2)
+    >>> str2datetime(u'this is not a date')
+    Traceback (most recent call last):
+        ...
+    ValueError: time data 'this is not a date' does not match format '%Y-%m-%d %H:%M:%S'
+    """
+    return datetime.datetime.strptime(date, format)
 
 
 def secs_to_time(value, defaults_to_zero=False):
