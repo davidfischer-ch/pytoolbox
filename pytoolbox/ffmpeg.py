@@ -205,7 +205,10 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
         if match:
             stats = match.groupdict()
             out_duration = stats[u'time']
-            ratio = time_ratio(out_duration, in_duration)
+            try:
+                ratio = time_ratio(out_duration, in_duration)
+            except ValueError:
+                continue  # reported time is broken, skip the whole match
             delta_time = elapsed_time - prev_time
             if (ratio - prev_ratio > ratio_delta and delta_time > time_delta) or delta_time > max_time_delta:
                 prev_ratio, prev_time = ratio, elapsed_time
