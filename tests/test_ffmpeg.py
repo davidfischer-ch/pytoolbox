@@ -150,8 +150,8 @@ TEST_TRACKS_REGEXES = (
         INPUT_0,
         (
             {
-                u'track': u'0:1', u'codec': u'aac (mp4a / 0x6134706D)', u'sample_rate': u'44100',
-                u'channels': u'stereo', u'bit_depth': u'16', u'bitrate': u'155 kb/s'
+                u'track': u'0:1', u'codec': u'aac (mp4a / 0x6134706D)', u'sample_format': None,
+                u'sample_rate': u'44100', u'channels': u'stereo', u'bit_depth': u'16', u'bitrate': u'155 kb/s'
             },
         ),
         (
@@ -162,7 +162,16 @@ TEST_TRACKS_REGEXES = (
             },
         ),
     ),
-    (INPUT_1, None, None),
+    (
+        INPUT_1,
+        (
+            {
+                u'track': u'0:0', u'codec': u'aac (mp4a / 0x6134706D)', u'sample_format': u'fltp',
+                u'sample_rate': u'44100', u'channels': u'stereo', u'bit_depth': None, u'bitrate': u'64 kb/s'
+            },
+        ),
+        None,
+    ),
     (
         INPUT_2, None,
         (
@@ -176,8 +185,8 @@ TEST_TRACKS_REGEXES = (
         INPUT_3,
         (
             {
-                u'track': u'0:2', u'codec': u'aac (mp4a / 0x6134706D)', u'sample_rate': u'48000',
-                u'channels': u'5.1', u'bit_depth': u'16', u'bitrate': u'155 kb/s'
+                u'track': u'0:2', u'codec': u'aac (mp4a / 0x6134706D)', u'sample_format': u'fltp',
+                u'sample_rate': u'48000', u'channels': u'5.1', u'bit_depth': None, u'bitrate': u'437 kb/s'
             },
         ),
         (

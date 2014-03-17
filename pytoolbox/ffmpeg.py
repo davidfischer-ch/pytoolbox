@@ -34,12 +34,12 @@ from .subprocess import make_async
 
 
 AUDIO_TRACKS_REGEX = re.compile(
-    ur'Stream #(?P<track>\d+.\d+)\s*\S+ Audio:\s+(?P<codec>[^,]+),\s+(?P<sample_rate>\d+) Hz,\s+'
-    ur'(?P<channels>[^,]+),\s+s(?P<bit_depth>\d+),\s+(?P<bitrate>[^,]+/s)')
+    ur'Stream #(?P<track>\d+.\d+)[^\d]*:\s+Audio:\s+(?P<codec>[^,]+),\s+(?P<sample_rate>\d+) Hz,\s+'
+    ur'(?P<channels>[^,]+),\s+(s(?P<bit_depth>\d+)|(?P<sample_format>[^,]+)),\s+(?P<bitrate>[^,]+/s)')
 
 VIDEO_TRACKS_REGEX = re.compile(
-    ur'Stream #(?P<track>\d+.\d+)[^\d]*:\s+Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
-    ur'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s)?[^,]*,\s+(?P<framerate>\S+)\s+fps,')
+    ur'Stream #(?P<track>\d+.\d+)[^\d]*:\s+Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>.+),\s+'
+    ur'(?P<size>\d+x\d+[^,]+),\s+(?P<bitrate>[^,]+/s)?[^,]*,\s+(?P<framerate>\S+)\s+fps,')
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 SIZE_REGEX = re.compile(ur'(?P<width>[0-9]+)x(?P<height>[0-9]+).*')
@@ -144,6 +144,7 @@ def get_media_tracks(filename):
                         u'bitrate': '83 kb/s',
                         u'channels': 'mono',
                         u'codec': 'aac...',
+                        u'sample_format': u'fixed',
                         u'sample_rate': '48000'}},
      u'duration': u'00:00:05.56',
      u'video': {'0...0': {u'bitrate': '465 kb/s',
@@ -162,6 +163,7 @@ def get_media_tracks(filename):
     for match in AUDIO_TRACKS_REGEX.finditer(output):
         group = match.groupdict()
         track = group.pop(u'track')
+        group[u'sample_format'] = group[u'sample_format'] or u'fixed'
         audio[track] = group
     for match in VIDEO_TRACKS_REGEX.finditer(output):
         group = match.groupdict()
