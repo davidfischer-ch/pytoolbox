@@ -38,7 +38,7 @@ AUDIO_TRACKS_REGEX = re.compile(
     ur'(?P<channels>[^,]+),\s+s(?P<bit_depth>\d+),\s+(?P<bitrate>[^,]+/s)')
 
 VIDEO_TRACKS_REGEX = re.compile(
-    ur'Stream #(?P<track>\d+.\d+)\s*\S+ Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
+    ur'Stream #(?P<track>\d+.\d+)[^\d]*:\s+Video:\s+(?P<codec>[^,]+),\s+(?P<colorimetry>[^,]+),\s+'
     ur'(?P<size>[^,]+),\s+(?P<bitrate>[^,]+/s)?[^,]*,\s+(?P<framerate>\S+)\s+fps,')
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')

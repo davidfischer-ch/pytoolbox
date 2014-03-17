@@ -109,6 +109,42 @@ Input #0, yuv4mpegpipe, from 'temporary/06a12d12-6437-48d5-acc2-c3e099d7d572/v.y
 At least one output file must be specified
 """
 
+INPUT_3 = u"""
+ffmpeg version 2.2.git Copyright (c) 2000-2014 the FFmpeg developers
+  built on Mar  3 2014 17:32:03 with gcc 4.8 (Ubuntu/Linaro 4.8.1-10ubuntu9)
+  configuration: --prefix=/root/ffmpeg_build --extra-cflags=-I/root/ffmpeg_build/include
+  libavutil      52. 66.100 / 52. 66.100
+  libavcodec     55. 52.102 / 55. 52.102
+  libavformat    55. 33.100 / 55. 33.100
+  libavdevice    55. 10.100 / 55. 10.100
+  libavfilter     4.  2.100 /  4.  2.100
+  libswscale      2.  5.101 /  2.  5.101
+  libswresample   0. 18.100 /  0. 18.100
+  libpostproc    52.  3.100 / 52.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'big_buck_bunny_1080p_h264.mov':
+  Metadata:
+    major_brand     : qt
+    minor_version   : 537199360
+    compatible_brands: qt
+    creation_time   : 2008-05-27 18:40:35
+    timecode        : 00:00:00:00
+  Duration: 00:09:56.46, start: 0.000000, bitrate: 9725 kb/s
+    Stream #0:0(eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1920x1080, 9282 kb/s, 24 fps, 24 tbr, 2400 tbn, 4800 tbc (default)
+    Metadata:
+      creation_time   : 2008-05-27 18:40:35
+      handler_name    : Apple Alias Data Handler
+    Stream #0:1(eng): Data: none (tmcd / 0x64636D74) (default)
+    Metadata:
+      creation_time   : 2008-05-27 18:40:35
+      handler_name    : Apple Alias Data Handler
+      timecode        : 00:00:00:00
+    Stream #0:2(eng): Audio: aac (mp4a / 0x6134706D), 48000 Hz, 5.1, fltp, 437 kb/s (default)
+    Metadata:
+      creation_time   : 2008-05-27 18:40:35
+      handler_name    : Apple Alias Data Handler
+At least one output file must be specified
+"""
+
 TEST_TRACKS_REGEXES = (
     (
         INPUT_0,
@@ -133,6 +169,22 @@ TEST_TRACKS_REGEXES = (
             {
                 u'track': u'0.0', u'framerate': u'25', u'colorimetry': u'yuv420p',
                 u'codec': u'rawvideo (I420 / 0x30323449)', u'bitrate': None, u'size': u'854x480'
+            },
+        ),
+    ),
+    (
+        INPUT_3,
+        (
+            {
+                u'track': u'0:2', u'codec': u'aac (mp4a / 0x6134706D)', u'sample_rate': u'48000',
+                u'channels': u'5.1', u'bit_depth': u'16', u'bitrate': u'155 kb/s'
+            },
+        ),
+        (
+            {
+                u'track': u'0:0', u'framerate': u'24', u'colorimetry': u'yuv420p(tv, bt709)',
+                u'codec': u'h264 (Main) (avc1 / 0x31637661)', u'bitrate': u'9282 kb/s',
+                u'size': u'1920x1080'
             },
         ),
     ),

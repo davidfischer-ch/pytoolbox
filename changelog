@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.5.1-beta
+v5.6.3-beta -> v6.5.4-beta
 --------------------------
 
 Compatibility breaks
@@ -34,10 +34,11 @@ Features
 Fixes and enhancements
 ======================
 
-* Fix test_ensure_num_units
+* Fix test_ensure_num_units, str2datetime
 * Fix computation of FecReceiver.lostogram
 * Fix usage of time_ratio by ffmpeg and x264 modules
 * Use renamed IP class (previously IPAddress) fallback import to IPAddress
+* Accept None to leave owner or group unchanged (filesystem.chown)
 * Set default time-outs to None and update juju module (fixes)
 * Add some arguments to recursive_copy and rsync
 * Append sudo to juju bootstrap
