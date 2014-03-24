@@ -146,6 +146,7 @@ def save_unit_config(filename, service, config, log=None):
         config = {service: config}
         f.write(yaml.safe_dump(config))
 
+
 # Environments ---------------------------------------------------------------------------------------------------------
 
 def add_environment(environment, type, region, access_key, secret_key, control_bucket, default_series,
@@ -166,7 +167,8 @@ def add_environment(environment, type, region, access_key, secret_key, control_b
             u'control-bucket': control_bucket, u'default-series': default_series, u'ssl-hostname-verification': True,
             u'juju-origin': u'ppa', u'admin-secret': uuid.uuid4().hex}
     else:
-        raise NotImplementedError(to_bytes(u'Registration of {0} type of environment not yet implemented.'.format(type)))
+        raise NotImplementedError(to_bytes(u'Registration of {0} type of environment not yet implemented.'.format(
+                                  type)))
     environments_dict[u'environments'][environment] = environment_dict
     open(environments, u'w', encoding=u'utf-8').write(yaml.safe_dump(environments_dict))
     try:
@@ -211,6 +213,7 @@ def get_environments_count(environments=None):
     environments = environments or DEFAULT_ENVIRONMENTS_FILE
     environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
     return len(environments_dict[u'environments'])
+
 
 # Units ----------------------------------------------------------------------------------------------------------------
 
@@ -757,6 +760,24 @@ class Environment(object):
                 if fail:
                     raise RuntimeError(to_bytes(u'No unit with name {0} on environment {1}.'.format(name, self.name)))
         return default
+
+    def wait_unit(self, service, number, started_states=STARTED_STATES, error_states=ERROR_STATES, timeout=180,
+                  polling_timeout=15, polling_delay=30):
+        start_time = time.time()
+        while True:
+            time_zero = time.time()
+            try:
+                state = self.get_unit(service, number, timeout=polling_timeout)[u'agent-state']
+            except (KeyError, TypeError):
+                state = UNKNOWN
+            delta_time = time.time() - start_time
+            if state in started_states:
+                return state
+            if state in error_states:
+                raise RuntimeError(u'State of unit {0}/{1} is {2}'.format(service, number, state))
+            if delta_time > timeout:
+                raise TimeoutError(u'State of unit {0}/{1} is {2}'.format(service, number, state))
+            time.sleep(max(0, polling_delay - (time.time() - time_zero)))
 
     def add_units(self, service, num_units=1, to=None):
         options = [u'--num-units', num_units]
