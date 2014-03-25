@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 from mock import call, Mock
-from nose.tools import assert_equal, assert_raises
+from nose.tools import eq_, assert_raises
 from pytoolbox.unittest import mock_cmd
 
 DEFAULT = {u'charms_path': u'.', u'config': u'config.yaml'}
@@ -62,22 +62,22 @@ class TestEnvironment(object):
         environment.get_units = Mock(return_value=None)
         environment.get_unit = Mock(return_value=None)
         environment.__dict__.update(DEFAULT)
-        assert_equal(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=2), {u'deploy_units': None})
-        assert_equal(environment.ensure_num_units(u'lamp',  None,        num_units=4), {u'deploy_units': None})
+        eq_(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=2), {u'deploy_units': None})
+        eq_(environment.ensure_num_units(u'lamp',  None,        num_units=4), {u'deploy_units': None})
         assert_raises(ValueError, environment.ensure_num_units, None, u'salut')
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_2)
-        assert_equal(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=5), {u'add_units': None})
+        eq_(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=5), {u'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
-        assert_equal(environment.ensure_num_units(None, u'lamp', num_units=5), {u'add_units': None})
+        eq_(environment.ensure_num_units(None, u'lamp', num_units=5), {u'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_5)
         environment.get_unit = Mock(return_value={})
         environment.ensure_num_units(u'mysql', u'my_mysql', num_units=1, units_number_to_keep=[1])
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
         print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=None))
         [call_args[1].pop(u'env') for call_args in cmd.call_args_list]
-        a_eq = assert_equal
+        a_eq = eq_
         a = cmd.call_args_list
-        assert_equal(len(a), 9)
+        eq_(len(a), 9)
         a_eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, u'.', u'local:raring/mysql', u'my_mysql'], fail=False, log=None))
         a_eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, u'.', u'local:raring/lamp',  u'lamp'],     fail=False, log=None))
         a_eq(a[2], call(ADD_UNIT + [N, 3] + [u'my_mysql'], fail=False, log=None))

@@ -25,7 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import math, os
-from nose.tools import assert_equal, assert_raises
+from nose.tools import eq_, assert_raises
 from pytoolbox.encoding import csv_reader
 from pytoolbox.filesystem import try_remove
 from pytoolbox.serialization import PickleableObject
@@ -52,7 +52,7 @@ class TestSerialization(object):
         p1 = MyPoint(name=u'My point', x=6, y=-3)
         p1.write(u'test.pkl')
         p2 = MyPoint.read(u'test.pkl', store_filename=True)
-        assert_equal(p2.__dict__,
+        eq_(p2.__dict__,
                      {u'y': -3, u'x': 6, u'_pickle_filename': u'test.pkl', u'name': u'My point'})
         p2.write()
         p2.write(u'test2.pkl')
@@ -60,17 +60,17 @@ class TestSerialization(object):
         os.remove(u'test2.pkl')
         p2.write()
         assert(not os.path.exists(u'test2.pkl'))
-        assert_equal(p2._pickle_filename, u'test.pkl')
+        eq_(p2._pickle_filename, u'test.pkl')
         os.remove(u'test.pkl')
         p2.write(u'test2.pkl', store_filename=True)
         assert(not os.path.exists(u'test.pkl'))
-        assert_equal(p2._pickle_filename, u'test2.pkl')
+        eq_(p2._pickle_filename, u'test2.pkl')
         del p2._pickle_filename
         assert_raises(ValueError, p2.write)
         os.remove(u'test2.pkl')
         try_remove(u'test3.pkl')
         p3 = MyPoint.read(u'test3.pkl', store_filename=True, create_if_error=True, name=u'Default point', x=3, y=-6)
-        assert_equal(p3.__dict__,
+        eq_(p3.__dict__,
                      {u'x': 3, u'y': -6, u'_pickle_filename': u'test3.pkl', u'name': u'Default point'})
         os.remove(u'test3.pkl')
         assert_raises(IOError, MyPoint.read, u'test3.pkl')
@@ -78,5 +78,5 @@ class TestSerialization(object):
     def test_csv_reader(self):
         values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
         for name, hobby in csv_reader(os.path.join(here, u'unicode.csv')):
-            assert_equal((name, hobby), values[i])
+            eq_((name, hobby), values[i])
             i += 1

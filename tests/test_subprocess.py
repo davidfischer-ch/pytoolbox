@@ -25,7 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import six
-from nose.tools import assert_equal, assert_raises
+from nose.tools import eq_, assert_raises
 from pytoolbox.unittest import Mock
 from pytoolbox.subprocess import cmd, screen_launch, screen_list, screen_kill
 from pytoolbox.validation import validate_list
@@ -39,7 +39,7 @@ class TestSubprocess(object):
     def test_cmd(self):
         log = Mock()
         cmd([u'echo', u'it seem to work'], log=log)
-        assert_equal(cmd(u'cat missing_file', fail=False, log=log)[u'returncode'], 1)
+        eq_(cmd(u'cat missing_file', fail=False, log=log)[u'returncode'], 1)
         validate_list(log.call_args_list, [
             r"call\(u*'Execute echo it seem to work'\)",
             r"call\(u*'Execute cat missing_file'\)",
@@ -51,7 +51,7 @@ class TestSubprocess(object):
         assert(len(result[u'stdout'].splitlines()) > 30)
 
     def test_cmd_missing_binary(self):
-        assert_equal(cmd(u'hfuejnvwqkdivengz', fail=False)[u'returncode'], 2)
+        eq_(cmd(u'hfuejnvwqkdivengz', fail=False)[u'returncode'], 2)
 
     def test_retry_first_try(self):
         log = Mock()
@@ -85,9 +85,9 @@ class TestSubprocess(object):
             # Launch some screens
             screen_kill(u'my_1st_screen', fail=False)
             screen_kill(u'my_2nd_screen', fail=False)
-            assert_equal(len(screen_launch(u'my_1st_screen', u'top', fail=False)[u'stderr']), 0)
-            assert_equal(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
-            assert_equal(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
+            eq_(len(screen_launch(u'my_1st_screen', u'top', fail=False)[u'stderr']), 0)
+            eq_(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
+            eq_(len(screen_launch(u'my_2nd_screen', u'top', fail=False)[u'stderr']), 0)
             # List the launched screen sessions
             screens = screen_list(name=u'my_1st_screen')
             assert(len(screens) >= 1 and screens[0].endswith(u'my_1st_screen'))

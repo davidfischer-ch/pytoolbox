@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from nose.tools import assert_equal
+from nose.tools import eq_
 from pytoolbox.collections import pygal_deque
 
 
@@ -34,33 +34,33 @@ class TestCollections(object):
         p = pygal_deque(maxlen=4)
 
         p.append(5)
-        assert_equal(p.list(fill=False), [5])
+        eq_(p.list(fill=False), [5])
         p.append(5)
         p.append(5)
-        assert_equal(p.list(fill=False), [5, None, 5])
+        eq_(p.list(fill=False), [5, None, 5])
         p.append(5)
-        assert_equal(p.list(fill=False), [5, None, None, 5])
+        eq_(p.list(fill=False), [5, None, None, 5])
         p.append(5)
-        assert_equal(p.list(fill=False), [5, None, None, 5])
+        eq_(p.list(fill=False), [5, None, None, 5])
         p.append(None)
-        assert_equal(p.list(fill=False), [5, None, None, 5])
+        eq_(p.list(fill=False), [5, None, None, 5])
         p.append(None)
-        assert_equal(p.list(fill=False), [5, None, None, 5])
+        eq_(p.list(fill=False), [5, None, None, 5])
         p.append(5)
-        assert_equal(p.list(fill=False), [5, None, None, 5])
-        assert_equal(p.list(fill=True), [5, 5, 5, 5])
+        eq_(p.list(fill=False), [5, None, None, 5])
+        eq_(p.list(fill=True), [5, 5, 5, 5])
         p.append(1)
-        assert_equal(p.list(fill=False), [5, None, 5, 1])
+        eq_(p.list(fill=False), [5, None, 5, 1])
         p.append(None)
-        assert_equal(p.list(fill=False), [5, 5, 1, 1])
+        eq_(p.list(fill=False), [5, 5, 1, 1])
         p.append(None)
-        assert_equal(p.list(fill=False), [5, 1, None, 1])
-        assert_equal(p.list(fill=True), [5, 1, 1, 1])
+        eq_(p.list(fill=False), [5, 1, None, 1])
+        eq_(p.list(fill=True), [5, 1, 1, 1])
         p.append(None)
-        assert_equal(p.list(fill=False), [1, None, None, 1])
+        eq_(p.list(fill=False), [1, None, None, 1])
         p.append(2)
         p.append(3)
-        assert_equal(p.list(fill=False), [1, 1, 2, 3])
+        eq_(p.list(fill=False), [1, 1, 2, 3])
         p.append(None)
         p.append(2)
-        assert_equal(p.list(fill=False), [2, 3, 3, 2])
+        eq_(p.list(fill=False), [2, 3, 3, 2])

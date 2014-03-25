@@ -42,32 +42,32 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
 
     In-place write operation:
 
-    >>> from nose.tools import assert_equal, assert_raises
-    >>> assert_equal(to_file(u'/tmp/to_file', data=u'bonjour'), None)
-    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'bonjour')
+    >>> from nose.tools import eq_, assert_raises
+    >>> eq_(to_file(u'/tmp/to_file', data=u'bonjour'), None)
+    >>> eq_(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'bonjour')
 
     No backup is created if the destination file does not exist:
 
     >>> from .filesystem import try_remove
     >>> _ = try_remove(u'/tmp/to_file')
-    >>> assert_equal(to_file(u'/tmp/to_file', data=u'bonjour', backup=True), None)
+    >>> eq_(to_file(u'/tmp/to_file', data=u'bonjour', backup=True), None)
 
     In-place write operation after having copied the file into a backup:
 
-    >>> assert_equal(to_file(u'/tmp/to_file', data=u'ça va ?', backup=True), u'/tmp/to_file.bkp')
-    >>> assert_equal(open(u'/tmp/to_file.bkp', u'r', u'utf-8').read(), u'bonjour')
-    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'ça va ?')
+    >>> eq_(to_file(u'/tmp/to_file', data=u'ça va ?', backup=True), u'/tmp/to_file.bkp')
+    >>> eq_(open(u'/tmp/to_file.bkp', u'r', u'utf-8').read(), u'bonjour')
+    >>> eq_(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'ça va ?')
 
     The most secure, do a backup, write into a temporary file, and rename the temporary file to the destination:
 
-    >>> assert_equal(to_file(u'/tmp/to_file', data=u'oui et toi ?', safe=True, backup=True), u'/tmp/to_file.bkp')
-    >>> assert_equal(open(u'/tmp/to_file.bkp', u'r', u'utf-8').read(), u'ça va ?')
-    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
+    >>> eq_(to_file(u'/tmp/to_file', data=u'oui et toi ?', safe=True, backup=True), u'/tmp/to_file.bkp')
+    >>> eq_(open(u'/tmp/to_file.bkp', u'r', u'utf-8').read(), u'ça va ?')
+    >>> eq_(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
 
     The content of the destination is not broken if the write operation fails:
 
-    >>> assert_raises(TypeError, to_file, u'/tmp/to_file', data=assert_equal, safe=True)
-    >>> assert_equal(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
+    >>> assert_raises(TypeError, to_file, u'/tmp/to_file', data=eq_, safe=True)
+    >>> eq_(open(u'/tmp/to_file', u'r', u'utf-8').read(), u'oui et toi ?')
     """
     if makedirs:
         try_makedirs(os.path.dirname(filename))
@@ -88,6 +88,7 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
     if safe:
         os.rename(write_filename, filename)
     return backup_filename if backup else None
+
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------
 
@@ -124,6 +125,7 @@ class PickleableObject(object):
             elif pickle_filename:
                 self._pickle_filename = pickle_filename
 
+
 # Object <-> JSON string -----------------------------------------------------------------------------------------------
 
 ## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
@@ -159,8 +161,7 @@ def object2json(obj, include_properties, **kwargs):
 
     **Example usage**
 
-    >>> import os
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>> class Point(object):
     ...     def __init__(self, x=0, y=0):
     ...         self.x = x
@@ -169,8 +170,8 @@ def object2json(obj, include_properties, **kwargs):
     ...     def z(self):
     ...         return self.x + self.y
     >>> p1 = Point(x=16, y=-5)
-    >>> assert_equal(object2json(p1, include_properties=False, sort_keys=True), u'{"x": 16, "y": -5}')
-    >>> assert_equal(object2json(p1, include_properties=True, sort_keys=True), u'{"x": 16, "y": -5, "z": 11}')
+    >>> eq_(object2json(p1, include_properties=False, sort_keys=True), u'{"x": 16, "y": -5}')
+    >>> eq_(object2json(p1, include_properties=True, sort_keys=True), u'{"x": 16, "y": -5, "z": 11}')
     >>> print(object2json(p1, include_properties=True, sort_keys=True, indent=4)) # doctest: +NORMALIZE_WHITESPACE
     {
         "x": 16,
@@ -204,7 +205,7 @@ def jsonfile2object(cls, filename_or_file, inspect_constructor):
     Define the sample class, instantiate it and serialize it to a file:
 
     >>> import os
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>> class Point(object):
     ...     def __init__(self, name=None, x=0, y=0):
     ...         self.name = name
@@ -216,9 +217,9 @@ def jsonfile2object(cls, filename_or_file, inspect_constructor):
     Deserialize the freshly saved file:
 
     >>> p2 = jsonfile2object(Point, u'test.json', inspect_constructor=False)
-    >>> assert_equal(p1.__dict__, p2.__dict__)
+    >>> eq_(p1.__dict__, p2.__dict__)
     >>> p2 = jsonfile2object(Point, open(u'test.json', u'r', encoding=u'utf-8'), inspect_constructor=False)
-    >>> assert_equal(p1.__dict__, p2.__dict__)
+    >>> eq_(p1.__dict__, p2.__dict__)
     >>> os.remove(u'test.json')
     """
     f = (open(filename_or_file, u'r', encoding=u'utf-8') if isinstance(filename_or_file, string_types)
@@ -236,7 +237,7 @@ class JsoneableObject(object):
 
     Convert-back from JSON strings containing extra parameters:
 
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>>
     >>> class User(object):
     ...     def __init__(self, first_name, last_name):
@@ -257,7 +258,7 @@ class JsoneableObject(object):
     >>> media_back = Media.from_json(media_json, inspect_constructor=True)
     >>> isinstance(media_back.author, User)
     True
-    >>> assert_equal(media_back.author.__dict__, media.author.__dict__)
+    >>> eq_(media_back.author.__dict__, media.author.__dict__)
 
     A second example handling extra arguments by using ``**kwargs`` (a.k.a the dirty way):
 
@@ -280,7 +281,7 @@ class JsoneableObject(object):
     >>> media_back = Media.from_json(media_json, inspect_constructor=False)
     >>> isinstance(media_back.author, User)
     True
-    >>> assert_equal(media_back.author.__dict__, media.author.__dict__)
+    >>> eq_(media_back.author.__dict__, media.author.__dict__)
     """
     @classmethod
     def read(cls, filename, store_filename=False, inspect_constructor=True):
@@ -316,6 +317,7 @@ class JsoneableObject(object):
         u"""Deserialize a JSON string to an instance of ``JsoneableObject``."""
         return dict2object(cls, json.loads(json_string), inspect_constructor)
 
+
 # Object <-> Dictionary ------------------------------------------------------------------------------------------------
 
 def object2dict(obj, include_properties):
@@ -331,7 +333,7 @@ def object2dict(obj, include_properties):
 
     Define the sample class and convert some instances to a dictionary:
 
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>> class Point(object):
     ...     def __init__(self, name, x, y, p):
     ...         self.name = name
@@ -343,11 +345,11 @@ def object2dict(obj, include_properties):
     ...         return self.x - self.y
     >>>
     >>> p1_dict = {u'y': 2, u'x': 5, u'name': u'p1', u'p': {u'y': 4, u'x': 3, u'name': u'p2', u'p': None}}
-    >>> assert_equal(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
+    >>> eq_(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
     >>>
     >>> p2_dict = {u'y': 4, u'p': None, u'z': -1, u'name': u'p2', u'x': 3}
     >>> p1_dict = {u'y': 2, u'p': p2_dict, u'z': 3, u'name': u'p1', u'x': 5}
-    >>> assert_equal(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
+    >>> eq_(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
     >>>
     >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
     >>> p1.p, p2.p = p2, p1
@@ -388,7 +390,7 @@ def dict2object(cls, the_dict, inspect_constructor):
 
     **Example usage**
 
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>>
     >>> class User(object):
     ...     def __init__(self, first_name, last_name=u'Fischer'):
@@ -405,7 +407,7 @@ def dict2object(cls, the_dict, inspect_constructor):
     TypeError: __init__() got an unexpected keyword argument 'unexpected'
     >>>
     >>> expected = {u'first_name': 'Victor', u'last_name': 'Fischer'}
-    >>> assert_equal(dict2object(User, user_dict, inspect_constructor=True).__dict__, expected)
+    >>> eq_(dict2object(User, user_dict, inspect_constructor=True).__dict__, expected)
     """
     if inspect_constructor:
         the_dict = {arg: the_dict.get(arg, None) for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'}

@@ -161,6 +161,7 @@ def read_async(fd):
             return u''
         raise
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=None, **kwargs):
@@ -170,6 +171,7 @@ def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=
         cmd([u'git', u'pull'], cwd=directory, fail=fail, log=log, **kwargs)
     else:
         cmd([u'git', u'clone', u'--depth', unicode(clone_depth), url, directory], fail=fail, log=log, **kwargs)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -194,6 +196,7 @@ def make(archive, path=None, with_cmake=False, configure_options=u'', install=Tr
     if remove_temporary:
         shutil.rmtree(path)
     return results
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 

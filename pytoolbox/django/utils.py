@@ -26,6 +26,47 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 def log_to_console(settings):
-    u"""Make all loggers use the console."""
-    for logger in settings.LOGGING['loggers']:
-        settings.LOGGING['loggers'][logger]['handlers'] = ['console']
+    u"""
+    Update settings to make all loggers use the console.
+
+    **Example usage**
+
+    >>> from collections import namedtuple
+    >>> settings = namedtuple(u'settings', [u'DEBUG', u'LOGGING'])
+    >>> settings.DEBUG = True
+    >>> settings.LOGGING = {
+    ...     u'version': 1,
+    ...     u'loggers': {
+    ...         u'django': {
+    ...             u'handlers': [u'file'], u'level': u'INFO', u'propagate': True
+    ...         },
+    ...         u'django.request': {
+    ...             u'handlers': [u'mail_admins'], u'level': u'ERROR', u'propagate': True
+    ...         },
+    ...         u'mysite': {
+    ...             u'handlers': [u'console'], u'level': u'INFO', u'propagate': True
+    ...         }
+    ...     }
+    ... }
+    >>> expected_settings = namedtuple(u'settings', [u'DEBUG', u'LOGGING'])
+    >>> expected_settings.DEBUG = True
+    >>> expected_settings.LOGGING = {
+    ...     u'version': 1,
+    ...     u'loggers': {
+    ...         u'django': {
+    ...             u'handlers': [u'console'], u'level': u'INFO', u'propagate': True
+    ...         },
+    ...         u'django.request': {
+    ...             u'handlers': [u'console'], u'level': u'ERROR', u'propagate': True
+    ...         },
+    ...         u'mysite': {
+    ...             u'handlers': [u'console'], u'level': u'INFO', u'propagate': True
+    ...         }
+    ...     }
+    ... }
+    >>> log_to_console(settings)
+    >>> settings.LOGGING == expected_settings.LOGGING
+    True
+    """
+    for logger in settings.LOGGING[u'loggers']:
+        settings.LOGGING[u'loggers'][logger][u'handlers'] = [u'console']

@@ -56,13 +56,13 @@ def mock_side_effect(*args, **kwargs):
 
     Pops return values with ``mock_side_effect``:
 
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>>
     >>> print(mock_side_effect())
     Traceback (most recent call last):
     ...
     Exception: you must set MOCK_SIDE_EFFECT_RETURNS
-    >>> assert_equal(mock_side_effect(), {u'title': u'2nd'})
+    >>> eq_(mock_side_effect(), {u'title': u'2nd'})
     >>>
     >>> print(mock_side_effect())
     Traceback (most recent call last):
@@ -97,7 +97,8 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
     extra_options = extra_options or []
     cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]
     nose_options = filter(None, [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe'] +
-                          cover_packages + [u'--cover-html', u'-vv', u'-w', dirname(test_file)] + packages + extra_options)
+                          cover_packages + [u'--cover-html', u'-vv', u'-w', dirname(test_file)] + packages +
+                          extra_options)
     if ignore:
         nose_options += ['-I', ignore]
     os.chdir(abspath(dirname(test_file)))

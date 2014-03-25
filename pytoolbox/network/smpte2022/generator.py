@@ -146,7 +146,7 @@ class FecGenerator(object):
 
         Testing input of out of sequence medias:
 
-        >>> from nose.tools import assert_equal
+        >>> from nose.tools import eq_
         >>> g = FecGenerator(4, 5)
         >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray(u'Tabby', u'utf-8')))
         Media seq=1 is out of sequence (expected None) : FEC algorithm resetted !
@@ -167,9 +167,9 @@ class FecGenerator(object):
         Media  sequence number       = 3
         Medias buffer (seq. numbers) = [2]
         >>> if isinstance(g._medias[0].payload, bytearray):
-        ...     assert_equal(g._medias[0].payload, bytearray(u'Kuota Kharma Evo', u'utf-8'))
+        ...     eq_(g._medias[0].payload, bytearray(u'Kuota Kharma Evo', u'utf-8'))
         ... else:
-        ...     assert_equal(g._medias[0].payload, u'Kuota Kharma Evo')
+        ...     eq_(g._medias[0].payload, u'Kuota Kharma Evo')
 
         Testing a complete 3x4 matrix:
 

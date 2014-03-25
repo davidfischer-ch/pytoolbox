@@ -99,7 +99,7 @@ class EventsTable(object):
 
     def get(self, time, time_speedup=None, default_value=None):
         # u"""
-        # >>> from nose.tools import assert_equal
+        # >>> from nose.tools import eq_
         # >>> def test_get_index(time_range, time_speedup):
         # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
         # ...     modulo = previous = 0
@@ -109,7 +109,7 @@ class EventsTable(object):
         # ...             modulo += 1
         # ...         assert(0 <= index < time_range)
         # ...         previous = index
-        # ...     assert_equal(modulo, time_speedup)
+        # ...     eq_(modulo, time_speedup)
 
         # Test get_index with a speedup of 1440 (maps 1 minute to 24 hours):
         # >>> test_get_index(24, 24 * 60)
@@ -126,21 +126,21 @@ class EventsTable(object):
 
         **Example usage**
 
-        >>> from nose.tools import assert_equal
+        >>> from nose.tools import eq_
         >>> table = EventsTable({0: 'salut'}, 24, 60)
-        >>> assert_equal(table.sleep_time(1), 59)
-        >>> assert_equal(table.sleep_time(58), 2)
-        >>> assert_equal(table.sleep_time(60), 60)
-        >>> assert_equal(table.sleep_time(62), 58)
-        >>> assert_equal(table.sleep_time(3590, time_speedup=1), 10)
-        >>> assert_equal(table.sleep_time(12543, time_speedup=1), 1857)
-        >>> assert_equal(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
-        >>> assert_equal(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
-        >>> assert_equal(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
-        >>> assert_equal(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
-        >>> assert_equal(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
+        >>> eq_(table.sleep_time(1), 59)
+        >>> eq_(table.sleep_time(58), 2)
+        >>> eq_(table.sleep_time(60), 60)
+        >>> eq_(table.sleep_time(62), 58)
+        >>> eq_(table.sleep_time(3590, time_speedup=1), 10)
+        >>> eq_(table.sleep_time(12543, time_speedup=1), 1857)
+        >>> eq_(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
+        >>> eq_(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
+        >>> eq_(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
+        >>> eq_(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
+        >>> eq_(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
         >>> table.time_range = 1
-        >>> assert_equal(table.sleep_time(1, time_speedup=1), 149)
+        >>> eq_(table.sleep_time(1, time_speedup=1), 149)
         """
         # 150 = 3600 / 24
         d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))

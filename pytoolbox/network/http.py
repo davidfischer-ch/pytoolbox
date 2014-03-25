@@ -48,7 +48,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
     **Example usage**
 
     >>> from cStringIO import StringIO
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>> from werkzeug.wrappers import Request
 
     >>> d = u'key1=this+is+encoded+form+data&key2=another'
@@ -57,7 +57,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
     >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
 
     >>> all = {'blah': ['blafasel'], 'foo': ['bar'], 'key1': [u'this is encoded form data'], 'key2': [u'another']}
-    >>> assert_equal(get_request_data(r), all)
+    >>> eq_(get_request_data(r), all)
 
     Restrict valid keys:
 
@@ -87,14 +87,14 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
     >>> d = u'foo=bar+form+data'
     >>> q = u'foo=bar+query+string&it=works'
     >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
-    >>> assert_equal(get_request_data(r, sources=[u'query', u'form']), {'it': ['works'], 'foo': [u'bar form data']})
-    >>> assert_equal(get_request_data(r, sources=[u'form', u'query']), {'it': ['works'], 'foo': [u'bar query string']})
+    >>> eq_(get_request_data(r, sources=[u'query', u'form']), {'it': ['works'], 'foo': [u'bar form data']})
+    >>> eq_(get_request_data(r, sources=[u'form', u'query']), {'it': ['works'], 'foo': [u'bar query string']})
 
     Retrieve only the first value of the keys (Query string):
 
     >>> r = Request.from_values(query_string=u'foo=bar+1&foo=bar+2&foo=bar+3', content_type=c)
-    >>> assert_equal(get_request_data(r, sources=[u'query']), {u'foo': [u'bar 1', u'bar 2', u'bar 3']})
-    >>> assert_equal(get_request_data(r, sources=[u'query'], qs_only_first_value=True), {'foo': 'bar 1'})
+    >>> eq_(get_request_data(r, sources=[u'query']), {u'foo': [u'bar 1', u'bar 2', u'bar 3']})
+    >>> eq_(get_request_data(r, sources=[u'query'], qs_only_first_value=True), {'foo': 'bar 1'})
 
     """
     data = {}

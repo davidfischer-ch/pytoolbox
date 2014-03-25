@@ -106,13 +106,13 @@ def update_widget_attributes(widget, updates):
 
     **Example usage**
 
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>> widget = type('', (), {})
     >>> widget.attrs = {u'class': u'mondiale'}
     >>> update_widget_attributes(widget, {u'class': u'+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
-    >>> assert_equal(widget.attrs, {u'class': u'pigeon voyageur'})
+    >>> eq_(widget.attrs, {u'class': u'pigeon voyageur'})
     >>> update_widget_attributes(widget, {u'class': '+le', u'cols': 100})
-    >>> assert_equal(widget.attrs, {u'class': u'le pigeon voyageur', u'cols': 100})
+    >>> eq_(widget.attrs, {u'class': u'le pigeon voyageur', u'cols': 100})
     """
     updates = copy(updates)
     if u'class' in updates:

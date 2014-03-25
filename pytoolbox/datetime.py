@@ -206,7 +206,7 @@ def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
 
     **Example usage**
 
-    >>> from nose.tools import assert_equal
+    >>> from nose.tools import eq_
     >>> epoch2datetime(0, factor=1)
     datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>)
     >>> epoch2datetime(1276128000, factor=1)
@@ -216,6 +216,6 @@ def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
     >>> epoch2datetime(1276128000000, factor=1000)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
     >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
-    >>> assert_equal(epoch2datetime(datetime2epoch(today, factor=1000), factor=1000), today)
+    >>> eq_(epoch2datetime(datetime2epoch(today, factor=1000), factor=1000), today)
     """
     return datetime.datetime.fromtimestamp(unix_epoch / factor, tz)

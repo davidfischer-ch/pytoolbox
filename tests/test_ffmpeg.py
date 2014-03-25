@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from nose.tools import assert_equal
+from nose.tools import eq_
 from pytoolbox.ffmpeg import AUDIO_TRACKS_REGEX, VIDEO_TRACKS_REGEX
 
 INPUT_0 = u"""
@@ -205,6 +205,6 @@ class TestFFmpeg(object):
     def test_encoding_regex(self):
         for input_string, audio_tracks, video_tracks in TEST_TRACKS_REGEXES:
             for index, match in enumerate(VIDEO_TRACKS_REGEX.finditer(input_string)):
-                assert_equal(match.groupdict(), video_tracks[index])
+                eq_(match.groupdict(), video_tracks[index])
             for index, match in enumerate(AUDIO_TRACKS_REGEX.finditer(input_string)):
-                assert_equal(match.groupdict(), audio_tracks[index])
+                eq_(match.groupdict(), audio_tracks[index])

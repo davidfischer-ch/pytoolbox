@@ -191,7 +191,8 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080)
     False
     >>> try:
-    ...     valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT,), default_port=8080)
+    ...     valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT, ),
+    ...               default_port=8080)
     ...     raise RuntimeError('Exception not raised !')
     ... except:
     ...     pass
