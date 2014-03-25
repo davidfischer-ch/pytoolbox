@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v5.6.3-beta -> v6.5.7-beta
+v5.6.3-beta -> v6.6.0-beta
 --------------------------
 
 Compatibility breaks
@@ -23,6 +23,7 @@ Features
 ========
 
 * Add module decorators
+* Add module django.utils
 * Add module x264
 * Add method datetime.secs_to_time
 * Add method datetime.time_ratio
