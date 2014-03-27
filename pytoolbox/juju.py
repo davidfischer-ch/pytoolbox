@@ -596,7 +596,7 @@ class Environment(object):
     def bootstrap(self, cleanup=True, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
                   error_states=ERROR_STATES, timeout=615, status_timeout=15, polling_delay=30):
         u"""
-        Terminate all machines and other associated resources for an environment and bootstrap it.
+        Bootstrap an environment, (optional) terminate all machines and other associated resources before the bootstrap.
 
         :param kwargs: Extra arguments for juju_do(), options is not allowed.
         """
