@@ -886,18 +886,13 @@ class DeploymentScenario(object):
 
     def __init__(self, environments, **kwargs):
         parser = self.get_parser(**kwargs)
-        args = vars(parser.parse_args())
-        auto = args.pop(u'auto')
-        charms_path = args.pop(u'charms_path')
-        release = args.pop(u'release')
+        self.args = parser.parse_args()
         self.environments = environments
         for environment in environments:
-            environment.auto = auto
-            environment.charms_path = charms_path
-            environment.release = environment.release or release
+            environment.auto = self.args.auto
+            environment.charms_path = self.args.charms_path
+            environment.release = environment.release or self.args.release
             self.__dict__.update({environment.name: environment})  # A shortcut
-        # FIXME use metaclass instead of updating __dict__ if it does add attributes to the class.
-        self.__dict__.update(args)
 
     def get_parser(self, epilog=u'', charms_path=u'charms', release=u'raring', auto=False):
         HELP_A = u'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
