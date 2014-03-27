@@ -3,6 +3,15 @@ changelog
 =========
 
 --------------------------
+v6.6.0-beta -> v6.6.1-beta
+--------------------------
+
+Fixes and enhancements
+======================
+
+* Add cleanup argument to juju.boostrap
+
+--------------------------
 v5.6.3-beta -> v6.6.0-beta
 --------------------------
 

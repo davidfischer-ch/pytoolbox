@@ -593,20 +593,29 @@ class Environment(object):
         options = [u'--all'] if all_tools else None
         return juju_do(u'sync-tools', self.name, options=options)
 
-    def bootstrap(self, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
+    def bootstrap(self, cleanup=True, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
                   error_states=ERROR_STATES, timeout=615, status_timeout=15, polling_delay=30):
         u"""
         Terminate all machines and other associated resources for an environment and bootstrap it.
 
         :param kwargs: Extra arguments for juju_do(), options is not allowed.
         """
-        print(u'Cleanup and bootstrap environment {0}'.format(self.name))
-        print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
+        if cleanup:
+            print(u'Cleanup and bootstrap environment {0}'.format(self.name))
+            print(u'[WARNING] This will terminate all units deployed into environment {0} by juju !'.format(self.name))
+        else:
+            print(u'Bootstrap environment {0}'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
-            self.destroy(remove_default=True)
+            if cleanup:
+                self.destroy(remove_default=True)
             if synchronize_tools:
                 self.sync_tools(all_tools=True)
-            result = juju_do(u'bootstrap', self.name)
+            try:
+                result = juju_do(u'bootstrap', self.name)
+            except RuntimeError as e:
+                result = None
+                if not u'already' in e.message:
+                    raise
             if wait_started:
                 start_time = time.time()
                 while True:
