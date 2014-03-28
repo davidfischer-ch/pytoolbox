@@ -3,13 +3,18 @@ changelog
 =========
 
 --------------------------
-v6.6.0-beta -> v7.0.0-beta
+v6.6.0-beta -> v7.1.0-beta
 --------------------------
 
 Compatibility breaks
 ====================
 
 * Store command line arguments in args attribute, do not update __dict__ of the instance.
+
+Features
+========
+
+* Add module argparse
 
 Fixes and enhancements
 ======================
