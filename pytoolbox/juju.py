@@ -696,9 +696,80 @@ class Environment(object):
         Some of the argument are forwarded to underlying methods (add_units, deploy_units, destroy_unit or nothing)
         depending on the required action.
 
+        The scale-down algorithm will sort the units by status to kill the useless units before any others!
+
         * Set local to False to deploy non-local charms.
-        * Set required to False to bypass this method in automatic mode.
+        * Set num_units to None to ensure the service does not exist.
+        * Set required to False to bypass this method in automatic mode. WARNING: IT MEANS NO ACTION AT ALL.
         * Set units_number_to_keep to a (list, tuple, ...) with the units you want to protect against destruction.
+
+        **Example usage**
+
+        >> from functools import partial
+        >> e = Environment(config=None)
+        >> e.bootstrap(wait_started=True)
+        >> ensure = partial(e.ensure_num_units, charm=u'ubuntu', local=False, terminate=True)
+
+        Ensure the charm ubuntu is deployed as the service vanilla with 10 machines, and exposed:
+
+        >> ensure(service=u'vanilla', expose=True, num_units=5)
+        Deploy ubuntu as vanilla (ensure 5 instances)
+        do it now ? [y/N]: y
+        {u'deploy_units': None, u'expose_service': None}
+
+        Ensure the service unwanted does not exist (was not deployed):
+
+        >> ensure(service=u'unwanted', num_units=None)
+        {}
+
+        Ensure the service vanilla scale-down to 1 unit, keeping unit number 3 (previously 5 machines):
+
+        >> ensure(service=u'vanilla', num_units=1, units_number_to_keep=[3])
+        {u'destroy_unit': {0: {'agent-state': 'started',
+                               'agent-version': '1.16.6.1',
+                               'machine': '1',
+                               'public-address': '10.0.3.115'},
+                           4: {'agent-state': 'pending',
+                               'agent-version': '1.16.6.1',
+                               'machine': '5',
+                               'public-address': '10.0.3.213'},
+                           2: {'agent-state': 'started',
+                               'agent-version': '1.16.6.1',
+                               'machine': '3',
+                               'public-address': '10.0.3.23'},
+                           1: {'agent-state': 'started',
+                               'agent-version': '1.16.6.1',
+                               'machine': '2',
+                               'public-address': '10.0.3.170'}}}
+
+        >> ensure(service=u'vanilla', num_units=1, units_number_to_keep=[3])
+        {}
+
+        Scale-up the service vanilla again:
+
+        >> ensure(service=u'vanilla', num_units=2)
+        {u'add_units': None}
+
+        Scale-down the service vanilla to 0 units but keep it alive:
+        {u'destroy_unit': {3: {'agent-state': 'started',
+                               'agent-version': '1.16.6.1',
+                               'machine': '4',
+                               'public-address': '10.0.3.50'},
+                           5: {'agent-state': 'started',
+                               'agent-version': '1.16.6.1',
+                               'machine': '6',
+                               'public-address': '10.0.3.129'}}}
+
+        Ensure the service another has 0 units but doesn't allow his destruction (the service does not exist):
+
+        >> ensure(service=u'another', num_units=0)
+        {}
+
+        Ensure the service vanilla does not exist at all:
+
+        >> ensure(service=u'vanilla', num_units=None)
+        {u'destroy_service': None}
+
         """
         results = {}
         release = release or self.release
@@ -709,21 +780,22 @@ class Environment(object):
             assert(num_units is None or num_units >= 0)
             units_dict = self.get_units(service, default=None, fail=False, timeout=timeout)
             units_count = None if units_dict is None else len(units_dict)
-            if num_units is None and units_count:
+            if num_units is None and units_count is not None:
                 results[u'destroy_service'] = self.destroy_service(service)
             elif units_count is None:
-                results[u'deploy_units'] = self.deploy_units(
-                    charm, service, num_units=num_units, to=to, config=self.config, constraints=constraints,
-                    local=local, release=release, repository=repository)
+                if num_units:  # avoid to deploy units if asked number of units is 0 or None
+                    results[u'deploy_units'] = self.deploy_units(
+                        charm, service, num_units=num_units, to=to, config=self.config, constraints=constraints,
+                        local=local, release=release, repository=repository)
             elif units_count < num_units:
                 num_units = num_units - units_count
-                results[u'add_units'] = self.add_units(service or charm, num_units=num_units, to=to)
+                if num_units:  # avoid to add units if number of units to add is 0
+                    results[u'add_units'] = self.add_units(service or charm, num_units=num_units, to=to)
             elif units_count > num_units:
                 num_units = units_count - num_units
                 destroyed = {}
-                # Sort units by status to kill the useless units before any others !
-                # FIXME implement status comparison for sorting ??
                 units_number_to_keep = [int(n) for n in units_number_to_keep] if units_number_to_keep else []
+                # FIXME implement status comparison for sorting ??
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
@@ -747,7 +819,7 @@ class Environment(object):
                 return results
             if expose:
                 results[u'expose_service'] = self.expose_service(service)
-            return results
+        return results
 
     def destroy_unit(self, service, number, terminate, delay_terminate=5, fail=True, timeout=None):
         name = u'{0}/{1}'.format(service, number)
