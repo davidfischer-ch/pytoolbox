@@ -74,7 +74,9 @@ M1_SMALL = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
 M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
 C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
-SUPER_COMMANDS = (u'bootstrap', u'destroy-environment')
+# juju status needs to be run as root with juju 1.16 because of <https://bugs.launchpad.net/juju-core/+bug/1237259>.
+# This won't be needed once juju 1.18 is released.
+SUPER_COMMANDS = (u'bootstrap', u'destroy-environment', u'status')
 
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):

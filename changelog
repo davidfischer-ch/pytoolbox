@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v6.6.0-beta -> v7.1.4-beta
+v6.6.0-beta -> v7.1.5-beta
 --------------------------
 
 Compatibility breaks
@@ -23,6 +23,7 @@ Fixes and enhancements
 * Add docstring to method juju.ensure_num_units
 * Fix various bugs of juju module
 * Fix subprocess.rsync
+* Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
 
 --------------------------
 v5.6.3-beta -> v6.6.0-beta
