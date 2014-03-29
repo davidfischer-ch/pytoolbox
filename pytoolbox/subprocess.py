@@ -205,7 +205,7 @@ def rsync(source, destination, source_is_dir=False, destination_is_dir=False, ma
           includes=None, rsync_path=None, size_only=False, extra=None, extra_args=None, fail=True, log=None, **kwargs):
     if makedest and not exists(destination):
         # FIXME if dest = remote -> ssh to make dest else make dest
-        if u'ssh' not in extra:
+        if extra is None or u'ssh' not in extra:
             os.makedirs(destination)
     source = normpath(source) + (os.sep if isdir(source) or source_is_dir else u'')
     destination = normpath(destination) + (os.sep if isdir(destination) or destination_is_dir else u'')
