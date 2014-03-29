@@ -821,18 +821,14 @@ class Environment(object):
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is None:
             return default
-        units_dict = service_dict.get(u'units', None)
-        if units_dict is None:
-            return default
+        units_dict = service_dict.get(u'units', {})
         return {int(name.split(u'/')[1]): infos for name, infos in units_dict.iteritems()}
 
     def get_units_count(self, service, default=None, fail=True, timeout=None):
         service_dict = self.get_service(default=None, fail=fail, timeout=timeout)
         if service_dict is None:
             return default
-        units_dict = service_dict.get(u'units', None)
-        if units_dict is None:
-            return default
+        units_dict = service_dict.get(u'units', {})
         return len(units_dict)
 
     # Machines
