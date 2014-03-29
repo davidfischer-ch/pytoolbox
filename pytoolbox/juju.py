@@ -594,7 +594,7 @@ class Environment(object):
         return juju_do(u'sync-tools', self.name, options=options)
 
     def bootstrap(self, cleanup=True, synchronize_tools=False, wait_started=False, started_states=STARTED_STATES,
-                  error_states=ERROR_STATES, timeout=615, status_timeout=15, polling_delay=30):
+                  error_states=ERROR_STATES, timeout=600, status_timeout=15, polling_delay=30):
         u"""
         Bootstrap an environment, (optional) terminate all machines and other associated resources before the bootstrap.
 
