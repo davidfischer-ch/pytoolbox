@@ -40,6 +40,8 @@ def first_that_exist(*paths):
     /etc
     >>> print(first_that_exist(u'does_not_exist.com', u'', u'..'))
     ..
+    >>> print(first_that_exist(u'does_not_exist.ch'))
+    None
     """
     for path in paths:
         if os.path.exists(path):
@@ -48,7 +50,31 @@ def first_that_exist(*paths):
 
 
 def from_template(template, destination, values):
-    u"""Generate a ``destination`` file from a ``template`` file filled with ``values``"""
+    u"""
+    Generate a ``destination`` file from a ``template`` file filled with ``values``.
+
+    **Example usage**
+
+    >>> open(u'config.template', u'w', u'utf-8').write(u'{{username={user}; password={pass}}}')
+
+    The behavior when all keys are given (and even more):
+
+    >>> from_template(u'config.template', u'config', {u'user': u'tabby', u'pass': u'miaow', u'other': 10})
+    >>> print(open(u'config', u'r', u'utf-8').read())
+    {username=tabby; password=miaow}
+
+    The behavior if a value for a key is missing:
+
+    >>> from_template(u'config.template', u'config', {u'pass': u'miaow', u'other': 10})  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+        ...
+    KeyError: ...'user'
+    >>> print(open(u'config', u'r', u'utf-8').read())
+    <BLANKLINE>
+
+    >>> os.remove(u'config.template')
+    >>> os.remove(u'config')
+    """
     with open(template, u'r', u'utf-8') as template_file:
         with open(destination, u'w', u'utf-8') as destination_file:
             destination_file.write(template_file.read().format(**values))

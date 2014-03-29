@@ -24,6 +24,24 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+u"""
+Module related to parsing arguments from the command-line.
+
+**Example usage**
+
+>>> from nose.tools import eq_
+>>> from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+>>> parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=u'My super cool software.')
+>>> x = parser.add_argument(u'directory', action=FullPaths, type=is_dir)
+>>> print(parser.parse_args([u'/usr/lib']).directory)
+/usr/lib
+>>> eq_(parser.parse_args([u'.']).directory, os.path.abspath(os.path.expanduser(os.getcwd())))
+>>> parser.parse_args([u'/does_not_exist/'])
+Traceback (most recent call last):
+    ...
+SystemExit: 2
+"""
+
 import argparse, os
 from .encoding import to_bytes
 
@@ -31,11 +49,23 @@ from .encoding import to_bytes
 
 
 def is_dir(path):
-    u"""Check if path is an actual directory."""
-    if not os.path.isdir(path):
-        raise argparse.ArgumentTypeError(to_bytes(u'{0} is not a directory'.format(path)))
-    else:
+    u"""
+    Check if path is an actual directory and return it.
+
+    Please find a "real world" example in the docstring of this module.
+
+    **Example usage**
+
+    >>> print(is_dir(u'/home'))
+    /home
+    >>> is_dir(u'sjdsajkd')
+    Traceback (most recent call last):
+        ...
+    ArgumentTypeError: sjdsajkd is not a directory
+    """
+    if os.path.isdir(path):
         return path
+    raise argparse.ArgumentTypeError(to_bytes(u'{0} is not a directory'.format(path)))
 
 
 class FullPaths(argparse.Action):
