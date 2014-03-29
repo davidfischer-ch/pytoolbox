@@ -8,9 +8,12 @@ install:
   - travis_retry sudo apt-get update
   - travis_retry sudo apt-get install ffmpeg screen
   - travis_retry sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
+  - travis_retry sudo pip install coveralls
 script:
   - sudo python setup.py test
 matrix:
   allow_failures:
     - python: "2.6"
     - python: "3.2"
+after_success:
+  coveralls
