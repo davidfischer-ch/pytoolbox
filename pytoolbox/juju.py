@@ -751,6 +751,8 @@ class Environment(object):
         {u'add_units': None}
 
         Scale-down the service vanilla to 0 units but keep it alive:
+
+        >> ensure(service=u'vanilla', num_units=0)
         {u'destroy_unit': {3: {'agent-state': 'started',
                                'agent-version': '1.16.6.1',
                                'machine': '4',
