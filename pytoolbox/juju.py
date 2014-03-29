@@ -723,13 +723,14 @@ class Environment(object):
                 destroyed = {}
                 # Sort units by status to kill the useless units before any others !
                 # FIXME implement status comparison for sorting ??
+                units_number_to_keep = [int(n) for n in units_number_to_keep] if units_number_to_keep else []
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
                     for number, unit_dict in units_dict.items():
                         if num_units == 0:
                             break
-                        if units_number_to_keep is not None and number in units_number_to_keep:
+                        if number in units_number_to_keep:
                             continue
                         unit_status = unit_dict.get(u'agent-state', status)
                         if unit_status == status or unit_status not in ALL_STATES:
@@ -823,7 +824,7 @@ class Environment(object):
         units_dict = service_dict.get(u'units', None)
         if units_dict is None:
             return default
-        return {name.split(u'/')[1]: infos for name, infos in units_dict.iteritems()}
+        return {int(name.split(u'/')[1]): infos for name, infos in units_dict.iteritems()}
 
     def get_units_count(self, service, default=None, fail=True, timeout=None):
         service_dict = self.get_service(default=None, fail=fail, timeout=timeout)
