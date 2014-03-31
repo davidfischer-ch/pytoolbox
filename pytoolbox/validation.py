@@ -152,7 +152,7 @@ def valid_secret(secret, none_allowed):
 
 
 def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, default_port=80,
-              excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH)):
+              excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH), timeout=None):
     u"""
 
     *Example usage**
@@ -164,9 +164,9 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('domain_not_exist_404_404/index.htmlw', check_404=True)
     False
 
-    Set default value for port (using a crazy port number to ensure a 404):
+    Set default value for port (using a crazy port number to ensure a 404) [time'd out request]:
 
-    >>> valid_uri('//docs.python.org/2/library/httplib.html', check_404=True, default_port=88881)
+    >>> valid_uri('//docs.python.org/2/library/httplib.html', check_404=True, default_port=88881, timeout=0.2)
     False
 
     Following the syntax ... in RFC 1808, ... input is presumed ... a path component:
@@ -186,32 +186,29 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
     False
 
-    Only accept to map a 'No such file or directory' standard :mod:`errno` to False:
+    Do not map any standard error :mod:`errno` to False (1. time-out, 2. saduhqwuhw does not exist):
 
-    >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080)
+    >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080, timeout=0.2, excepted_errnos=())
     False
-    >>> try:
-    ...     valid_uri('//docs.python.org/index.html', check_404=True, excepted_errnos=(errno.ENOENT, ),
-    ...               default_port=8080)
-    ...     raise RuntimeError('Exception not raised !')
-    ... except:
-    ...     pass
+    >>> valid_uri('//fr.wikipedia.org/saduhqwuhw', check_404=True, excepted_errnos=())
+    False
     """
     url = urlparse(uri)
-    if not url.netloc or not url.path or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
+    if not url.netloc or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
         return False
     if check_404:
-        conn = httplib.HTTPConnection(url.netloc, url.port or default_port)
+        conn = httplib.HTTPConnection(url.netloc, url.port or default_port, timeout=timeout)
         try:
             conn.request('HEAD', url.path)
+            response = conn.getresponse()
+            return response.status != 404
         except socket.error as e:
             # Resource does not exist
-            if e.errno in excepted_errnos:
+            if isinstance(e, socket.timeout) or e.errno in excepted_errnos:
                 return False
             raise  # Re-raise exception if a different error occurred
-        response = conn.getresponse()
-        conn.close()
-        return response.status != 404
+        finally:
+            conn.close()
     return True
 
 

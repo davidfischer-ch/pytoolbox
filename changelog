@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v6.6.0-beta -> v7.1.5-beta
+v6.6.0-beta -> v7.1.6-beta
 --------------------------
 
 Compatibility breaks
@@ -24,6 +24,7 @@ Fixes and enhancements
 * Fix various bugs of juju module
 * Fix subprocess.rsync
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
+* Add timeout to valid_uri
 
 --------------------------
 v5.6.3-beta -> v6.6.0-beta
