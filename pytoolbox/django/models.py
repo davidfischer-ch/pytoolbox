@@ -30,7 +30,7 @@ from django.db.models.fields.files import FileField
 
 class AbsoluteUrlMixin(object):
     u"""
-    Implement get_absolute_path based on the convention that the views URLs are based on the lower-case model's name.
+    Implement get_absolute_url based on the convention that the views URLs are based on the lower-case model's name.
     """
     # https://docs.djangoproject.com/en/dev/topics/class-based-views/generic-editing/
     def get_absolute_url(self, suffix=None):
