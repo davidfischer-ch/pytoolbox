@@ -566,6 +566,18 @@ class Environment(object):
         self.release = release
         self.auto = auto
         self.min_timeout = min_timeout
+        self._properties = None
+
+    def properties(self, cached=False):
+        u"""
+        Return a dictionary with properties of the environments as returned by juju get-environment (type, ...).
+
+        Set cached to True to allow using cached value of "properties". Caching should be used only if the properties
+        you are interested to read, e.g. type, does not change at all!
+        """
+        if not self._properties or not cached:
+            self._properties = juju_do(u'get-environment', self.name)
+        return self._properties
 
     def status(self, fail=False, timeout=15):
         u"""Return the status of the environment or None in case of time-out [TODO verify other conditions]."""
@@ -846,6 +858,19 @@ class Environment(object):
                 if fail:
                     raise RuntimeError(to_bytes(u'No unit with name {0} on environment {1}.'.format(name, self.name)))
         return default
+
+    def get_unit_public_address(self, service, number):
+        u"""Return the public address of a unit. Use the most reliable value available (dns-name of the machine)."""
+        if self.properties(cached=True)[u'type'] == u'local':
+            return self.get_unit(service, number)[u'public-address']
+        else:
+            # public-address may report a private address (172.x.x.x) with non-local deployments see OSCIED #132,
+            # so we need this workaround (which cannot be used for local deployments).
+            machine_number = self.get_unit(service, number)[u'machine']
+            status_dict = self.status()
+            if status_dict:
+                return status_dict[u'machines'][machine_number][u'dns-name']
+            raise ValueError('Unable to get public address of unit {0}/{1}'.format(service, number))
 
     def wait_unit(self, service, number, started_states=STARTED_STATES, error_states=ERROR_STATES, timeout=180,
                   polling_timeout=15, polling_delay=30):

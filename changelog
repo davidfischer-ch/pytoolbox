@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v6.6.0-beta -> v7.1.6-beta
+v6.6.0-beta -> v7.1.7-beta
 --------------------------
 
 Compatibility breaks
@@ -21,6 +21,7 @@ Fixes and enhancements
 
 * Add cleanup argument to juju.boostrap
 * Add docstring to method juju.ensure_num_units
+* Add get_unit_public_address + properties methods to class juju.Environment (thanks @smarter)
 * Fix various bugs of juju module
 * Fix subprocess.rsync
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
