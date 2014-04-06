@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v6.6.0-beta -> v7.1.7-beta
+v6.6.0-beta -> v7.1.8-beta
 --------------------------
 
 Compatibility breaks
@@ -24,6 +24,7 @@ Fixes and enhancements
 * Add get_unit_public_address + properties methods to class juju.Environment (thanks @smarter)
 * Fix various bugs of juju module
 * Fix subprocess.rsync
+* Fix crypto.githash
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
 * Add timeout to valid_uri
 

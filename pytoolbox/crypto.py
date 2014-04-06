@@ -24,17 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import hashlib, sys
-
-if sys.version_info[0] < 3:
-    def to_bytes(string):
-        return string
-else:
-    def to_bytes(string):
-        return bytes(string, u'utf-8')
+import hashlib
+from .encoding import string_types
 
 
-def githash(data):
+def githash(data, encoding=u'utf-8'):
     u"""
     Return the blob of some data.
 
@@ -52,8 +46,11 @@ def githash(data):
     e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
     >>> print(githash(u'give me some hash please'))
     abdd1818289725c072eff0f5ce185457679650be
+    >>> print(githash(u'et ça fonctionne !\\n'))
+    91de5baf6aaa1af4f662aac4383b27937b0e663d
     """
+    data_bytes = data.encode(encoding) if isinstance(data, string_types) else data
     s = hashlib.sha1()
-    s.update(to_bytes(u'blob {0}\0'.format(len(data))))
-    s.update(to_bytes(data))
+    s.update((u'blob %d\0' % len(data_bytes)).encode(u'utf-8'))
+    s.update(data_bytes)
     return s.hexdigest()
