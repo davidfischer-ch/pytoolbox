@@ -96,7 +96,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     is_destroy = (command == u'destroy-environment')
     command = [u'sudo', u'juju', command] if command in SUPER_COMMANDS else [u'juju', command]
     if isinstance(environment, string_types) and environment != u'default':
-        command += [u'--environment', environment]
+        command += [environment]
     if isinstance(options, list):
         command += options
     env = os.environ.copy()
@@ -650,7 +650,7 @@ class Environment(object):
                     time.sleep(max(0, polling_delay - (time.time() - time_zero)))
             return result
 
-    def destroy(self, environments=None, remove_default=False, remove=False, timeout=15):
+    def destroy(self, environments=None, force=True, remove_default=False, remove=False, timeout=15):
         # FIXME simpler algorithm
         environments = environments or DEFAULT_ENVIRONMENTS_FILE
         environments_dict = yaml.load(open(environments, u'r', encoding=u'utf-8'))
@@ -659,7 +659,8 @@ class Environment(object):
             raise IndexError(to_bytes(u'No environment with name {0}.'.format(name)))
         if not remove_default and name == environments_dict[u'default']:
             raise RuntimeError(to_bytes(u'Cannot remove default environment {0}.'.format(name)))
-        result = juju_do(u'destroy-environment', name) if self.is_bootstrapped(timeout=timeout) else None
+        options = [u'--force'] if force else []
+        result = juju_do(u'destroy-environment', name, options) if self.is_bootstrapped(timeout=timeout) else None
         if remove:
             # Check if environment destroyed otherwise a lot of trouble with $/€ !
             if self.is_boostrapped(timeout=timeout):

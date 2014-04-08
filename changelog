@@ -2,9 +2,9 @@
 changelog
 =========
 
---------------------------
-v6.6.0-beta -> v7.1.9-beta
---------------------------
+---------------------------
+v6.6.0-beta -> v7.1.10-beta
+---------------------------
 
 Compatibility breaks
 ====================
@@ -21,9 +21,8 @@ Fixes and enhancements
 
 * Add cleanup argument to juju.boostrap
 * Add docstring to method juju.ensure_num_units
-* Update juju.SUPER_COMMANDS (juju 1.18 released)
 * Add get_unit_public_address + properties methods to class juju.Environment (thanks @smarter)
-* Fix various bugs of juju module
+* Fix various bugs of juju module + various updates according to juju 1.18
 * Fix subprocess.rsync
 * Fix crypto.githash
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
