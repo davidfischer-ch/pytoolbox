@@ -111,9 +111,9 @@ def encode(in_filename, out_filename, encoder_string, default_in_duration=u'00:0
         u'in_duration': in_duration,
         u'out_size': get_size(out_filename),
         u'out_duration': out_duration,
-        u'percent': float(stats[u'percent']) if returncode else 100,  # Assume that a successful encoding = 100%
-        u'frame': int(stats[u'frame']),
-        u'fps': float(stats[u'fps']),
+        u'percent': float(stats.get(u'percent', 0)) if returncode else 100,  # Assume that a successful encoding = 100%
+        u'frame': int(stats.get(u'frame', 0)),
+        u'fps': float(stats.get(u'fps', 0)),
         u'bitrate': stats.get(u'bitrate'),
         u'quality': None,  # FIXME
         u'sanity': sanity_min_ratio <= ratio <= sanity_max_ratio
