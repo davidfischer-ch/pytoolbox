@@ -74,6 +74,7 @@ M1_SMALL = u'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
 M1_MEDIUM = u'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
 C1_MEDIUM = u'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
+ENVIRONMENT_COMMANDS = (u'destroy-environment', )
 SUPER_COMMANDS = (u'destroy-environment', )
 
 
@@ -94,21 +95,21 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
     """
     is_destroy = (command == u'destroy-environment')
-    command = [u'sudo', u'juju', command] if command in SUPER_COMMANDS else [u'juju', command]
+    the_command = [u'sudo', u'juju', command] if command in SUPER_COMMANDS else [u'juju', command]
     if isinstance(environment, string_types) and environment != u'default':
-        command += [environment]
+        the_command += [environment] if command in ENVIRONMENT_COMMANDS else [u'--environment', environment]
     if isinstance(options, list):
-        command += options
+        the_command += options
     env = os.environ.copy()
     env[u'HOME'] = expanduser(u'~/')
     env[u'JUJU_HOME'] = expanduser(u'~/.juju')
     if is_destroy:
         # FIXME Automate yes answer to destroy-environment
-        c_string = u' '.join([unicode(arg) for arg in command])
+        c_string = u' '.join([unicode(arg) for arg in the_command])
         return subprocess.check_call(c_string, shell=True) if fail else subprocess.call(c_string, shell=True)
-    result = cmd(command, fail=False, log=log, env=env, **kwargs)
+    result = cmd(the_command, fail=False, log=log, env=env, **kwargs)
     if result[u'returncode'] != 0 and fail:
-        command_string = u' '.join([unicode(arg) for arg in command])
+        command_string = u' '.join([unicode(arg) for arg in the_command])
         raise RuntimeError(to_bytes(u'Subprocess failed {0} : {1}.'.format(command_string, result[u'stderr'])))
     return yaml.load(result[u'stdout'])
 
