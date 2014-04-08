@@ -31,10 +31,10 @@ from pytoolbox.unittest import mock_cmd
 
 DEFAULT = {u'charms_path': u'.', u'config': u'config.yaml'}
 
-ADD_UNIT = [u'juju', u'add-unit', u'--environment', u'maas']
-DEPLOY = [u'juju', u'deploy', u'--environment', u'maas']
-DESTROY_UNIT = [u'juju', u'destroy-unit', u'--environment', u'maas']
-DESTROY_SERVICE = [u'juju', u'destroy-service', u'--environment', u'maas']
+ADD_UNIT = [u'juju', u'add-unit', u'maas']
+DEPLOY = [u'juju', u'deploy', u'maas']
+DESTROY_UNIT = [u'juju', u'destroy-unit', u'maas']
+DESTROY_SERVICE = [u'juju', u'destroy-service', u'maas']
 
 CFG = [u'--config', u'config.yaml']
 N, R = u'--num-units', u'--repository'
