@@ -31,7 +31,7 @@ from .subprocess import cmd
 
 
 def confirm_it(message, default=False, abort_message=u'Operation aborted by the user'):
-    u"""Ask for confirmation before calling the decorated method."""
+    u"""Ask for confirmation before calling the decorated function."""
     def _confirm_it(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -44,7 +44,7 @@ def confirm_it(message, default=False, abort_message=u'Operation aborted by the 
 
 def disable_iptables():
     u"""
-    Stop the iptables service if necessary, execute the decorated method and then reactivate iptables if it was
+    Stop the iptables service if necessary, execute the decorated function and then reactivate iptables if it was
     previously stopped.
     """
     def _disable_iptables(f):

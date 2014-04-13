@@ -45,7 +45,7 @@ def mock_side_effect(*args, **kwargs):
     u"""
     Pop and return values from MOCK_SIDE_EFFECT_RETURNS.
 
-    From your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this method::
+    From your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this function::
 
         import pytoolbox.unittest
         pytoolbox.unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]

@@ -374,7 +374,7 @@ class CharmHooks(object):
             self.remark(u'Bug during leader detection: {0}'.format(repr(e)))
             return True
 
-    # Maps calls to charm helpers methods and replace them if called in standalone -------------------------------------
+    # Maps calls to charm helpers functions and replace them if called in standalone -----------------------------------
 
     def log(self, message):
         if self.juju_ok:

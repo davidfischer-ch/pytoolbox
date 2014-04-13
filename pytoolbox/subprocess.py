@@ -50,7 +50,7 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     :type cli_output: bool
     :param fail: Set to False to avoid the exception ``subprocess.CalledProcessError``.
     :type fail: bool
-    :param log: A method to log/print details about what is executed/any failure, can be a standard logger.
+    :param log: A function to log/print details about what is executed/any failure, can be a standard logger.
     :type log: callable, logging.Logger
     :param communicate: Set to True to communicate with the process, this is a locking call (if timeout is None).
     :type communicate: bool
@@ -67,7 +67,7 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
 
     """
-    # convert log argument to logging methods
+    # convert log argument to logging functions
     log_debug = log_warning = log_exception = None
     if isinstance(log, logging.Logger):
         log_debug, log_warning, log_exception = log.debug, log.warning, log.exception

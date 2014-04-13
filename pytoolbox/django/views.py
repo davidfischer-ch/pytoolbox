@@ -44,7 +44,7 @@ def only_published(queryset, request):
 
 
 class PublishedMixin(object):
-    u"""Filter the queryset with the method :function:`only_published`."""
+    u"""Filter the queryset with the function :function:`only_published`."""
 
     def get_queryset(self):
         return only_published(super(PublishedMixin, self).get_queryset(), self.request)

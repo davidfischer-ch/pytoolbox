@@ -40,7 +40,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
     u"""
     Return a python dictionary containing the values retrieved from various attributes (sources) of the request.
 
-    This method is specifically implemented to retrieve data from an instance of ``werkzeug.wrappers.Request`` or
+    This function is specifically implemented to retrieve data from an instance of ``werkzeug.wrappers.Request`` or
     ``django.http.request.HttpRequest`` by only using ``getattr`` to respect the duck typing philosophy.
 
     FIXME : Add an example that have a JSON content ....

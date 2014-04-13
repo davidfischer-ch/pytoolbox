@@ -100,12 +100,12 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
                    remove_on_error=True):
     u"""
     Copy the content of a source directory to a destination directory.
-    This method is based on a block-copy algorithm making progress update possible.
+    This function is based on a block-copy algorithm making progress update possible.
 
     Given ``callback`` would be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
     *ratio*. Set ``remove_on_error`` to remove the destination directory in case of error.
 
-    This method will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
+    This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
     At the end of the copy, if the size of the destination directory is not equal to the source then a ``IOError`` is
     raised.
     """

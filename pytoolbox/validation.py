@@ -174,7 +174,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('docs.python.org/2/library/httplib.html', check_404=True)
     False
 
-    This method does not use scheme of ``uri`` at all, so here is the proof:
+    This function does not use scheme of ``uri`` at all, so here is the proof:
 
     >>> valid_uri('gluster://docs.python.org/2/library/httplib.html', check_404=True)
     True
