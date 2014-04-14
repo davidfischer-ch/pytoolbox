@@ -3,7 +3,7 @@ changelog
 =========
 
 ---------------------------
-v6.6.0-beta -> v7.1.12-beta
+v6.6.0-beta -> v7.1.13-beta
 ---------------------------
 
 Compatibility breaks
@@ -25,6 +25,7 @@ Fixes and enhancements
 * Fix various bugs of juju module + various updates according to juju 1.18
 * Fix subprocess.rsync
 * Fix crypto.githash
+* Fix handling of juju bootstrap error message in Python 3
 * Default to something if key is missing in stats (x264.encode)
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
 * Add timeout to valid_uri

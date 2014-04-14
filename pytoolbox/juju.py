@@ -627,7 +627,7 @@ class Environment(object):
                 result = juju_do(u'bootstrap', self.name)
             except RuntimeError as e:
                 result = None
-                if not u'already' in e.message:
+                if not u'already' in unicode(e):
                     raise
             if wait_started:
                 start_time = time.time()
