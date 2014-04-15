@@ -104,7 +104,6 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     env[u'HOME'] = expanduser(u'~/')
     env[u'JUJU_HOME'] = expanduser(u'~/.juju')
     if is_destroy:
-        the_command.append('--force')  # To allow destroying a broken environment
         # FIXME Automate yes answer to destroy-environment
         c_string = u' '.join([unicode(arg) for arg in the_command])
         return subprocess.check_call(c_string, shell=True) if fail else subprocess.call(c_string, shell=True)
@@ -621,7 +620,7 @@ class Environment(object):
             print(u'Bootstrap environment {0}'.format(self.name))
         if self.auto or confirm(u'do it now', default=False):
             if cleanup:
-                self.destroy(remove_default=True)
+                self.destroy(force=True, remove_default=True)
             if synchronize_tools:
                 self.sync_tools(all_tools=True)
             try:
