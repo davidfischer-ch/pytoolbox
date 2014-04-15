@@ -983,9 +983,9 @@ class Environment(object):
 
 class DeploymentScenario(object):
 
-    def __init__(self, environments, **kwargs):
+    def __init__(self, environments, args=None, namespace=None, **kwargs):
         parser = self.get_parser(**kwargs)
-        self.args = parser.parse_args()
+        self.args = parser.parse_args(args=args, namespace=namespace)
         self.environments = environments
         for environment in environments:
             environment.auto = self.args.auto

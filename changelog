@@ -3,7 +3,7 @@ changelog
 =========
 
 ---------------------------
-v6.6.0-beta -> v7.1.14-beta
+v6.6.0-beta -> v7.1.15-beta
 ---------------------------
 
 Compatibility breaks
@@ -22,6 +22,7 @@ Fixes and enhancements
 * Add cleanup argument to juju.boostrap
 * Add docstring to method juju.ensure_num_units
 * Add get_unit_public_address + properties methods to class juju.Environment (thanks @smarter)
+* Add args and namespace kwargs to juju.DeploymentScenario __init__ to allow bypassing sys.arv
 * Fix various bugs of juju module + various updates according to juju 1.18
 * Fix subprocess.rsync
 * Fix crypto.githash
