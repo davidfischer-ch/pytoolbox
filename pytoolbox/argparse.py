@@ -68,6 +68,26 @@ def is_dir(path):
     raise argparse.ArgumentTypeError(to_bytes(u'{0} is not a directory'.format(path)))
 
 
+def is_file(path):
+    u"""
+    Check if path is an actual file and return it.
+
+    Please find a "real world" example in the docstring of this module.
+
+    **Example usage**
+
+    >>> print(is_file(u'/etc/hosts'))
+    /etc/hosts
+    >>> is_file(u'wdjiwdji')
+    Traceback (most recent call last):
+        ...
+    ArgumentTypeError: wdjiwdji is not a file
+    """
+    if os.path.isfile(path):
+        return path
+    raise argparse.ArgumentTypeError(to_bytes(u'{0} is not a file'.format(path)))
+
+
 class FullPaths(argparse.Action):
     u"""Expand user- and relative-paths."""
     def __call__(self, parser, namespace, values, option_string=None):

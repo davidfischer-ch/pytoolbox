@@ -3,7 +3,7 @@ changelog
 =========
 
 ---------------------------
-v6.6.0-beta -> v7.1.16-beta
+v6.6.0-beta -> v7.1.17-beta
 ---------------------------
 
 Compatibility breaks
@@ -19,6 +19,7 @@ Features
 Fixes and enhancements
 ======================
 
+* Add function argparse.is_file
 * Add cleanup argument to juju.boostrap
 * Add docstring to method juju.ensure_num_units
 * Add get_unit_public_address + properties methods to class juju.Environment (thanks @smarter)
