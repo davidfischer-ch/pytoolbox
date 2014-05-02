@@ -119,8 +119,10 @@ def get_media_infos(filename):
 
     **Example usage**
 
-    >>> from pprint import pprint
-    >>> pprint(get_media_infos(u'small.mp4'))  # doctest: +ELLIPSIS
+    Remark: This doctest is disabled because in Travis CI, the installed ffprobe doesn't output the same exact string.
+
+    >> from pprint import pprint
+    >> pprint(get_media_infos(u'small.mp4'))  # doctest: +ELLIPSIS
     {u'format': {u'bit_rate': u'551193',
                  u'duration': u'5.568000',
                  u'filename': u'small.mp4',
