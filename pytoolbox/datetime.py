@@ -122,9 +122,13 @@ def str2time(value):
 
     >>> str2time('08:23:57')
     datetime.time(8, 23, 57)
+    >>> str2time('00:03:02.12')
+    datetime.time(0, 3, 2, 120)
     """
-    hours, minutes, seconds = value.split(u':')
-    return datetime.time(int(hours), int(minutes), int(seconds))
+    hours, minutes, seconds_float = value.split(u':')
+    seconds_float = float(seconds_float)
+    seconds = int(seconds_float)
+    return datetime.time(int(hours), int(minutes), seconds, int(1000 * (seconds_float - seconds)))
 
 
 def time_ratio(numerator, denominator, zero_div_result=1.0):
