@@ -114,6 +114,19 @@ def secs_to_time(value, defaults_to_zero=False):
         return None
 
 
+def str2time(value):
+    u"""
+    Return the string of format 'hh:mm:ss' into an instance of time.
+
+    **Example usage**
+
+    >>> str2time('08:23:57')
+    datetime.time(8, 23, 57)
+    """
+    hours, minutes, seconds = value.split(u':')
+    return datetime.time(int(hours), int(minutes), int(seconds))
+
+
 def time_ratio(numerator, denominator, zero_div_result=1.0):
     u"""
     Return the ratio between two times.
