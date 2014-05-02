@@ -117,7 +117,7 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
         u'in_size': in_size,
         u'in_duration': in_duration.strftime(time_format),
         u'out_size': get_size(out_filename),
-        u'out_duration': out_duration.strftime(time_format),
+        u'out_duration': out_duration.strftime(time_format) if out_duration else None,
         u'percent': int(100 * ratio) if returncode else 100,  # Assume that a successful encoding = 100%
         u'frame': stats.get(u'frame'),
         u'fps': stats.get(u'fps'),
