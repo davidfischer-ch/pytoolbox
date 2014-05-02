@@ -49,7 +49,7 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
         in_filenames = [in_filenames]
 
     # Get input media duration and size to be able to estimate ETA
-    in_duration = get_media_duration(in_filenames[base_track]) or datetime.time(default_in_duration)
+    in_duration = get_media_duration(in_filenames[base_track]) or datetime.time(str2time(default_in_duration))
     in_size = get_size(in_filenames[base_track])
 
     # Initialize metrics
