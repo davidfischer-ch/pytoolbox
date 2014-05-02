@@ -42,7 +42,7 @@ MPD_TEST = u"""<?xml version="1.0"?>
 
 def get_media_duration(filename):
     u"""
-    Returns the duration of a media as an instance of time.
+    Returns the duration of a media as an instance of time or None in case of error.
 
     If input ``filename`` is a MPEG-DASH MPD, then duration will be parser from value of key
     *mediaPresentationDuration*. For any other type of file, this is a *ffprobe* subprocess
@@ -74,7 +74,10 @@ def get_media_duration(filename):
                 return time(int(match.group(u'hours')), int(match.group(u'minutes')), seconds, microseconds)
     else:
         infos = get_media_infos(filename)
-        duration = secs_to_time(float(infos[u'format'][u'duration'])) if infos else None
+        try:
+            duration = secs_to_time(float(infos[u'format'][u'duration'])) if infos else None
+        except KeyError:
+            return None
         # ffmpeg may return this so strange value, 00:00:00.04, let it being None
         return duration if duration and duration >= time(0, 0, 1) else None
     return None
