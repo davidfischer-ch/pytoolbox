@@ -73,8 +73,8 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
         match = ENCODING_REGEX.match(chunk)
         if match:
             stats = match.groupdict()
-            out_duration = str2time(stats[u'time'])
             try:
+                out_duration = str2time(stats[u'time'])
                 ratio = time_ratio(out_duration, in_duration)
             except ValueError:
                 continue  # reported time is broken, skip the whole match
