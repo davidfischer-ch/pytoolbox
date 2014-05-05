@@ -46,9 +46,12 @@ class HelpTextToPlaceholderMixin(object):
         super(HelpTextToPlaceholderMixin, self).__init__(*args, **kwargs)
         for name, field in self.fields.iteritems():
             if field and isinstance(field, self.placeholder_fields):
-                field.widget.attrs[u'placeholder'] = field.help_text
-                if self.placeholder_remove_help_text:
-                    field.help_text = None
+                self.set_placeholder(name, field)
+
+    def set_placeholder(self, name, field):
+        field.widget.attrs[u'placeholder'] = field.help_text
+        if self.placeholder_remove_help_text:
+            field.help_text = None
 
 
 class ModelBasedFormCleanupMixin(object):
