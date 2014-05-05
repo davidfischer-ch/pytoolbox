@@ -35,6 +35,28 @@ class FecReceiver(object):
     u"""
     TODO
 
+    **Example usage (with a network capture)**
+
+    >> import dpkt
+    >> from pytoolbox.network.smpte2022.base import FecPacket, RtpPacket
+    >> from pytoolbox.network.smpte2022.receiver import FecReceiver
+    >> from struct import *
+    >>
+    >> fec_receiver = FecReceiver(open("test.ts", "wb"))
+    >> fec_receiver.set_delay(1024, FecReceiver.PACKETS)
+    >>
+    >> for ts, buf in dpkt.pcap.Reader(open('test.dump')):
+    >>     udp = dpkt.ethernet.Ethernet(buf).data.data
+    >>     if udp.dport == 3300:
+    >>         media_packet = RtpPacket.create(unpack('!h', udp.data[2:4])[0], unpack('!i', udp.data[4:8])[0],
+    >>                                         RtpPacket.MP2T_PT, bytearray(udp.data[12:]))
+    >>         fec_receiver.put_media(media_packet, onlyMP2TS=True)
+    >>     elif udp.dport in (3302, 3304):
+    >>         fec_data = bytearray(udp.data)
+    >>         fec_receiver.put_fec(FecPacket(fec_data, len(fec_data)))
+    >> print(fec_receiver)
+    >> fec_receiver.flush()
+
     **Example usage**
 
     Media packets are sorted by the buffer, so, it's time to test this feature:
