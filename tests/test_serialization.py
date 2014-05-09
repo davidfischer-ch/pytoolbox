@@ -31,7 +31,7 @@ from pytoolbox.filesystem import try_remove
 from pytoolbox.serialization import PickleableObject
 
 here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-here = os.path.join(here, u'../../..' if u'build/lib' in here else u'..', u'tests')
+here = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests')
 
 
 class MyPoint(PickleableObject):
@@ -49,34 +49,32 @@ class MyPoint(PickleableObject):
 class TestSerialization(object):
 
     def test_PickleableObject(self):
-        p1 = MyPoint(name=u'My point', x=6, y=-3)
-        p1.write(u'test.pkl')
-        p2 = MyPoint.read(u'test.pkl', store_filename=True)
-        eq_(p2.__dict__,
-                     {u'y': -3, u'x': 6, u'_pickle_filename': u'test.pkl', u'name': u'My point'})
+        p1 = MyPoint(name='My point', x=6, y=-3)
+        p1.write('test.pkl')
+        p2 = MyPoint.read('test.pkl', store_filename=True)
+        eq_(p2.__dict__, {'y': -3, 'x': 6, '_pickle_filename': 'test.pkl', 'name': 'My point'})
         p2.write()
-        p2.write(u'test2.pkl')
-        os.remove(u'test.pkl')
-        os.remove(u'test2.pkl')
+        p2.write('test2.pkl')
+        os.remove('test.pkl')
+        os.remove('test2.pkl')
         p2.write()
-        assert(not os.path.exists(u'test2.pkl'))
-        eq_(p2._pickle_filename, u'test.pkl')
-        os.remove(u'test.pkl')
-        p2.write(u'test2.pkl', store_filename=True)
-        assert(not os.path.exists(u'test.pkl'))
-        eq_(p2._pickle_filename, u'test2.pkl')
+        assert(not os.path.exists('test2.pkl'))
+        eq_(p2._pickle_filename, 'test.pkl')
+        os.remove('test.pkl')
+        p2.write('test2.pkl', store_filename=True)
+        assert(not os.path.exists('test.pkl'))
+        eq_(p2._pickle_filename, 'test2.pkl')
         del p2._pickle_filename
         assert_raises(ValueError, p2.write)
-        os.remove(u'test2.pkl')
-        try_remove(u'test3.pkl')
-        p3 = MyPoint.read(u'test3.pkl', store_filename=True, create_if_error=True, name=u'Default point', x=3, y=-6)
-        eq_(p3.__dict__,
-                     {u'x': 3, u'y': -6, u'_pickle_filename': u'test3.pkl', u'name': u'Default point'})
-        os.remove(u'test3.pkl')
-        assert_raises(IOError, MyPoint.read, u'test3.pkl')
+        os.remove('test2.pkl')
+        try_remove('test3.pkl')
+        p3 = MyPoint.read('test3.pkl', store_filename=True, create_if_error=True, name='Default point', x=3, y=-6)
+        eq_(p3.__dict__, {'x': 3, 'y': -6, '_pickle_filename': 'test3.pkl', 'name': 'Default point'})
+        os.remove('test3.pkl')
+        assert_raises(IOError, MyPoint.read, 'test3.pkl')
 
     def test_csv_reader(self):
-        values, i = [(u'David', u'Vélo'), (u'Michaël', u'Tennis de table'), (u'Loïc', u'Piano')], 0
-        for name, hobby in csv_reader(os.path.join(here, u'unicode.csv')):
+        values, i = [('David', 'Vélo'), ('Michaël', 'Tennis de table'), ('Loïc', 'Piano')], 0
+        for name, hobby in csv_reader(os.path.join(here, 'unicode.csv')):
             eq_((name, hobby), values[i])
             i += 1

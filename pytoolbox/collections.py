@@ -30,7 +30,7 @@ from .datetime import total_seconds
 
 
 class pygal_deque(deque):
-    u"""
+    """
     A deque None'ing duplicated values to produce nicer pygal line charts (e.g. 5555322211111 -> 5__532_21___1).
 
     .. warning::
@@ -88,7 +88,7 @@ class pygal_deque(deque):
 class EventsTable(object):
 
     def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
-        u"""Scan a spare events table and replace missing entry by previous (non empty) entry."""
+        """Scan a spare events table and replace missing entry by previous (non empty) entry."""
         self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
@@ -121,7 +121,7 @@ class EventsTable(object):
         return index, self.events.get(index, default_value)
 
     def sleep_time(self, time, time_speedup=None, sleep_factor=None):
-        u"""
+        """
         Return required sleep time to wait for next scheduled event.
 
         **Example usage**

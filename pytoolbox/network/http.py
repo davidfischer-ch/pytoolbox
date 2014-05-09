@@ -30,14 +30,14 @@ from ..encoding import to_bytes
 
 
 def download(url, filename):
-    u"""Read the content of given ``url`` and save it as a file ``filename``."""
-    with open(filename, u'wb') as f:
+    """Read the content of given ``url`` and save it as a file ``filename``."""
+    with open(filename, 'wb') as f:
         f.write(urllib2.urlopen(url).read())
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u'query', u'form', u'json'],
+def get_request_data(request, accepted_keys=None, required_keys=None, sources=['query', 'form', 'json'],
                      qs_only_first_value=False, optional=False):
-    u"""
+    """
     Return a python dictionary containing the values retrieved from various attributes (sources) of the request.
 
     This function is specifically implemented to retrieve data from an instance of ``werkzeug.wrappers.Request`` or
@@ -51,61 +51,61 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
     >>> from nose.tools import eq_
     >>> from werkzeug.wrappers import Request
 
-    >>> d = u'key1=this+is+encoded+form+data&key2=another'
-    >>> q = u'foo=bar&blah=blafasel'
-    >>> c = u'application/x-www-form-urlencoded'
+    >>> d = 'key1=this+is+encoded+form+data&key2=another'
+    >>> q = 'foo=bar&blah=blafasel'
+    >>> c = 'application/x-www-form-urlencoded'
     >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
 
-    >>> all = {'blah': ['blafasel'], 'foo': ['bar'], 'key1': [u'this is encoded form data'], 'key2': [u'another']}
+    >>> all = {'blah': ['blafasel'], 'foo': ['bar'], 'key1': ['this is encoded form data'], 'key2': ['another']}
     >>> eq_(get_request_data(r), all)
 
     Restrict valid keys:
 
-    >>> get_request_data(r, accepted_keys=[u'foo']) # doctest: +ELLIPSIS
+    >>> get_request_data(r, accepted_keys=['foo']) # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
     ValueError: Invalid key "..." from the request, valid: [...'foo'].
 
     Requires specific keys:
 
-    >>> get_request_data(r, required_keys=[u'foo', u'THE_key']) # doctest: +ELLIPSIS
+    >>> get_request_data(r, required_keys=['foo', 'THE_key']) # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
     ValueError: Missing key "THE_key from the request, required: [...'foo', ...'THE_key'].
 
     Retrieve data with or without a fallback to an empty string (JSON content):
 
-    >>> get_request_data(r, sources=[u'json'], optional=True)
+    >>> get_request_data(r, sources=['json'], optional=True)
     {}
-    >>> get_request_data(r, sources=[u'json'])
+    >>> get_request_data(r, sources=['json'])
     Traceback (most recent call last):
         ...
     ValueError: Unable to retrieve any data from the request.
 
     The order of the sources is important:
 
-    >>> d = u'foo=bar+form+data'
-    >>> q = u'foo=bar+query+string&it=works'
+    >>> d = 'foo=bar+form+data'
+    >>> q = 'foo=bar+query+string&it=works'
     >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
-    >>> eq_(get_request_data(r, sources=[u'query', u'form']), {'it': ['works'], 'foo': [u'bar form data']})
-    >>> eq_(get_request_data(r, sources=[u'form', u'query']), {'it': ['works'], 'foo': [u'bar query string']})
+    >>> eq_(get_request_data(r, sources=['query', 'form']), {'it': ['works'], 'foo': ['bar form data']})
+    >>> eq_(get_request_data(r, sources=['form', 'query']), {'it': ['works'], 'foo': ['bar query string']})
 
     Retrieve only the first value of the keys (Query string):
 
-    >>> r = Request.from_values(query_string=u'foo=bar+1&foo=bar+2&foo=bar+3', content_type=c)
-    >>> eq_(get_request_data(r, sources=[u'query']), {u'foo': [u'bar 1', u'bar 2', u'bar 3']})
-    >>> eq_(get_request_data(r, sources=[u'query'], qs_only_first_value=True), {'foo': 'bar 1'})
+    >>> r = Request.from_values(query_string='foo=bar+1&foo=bar+2&foo=bar+3', content_type=c)
+    >>> eq_(get_request_data(r, sources=['query']), {'foo': ['bar 1', 'bar 2', 'bar 3']})
+    >>> eq_(get_request_data(r, sources=['query'], qs_only_first_value=True), {'foo': 'bar 1'})
 
     """
     data = {}
     for source in sources:
-        if source == u'form':
-            data.update(getattr(request, u'form', {}))  # werkzeug
-        elif source == u'json':
-            data.update(getattr(request, u'get_json', lambda: {})() or {})  # werkzeug
-        elif source == u'query':
-            query_dict = getattr(request, u'args',  # werkzeug
-                                 urlparse.parse_qs(getattr(request, u'META', {}).get(u'QUERY_STRING', u'')))  # django
+        if source == 'form':
+            data.update(getattr(request, 'form', {}))  # werkzeug
+        elif source == 'json':
+            data.update(getattr(request, 'get_json', lambda: {})() or {})  # werkzeug
+        elif source == 'query':
+            query_dict = getattr(request, 'args',  # werkzeug
+                                 urlparse.parse_qs(getattr(request, 'META', {}).get('QUERY_STRING', '')))  # django
             if qs_only_first_value:
                 for key, value in query_dict.iteritems():
                     data[key] = value[0] if isinstance(value, list) else value
@@ -115,13 +115,13 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=[u
     if required_keys is not None:
         for key in required_keys:
             if not key in data:
-                raise ValueError(to_bytes(u'Missing key "{0} from the request, required: {1}.'.format(
+                raise ValueError(to_bytes('Missing key "{0} from the request, required: {1}.'.format(
                                  key, required_keys)))
     if accepted_keys is not None:
         for key in data:
             if not key in accepted_keys:
-                raise ValueError(to_bytes(u'Invalid key "{0}" from the request, valid: {1}.'.format(
+                raise ValueError(to_bytes('Invalid key "{0}" from the request, valid: {1}.'.format(
                                  key, accepted_keys)))
     if not data and not optional:
-        raise ValueError(to_bytes(u'Unable to retrieve any data from the request.'))
+        raise ValueError(to_bytes('Unable to retrieve any data from the request.'))
     return data or {}

@@ -31,16 +31,16 @@ from .encoding import string_types
 
 
 def first_that_exist(*paths):
-    u"""
+    """
     Returns the first file/directory that exist.
 
     **Example usage**
 
-    >>> print(first_that_exist(u'', u'/etc', u'.'))
+    >>> print(first_that_exist('', '/etc', '.'))
     /etc
-    >>> print(first_that_exist(u'does_not_exist.com', u'', u'..'))
+    >>> print(first_that_exist('does_not_exist.com', '', '..'))
     ..
-    >>> print(first_that_exist(u'does_not_exist.ch'))
+    >>> print(first_that_exist('does_not_exist.ch'))
     None
     """
     for path in paths:
@@ -50,38 +50,38 @@ def first_that_exist(*paths):
 
 
 def from_template(template, destination, values):
-    u"""
+    """
     Generate a ``destination`` file from a ``template`` file filled with ``values``.
 
     **Example usage**
 
-    >>> open(u'config.template', u'w', u'utf-8').write(u'{{username={user}; password={pass}}}')
+    >>> open('config.template', 'w', 'utf-8').write('{{username={user}; password={pass}}}')
 
     The behavior when all keys are given (and even more):
 
-    >>> from_template(u'config.template', u'config', {u'user': u'tabby', u'pass': u'miaow', u'other': 10})
-    >>> print(open(u'config', u'r', u'utf-8').read())
+    >>> from_template('config.template', 'config', {'user': 'tabby', 'pass': 'miaow', 'other': 10})
+    >>> print(open('config', 'r', 'utf-8').read())
     {username=tabby; password=miaow}
 
     The behavior if a value for a key is missing:
 
-    >>> from_template(u'config.template', u'config', {u'pass': u'miaow', u'other': 10})  # doctest: +ELLIPSIS
+    >>> from_template('config.template', 'config', {'pass': 'miaow', 'other': 10})  # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
     KeyError: ...'user'
-    >>> print(open(u'config', u'r', u'utf-8').read())
+    >>> print(open('config', 'r', 'utf-8').read())
     <BLANKLINE>
 
-    >>> os.remove(u'config.template')
-    >>> os.remove(u'config')
+    >>> os.remove('config.template')
+    >>> os.remove('config')
     """
-    with open(template, u'r', u'utf-8') as template_file:
-        with open(destination, u'w', u'utf-8') as destination_file:
+    with open(template, 'r', 'utf-8') as template_file:
+        with open(destination, 'w', 'utf-8') as destination_file:
             destination_file.write(template_file.read().format(**values))
 
 
 def get_size(path):
-    u"""
+    """
     Returns the size of a file or directory.
 
     If given ``path`` is a directory (or symlink to a directory), then returned value is computed by summing the size of
@@ -98,7 +98,7 @@ def get_size(path):
 
 def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, time_delta=1, check_size=True,
                    remove_on_error=True):
-    u"""
+    """
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
 
@@ -123,8 +123,8 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
                 # Initialize block-based copy
                 try_makedirs(os.path.dirname(dst_path))
                 block_size = 1024 * 1024
-                src_file = open(src_path, u'rb')
-                dst_file = open(dst_path, u'wb')
+                src_file = open(src_path, 'rb')
+                dst_file = open(dst_path, 'wb')
 
                 # Block-based copy loop
                 block_pos = prev_ratio = prev_time = 0
@@ -156,10 +156,10 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
         if check_size:
             dst_size = get_size(destination_path)
             if dst_size != src_size:
-                raise IOError(u'Destination size does not match source ({0} vs {1})'.format(src_size, dst_size))
+                raise IOError('Destination size does not match source ({0} vs {1})'.format(src_size, dst_size))
 
         elapsed_time = time.time() - start_time
-        return {u'start_date': start_date, u'elapsed_time': elapsed_time, u'src_size': src_size}
+        return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
     except:
         if remove_on_error:
             shutil.rmtree(destination_path, ignore_errors=True)
@@ -167,18 +167,18 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
 
 
 def try_makedirs(path):
-    u"""
+    """
     Tries to recursive make directories (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if directory found and re-raise any other type of exception.
 
     **Example usage**
 
     >>> import shutil
-    >>> try_makedirs(u'/etc')
+    >>> try_makedirs('/etc')
     False
-    >>> try_makedirs(u'/tmp/salut/mec')
+    >>> try_makedirs('/tmp/salut/mec')
     True
-    >>> shutil.rmtree(u'/tmp/salut/mec')
+    >>> shutil.rmtree('/tmp/salut/mec')
     """
     try:
         os.makedirs(path)
@@ -191,16 +191,16 @@ def try_makedirs(path):
 
 
 def try_remove(path):
-    u"""
+    """
     Tries to remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
 
     **Example usage**
 
-    >>> open(u'try_remove.example', u'w', encoding=u'utf-8').write(u'salut les pépés')
-    >>> try_remove(u'try_remove.example')
+    >>> open('try_remove.example', 'w', encoding='utf-8').write('salut les pépés')
+    >>> try_remove('try_remove.example')
     True
-    >>> try_remove(u'try_remove.example')
+    >>> try_remove('try_remove.example')
     False
     """
     try:
@@ -214,47 +214,47 @@ def try_remove(path):
 
 
 def try_symlink(source, link_name):
-    u"""
+    """
     Tries to symlink a file/directory (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if found & target is ``link_name`` and re-raise any other type of
     exception.
 
     **Example usage**
 
-    >>> a = try_remove(u'/tmp/does_not_exist')
-    >>> a = try_remove(u'/tmp/does_not_exist_2')
-    >>> a = try_remove(u'/tmp/link_etc')
-    >>> a = try_remove(os.path.expanduser(u'~/broken_link'))
+    >>> a = try_remove('/tmp/does_not_exist')
+    >>> a = try_remove('/tmp/does_not_exist_2')
+    >>> a = try_remove('/tmp/link_etc')
+    >>> a = try_remove(os.path.expanduser('~/broken_link'))
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
     >>> from nose.tools import assert_raises
-    >>> assert_raises(OSError, try_symlink, u'/home', u'/etc')
+    >>> assert_raises(OSError, try_symlink, '/home', '/etc')
 
     Symlinking /etc to itself only returns that nothing changed:
 
-    >>> try_symlink(u'/etc', u'/etc')
+    >>> try_symlink('/etc', '/etc')
     False
 
     Creating a symlink to an existing file has the following behaviour:
 
-    >>> try_symlink(u'/etc', u'/tmp/link_etc')
+    >>> try_symlink('/etc', '/tmp/link_etc')
     True
-    >>> try_symlink(u'/etc', u'/tmp/link_etc')
+    >>> try_symlink('/etc', '/tmp/link_etc')
     False
-    >>> assert_raises(OSError, try_symlink, u'/etc/does_not_exist', u'/tmp/link_etc')
-    >>> assert_raises(OSError, try_symlink, u'/home', u'/tmp/link_etc')
+    >>> assert_raises(OSError, try_symlink, '/etc/does_not_exist', '/tmp/link_etc')
+    >>> assert_raises(OSError, try_symlink, '/home', '/tmp/link_etc')
 
     Creating a symlink to a non existing has the following behaviour:
 
-    >>> try_symlink(u'~/does_not_exist', u'~/broken_link')
+    >>> try_symlink('~/does_not_exist', '~/broken_link')
     True
-    >>> try_symlink(u'~/does_not_exist', u'~/broken_link')
+    >>> try_symlink('~/does_not_exist', '~/broken_link')
     False
-    >>> assert_raises(OSError, try_symlink, u'~/does_not_exist_2', u'~/broken_link')
-    >>> assert_raises(OSError, try_symlink, u'/home', u'~/broken_link')
-    >>> os.remove(u'/tmp/link_etc')
-    >>> os.remove(os.path.expanduser(u'~/broken_link'))
+    >>> assert_raises(OSError, try_symlink, '~/does_not_exist_2', '~/broken_link')
+    >>> assert_raises(OSError, try_symlink, '/home', '~/broken_link')
+    >>> os.remove('/tmp/link_etc')
+    >>> os.remove(os.path.expanduser('~/broken_link'))
     """
     try:
         source = os.path.expanduser(source)
@@ -274,13 +274,13 @@ def try_symlink(source, link_name):
                     if target == source:
                         return False
                     else:
-                        raise OSError(errno.EEXIST, u'File exists')
+                        raise OSError(errno.EEXIST, 'File exists')
                 raise
         raise  # Re-raise exception if a different error occurred
 
 
 def chown(path, user=None, group=None, recursive=False):
-    u"""Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
+    """Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
     uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
     gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
     if recursive:

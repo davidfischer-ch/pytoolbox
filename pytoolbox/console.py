@@ -28,37 +28,37 @@ import sys
 
 
 def confirm(question=None, default=False):
-    u"""
+    """
     Return True if user confirm the action, else False. ``default`` if user only press ENTER.
 
     **Example usage**
 
-    >> confirm(u'Do it now', default=True)
+    >> confirm('Do it now', default=True)
     Do it now ? [Y/n]:
     True
-    >> confirm(u'Are you sure', default=False)
+    >> confirm('Are you sure', default=False)
     Are you sure ? [y/N]:
     False
-    >> confirm(u'Really, I am sure that is false', default=False)
+    >> confirm('Really, I am sure that is false', default=False)
     Really, I am sure that is false ? [y/N]: y
     True
     """
     if question is None:
-        question = u'Confirm'
-    question = u'{0} ? [{1}]: '.format(question, u'Y/n' if default else u'y/N')
+        question = 'Confirm'
+    question = '{0} ? [{1}]: '.format(question, 'Y/n' if default else 'y/N')
     while True:
         ans = raw_input(question)
         if not ans:
             return default
-        if ans in (u'y', u'Y'):
+        if ans in ('y', 'Y'):
             return True
-        elif ans in (u'n', u'N'):
+        elif ans in ('n', 'N'):
             return False
-        print(u'please enter y or n.')
+        print('please enter y or n.')
 
 
-def choice(question=u'', choices=[]):
-    u"""
+def choice(question='', choices=[]):
+    """
     Prompt the user for a choice and return his/her answer.
 
     **Example of usage**
@@ -72,22 +72,22 @@ def choice(question=u'', choices=[]):
     """
 
     # generate question and choices list
-    choices_string = u', '.join(choices)
+    choices_string = ', '.join(choices)
     if question is None:
-        question = u'[{0}]? '.format(choices_string)
+        question = '[{0}]? '.format(choices_string)
     else:
-        question = u'{0} [{1}]: '.format(question, choices_string)
+        question = '{0} [{1}]: '.format(question, choices_string)
 
     # loop until an acceptable choice has been answered
     while True:
         ans = raw_input(question)
         if ans in choices:
             return ans
-        print(u'Please choose between {0}.'.format(choices_string))
+        print('Please choose between {0}.'.format(choices_string))
 
 
 def print_error(message, output=sys.stderr, exit_code=1):
-    u"""
+    """
     Print a error message and exit if ``exit_code`` is not None.
 
     **Example usage**
@@ -97,15 +97,15 @@ def print_error(message, output=sys.stderr, exit_code=1):
     >>> print_error(u"It's not a bug - it's an undocumented feature.", output=sys.stdout, exit_code=None)
     [ERROR] It's not a bug - it's an undocumented feature.
     """
-    print(u'[ERROR] {0}'.format(message), file=output)
+    print('[ERROR] {0}'.format(message), file=output)
     if exit_code is not None:
         sys.exit(exit_code)
 
-if __name__ == u'__main__':
+if __name__ == '__main__':
 
     if confirm('Please confirm this'):
-        print(u'You confirmed')
+        print('You confirmed')
     else:
-        print(u'You do not like my question')
+        print('You do not like my question')
 
-    print(choice(u'Select a language', [u'Italian', u'French']))
+    print(choice('Select a language', ['Italian', 'French']))

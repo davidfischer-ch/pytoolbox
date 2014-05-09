@@ -31,12 +31,12 @@ from django.utils.html import mark_safe
 class CalendarDateInput(widgets.DateInput):
     def render(self, *args, **kwargs):
         html = super(CalendarDateInput, self).render(*args, **kwargs)
-        return mark_safe(u'<div class="input-append date">{0}'
+        return mark_safe('<div class="input-append date">{0}'
                          '<span class="add-on"><i class="icon-calendar"></i></span></div>'.format(html))
 
 
 class ClockTimeInput(widgets.TimeInput):
     def render(self, *args, **kwargs):
         html = super(ClockTimeInput, self).render(*args, **kwargs)
-        return mark_safe(u'<div class="input-append bootstrap-timepicker">{0}'
+        return mark_safe('<div class="input-append bootstrap-timepicker">{0}'
                          '<span class="add-on"><i class="icon-time"></i></span></div>'.format(html))

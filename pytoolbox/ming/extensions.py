@@ -36,4 +36,3 @@
 #             self.E(user, 'email is not a valid e-mail address')
 #         if not user.is_secret_hashed and not valid_secret(user.secret, True):
 #             self.E(user, 'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
-

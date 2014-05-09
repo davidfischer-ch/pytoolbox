@@ -24,19 +24,20 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-u"""
+
+"""
 Module related to parsing arguments from the command-line.
 
 **Example usage**
 
 >>> from nose.tools import eq_
 >>> from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
->>> parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=u'My super cool software.')
->>> x = parser.add_argument(u'directory', action=FullPaths, type=is_dir)
->>> print(parser.parse_args([u'/usr/lib']).directory)
+>>> parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog='My super cool software.')
+>>> x = parser.add_argument('directory', action=FullPaths, type=is_dir)
+>>> print(parser.parse_args(['/usr/lib']).directory)
 /usr/lib
->>> eq_(parser.parse_args([u'.']).directory, os.path.abspath(os.path.expanduser(os.getcwd())))
->>> parser.parse_args([u'/does_not_exist/'])
+>>> eq_(parser.parse_args(['.']).directory, os.path.abspath(os.path.expanduser(os.getcwd())))
+>>> parser.parse_args(['/does_not_exist/'])
 Traceback (most recent call last):
     ...
 SystemExit: 2
@@ -49,46 +50,46 @@ from .encoding import to_bytes
 
 
 def is_dir(path):
-    u"""
+    """
     Check if path is an actual directory and return it.
 
     Please find a "real world" example in the docstring of this module.
 
     **Example usage**
 
-    >>> print(is_dir(u'/home'))
+    >>> print(is_dir('/home'))
     /home
-    >>> is_dir(u'sjdsajkd')
+    >>> is_dir('sjdsajkd')
     Traceback (most recent call last):
         ...
     ArgumentTypeError: sjdsajkd is not a directory
     """
     if os.path.isdir(path):
         return path
-    raise argparse.ArgumentTypeError(to_bytes(u'{0} is not a directory'.format(path)))
+    raise argparse.ArgumentTypeError(to_bytes('{0} is not a directory'.format(path)))
 
 
 def is_file(path):
-    u"""
+    """
     Check if path is an actual file and return it.
 
     Please find a "real world" example in the docstring of this module.
 
     **Example usage**
 
-    >>> print(is_file(u'/etc/hosts'))
+    >>> print(is_file('/etc/hosts'))
     /etc/hosts
-    >>> is_file(u'wdjiwdji')
+    >>> is_file('wdjiwdji')
     Traceback (most recent call last):
         ...
     ArgumentTypeError: wdjiwdji is not a file
     """
     if os.path.isfile(path):
         return path
-    raise argparse.ArgumentTypeError(to_bytes(u'{0} is not a file'.format(path)))
+    raise argparse.ArgumentTypeError(to_bytes('{0} is not a file'.format(path)))
 
 
 class FullPaths(argparse.Action):
-    u"""Expand user- and relative-paths."""
+    """Expand user- and relative-paths."""
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))

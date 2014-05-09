@@ -28,7 +28,7 @@ from django.core.files.storage import FileSystemStorage
 
 
 class OverwriteMixin(object):
-    u"""Update get_available_name to remove any previously stored file (if any) before returning the name."""
+    """Update get_available_name to remove any previously stored file (if any) before returning the name."""
 
     def get_available_name(self, name):
         self.delete(name)
@@ -36,4 +36,4 @@ class OverwriteMixin(object):
 
 
 class OverwriteFileSystemStorage(OverwriteMixin, FileSystemStorage):
-    u"""A file-system based storage that let overwrite files with the same name."""
+    """A file-system based storage that let overwrite files with the same name."""

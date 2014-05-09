@@ -31,7 +31,7 @@ from .encoding import string_types
 
 
 def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):
-    u"""
+    """
     Return the current (timezone aware) date and time as UTC (tz=pytz.utc), local (tz=None) or related to a timezone.
     If format is not None, the date will be returned in a formatted string.
 
@@ -41,7 +41,7 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     :type append_utc: bool
     :param offset: Offset to add to current time
     :type offset: datetime.timedelta
-    :param tz: The timezone (e.g. pytz.timezone(u'EST'))
+    :param tz: The timezone (e.g. pytz.timezone('EST'))
     :type tz: tz
 
     **Example usage**
@@ -56,37 +56,37 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     Append UTC to output date string:
 
     >>> assert(isinstance(datetime_now(), string_types))
-    >>> assert(u' UTC' not in datetime_now(tz=pytz.utc, append_utc=False))
-    >>> assert(u' UTC' not in datetime_now(tz=None, append_utc=True))
-    >>> assert(u' UTC' not in datetime_now(tz=pytz.timezone(u'EST'), append_utc=True))
-    >>> assert(u' UTC' in datetime_now(tz=pytz.utc, append_utc=True))
+    >>> assert(' UTC' not in datetime_now(tz=pytz.utc, append_utc=False))
+    >>> assert(' UTC' not in datetime_now(tz=None, append_utc=True))
+    >>> assert(' UTC' not in datetime_now(tz=pytz.timezone('EST'), append_utc=True))
+    >>> assert(' UTC' in datetime_now(tz=pytz.utc, append_utc=True))
 
     Play with timezones:
 
-    >> datetime_now(tz=pytz.timezone(u'Europe/Zurich'))
-    u'2013-10-17 09:54:08'
-    >> datetime_now(tz=pytz.timezone(u'US/Eastern'))
-    u'2013-10-17 03:54:08'
+    >> datetime_now(tz=pytz.timezone('Europe/Zurich'))
+    '2013-10-17 09:54:08'
+    >> datetime_now(tz=pytz.timezone('US/Eastern'))
+    '2013-10-17 03:54:08'
     """
     now = datetime.datetime.now(tz)
     if offset:
         now += offset
-    return (now.strftime(format) + (u' UTC' if tz == pytz.utc and append_utc else u'')) if format else now
+    return (now.strftime(format) + (' UTC' if tz == pytz.utc and append_utc else '')) if format else now
 
 
-def datetime2str(date_time, format=u'%Y-%m-%d %H:%M:%S', append_utc=False):
-    return date_time.strftime(format) + (u' UTC' if append_utc else u'')
+def datetime2str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
+    return date_time.strftime(format) + (' UTC' if append_utc else '')
 
 
-def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
-    u"""
+def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
+    """
     Return the date string converted into an instance of datetime.
 
     **Example usage**
 
-    >>> str2datetime(u'1985-01-06 05:02:00')
+    >>> str2datetime('1985-01-06 05:02:00')
     datetime.datetime(1985, 1, 6, 5, 2)
-    >>> str2datetime(u'this is not a date')
+    >>> str2datetime('this is not a date')
     Traceback (most recent call last):
         ...
     ValueError: time data 'this is not a date' does not match format '%Y-%m-%d %H:%M:%S'
@@ -95,7 +95,7 @@ def str2datetime(date, format=u'%Y-%m-%d %H:%M:%S'):
 
 
 def secs_to_time(value, defaults_to_zero=False):
-    u"""
+    """
     Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
 
     **Example usage**
@@ -115,7 +115,7 @@ def secs_to_time(value, defaults_to_zero=False):
 
 
 def str2time(value):
-    u"""
+    """
     Return the string of format 'hh:mm:ss' into an instance of time.
 
     **Example usage**
@@ -125,23 +125,23 @@ def str2time(value):
     >>> str2time('00:03:02.12')
     datetime.time(0, 3, 2, 120)
     """
-    hours, minutes, seconds_float = value.split(u':')
+    hours, minutes, seconds_float = value.split(':')
     seconds_float = float(seconds_float)
     seconds = int(seconds_float)
     return datetime.time(int(hours), int(minutes), seconds, int(1000 * (seconds_float - seconds)))
 
 
 def time_ratio(numerator, denominator, zero_div_result=1.0):
-    u"""
+    """
     Return the ratio between two times.
 
     **Example usage**
 
-    >>> print(time_ratio(u'0:30:00', u'01:30:00'))  # doctest: +ELLIPSIS
+    >>> print(time_ratio('0:30:00', '01:30:00'))  # doctest: +ELLIPSIS
     0.33...
-    >>> print(time_ratio(u'0:00:05', u'00:00:00'))  # doctest: +ELLIPSIS
+    >>> print(time_ratio('0:00:05', '00:00:00'))  # doctest: +ELLIPSIS
     1.0
-    >>> print(time_ratio(u'01:42:34', u'N/A'))
+    >>> print(time_ratio('01:42:34', 'N/A'))
     Traceback (most recent call last):
         ...
     ValueError: could not convert string to float: N/A
@@ -154,16 +154,16 @@ def time_ratio(numerator, denominator, zero_div_result=1.0):
 
 
 def total_seconds(time):
-    u"""
+    """
     Return the time converted in seconds.
 
     **Example usage**
 
-    >>> total_seconds(u'00:10:00')
+    >>> total_seconds('00:10:00')
     600.0
-    >>> total_seconds(u'01:54:17')
+    >>> total_seconds('01:54:17')
     6857.0
-    >>> print(round(total_seconds(u'16.40'), 3))
+    >>> print(round(total_seconds('16.40'), 3))
     16.4
     >>> total_seconds(143.2)
     143.2
@@ -176,7 +176,7 @@ def total_seconds(time):
     """
     try:
         if isinstance(time, string_types):
-            hours, minutes, seconds = time.split(u':')
+            hours, minutes, seconds = time.split(':')
         elif isinstance(time, numbers.Number):
             return time
         else:
@@ -187,7 +187,7 @@ def total_seconds(time):
 
 
 def datetime2epoch(date_time, utc=True, factor=1):
-    u"""
+    """
     Return the datetime/date converted into an Unix epoch.
     Default ``factor`` means that the result is in seconds.
 
@@ -218,7 +218,7 @@ def datetime2epoch(date_time, utc=True, factor=1):
 
 
 def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
-    u"""
+    """
     Return the Unix epoch converted to a datetime. Default ``factor`` means that the ``unix_epoch`` is in seconds.
 
     **Example usage**
@@ -228,7 +228,7 @@ def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
     datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>)
     >>> epoch2datetime(1276128000, factor=1)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
-    >>> epoch2datetime(1276128000, tz=pytz.timezone(u'Europe/Zurich'), factor=1)
+    >>> epoch2datetime(1276128000, tz=pytz.timezone('Europe/Zurich'), factor=1)
     datetime.datetime(2010, 6, 10, 2, 0, tzinfo=<DstTzInfo 'Europe/Zurich' CEST+2:00:00 DST>)
     >>> epoch2datetime(1276128000000, factor=1000)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)

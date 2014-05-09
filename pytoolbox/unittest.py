@@ -34,21 +34,21 @@ else:
     from mock import Mock
 
 
-MOCK_SIDE_EFFECT_RETURNS = [Exception(u'you must set MOCK_SIDE_EFFECT_RETURNS'), {u'title': u'2nd'}]
+MOCK_SIDE_EFFECT_RETURNS = [Exception('you must set MOCK_SIDE_EFFECT_RETURNS'), {'title': '2nd'}]
 
 
-def mock_cmd(stdout=u'', stderr=u'', returncode=0):
-    return Mock(return_value={u'stdout': stdout, u'stderr': stderr, u'returncode': returncode})
+def mock_cmd(stdout='', stderr='', returncode=0):
+    return Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
 
 
 def mock_side_effect(*args, **kwargs):
-    u"""
+    """
     Pop and return values from MOCK_SIDE_EFFECT_RETURNS.
 
     From your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this function::
 
         import pytoolbox.unittest
-        pytoolbox.unittest.MOCK_SIDE_EFFECT_RETURNS = [u'1st', {u'title': u'2nd'}, EOFError(u'last')]
+        pytoolbox.unittest.MOCK_SIDE_EFFECT_RETURNS = ['1st', {'title': '2nd'}, EOFError('last')]
 
     **example usage**
 
@@ -62,7 +62,7 @@ def mock_side_effect(*args, **kwargs):
     Traceback (most recent call last):
     ...
     Exception: you must set MOCK_SIDE_EFFECT_RETURNS
-    >>> eq_(mock_side_effect(), {u'title': u'2nd'})
+    >>> eq_(mock_side_effect(), {'title': '2nd'})
     >>>
     >>> print(mock_side_effect())
     Traceback (most recent call last):
@@ -77,7 +77,7 @@ def mock_side_effect(*args, **kwargs):
 
 
 class PseudoTestCase(TestCase):
-    u"""
+    """
     Pseudo test-case to map result from :mod:`nose` to :mod:`unittest`.
 
     In fact, :mod:`unittest` ``loader.py`` check if we return an instance of TestCase ...
@@ -91,14 +91,13 @@ class PseudoTestCase(TestCase):
 
 
 def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
-    u"""Run tests and report coverage with nose and coverage."""
+    """Run tests and report coverage with nose and coverage."""
     from .encoding import configure_unicode
     configure_unicode()
     extra_options = extra_options or []
-    cover_packages = [u'--cover-package={0}'.format(package) for package in cover_packages]
-    nose_options = filter(None, [test_file, u'--with-doctest', u'--with-coverage', u'--cover-erase', u'--exe'] +
-                          cover_packages + [u'--cover-html', u'-vv', u'-w', dirname(test_file)] + packages +
-                          extra_options)
+    cover_packages = ['--cover-package={0}'.format(package) for package in cover_packages]
+    nose_options = filter(None, [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'] +
+                          cover_packages + ['--cover-html', '-vv', '-w', dirname(test_file)] + packages + extra_options)
     if ignore:
         nose_options += ['-I', ignore]
     os.chdir(abspath(dirname(test_file)))

@@ -52,21 +52,21 @@ register = template.Library()
 
 NUMERIC_TEST = re.compile('^\d+$')
 LABEL_TO_CLASS = {
-    u'ERROR':    u'label-important',
-    u'FAILURE':  u'label-important',
-    u'PENDING':  u'label-warning',
-    u'STARTED':  u'label-info',
-    u'PROGRESS': u'label-info',
-    u'RETRY':    u'label-warning',
-    u'REVOKED':  u'label-inverse',
-    u'SUCCESS':  u'label-success'
+    'ERROR':    'label-important',
+    'FAILURE':  'label-important',
+    'PENDING':  'label-warning',
+    'STARTED':  'label-info',
+    'PROGRESS': 'label-info',
+    'RETRY':    'label-warning',
+    'REVOKED':  'label-inverse',
+    'SUCCESS':  'label-success'
 }
-LABEL_TO_CLASS.update(getattr(settings, u'LABEL_TO_CLASS', {}))
+LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
 
 
 @register.filter(is_safe=True)
 def getattribute(value, attribute):
-    u"""
+    """
     Gets an attribute of an object dynamically from a string name.
 
     Source : https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
@@ -80,7 +80,7 @@ def getattribute(value, attribute):
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
-    elif hasattr(value, u'has_key') and value.has_key(attribute):
+    elif hasattr(value, 'has_key') and value.has_key(attribute):
         return value[attribute]
     elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
@@ -89,7 +89,7 @@ def getattribute(value, attribute):
 
 @register.filter(is_safe=True)
 def rst_title(value, level):
-    u"""
+    """
     Return a title formatted with reSTructuredtext markup.
 
     level as number: (1, 2, 3, 4, 5)
@@ -111,22 +111,22 @@ def rst_title(value, level):
     """
     value, level = unicode(value), unicode(level)
     length = len(value)
-    if level in (u'1', u'document'):
-        return u'{0}\n{1}\n{2}\n'.format(u'=' * length, value, u'=' * length)
-    elif level in (u'2', u'subtitle'):
-        return u'{0}\n{1}\n{2}\n'.format(u'-' * length, value, u'-' * length)
-    elif level in (u'3', u'chapter'):
-        return u'{0}\n{1}\n'.format(value, u'=' * length)
-    elif level in (u'4', u'section'):
-        return u'{0}\n{1}\n'.format(value, u'-' * length)
-    elif level in (u'5', u'subsection'):
-        return u'{0}\n{1}\n'.format(value, u'~' * length)
+    if level in ('1', 'document'):
+        return '{0}\n{1}\n{2}\n'.format('=' * length, value, '=' * length)
+    elif level in ('2', 'subtitle'):
+        return '{0}\n{1}\n{2}\n'.format('-' * length, value, '-' * length)
+    elif level in ('3', 'chapter'):
+        return '{0}\n{1}\n'.format(value, '=' * length)
+    elif level in ('4', 'section'):
+        return '{0}\n{1}\n'.format(value, '-' * length)
+    elif level in ('5', 'subsection'):
+        return '{0}\n{1}\n'.format(value, '~' * length)
     return settings.TEMPLATE_STRING_IF_INVALID
 
 
 @register.filter(is_safe=True)
 def secs_to_time(value, defaults_to_zero=False):
-    u"""
+    """
     Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
 
     Output::
@@ -141,8 +141,8 @@ def secs_to_time(value, defaults_to_zero=False):
 
 @register.filter(needs_autoescape=True)
 @stringfilter
-def status_label(value, autoescape=None, default=u''):
-    u"""
+def status_label(value, autoescape=None, default=''):
+    """
     Return the status string represented as a span with a Twitter Bootstrap class.
 
     Output::
@@ -158,4 +158,4 @@ def status_label(value, autoescape=None, default=u''):
     """
     esc = conditional_escape if autoescape else lambda x: x
     value = esc(value).upper()
-    return mark_safe(u'<span class="label {0}">{1}</span>'.format(LABEL_TO_CLASS.get(value, default), value))
+    return mark_safe('<span class="label {0}">{1}</span>'.format(LABEL_TO_CLASS.get(value, default), value))

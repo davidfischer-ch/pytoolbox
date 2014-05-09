@@ -29,7 +29,7 @@ from .base import FecPacket
 
 
 class FecGenerator(object):
-    u"""
+    """
     A SMPTE 2022-1 FEC streams generator.
     This generator accept incoming RTP media packets and compute corresponding FEC packets.
     """
@@ -38,7 +38,7 @@ class FecGenerator(object):
 
     @property
     def L(self):
-        u"""
+        """
         Returns the Horizontal size of the FEC matrix (columns).
 
         **Example usage**
@@ -50,7 +50,7 @@ class FecGenerator(object):
 
     @property
     def D(self):
-        u"""
+        """
         Returns the vertical size of the FEC matrix (rows).
 
         **Example usage**
@@ -63,7 +63,7 @@ class FecGenerator(object):
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(self, L, D):
-        u"""
+        """
         Construct a FecGenerator.
 
         :param L: Horizontal size of the FEC matrix (columns)
@@ -82,7 +82,7 @@ class FecGenerator(object):
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def on_new_col(self, col, caller):
-        u"""
+        """
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
         By default this method only print a message to ``stdout``.
@@ -96,11 +96,11 @@ class FecGenerator(object):
         :param caller: The generator that fired this method / event
         :type caller: FecGenerator
         """
-        print(u'New COL FEC packet seq={0} snbase={1} LxD={2}x{3} trec={4}'.format(
+        print('New COL FEC packet seq={0} snbase={1} LxD={2}x{3} trec={4}'.format(
               col.sequence, col.snbase, col.L, col.D, col.timestamp_recovery))
 
     def on_new_row(self, row, caller):
-        u"""
+        """
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 
         By default this method only print a message to ``stdout``.
@@ -114,11 +114,11 @@ class FecGenerator(object):
         :param caller: The generator that fired this method / event
         :type caller: FecGenerator
         """
-        print(u'New ROW FEC packet seq={0} snbase={1} LxD={2}x{3} trec={4}'.format(
+        print('New ROW FEC packet seq={0} snbase={1} LxD={2}x{3} trec={4}'.format(
               row.sequence, row.snbase, row.L, row.D, row.timestamp_recovery))
 
     def on_reset(self, media, caller):
-        u"""
+        """
         Called by FecGenerator when the algorithm is resetted (an incoming media is out of sequence).
 
         By default this method only print a message to ``stdout``.
@@ -132,11 +132,11 @@ class FecGenerator(object):
         :param caller: The generator that fired this method / event
         :type caller: FecGenerator
         """
-        print(u'Media seq={0} is out of sequence (expected {1}) : FEC algorithm resetted !'.format(
+        print('Media seq={0} is out of sequence (expected {1}) : FEC algorithm resetted !'.format(
               media.sequence, self._media_sequence))
 
     def put_media(self, media):
-        u"""
+        """
         Put an incoming media packet.
 
         :param media: Incoming media packet
@@ -148,15 +148,15 @@ class FecGenerator(object):
 
         >>> from nose.tools import eq_
         >>> g = FecGenerator(4, 5)
-        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray(u'Tabby', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('Tabby', 'utf-8')))
         Media seq=1 is out of sequence (expected None) : FEC algorithm resetted !
-        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray(u'1234', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('1234', 'utf-8')))
         Media seq=1 is out of sequence (expected 2) : FEC algorithm resetted !
-        >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray(u'abcd', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray('abcd', 'utf-8')))
         Media seq=4 is out of sequence (expected 2) : FEC algorithm resetted !
-        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray(u'python', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('python', 'utf-8')))
         Media seq=2 is out of sequence (expected 5) : FEC algorithm resetted !
-        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray(u'Kuota Kharma Evo', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('Kuota Kharma Evo', 'utf-8')))
         Media seq=2 is out of sequence (expected 3) : FEC algorithm resetted !
         >>> print(g)
         Matrix size L x D            = 4 x 5
@@ -167,27 +167,27 @@ class FecGenerator(object):
         Media  sequence number       = 3
         Medias buffer (seq. numbers) = [2]
         >>> if isinstance(g._medias[0].payload, bytearray):
-        ...     eq_(g._medias[0].payload, bytearray(u'Kuota Kharma Evo', u'utf-8'))
+        ...     eq_(g._medias[0].payload, bytearray('Kuota Kharma Evo', 'utf-8'))
         ... else:
-        ...     eq_(g._medias[0].payload, u'Kuota Kharma Evo')
+        ...     eq_(g._medias[0].payload, 'Kuota Kharma Evo')
 
         Testing a complete 3x4 matrix:
 
         >>> g = FecGenerator(3, 4)
-        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray(u'Tabby', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('Tabby', 'utf-8')))
         Media seq=1 is out of sequence (expected None) : FEC algorithm resetted !
-        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray(u'1234', u'utf-8')))
-        >>> g.put_media(RtpPacket.create(3, 300, RtpPacket.MP2T_PT, bytearray(u'abcd', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('1234', 'utf-8')))
+        >>> g.put_media(RtpPacket.create(3, 300, RtpPacket.MP2T_PT, bytearray('abcd', 'utf-8')))
         New ROW FEC packet seq=1 snbase=1 LxD=3xNone trec=384
-        >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray(u'python', u'utf-8')))
-        >>> g.put_media(RtpPacket.create(5, 500, RtpPacket.MP2T_PT, bytearray(u'Kuota harma Evo', u'utf-8')))
-        >>> g.put_media(RtpPacket.create(6, 600, RtpPacket.MP2T_PT, bytearray(u'h0ffman', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray('python', 'utf-8')))
+        >>> g.put_media(RtpPacket.create(5, 500, RtpPacket.MP2T_PT, bytearray('Kuota harma Evo', 'utf-8')))
+        >>> g.put_media(RtpPacket.create(6, 600, RtpPacket.MP2T_PT, bytearray('h0ffman', 'utf-8')))
         New ROW FEC packet seq=2 snbase=4 LxD=3xNone trec=572
-        >>> g.put_media(RtpPacket.create(7, 700, RtpPacket.MP2T_PT, bytearray(u'mutable', u'utf-8')))
-        >>> g.put_media(RtpPacket.create(8, 800, RtpPacket.MP2T_PT, bytearray(u'10061987', u'utf-8')))
-        >>> g.put_media(RtpPacket.create(9, 900, RtpPacket.MP2T_PT, bytearray(u'OSCIED', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(7, 700, RtpPacket.MP2T_PT, bytearray('mutable', 'utf-8')))
+        >>> g.put_media(RtpPacket.create(8, 800, RtpPacket.MP2T_PT, bytearray('10061987', 'utf-8')))
+        >>> g.put_media(RtpPacket.create(9, 900, RtpPacket.MP2T_PT, bytearray('OSCIED', 'utf-8')))
         New ROW FEC packet seq=3 snbase=7 LxD=3xNone trec=536
-        >>> g.put_media(RtpPacket.create(10, 1000, RtpPacket.MP2T_PT, bytearray(u'5ème élément', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(10, 1000, RtpPacket.MP2T_PT, bytearray('5ème élément', 'utf-8')))
         New COL FEC packet seq=1 snbase=1 LxD=3x4 trec=160
         >>> print(g)
         Matrix size L x D            = 3 x 4
@@ -197,9 +197,9 @@ class FecGenerator(object):
         Row    sequence number       = 4
         Media  sequence number       = 11
         Medias buffer (seq. numbers) = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        >>> g.put_media(RtpPacket.create(11, 1100, RtpPacket.MP2T_PT, bytearray(u'Chaos Theory', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(11, 1100, RtpPacket.MP2T_PT, bytearray('Chaos Theory', 'utf-8')))
         New COL FEC packet seq=2 snbase=2 LxD=3x4 trec=1616
-        >>> g.put_media(RtpPacket.create(12, 1200, RtpPacket.MP2T_PT, bytearray(u'Yes, it WORKS !', u'utf-8')))
+        >>> g.put_media(RtpPacket.create(12, 1200, RtpPacket.MP2T_PT, bytearray('Yes, it WORKS !', 'utf-8')))
         New ROW FEC packet seq=4 snbase=10 LxD=3xNone trec=788
         New COL FEC packet seq=3 snbase=3 LxD=3x4 trec=1088
         >>> print(g)
@@ -247,7 +247,7 @@ class FecGenerator(object):
             self._medias = []
 
     def __str__(self):
-        u"""
+        """
         Returns a string containing a formated representation of the FEC streams generator.
 
         **Example usage**
@@ -262,7 +262,7 @@ class FecGenerator(object):
         Medias buffer (seq. numbers) = []
         """
         medias = [p.sequence for p in self._medias]
-        return (u"""Matrix size L x D            = {0} x {1}
+        return ("""Matrix size L x D            = {0} x {1}
 Total invalid media packets  = {2}
 Total media packets received = {3}
 Column sequence number       = {4}

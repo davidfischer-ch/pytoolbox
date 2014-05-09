@@ -32,7 +32,7 @@ class TestValidation(object):
 
     def test_validate_list(self):
         regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
-        validate_list([10, "call([u'my_var', recursive=False])"], regexes)
+        validate_list([10, "call(['my_var', recursive=False])"], regexes)
 
     @raises(IndexError)
     def test_validate_list_fail_size(self):
@@ -41,4 +41,4 @@ class TestValidation(object):
     @raises(ValueError)
     def test_validate_list_fail_value(self):
         regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
-        validate_list([10, u"call([u'my_var', recursive='error'])"], regexes)
+        validate_list([10, "call(['my_var', recursive='error'])"], regexes)

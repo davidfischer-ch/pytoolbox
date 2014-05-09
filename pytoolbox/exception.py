@@ -28,17 +28,17 @@ from .encoding import to_bytes
 
 
 class ForbiddenError(Exception):
-    u"""A forbidden error."""
+    """A forbidden error."""
     pass
 
 
 class TimeoutError(Exception):
-    u"""A time-out error."""
+    """A time-out error."""
     pass
 
 
 def assert_raises_item(exception_cls, something, index, value=None, delete=False):
-    u"""
+    """
 
     **Example usage**
 
@@ -84,7 +84,7 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
             something[index] = value
     except Exception as e:
         if not isinstance(e, exception_cls):
-            raise ValueError(to_bytes(u'Exception {0} is not an instance of {1}.'.format(
+            raise ValueError(to_bytes('Exception {0} is not an instance of {1}.'.format(
                              e.__class__.__name__, exception_cls.__name__)))
         return
-    raise AssertionError(to_bytes(u'Exception {0} not raised.'.format(exception_cls.__name__)))
+    raise AssertionError(to_bytes('Exception {0} not raised.'.format(exception_cls.__name__)))

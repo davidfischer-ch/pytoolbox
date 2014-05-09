@@ -28,7 +28,7 @@ import struct
 
 
 class RtpPacket(object):
-    u"""
+    """
     This represent a real-time transport protocol (RTP) packet.
 
     * :rfc:`3550`
@@ -72,10 +72,10 @@ class RtpPacket(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    ER_VERSION = u'RTP Header : Version must be set to 2'
-    ER_PADDING_LENGTH = u'RTP Header : Bad padding length'
-    ER_EXTENSION_LENGTH = u'RTP Header : Bad extension length'
-    ER_PAYLOAD = u'RTP packet must have a payload'
+    ER_VERSION = 'RTP Header : Version must be set to 2'
+    ER_PADDING_LENGTH = 'RTP Header : Bad padding length'
+    ER_EXTENSION_LENGTH = 'RTP Header : Bad extension length'
+    ER_PAYLOAD = 'RTP packet must have a payload'
 
     HEADER_LENGTH = 12
     V_MASK = 0xc0
@@ -95,17 +95,17 @@ class RtpPacket(object):
 
     @property
     def valid(self):
-        u"""Returns True if this packet is a valid RTP packet."""
+        """Returns True if this packet is a valid RTP packet."""
         return len(self.errors) == 0
 
     @property
     def validMP2T(self):
-        u"""Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
+        """Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
         return self.valid and self.payload_type == RtpPacket.MP2T_PT
 
     @property
     def errors(self):
-        u"""
+        """
         Returns an array containing any errors.
 
         :return: array of error message(s).
@@ -116,11 +116,11 @@ class RtpPacket(object):
 
         >>> from nose.tools import eq_
         >>> rtp = RtpPacket(bytearray(RtpPacket.HEADER_LENGTH-1), RtpPacket.HEADER_LENGTH-1)
-        >>> eq_(rtp.errors, [u'RTP Header : Version must be set to 2', u'RTP packet must have a payload'])
+        >>> eq_(rtp.errors, ['RTP Header : Version must be set to 2', 'RTP packet must have a payload'])
 
         Testing a valid RTP packet with a MPEG2-TS payload:
 
-        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, u'salut')
+        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, 'salut')
         >>> eq_(rtp.errors, [])
         """
         errors = []
@@ -134,17 +134,17 @@ class RtpPacket(object):
 
     @property
     def clock_rate(self):
-        u"""Return the MPEG2-TS clock rate of a MPEG2-TS payload or 1 if this is not."""
+        """Return the MPEG2-TS clock rate of a MPEG2-TS payload or 1 if this is not."""
         return RtpPacket.MP2T_CLK if self.payload_type == RtpPacket.MP2T_PT else 1
 
     @property
     def header_size(self):
-        u"""
+        """
         Returns the length (aka size) of the header.
 
         **Example usage**
 
-        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, u'salut')
+        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, 'salut')
         >>> print(rtp.header_size)
         12
         """
@@ -152,12 +152,12 @@ class RtpPacket(object):
 
     @property
     def payload_size(self):
-        u"""
+        """
         Returns the length (aka size) of the payload.
 
         **Example usage**
 
-        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, u'salut')
+        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, 'salut')
         >>> print(rtp.payload_size)
         5
         """
@@ -165,17 +165,17 @@ class RtpPacket(object):
 
     @property
     def time(self):
-        u"""Return computed time (*timestamp / clock rate*)."""
+        """Return computed time (*timestamp / clock rate*)."""
         return self.timestamp / self.clock_rate
 
     @property
     def header_bytes(self):
-        u"""
+        """
         Return the RTP header bytes.
 
         *Example usage*
 
-        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, bytearray.fromhex(u'00 01 02 03'))
+        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, bytearray.fromhex('00 01 02 03'))
         >>> print(rtp)
         version      = 2
         errors       = []
@@ -192,7 +192,7 @@ class RtpPacket(object):
         payload size = 4
         >>> header = rtp.header_bytes
         >>> assert(len(header) == 12)
-        >>> print(u''.join(' %02x' % b for b in header))
+        >>> print(''.join(' %02x' % b for b in header))
          80 21 00 06 00 00 03 09 00 00 00 00
         >>> header += rtp.payload
         >>> rtp2 = RtpPacket(header, len(header))
@@ -215,7 +215,7 @@ class RtpPacket(object):
         payload size = 1023
         >>> header = rtp.header_bytes
         >>> assert(len(header) == 12)
-        >>> print(u''.join(' %02x' % b for b in header))
+        >>> print(''.join(' %02x' % b for b in header))
          80 60 ff ff ff ff ff ff 00 00 00 00
         >>> header += rtp.payload
         >>> rtp2 = RtpPacket(header, len(header))
@@ -240,13 +240,13 @@ class RtpPacket(object):
 
     @property
     def bytes(self):
-        u"""Return the RTP packet header and payload bytes."""
+        """Return the RTP packet header and payload bytes."""
         return self.header_bytes + self.payload
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(self, bytes, length):
-        u"""
+        """
         This constructor will parse input bytes array to fill packet's fields.
         In case of error (e.g. bad version number) the constructor will abort filling fields and
         un-updated fields are set to their corresponding default value.
@@ -271,7 +271,7 @@ class RtpPacket(object):
 
         Testing header fields value:
 
-        >>> bytes = bytes.fromhex(u'80 a1 a4 25 ca fe b5 04 b0 60 5e bb 12 34')
+        >>> bytes = bytes.fromhex('80 a1 a4 25 ca fe b5 04 b0 60 5e bb 12 34')
         >>> rtp = RtpPacket(bytes, len(bytes))
         >>> assert(rtp.valid)
         >>> print(rtp)
@@ -292,8 +292,8 @@ class RtpPacket(object):
 
         Testing header fields value (with padding, extension and ccrc):
 
-        >>> bytes = bytes.fromhex(u'b5a1a401 cafea421 b0605ebb 11111111 22222222 33333333 '
-        ...                       u'44444444 55555555 00000004 87654321 12340002')
+        >>> bytes = bytes.fromhex('b5a1a401 cafea421 b0605ebb 11111111 22222222 33333333 '
+        ...                       '44444444 55555555 00000004 87654321 12340002')
         >>> rtp = RtpPacket(bytes, len(bytes))
         >>> assert(rtp.valid)
         >>> assert(rtp.version == 2 and rtp.padding and rtp.extension and rtp.marker)
@@ -369,7 +369,7 @@ class RtpPacket(object):
 
     @staticmethod
     def create(sequence, timestamp, payload_type, payload):
-        u"""
+        """
         Create a valid RTP packet with a given payload.
 
         :param sequence: Packet sequence number (16 bits)
@@ -383,9 +383,9 @@ class RtpPacket(object):
 
         **Example usage**
 
-        >>> p = RtpPacket.create(10, 1024, RtpPacket.MP2T_PT, u'The payload string')
-        >>> q = RtpPacket.create(11, 1028, RtpPacket.MP2T_PT, bytearray.fromhex(u'00 11 22 33'))
-        >>> r = RtpPacket.create(11, 1028, RtpPacket.DYNAMIC_PT, bytearray.fromhex(u'cc aa ff ee'))
+        >>> p = RtpPacket.create(10, 1024, RtpPacket.MP2T_PT, 'The payload string')
+        >>> q = RtpPacket.create(11, 1028, RtpPacket.MP2T_PT, bytearray.fromhex('00 11 22 33'))
+        >>> r = RtpPacket.create(11, 1028, RtpPacket.DYNAMIC_PT, bytearray.fromhex('cc aa ff ee'))
         >>> assert(p.validMP2T and q.validMP2T and r.valid)
         """
         rtp = RtpPacket(None, 0)
@@ -402,7 +402,7 @@ class RtpPacket(object):
         return rtp
 
     def __eq__(self, other):
-        u"""
+        """
         Equality test.
 
         .. warning::
@@ -414,12 +414,12 @@ class RtpPacket(object):
                     self.payload_type == other.payload_type and self.payload == other.payload)
 
     def __str__(self):
-        u"""
+        """
         Returns a string containing a formated representation of the packet fields.
 
         **Example usage**
 
-        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, u'salut les loulous')
+        >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, 'salut les loulous')
         >>> print(rtp)
         version      = 2
         errors       = []
@@ -435,7 +435,7 @@ class RtpPacket(object):
         csrc count   = 0
         payload size = 17
         """
-        return (u"""version      = {0}
+        return ("""version      = {0}
 errors       = {1}
 padding      = {2}
 extension    = {3}

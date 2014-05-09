@@ -28,8 +28,8 @@ import hashlib
 from .encoding import string_types
 
 
-def githash(data, encoding=u'utf-8'):
-    u"""
+def githash(data, encoding='utf-8'):
+    """
     Return the blob of some data.
 
     This is how Git calculates the SHA1 for a file (or, in Git terms, a "blob")::
@@ -42,15 +42,15 @@ def githash(data, encoding=u'utf-8'):
 
     **Example usage**
 
-    >>> print(githash(u''))
+    >>> print(githash(''))
     e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
-    >>> print(githash(u'give me some hash please'))
+    >>> print(githash('give me some hash please'))
     abdd1818289725c072eff0f5ce185457679650be
-    >>> print(githash(u'et ça fonctionne !\\n'))
+    >>> print(githash('et ça fonctionne !\\n'))
     91de5baf6aaa1af4f662aac4383b27937b0e663d
     """
     data_bytes = data.encode(encoding) if isinstance(data, string_types) else data
     s = hashlib.sha1()
-    s.update((u'blob %d\0' % len(data_bytes)).encode(u'utf-8'))
+    s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
     s.update(data_bytes)
     return s.hexdigest()

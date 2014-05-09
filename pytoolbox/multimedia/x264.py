@@ -38,23 +38,23 @@ ENCODING_REGEX = re.compile(
 )
 
 
-def encode(in_filename, out_filename, encoder_string, default_in_duration=u'00:00:00', ratio_delta=0.01, time_delta=1,
+def encode(in_filename, out_filename, encoder_string, default_in_duration='00:00:00', ratio_delta=0.01, time_delta=1,
            max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05):
 
     # Get input media duration and size to be able to estimate ETA
     in_duration = get_media_duration(in_filename) or default_in_duration
     in_duration_secs = total_seconds(in_duration)
     in_size = get_size(in_filename)
-    out_filename = out_filename or u'/dev/null'
+    out_filename = out_filename or '/dev/null'
 
     # Initialize metrics
-    output = u''
+    output = ''
     stats = {}
     start_date, start_time = datetime_now(), time.time()
     prev_ratio = prev_time = ratio = 0
 
     # Create x264 subprocess
-    cmd = u'x264 {0} -o "{1}" "{2}"'.format(encoder_string, out_filename, in_filename)
+    cmd = 'x264 {0} -o "{1}" "{2}"'.format(encoder_string, out_filename, in_filename)
     x264 = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
     make_async(x264.stderr)
 
@@ -67,29 +67,29 @@ def encode(in_filename, out_filename, encoder_string, default_in_duration=u'00:0
         match = ENCODING_REGEX.match(chunk)
         if match:
             stats = match.groupdict()
-            out_duration = secs_to_time(in_duration_secs * float(stats[u'percent']))
-            ratio = float(stats[u'frame']) / float(stats[u'frame_total'])
+            out_duration = secs_to_time(in_duration_secs * float(stats['percent']))
+            ratio = float(stats['frame']) / float(stats['frame_total'])
             delta_time = elapsed_time - prev_time
             if (ratio - prev_ratio > ratio_delta and delta_time > time_delta) or delta_time > max_time_delta:
                 prev_ratio, prev_time = ratio, elapsed_time
                 yield {
                     # FIXME report frame_total ?
-                    u'status': u'PROGRESS',
-                    u'output': output,
-                    u'returncode': None,
-                    u'start_date': start_date,
-                    u'elapsed_time': elapsed_time,
-                    u'eta_time': total_seconds(stats[u'eta']),
-                    u'in_size': in_size,
-                    u'in_duration': in_duration,
-                    u'out_size': get_size(out_filename),
-                    u'out_duration': out_duration,
-                    u'percent': float(stats[u'percent']),
-                    u'frame': int(stats[u'frame']),
-                    u'fps': float(stats[u'fps']),
-                    u'bitrate': stats[u'bitrate'],
-                    u'quality': None,  # FIXME
-                    u'sanity': None
+                    'status': 'PROGRESS',
+                    'output': output,
+                    'returncode': None,
+                    'start_date': start_date,
+                    'elapsed_time': elapsed_time,
+                    'eta_time': total_seconds(stats['eta']),
+                    'in_size': in_size,
+                    'in_duration': in_duration,
+                    'out_size': get_size(out_filename),
+                    'out_duration': out_duration,
+                    'percent': float(stats['percent']),
+                    'frame': int(stats['frame']),
+                    'fps': float(stats['fps']),
+                    'bitrate': stats['bitrate'],
+                    'quality': None,  # FIXME
+                    'sanity': None
                 }
         returncode = x264.poll()
         if returncode is not None:
@@ -100,20 +100,20 @@ def encode(in_filename, out_filename, encoder_string, default_in_duration=u'00:0
     ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
     yield {
         # FIXME report frame_total ?
-        u'status': u'ERROR' if returncode else u'SUCCESS',
-        u'output': output,
-        u'returncode': returncode,
-        u'start_date': start_date,
-        u'elapsed_time': elapsed_time,
-        u'eta_time': 0,
-        u'in_size': in_size,
-        u'in_duration': in_duration,
-        u'out_size': get_size(out_filename),
-        u'out_duration': out_duration,
-        u'percent': float(stats.get(u'percent', 0)) if returncode else 100,  # Assume that a successful encoding = 100%
-        u'frame': int(stats.get(u'frame', 0)),
-        u'fps': float(stats.get(u'fps', 0)),
-        u'bitrate': stats.get(u'bitrate'),
-        u'quality': None,  # FIXME
-        u'sanity': sanity_min_ratio <= ratio <= sanity_max_ratio
+        'status': 'ERROR' if returncode else 'SUCCESS',
+        'output': output,
+        'returncode': returncode,
+        'start_date': start_date,
+        'elapsed_time': elapsed_time,
+        'eta_time': 0,
+        'in_size': in_size,
+        'in_duration': in_duration,
+        'out_size': get_size(out_filename),
+        'out_duration': out_duration,
+        'percent': float(stats.get('percent', 0)) if returncode else 100,  # Assume that a successful encoding = 100%
+        'frame': int(stats.get('frame', 0)),
+        'fps': float(stats.get('fps', 0)),
+        'bitrate': stats.get('bitrate'),
+        'quality': None,  # FIXME
+        'sanity': sanity_min_ratio <= ratio <= sanity_max_ratio
     }

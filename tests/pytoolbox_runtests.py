@@ -32,14 +32,14 @@ from pytoolbox.unittest import runtests
 
 
 def main():
-    print(u'Download the test media assets')
+    print('Download the test media assets')
     root = dirname(__file__)
-    download(u'http://techslides.com/demos/sample-videos/small.mp4', join(root, u'small.mp4'))
-    print(u'Run the tests with nose')
+    download('http://techslides.com/demos/sample-videos/small.mp4', join(root, 'small.mp4'))
+    print('Run the tests with nose')
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = (u'forms.py|models.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_tags.py' +
-              (u'|session.py|schema.py' if sys.version_info[0] > 2 else u''))
-    return runtests(__file__, cover_packages=[u'pytoolbox'], packages=[u'pytoolbox', u'tests'], ignore=ignore)
+    ignore = ('forms.py|models.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_tags.py' +
+              ('|session.py|schema.py' if sys.version_info[0] > 2 else ''))
+    return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'], ignore=ignore)
 
-if __name__ == u'__main__':
+if __name__ == '__main__':
     main()

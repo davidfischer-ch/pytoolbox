@@ -28,7 +28,7 @@ from django.db.models.fields.files import FileField
 
 
 def clean_files_delete_handler(instance, signal, **kwargs):
-    u"""
+    """
     Remove the files of the instance's file fields when it is removed from the database.
 
     Simply use ``post_delete.connect(clean_files_delete_handler, sender=<your_model_class>)``
@@ -37,7 +37,7 @@ def clean_files_delete_handler(instance, signal, **kwargs):
 
     .. note:: Project `django-cleanup <https://github.com/un1t/django-cleanup>`_ is a more complete alternative.
     """
-    for field in kwargs[u'sender']._meta.fields:
+    for field in kwargs['sender']._meta.fields:
         if isinstance(field, FileField):
             file_field = getattr(instance, field.name)
             if file_field.path:

@@ -39,11 +39,11 @@ def check_id(id):
         return id
     elif valid_uuid(id, objectid_allowed=True, none_allowed=False):
         return ObjectId(id)
-    raise ValueError(u'Wrong id format {0}'.format(id))
+    raise ValueError('Wrong id format {0}'.format(id))
 
 
 def map_exceptions(e):
-    u"""
+    """
     Maps a standard exception into corresponding HTTP exception class.
 
     **Example usage**
@@ -51,13 +51,13 @@ def map_exceptions(e):
     >>> from nose.tools import assert_raises
     >>> import werkzeug.exceptions
     >>> assert_raises(werkzeug.exceptions.BadRequest, map_exceptions, TypeError('test'))
-    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, IndexError(u'test'))
-    >>> assert_raises(werkzeug.exceptions.NotImplemented, map_exceptions, NotImplementedError(u'test'))
+    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, IndexError('test'))
+    >>> assert_raises(werkzeug.exceptions.NotImplemented, map_exceptions, NotImplementedError('test'))
 
     Any instance of HTTPException is simply raised without any mapping:
 
-    >>> assert_raises(werkzeug.exceptions.ImATeapot, map_exceptions, werkzeug.exceptions.ImATeapot(u'test'))
-    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, werkzeug.exceptions.NotFound(u'test'))
+    >>> assert_raises(werkzeug.exceptions.ImATeapot, map_exceptions, werkzeug.exceptions.ImATeapot('test'))
+    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, werkzeug.exceptions.NotFound('test'))
 
     Convert a JSON response of kind {'status': 200, 'value': '...'}:
 
@@ -83,7 +83,7 @@ def map_exceptions(e):
     elif isinstance(e, TypeError):
         abort(400, unicode(e))
     elif isinstance(e, KeyError):
-        abort(400, u'Key {0} not found.'.format(e))
+        abort(400, 'Key {0} not found.'.format(e))
     elif isinstance(e, IndexError):
         abort(404, unicode(e))
     elif isinstance(e, ValueError):
@@ -96,7 +96,7 @@ def map_exceptions(e):
 
 def json_response(status, value=None, include_properties=False):
     response = Response(
-        response=object2json({u'status': status, u'value': value}, include_properties),
-        status=status, mimetype=u'application/json')
+        response=object2json({'status': status, 'value': value}, include_properties),
+        status=status, mimetype='application/json')
     response.status_code = status
     return response

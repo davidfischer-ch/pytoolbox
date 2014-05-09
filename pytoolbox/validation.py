@@ -40,7 +40,7 @@ else:
 
 if sys.version_info[0] > 2:
     class StrongTypedMixin(object):
-        u"""
+        """
         Annotate arguments of the class __init__ with types and then you'll get a class with type checking.
 
         **Example usage**
@@ -67,31 +67,31 @@ if sys.version_info[0] > 2:
 
 
 def valid_filename(filename):
-    u"""
+    """
     Returns True if ``filename`` is a valid filename.
 
     **Example usage**
 
-    >>> valid_filename(u'my_file_without_extension')
+    >>> valid_filename('my_file_without_extension')
     False
-    >>> valid_filename(u'my_file_with_extension.mp4')
+    >>> valid_filename('my_file_with_extension.mp4')
     True
     """
     try:
-        return True if re.match(ur'[^\.]+\.[^\.]+', filename) else False
+        return True if re.match(r'[^\.]+\.[^\.]+', filename) else False
     except:
         return False
 
 
 def valid_ip(ip):
-    u"""
+    """
     Returns True if ``ip`` is a valid IP address.
 
     **Example usage**
 
-    >>> valid_ip(u'123.0.0.')
+    >>> valid_ip('123.0.0.')
     False
-    >>> valid_ip(u'239.232.0.222')
+    >>> valid_ip('239.232.0.222')
     True
     """
     try:
@@ -102,31 +102,31 @@ def valid_ip(ip):
 
 
 def valid_email(email):
-    u"""
+    """
     Returns True if ``email`` is a valid e-mail address.
 
     **Example usage**
 
-    >>> valid_email(u'Tabby@croquetes')
+    >>> valid_email('Tabby@croquetes')
     False
-    >>> valid_email(u'Tabby@bernex.ch')
+    >>> valid_email('Tabby@bernex.ch')
     True
     """
     try:
-        return True if re.match(ur'[^@]+@[^@]+\.[^@]+', email) else False
+        return True if re.match(r'[^@]+@[^@]+\.[^@]+', email) else False
     except:
         return False
 
 
 def valid_int(value):
-    u"""
+    """
     Returns True if ``value`` is a valid integer (can be converted to an int).
 
     **Example usage**
 
-    >>> valid_int(u'dimitri is not a valid integer')
+    >>> valid_int('dimitri is not a valid integer')
     False
-    >>> valid_int(u'-10')
+    >>> valid_int('-10')
     True
     """
     try:
@@ -137,14 +137,14 @@ def valid_int(value):
 
 
 def valid_port(port):
-    u"""
+    """
     Returns True if ``port`` is a valid port.
 
     **Example usage**
 
     >>> assert(not valid_port(-1))
     >>> assert(not valid_port('something not a port'))
-    >>> assert(valid_port(u'80'))
+    >>> assert(valid_port('80'))
     >>> valid_port(65535)
     True
     """
@@ -155,33 +155,33 @@ def valid_port(port):
 
 
 def valid_secret(secret, none_allowed):
-    u"""
+    """
     Returns True if ``secret`` is a valid secret.
 
     A valid secret contains at least 8 alpha-numeric characters.
 
     **Example usage**
 
-    >>> valid_secret(u'1234', False)
+    >>> valid_secret('1234', False)
     False
     >>> valid_secret(None, True)
     True
     >>> valid_secret(None, False)
     False
-    >>> valid_secret(u'my_password', False)
+    >>> valid_secret('my_password', False)
     True
     """
     if secret is None and none_allowed:
         return True
     try:
-        return True if re.match(ur'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) else False
+        return True if re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) else False
     except:
         return False
 
 
 def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, default_port=80,
               excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH), timeout=None):
-    u"""
+    """
 
     *Example usage**
 
@@ -241,7 +241,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
 
 
 def valid_uuid(id, objectid_allowed=False, none_allowed=False):
-    u"""
+    """
     Returns True if ``id`` is a valid UUID / ObjectId.
 
     **Example usage**
@@ -250,9 +250,9 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     False
     >>> valid_uuid(None, none_allowed=True)
     True
-    >>> valid_uuid(u'gaga-gogo-gaga-gogo')
+    >>> valid_uuid('gaga-gogo-gaga-gogo')
     False
-    >>> valid_uuid(u'gaga-gogo-gaga-gogo', objectid_allowed=True)
+    >>> valid_uuid('gaga-gogo-gaga-gogo', objectid_allowed=True)
     False
     >>> valid_uuid(uuid.uuid4(), none_allowed=False)
     True
@@ -270,7 +270,7 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     if id is None and none_allowed:
         return True
     try:
-        uuid.UUID(u'{{{0}}}'.format(id))
+        uuid.UUID('{{{0}}}'.format(id))
     except ValueError:
         if not objectid_allowed:
             return False
@@ -282,11 +282,11 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
 
 
 def validate_list(the_list, regexes):
-    u"""Validate every element of ``the_list`` with corresponding regular expression picked-in from ``regexes``."""
+    """Validate every element of ``the_list`` with corresponding regular expression picked-in from ``regexes``."""
     if len(the_list) != len(regexes):
-        raise IndexError(to_bytes(u'{0} elements to validate with {1} regular expressions'.format(
+        raise IndexError(to_bytes('{0} elements to validate with {1} regular expressions'.format(
                          len(the_list), len(regexes))))
     for i in xrange(len(regexes)):
         if not re.match(regexes[i], unicode(the_list[i])):
-            raise ValueError(to_bytes(u'N°{0} is invalid:\n\telement: {1}\n\tregex:   {2}'.format(
+            raise ValueError(to_bytes('N°{0} is invalid:\n\telement: {1}\n\tregex:   {2}'.format(
                              i+1, the_list[i], regexes[i])))

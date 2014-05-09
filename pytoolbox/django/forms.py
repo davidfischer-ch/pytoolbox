@@ -32,7 +32,7 @@ from ..encoding import to_bytes
 
 
 class HelpTextToPlaceholderMixin(object):
-    u"""Update the widgets of the form to copy (and remove) the field's help text to the widget's placeholder."""
+    """Update the widgets of the form to copy (and remove) the field's help text to the widget's placeholder."""
 
     #: Add a placeholder to the type of fields listed here.
     placeholder_fields = (
@@ -49,13 +49,13 @@ class HelpTextToPlaceholderMixin(object):
                 self.set_placeholder(name, field)
 
     def set_placeholder(self, name, field):
-        field.widget.attrs[u'placeholder'] = field.help_text
+        field.widget.attrs['placeholder'] = field.help_text
         if self.placeholder_remove_help_text:
             field.help_text = None
 
 
 class ModelBasedFormCleanupMixin(object):
-    u"""
+    """
     Make possible the cleanup of the form by the model through a class method called ``clean_form``.
     Useful to cleanup the form based on complex conditions, e.g. if two fields are inter-related (start/end dates, ...).
     """
@@ -69,7 +69,7 @@ class ModelBasedFormCleanupMixin(object):
 
 
 class UpdateWidgetAttributeMixin(object):
-    u"""
+    """
     Update the widgets of the form based on a set of rules applied depending of the form field's class.
     The rules can change the class of the widget and/or update the attributes of the widget with
     :function:`update_widget_attributes`.
@@ -77,8 +77,8 @@ class UpdateWidgetAttributeMixin(object):
 
     #: Set of rules linking the form field's class to the replacement class and the attributes update list.
     widgets_rules = {
-        fields.DateField: [CalendarDateInput, {u'class': u'+dateinput +input-small'}],
-        fields.TimeField: [ClockTimeInput,    {u'class': u'+timeinput +input-small'}],
+        fields.DateField: [CalendarDateInput, {'class': '+dateinput +input-small'}],
+        fields.TimeField: [ClockTimeInput,    {'class': '+timeinput +input-small'}],
     }
     #: Attributes that are applied to all widgets of the form
     widgets_common_attrs = {}
@@ -103,7 +103,7 @@ class UpdateWidgetAttributeMixin(object):
 
 
 def update_widget_attributes(widget, updates):
-    u"""
+    """
     Update attributes of a ``widget`` with content of ``updates`` handling classes addition [+], removal [-] and
     toggle [^].
 
@@ -111,56 +111,56 @@ def update_widget_attributes(widget, updates):
 
     >>> from nose.tools import eq_
     >>> widget = type('', (), {})
-    >>> widget.attrs = {u'class': u'mondiale'}
-    >>> update_widget_attributes(widget, {u'class': u'+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
-    >>> eq_(widget.attrs, {u'class': u'pigeon voyageur'})
-    >>> update_widget_attributes(widget, {u'class': '+le', u'cols': 100})
-    >>> eq_(widget.attrs, {u'class': u'le pigeon voyageur', u'cols': 100})
+    >>> widget.attrs = {'class': 'mondiale'}
+    >>> update_widget_attributes(widget, {'class': '+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
+    >>> eq_(widget.attrs, {'class': 'pigeon voyageur'})
+    >>> update_widget_attributes(widget, {'class': '+le', 'cols': 100})
+    >>> eq_(widget.attrs, {'class': 'le pigeon voyageur', 'cols': 100})
     """
     updates = copy(updates)
-    if u'class' in updates:
-        class_set = set([c for c in widget.attrs.get(u'class', u'').split(u' ') if c])
-        for cls in set([c for c in updates[u'class'].split(u' ') if c]):
+    if 'class' in updates:
+        class_set = set([c for c in widget.attrs.get('class', '').split(' ') if c])
+        for cls in set([c for c in updates['class'].split(' ') if c]):
             operation, cls = cls[0], cls[1:]
-            if operation == u'+' or (operation == u'^' and not cls in class_set):
+            if operation == '+' or (operation == '^' and not cls in class_set):
                 class_set.add(cls)
-            elif operation in (u'-', u'^'):
+            elif operation in ('-', '^'):
                 class_set.discard(cls)
             else:
                 raise ValueError(to_bytes(
-                    u'updates must be a valid string containing "<op>class <op>..." with op in [+-^].'))
-        widget.attrs[u'class'] = u' '.join(sorted(class_set))
-        del updates[u'class']
+                    'updates must be a valid string containing "<op>class <op>..." with op in [+-^].'))
+        widget.attrs['class'] = ' '.join(sorted(class_set))
+        del updates['class']
     widget.attrs.update(updates)
 
 
 def conditional_required(form, required_dict, data=None, cleanup=False):
-    u"""Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'."""
+    """Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'."""
     data = data or form.cleaned_data
     for name, value in data.iteritems():
         required = required_dict.get(name, None)
         if required and not value:
-            form._errors[name] = ErrorList([u'This field is required.'])
+            form._errors[name] = ErrorList(['This field is required.'])
         if required is False and cleanup:
             data[name] = None
     return data
 
 
-def validate_start_end(form, data=None, start_name=u'start_date', end_name=u'end_date'):
-    u"""Check that the field containing the value of the start field (time, ...) is not bigger (>) than the stop."""
+def validate_start_end(form, data=None, start_name='start_date', end_name='end_date'):
+    """Check that the field containing the value of the start field (time, ...) is not bigger (>) than the stop."""
     data = data or form.cleaned_data
     start, end = data[start_name], data[end_name]
     if start and end and start > end:
-        form._errors[end_name] = ErrorList([u'The {0} cannot be before the {1}.'.format(
-                                           start_name.replace(u'_', u' '), end_name.replace(u'_', u' '))])
+        form._errors[end_name] = ErrorList(['The {0} cannot be before the {1}.'.format(
+                                           start_name.replace('_', ' '), end_name.replace('_', ' '))])
 
 
 def set_disabled(form, field_name, value=False):
-    u"""Toggle the disabled attribute of a form's field."""
+    """Toggle the disabled attribute of a form's field."""
     if value:
-        form.fields[field_name].widget.attrs[u'disabled'] = True
+        form.fields[field_name].widget.attrs['disabled'] = True
     else:
         try:
-            del form.fields[field_name].widget.attrs[u'disabled']
+            del form.fields[field_name].widget.attrs['disabled']
         except:
             pass

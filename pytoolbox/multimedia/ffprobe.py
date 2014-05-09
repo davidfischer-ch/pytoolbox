@@ -33,7 +33,7 @@ from ..datetime import secs_to_time
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 WIDTH, HEIGHT = range(2)
 
-MPD_TEST = u"""<?xml version="1.0"?>
+MPD_TEST = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
   <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
@@ -41,7 +41,7 @@ MPD_TEST = u"""<?xml version="1.0"?>
 
 
 def get_media_duration(filename):
-    u"""
+    """
     Returns the duration of a media as an instance of time or None in case of error.
 
     If input ``filename`` is a MPEG-DASH MPD, then duration will be parser from value of key
@@ -51,31 +51,31 @@ def get_media_duration(filename):
     **Example usage**
 
     >>> from codecs import open
-    >>> with open(u'/tmp/test.txt', u'w', encoding=u'utf-8') as f:
-    ...     f.write(u'Hey, I am not a MPD nor a média')
-    >>> print(get_media_duration(u'/tmp/test.txt'))
+    >>> with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
+    ...     f.write('Hey, I am not a MPD nor a média')
+    >>> print(get_media_duration('/tmp/test.txt'))
     None
-    >>> os.remove(u'/tmp/test.txt')
-    >>> with open(u'/tmp/test.mpd', u'w', encoding=u'utf-8') as f:
+    >>> os.remove('/tmp/test.txt')
+    >>> with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
     ...     f.write(MPD_TEST)
-    >>> print(get_media_duration(u'/tmp/test.mpd').strftime('%H:%M:%S'))
+    >>> print(get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S'))
     00:06:10
-    >>> os.remove(u'/tmp/test.mpd')
-    >>> print(get_media_duration(u'small.mp4').strftime('%H:%M:%S'))
+    >>> os.remove('/tmp/test.mpd')
+    >>> print(get_media_duration('small.mp4').strftime('%H:%M:%S'))
     00:00:05
     """
-    if os.path.splitext(filename)[1] == u'.mpd':
+    if os.path.splitext(filename)[1] == '.mpd':
         mpd = minidom.parse(filename)
-        if mpd.firstChild.nodeName == u'MPD':
-            match = DURATION_REGEX.search(mpd.firstChild.getAttribute(u'mediaPresentationDuration'))
+        if mpd.firstChild.nodeName == 'MPD':
+            match = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
             if match is not None:
-                seconds = float(match.group(u'seconds'))
+                seconds = float(match.group('seconds'))
                 seconds, microseconds = 10, 10
-                return time(int(match.group(u'hours')), int(match.group(u'minutes')), seconds, microseconds)
+                return time(int(match.group('hours')), int(match.group('minutes')), seconds, microseconds)
     else:
         infos = get_media_infos(filename)
         try:
-            duration = secs_to_time(float(infos[u'format'][u'duration'])) if infos else None
+            duration = secs_to_time(float(infos['format']['duration'])) if infos else None
         except KeyError:
             return None
         # ffmpeg may return this so strange value, 00:00:00.04, let it being None
@@ -84,7 +84,7 @@ def get_media_duration(filename):
 
 
 def get_media_resolution(filename_or_infos=None):
-    u"""
+    """
     Return [width, height] of the first video stream in ``filename_or_infos`` or None in case of error.
 
     **Example usage**
@@ -93,29 +93,29 @@ def get_media_resolution(filename_or_infos=None):
     None
     >>> print(get_media_resolution({}))
     None
-    >>> print(get_media_resolution(get_media_infos(u'small.mp4')))
+    >>> print(get_media_resolution(get_media_infos('small.mp4')))
     [560, 320]
-    >>> print(get_media_resolution(u'small.mp4'))
+    >>> print(get_media_resolution('small.mp4'))
     [560, 320]
-    >>> print(get_media_resolution(u'small.mp4')[HEIGHT])
+    >>> print(get_media_resolution('small.mp4')[HEIGHT])
     320
-    >>> print(get_media_resolution({u'streams': [
-    ...     {u'codec_type': u'audio'},
-    ...     {u'codec_type': u'video', u'width': u'1920', u'height': u'1080'}
+    >>> print(get_media_resolution({'streams': [
+    ...     {'codec_type': 'audio'},
+    ...     {'codec_type': 'video', 'width': '1920', 'height': '1080'}
     ... ]}))
     [1920, 1080]
     """
     try:
         if not isinstance(filename_or_infos, dict):
             filename_or_infos = get_media_infos(filename_or_infos)
-        first_video_stream = next(s for s in filename_or_infos[u'streams'] if s[u'codec_type'] == u'video')
-        return [int(first_video_stream[u'width']), int(first_video_stream[u'height'])]
+        first_video_stream = next(s for s in filename_or_infos['streams'] if s['codec_type'] == 'video')
+        return [int(first_video_stream['width']), int(first_video_stream['height'])]
     except:
         return None
 
 
 def get_media_infos(filename):
-    u"""
+    """
     Return a Python dictionary containing informations about the media informations or None in case of error.
 
     Thanks to: https://gist.github.com/nrk/2286511
@@ -125,93 +125,93 @@ def get_media_infos(filename):
     Remark: This doctest is disabled because in Travis CI, the installed ffprobe doesn't output the same exact string.
 
     >> from pprint import pprint
-    >> pprint(get_media_infos(u'small.mp4'))  # doctest: +ELLIPSIS
-    {u'format': {u'bit_rate': u'551193',
-                 u'duration': u'5.568000',
-                 u'filename': u'small.mp4',
-                 u'format_long_name': u'QuickTime / MOV',
-                 u'format_name': u'mov,mp4,m4a,3gp,3g2,mj2',
-                 u'nb_programs': 0,
-                 u'nb_streams': 2,
-                 u'probe_score': 100,
-                 u'size': u'383631',
-                 u'start_time': u'0.000000',
-                 u'tags': {u'compatible_brands': u'mp42isomavc1',
-                           u'creation_time': u'2010-03-20 21:29:11',
-                           u'encoder': u'HandBrake 0.9.4 2009112300',
-                           u'major_brand': u'mp42',
-                           u'minor_version': u'0'}},
-     u'streams': [{u'avg_frame_rate': u'30/1',
-                   u'bit_rate': u'465641',
-                   u'codec_long_name': u'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
-                   u'codec_name': u'h264',
-                   u'codec_tag': u'0x31637661',
-                   u'codec_tag_string': u'avc1',
-                   u'codec_time_base': u'1/60',
-                   u'codec_type': u'video',
-                   u'display_aspect_ratio': u'0:1',
-                   u'disposition': {u'attached_pic': 0,
-                                    u'clean_effects': 0,
-                                    u'comment': 0,
-                                    u'default': 1,
-                                    u'dub': 0,
-                                    u'forced': 0,
-                                    u'hearing_impaired': 0,
-                                    u'karaoke': 0,
-                                    u'lyrics': 0,
-                                    u'original': 0,
-                                    u'visual_impaired': 0},
-                   u'duration': u'5.533333',
-                   u'duration_ts': 498000,
-                   u'has_b_frames': 0,
-                   u'height': 320,
-                   u'index': 0,
-                   u'level': 30,
-                   u'nb_frames': u'166',
-                   u'pix_fmt': u'yuv420p',
-                   u'profile': u'Constrained Baseline',
-                   u'r_frame_rate': u'30/1',
-                   u'sample_aspect_ratio': u'0:1',
-                   u'start_pts': 0,
-                   u'start_time': u'0.000000',
-                   u'tags': {u'creation_time': u'2010-03-20 21:29:11',
-                             u'language': u'und'},
-                   u'time_base': u'1/90000',
-                   u'width': 560},
-                  {u'avg_frame_rate': u'0/0',
-                   u'bit_rate': u'83050',
-                   u'bits_per_sample': 0,
-                   u'channel_layout': u'mono',
-                   u'channels': 1,
-                   u'codec_long_name': u'AAC (Advanced Audio Coding)',
-                   u'codec_name': u'aac',
-                   u'codec_tag': u'0x6134706d',
-                   u'codec_tag_string': u'mp4a',
-                   u'codec_time_base': u'1/48000',
-                   u'codec_type': u'audio',
-                   u'disposition': {u'attached_pic': 0,
-                                    u'clean_effects': 0,
-                                    u'comment': 0,
-                                    u'default': 1,
-                                    u'dub': 0,
-                                    u'forced': 0,
-                                    u'hearing_impaired': 0,
-                                    u'karaoke': 0,
-                                    u'lyrics': 0,
-                                    u'original': 0,
-                                    u'visual_impaired': 0},
-                   u'duration': u'5.568000',
-                   u'duration_ts': 267264,
-                   u'index': 1,
-                   u'nb_frames': u'261',
-                   u'r_frame_rate': u'0/0',
-                   u'sample_fmt': u'fltp',
-                   u'sample_rate': u'48000',
-                   u'start_pts': 0,
-                   u'start_time': u'0.000000',
-                   u'tags': {u'creation_time': u'2010-03-20 21:29:11',
-                             u'language': u'eng'},
-                   u'time_base': u'1/48000'}]}
+    >> pprint(get_media_infos('small.mp4'))  # doctest: +ELLIPSIS
+    {'format': {'bit_rate': '551193',
+                 'duration': '5.568000',
+                 'filename': 'small.mp4',
+                 'format_long_name': 'QuickTime / MOV',
+                 'format_name': 'mov,mp4,m4a,3gp,3g2,mj2',
+                 'nb_programs': 0,
+                 'nb_streams': 2,
+                 'probe_score': 100,
+                 'size': '383631',
+                 'start_time': '0.000000',
+                 'tags': {'compatible_brands': 'mp42isomavc1',
+                          'creation_time': '2010-03-20 21:29:11',
+                          'encoder': 'HandBrake 0.9.4 2009112300',
+                          'major_brand': 'mp42',
+                          'minor_version': '0'}},
+     'streams': [{'avg_frame_rate': '30/1',
+                   'bit_rate': '465641',
+                   'codec_long_name': 'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
+                   'codec_name': 'h264',
+                   'codec_tag': '0x31637661',
+                   'codec_tag_string': 'avc1',
+                   'codec_time_base': '1/60',
+                   'codec_type': 'video',
+                   'display_aspect_ratio': '0:1',
+                   'disposition': {'attached_pic': 0,
+                                   'clean_effects': 0,
+                                   'comment': 0,
+                                   'default': 1,
+                                   'dub': 0,
+                                   'forced': 0,
+                                   'hearing_impaired': 0,
+                                   'karaoke': 0,
+                                   'lyrics': 0,
+                                   'original': 0,
+                                   'visual_impaired': 0},
+                   'duration': '5.533333',
+                   'duration_ts': 498000,
+                   'has_b_frames': 0,
+                   'height': 320,
+                   'index': 0,
+                   'level': 30,
+                   'nb_frames': '166',
+                   'pix_fmt': 'yuv420p',
+                   'profile': 'Constrained Baseline',
+                   'r_frame_rate': '30/1',
+                   'sample_aspect_ratio': '0:1',
+                   'start_pts': 0,
+                   'start_time': '0.000000',
+                   'tags': {'creation_time': '2010-03-20 21:29:11',
+                            'language': 'und'},
+                   'time_base': '1/90000',
+                   'width': 560},
+                  {'avg_frame_rate': '0/0',
+                   'bit_rate': '83050',
+                   'bits_per_sample': 0,
+                   'channel_layout': 'mono',
+                   'channels': 1,
+                   'codec_long_name': 'AAC (Advanced Audio Coding)',
+                   'codec_name': 'aac',
+                   'codec_tag': '0x6134706d',
+                   'codec_tag_string': 'mp4a',
+                   'codec_time_base': '1/48000',
+                   'codec_type': 'audio',
+                   'disposition': {'attached_pic': 0,
+                                   'clean_effects': 0,
+                                   'comment': 0,
+                                   'default': 1,
+                                   'dub': 0,
+                                   'forced': 0,
+                                   'hearing_impaired': 0,
+                                   'karaoke': 0,
+                                   'lyrics': 0,
+                                   'original': 0,
+                                   'visual_impaired': 0},
+                   'duration': '5.568000',
+                   'duration_ts': 267264,
+                   'index': 1,
+                   'nb_frames': '261',
+                   'r_frame_rate': '0/0',
+                   'sample_fmt': 'fltp',
+                   'sample_rate': '48000',
+                   'start_pts': 0,
+                   'start_time': '0.000000',
+                   'tags': {'creation_time': '2010-03-20 21:29:11',
+                             'language': 'eng'},
+                   'time_base': '1/48000'}]}
     """
 
     try:

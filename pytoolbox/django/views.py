@@ -29,7 +29,7 @@ from django.views.generic.edit import DeleteView
 
 
 def only_published(queryset, request):
-    u"""
+    """
     Filter the queryset to remove the unpublished entries if the user is not authenticated and the model does have a
     published field, defaults to the unfiltered queryset.
     """
@@ -44,16 +44,16 @@ def only_published(queryset, request):
 
 
 class PublishedMixin(object):
-    u"""Filter the queryset with the function :function:`only_published`."""
+    """Filter the queryset with the function :function:`only_published`."""
 
     def get_queryset(self):
         return only_published(super(PublishedMixin, self).get_queryset(), self.request)
 
 
 class CancellableDeleteView(DeleteView):
-    u"""Handle the cancel action (detect a cancel parameter in the POST request)."""
+    """Handle the cancel action (detect a cancel parameter in the POST request)."""
 
     def post(self, request, *args, **kwargs):
-        if u'cancel' in request.POST:
+        if 'cancel' in request.POST:
             return HttpResponseRedirect(self.success_url)
         return super(CancellableDeleteView, self).post(request, *args, **kwargs)

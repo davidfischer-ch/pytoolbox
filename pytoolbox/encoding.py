@@ -34,32 +34,32 @@ if sys.version_info[0] == 2:
     to_bytes = kitchen.text.converters.to_bytes
 
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
-    def configure_unicode(encoding=u'utf-8'):
-        u"""Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
+    def configure_unicode(encoding='utf-8'):
+        """Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
         sys.stdout = kitchen.text.converters.getwriter(encoding)(sys.stdout)
         sys.stderr = kitchen.text.converters.getwriter(encoding)(sys.stderr)
 else:
     def to_bytes(message):
-        u"""Convert an Unicode message to bytes, useful for raising exceptions in Python 2.
+        """Convert an Unicode message to bytes, useful for raising exceptions in Python 2.
 
         **Example usage**
 
         >>> configure_unicode()
-        >>> raise NotImplementedError(to_bytes(u'Saluté'))
+        >>> raise NotImplementedError(to_bytes('Saluté'))
         Traceback (most recent call last):
             ...
         NotImplementedError: Saluté
         """
         return unicode(message)
 
-    def configure_unicode(encoding=u'utf-8'):
-        u"""Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
+    def configure_unicode(encoding='utf-8'):
+        """Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
         pass
 
 
-def csv_reader(filename, delimiter=u';', quotechar=u'"', encoding=u'utf-8'):
-    u"""Yield the content of a CSV file."""
-    with open(filename, u'r', encoding) as f:
+def csv_reader(filename, delimiter=';', quotechar='"', encoding='utf-8'):
+    """Yield the content of a CSV file."""
+    with open(filename, 'r', encoding) as f:
         for line in f.readlines():
             line = line.strip()
             yield [cell for cell in line.split(delimiter)]

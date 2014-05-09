@@ -31,7 +31,6 @@ from pytoolbox.multimedia.x264 import ENCODING_REGEX
 class TestX264(object):
 
     def test_encoding_regex(self):
-        match = ENCODING_REGEX.match(u'[79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02')
-        eq_(match.groupdict(), {
-            u'percent': u'79.5', u'frame': u'3276', u'frame_total': u'4123', u'fps': u'284.69',
-            u'bitrate': u'2111.44 kb/s', u'eta': u'0:00:02'})
+        match = ENCODING_REGEX.match('[79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02')
+        eq_(match.groupdict(), {'percent': '79.5', 'frame': '3276', 'frame_total': '4123', 'fps': '284.69',
+            'bitrate': '2111.44 kb/s', 'eta': '0:00:02'})

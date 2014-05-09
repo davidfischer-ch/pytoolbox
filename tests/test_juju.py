@@ -29,15 +29,15 @@ from mock import call, Mock
 from nose.tools import eq_, assert_raises
 from pytoolbox.unittest import mock_cmd
 
-DEFAULT = {u'charms_path': u'.', u'config': u'config.yaml'}
+DEFAULT = {'charms_path': '.', 'config': 'config.yaml'}
 
-ADD_UNIT = [u'juju', u'add-unit', u'--environment', u'maas']
-DEPLOY = [u'juju', u'deploy', u'--environment', u'maas']
-DESTROY_UNIT = [u'juju', u'destroy-unit', u'--environment', u'maas']
-DESTROY_SERVICE = [u'juju', u'destroy-service', u'--environment', u'maas']
+ADD_UNIT = ['juju', 'add-unit', '--environment', 'maas']
+DEPLOY = ['juju', 'deploy', '--environment', 'maas']
+DESTROY_UNIT = ['juju', 'destroy-unit', '--environment', 'maas']
+DESTROY_SERVICE = ['juju', 'destroy-service', '--environment', 'maas']
 
-CFG = [u'--config', u'config.yaml']
-N, R = u'--num-units', u'--repository'
+CFG = ['--config', 'config.yaml']
+N, R = '--num-units', '--repository'
 
 TEST_UNITS_SQL_2 = {0: {}, 1: {}}
 TEST_UNITS_LAMP_4 = {0: {}, 1: {}, 2: {}, 3: {}}
@@ -56,35 +56,37 @@ class TestEnvironment(object):
             pass
         import pytoolbox.juju
         from pytoolbox.juju import PENDING, STARTED, ERROR
-        TEST_UNITS_SQL_5 = {0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR}, 3: {},
-                            4: {'agent-state': ERROR}}
-        environment = pytoolbox.juju.Environment(u'maas', release=u'raring', auto=True)
+        TEST_UNITS_SQL_5 = {
+            0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR}, 3: {},
+            4: {'agent-state': ERROR}
+        }
+        environment = pytoolbox.juju.Environment('maas', release='raring', auto=True)
         environment.get_units = Mock(return_value=None)
         environment.get_unit = Mock(return_value=None)
         environment.__dict__.update(DEFAULT)
-        eq_(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=2), {u'deploy_units': None})
-        eq_(environment.ensure_num_units(u'lamp',  None,        num_units=4), {u'deploy_units': None})
-        assert_raises(ValueError, environment.ensure_num_units, None, u'salut')
+        eq_(environment.ensure_num_units('mysql', 'my_mysql', num_units=2), {'deploy_units': None})
+        eq_(environment.ensure_num_units('lamp',  None,        num_units=4), {'deploy_units': None})
+        assert_raises(ValueError, environment.ensure_num_units, None, 'salut')
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_2)
-        eq_(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=5), {u'add_units': None})
+        eq_(environment.ensure_num_units('mysql', 'my_mysql', num_units=5), {'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
-        eq_(environment.ensure_num_units(None, u'lamp', num_units=5), {u'add_units': None})
+        eq_(environment.ensure_num_units(None, 'lamp', num_units=5), {'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_5)
         environment.get_unit = Mock(return_value={})
-        environment.ensure_num_units(u'mysql', u'my_mysql', num_units=1, units_number_to_keep=[1])
+        environment.ensure_num_units('mysql', 'my_mysql', num_units=1, units_number_to_keep=[1])
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
-        print(environment.ensure_num_units(u'mysql', u'my_mysql', num_units=None))
-        [call_args[1].pop(u'env') for call_args in cmd.call_args_list]
+        print(environment.ensure_num_units('mysql', 'my_mysql', num_units=None))
+        [call_args[1].pop('env') for call_args in cmd.call_args_list]
         a_eq = eq_
         a = cmd.call_args_list
         eq_(len(a), 9)
-        a_eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, u'.', u'local:raring/mysql', u'my_mysql'], fail=False, log=None))
-        a_eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, u'.', u'local:raring/lamp',  u'lamp'],     fail=False, log=None))
-        a_eq(a[2], call(ADD_UNIT + [N, 3] + [u'my_mysql'], fail=False, log=None))
-        a_eq(a[3], call(ADD_UNIT + [N, 1] + [u'lamp'],     fail=False, log=None))
-        a_eq(a[4], call(DESTROY_UNIT + [u'my_mysql/2'], fail=False, log=None))
-        a_eq(a[5], call(DESTROY_UNIT + [u'my_mysql/3'], fail=False, log=None))
-        a_eq(a[6], call(DESTROY_UNIT + [u'my_mysql/4'], fail=False, log=None))
-        a_eq(a[7], call(DESTROY_UNIT + [u'my_mysql/0'], fail=False, log=None))
-        a_eq(a[8], call(DESTROY_SERVICE + [u'my_mysql'], fail=False, log=None))
+        a_eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, '.', 'local:raring/mysql', 'my_mysql'], fail=False, log=None))
+        a_eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, '.', 'local:raring/lamp',  'lamp'],     fail=False, log=None))
+        a_eq(a[2], call(ADD_UNIT + [N, 3] + ['my_mysql'], fail=False, log=None))
+        a_eq(a[3], call(ADD_UNIT + [N, 1] + ['lamp'],     fail=False, log=None))
+        a_eq(a[4], call(DESTROY_UNIT + ['my_mysql/2'], fail=False, log=None))
+        a_eq(a[5], call(DESTROY_UNIT + ['my_mysql/3'], fail=False, log=None))
+        a_eq(a[6], call(DESTROY_UNIT + ['my_mysql/4'], fail=False, log=None))
+        a_eq(a[7], call(DESTROY_UNIT + ['my_mysql/0'], fail=False, log=None))
+        a_eq(a[8], call(DESTROY_SERVICE + ['my_mysql'], fail=False, log=None))
         pytoolbox.subprocess.cmd = old_cmd

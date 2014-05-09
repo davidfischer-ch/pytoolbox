@@ -32,7 +32,7 @@ from ..encoding import string_types
 from ..filesystem import get_size
 from ..subprocess import make_async
 
-SIZE_REGEX = re.compile(ur'(?P<width>[0-9]+)x(?P<height>[0-9]+).*')
+SIZE_REGEX = re.compile(r'(?P<width>[0-9]+)x(?P<height>[0-9]+).*')
 WIDTH, HEIGHT = range(2)  # The indexes of the width and the height in size [width, height]
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -41,7 +41,7 @@ ENCODING_REGEX = re.compile(
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)')
 
 
-def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:00:00', time_format='%H:%M:%S',
+def encode(in_filenames, out_filename, encoder_string, default_in_duration='00:00:00', time_format='%H:%M:%S',
            base_track=0, ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95,
            sanity_max_ratio=1.05):
 
@@ -53,14 +53,14 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
     in_size = get_size(in_filenames[base_track])
 
     # Initialize metrics
-    output = u''
+    output = ''
     stats = {}
     start_date, start_time = datetime_now(), time.time()
     prev_ratio = prev_time = ratio = 0
 
     # Create FFmpeg subprocess
-    in_filenames_string = u' '.join(u'-i "' + f + u'"' for f in in_filenames)
-    cmd = u'ffmpeg -y {0} {1} "{2}"'.format(in_filenames_string, encoder_string, out_filename)
+    in_filenames_string = ' '.join('-i "' + f + '"' for f in in_filenames)
+    cmd = 'ffmpeg -y {0} {1} "{2}"'.format(in_filenames_string, encoder_string, out_filename)
     ffmpeg = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
     make_async(ffmpeg.stderr)
 
@@ -74,7 +74,7 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
         if match:
             stats = match.groupdict()
             try:
-                out_duration = str2time(stats[u'time'])
+                out_duration = str2time(stats['time'])
                 ratio = time_ratio(out_duration, in_duration)
             except ValueError:
                 continue  # reported time is broken, skip the whole match
@@ -83,22 +83,22 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
                 prev_ratio, prev_time = ratio, elapsed_time
                 eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
                 yield {
-                    u'status': u'PROGRESS',
-                    u'output': output,
-                    u'returncode': None,
-                    u'start_date': start_date,
-                    u'elapsed_time': elapsed_time,
-                    u'eta_time': eta_time,
-                    u'in_size': in_size,
-                    u'in_duration': in_duration.strftime(time_format),
-                    u'out_size': get_size(out_filename),
-                    u'out_duration': out_duration.strftime(time_format),
-                    u'percent': int(100 * ratio),
-                    u'frame': stats.get(u'frame'),
-                    u'fps': stats.get(u'fps'),
-                    u'bitrate': stats.get(u'bitrate'),
-                    u'quality': stats.get(u'q'),
-                    u'sanity': None
+                    'status': 'PROGRESS',
+                    'output': output,
+                    'returncode': None,
+                    'start_date': start_date,
+                    'elapsed_time': elapsed_time,
+                    'eta_time': eta_time,
+                    'in_size': in_size,
+                    'in_duration': in_duration.strftime(time_format),
+                    'out_size': get_size(out_filename),
+                    'out_duration': out_duration.strftime(time_format),
+                    'percent': int(100 * ratio),
+                    'frame': stats.get('frame'),
+                    'fps': stats.get('fps'),
+                    'bitrate': stats.get('bitrate'),
+                    'quality': stats.get('q'),
+                    'sanity': None
                 }
         returncode = ffmpeg.poll()
         if returncode is not None:
@@ -108,20 +108,20 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration=u'00:
     out_duration = get_media_duration(out_filename)
     ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
     yield {
-        u'status': u'ERROR' if returncode else u'SUCCESS',
-        u'output': output,
-        u'returncode': returncode,
-        u'start_date': start_date,
-        u'elapsed_time': elapsed_time,
-        u'eta_time': 0,
-        u'in_size': in_size,
-        u'in_duration': in_duration.strftime(time_format),
-        u'out_size': get_size(out_filename),
-        u'out_duration': out_duration.strftime(time_format) if out_duration else None,
-        u'percent': int(100 * ratio) if returncode else 100,  # Assume that a successful encoding = 100%
-        u'frame': stats.get(u'frame'),
-        u'fps': stats.get(u'fps'),
-        u'bitrate': stats.get(u'bitrate'),
-        u'quality': stats.get(u'q'),
-        u'sanity': sanity_min_ratio <= ratio <= sanity_max_ratio
+        'status': 'ERROR' if returncode else 'SUCCESS',
+        'output': output,
+        'returncode': returncode,
+        'start_date': start_date,
+        'elapsed_time': elapsed_time,
+        'eta_time': 0,
+        'in_size': in_size,
+        'in_duration': in_duration.strftime(time_format),
+        'out_size': get_size(out_filename),
+        'out_duration': out_duration.strftime(time_format) if out_duration else None,
+        'percent': int(100 * ratio) if returncode else 100,  # Assume that a successful encoding = 100%
+        'frame': stats.get('frame'),
+        'fps': stats.get('fps'),
+        'bitrate': stats.get('bitrate'),
+        'quality': stats.get('q'),
+        'sanity': sanity_min_ratio <= ratio <= sanity_max_ratio
     }

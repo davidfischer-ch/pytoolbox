@@ -30,8 +30,8 @@ from .console import confirm
 from .subprocess import cmd
 
 
-def confirm_it(message, default=False, abort_message=u'Operation aborted by the user'):
-    u"""Ask for confirmation before calling the decorated function."""
+def confirm_it(message, default=False, abort_message='Operation aborted by the user'):
+    """Ask for confirmation before calling the decorated function."""
     def _confirm_it(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -43,7 +43,7 @@ def confirm_it(message, default=False, abort_message=u'Operation aborted by the 
 
 
 def disable_iptables():
-    u"""
+    """
     Stop the iptables service if necessary, execute the decorated function and then reactivate iptables if it was
     previously stopped.
     """
@@ -52,22 +52,22 @@ def disable_iptables():
         def wrapper(*args, **kwargs):
             try:
                 try:
-                    cmd(u'sudo service iptables stop', shell=True)
-                    print(u'Disable iptables')
+                    cmd('sudo service iptables stop', shell=True)
+                    print('Disable iptables')
                     has_iptables = True
                 except:
                     has_iptables = False
                 return f(*args, **kwargs)
             finally:
                 if has_iptables:
-                    print(u'Enable iptables')
-                    cmd(u'sudo service iptables start', shell=True)
+                    print('Enable iptables')
+                    cmd('sudo service iptables start', shell=True)
         return wrapper
     return _disable_iptables
 
 
-def root_required(error_message=u'This script must be run as root.'):
-    u"""Raise an exception if the current user is not root."""
+def root_required(error_message='This script must be run as root.'):
+    """Raise an exception if the current user is not root."""
     def _root_required(f):
         @wraps(f)
         def wrapper(*args, **kwargs):

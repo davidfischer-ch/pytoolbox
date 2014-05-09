@@ -31,7 +31,7 @@ from ..rtp import RtpPacket
 
 
 class FecPacket(object):
-    u"""
+    """
     This represent a real-time transport protocol (RTP) packet.
 
     * :rfc:`2733`
@@ -71,7 +71,7 @@ class FecPacket(object):
     * 1st row: RTP header, sequence = 37 798
     * 2nd row: FEC header, SN = 50 288, PT recovery = 0, TS recovery = 7850
 
-    >>> header = bytearray.fromhex(u'806093a6 00000000 00000000 c4700000 80000000 00001eaa 00060a00')
+    >>> header = bytearray.fromhex('806093a6 00000000 00000000 c4700000 80000000 00001eaa 00060a00')
     >>> length = 1344 - len(header)
     >>> print(length)
     1316
@@ -100,7 +100,7 @@ class FecPacket(object):
     * 1st row: RTP header, sequence = 63 004
     * 2nd row: FEC header, SN = 50 344, PT recovery = 0, TS recovery = 878
 
-    >>> header = bytearray.fromhex(u'8060f61c 00000000 00000000 c4a80000 80000000 0000036e 40010600')
+    >>> header = bytearray.fromhex('8060f61c 00000000 00000000 c4a80000 80000000 0000036e 40010600')
     >>> length = 1344 - len(header)
     >>> print(length)
     1316
@@ -127,23 +127,23 @@ class FecPacket(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    ER_PAYLOAD_TYPE = u'RTP Header : Payload type must be set to 96'
-    ER_EXTENDED = u'SMPTE 2022-1 Header : Extended must be set to one'
-    ER_MASK = u'SMPTE 2022-1 Header : Mask must be set to zero'
-    ER_N = u'SMPTE 2022-1 Header : N must be set to zero'
-    ER_ALGORITHM = u'SMPTE 2022-1 Header : Algorithm must be set to XOR'
-    ER_DIRECTION = u'SMPTE 2022-1 Header : Direction must be COL or ROW'
-    ER_INDEX = u'SMPTE 2022-1 Header : Index must be set to zero'
-    ER_LD = u'SMPTE 2022-1 Header : The following limitation failed : L*D <= 256'
-    ER_L = u'SMPTE 2022-1 Header : The following limitation failed : 1 <= L <= 50'
-    ER_D = u'SMPTE 2022-1 Header : The following limitation failed : 4 <= D <= 50'
-    ER_PAYLOAD = u"FEC packet must have a payload"
-    ER_ALGORITHM = u'SMPTE 2022-1 Header : Only XOR FEC algorithm is handled'
-    ER_VALID_MP2T = u'One of the packets is an invalid RTP packet (+expected MPEG2-TS payload)'
-    ER_OFFSET = u'(packets) Computed offset is out of range [1..255]'
-    ER_SEQUENCE = u"One of the packets doesn't verify : sequence = snbase + i * offset, 0<i<na"
-    ER_INDEX = u'Unable to get missing media packet index'
-    ER_J = u'Unable to find a suitable j e N that satisfy : media_sequence = snbase + j * offset'
+    ER_PAYLOAD_TYPE = 'RTP Header : Payload type must be set to 96'
+    ER_EXTENDED = 'SMPTE 2022-1 Header : Extended must be set to one'
+    ER_MASK = 'SMPTE 2022-1 Header : Mask must be set to zero'
+    ER_N = 'SMPTE 2022-1 Header : N must be set to zero'
+    ER_ALGORITHM = 'SMPTE 2022-1 Header : Algorithm must be set to XOR'
+    ER_DIRECTION = 'SMPTE 2022-1 Header : Direction must be COL or ROW'
+    ER_INDEX = 'SMPTE 2022-1 Header : Index must be set to zero'
+    ER_LD = 'SMPTE 2022-1 Header : The following limitation failed : L*D <= 256'
+    ER_L = 'SMPTE 2022-1 Header : The following limitation failed : 1 <= L <= 50'
+    ER_D = 'SMPTE 2022-1 Header : The following limitation failed : 4 <= D <= 50'
+    ER_PAYLOAD = "FEC packet must have a payload"
+    ER_ALGORITHM = 'SMPTE 2022-1 Header : Only XOR FEC algorithm is handled'
+    ER_VALID_MP2T = 'One of the packets is an invalid RTP packet (+expected MPEG2-TS payload)'
+    ER_OFFSET = '(packets) Computed offset is out of range [1..255]'
+    ER_SEQUENCE = "One of the packets doesn't verify : sequence = snbase + i * offset, 0<i<na"
+    ER_INDEX = 'Unable to get missing media packet index'
+    ER_J = 'Unable to find a suitable j e N that satisfy : media_sequence = snbase + j * offset'
 
     HEADER_LENGTH = 16
     E_MASK = 0x80
@@ -156,11 +156,11 @@ class FecPacket(object):
     SNBL_MASK = 0xffff
     SNBE_SHIFT = 16
 
-    DIRECTION_NAMES = (u'COL', u'ROW')
+    DIRECTION_NAMES = ('COL', 'ROW')
     DIRECTION_RANGE = xrange(len(DIRECTION_NAMES))
     COL, ROW = DIRECTION_RANGE
 
-    ALGORITHM_NAMES = (u'XOR', u'Hamming', u'ReedSolomon')
+    ALGORITHM_NAMES = ('XOR', 'Hamming', 'ReedSolomon')
     ALGORITHM_RANGE = xrange(len(ALGORITHM_NAMES))
     XOR, Hamming, ReedSolomon = ALGORITHM_RANGE
 
@@ -168,12 +168,12 @@ class FecPacket(object):
 
     @property
     def valid(self):
-        u"""Returns True if this packet is a valid RTP packet (with FEC payload)."""
+        """Returns True if this packet is a valid RTP packet (with FEC payload)."""
         return len(self.errors) == 0
 
     @property
     def errors(self):
-        u"""
+        """
         Returns an array containing any errors.
 
         :return: array of error message(s).
@@ -184,7 +184,7 @@ class FecPacket(object):
 
         #TODO >>> fec = FecPacket(bytearray(FecPacket.HEADER_LENGTH-1), FecPacket.HEADER_LENGTH-1)
         #TODO >>> print(fec.errors)
-        #TODO [u'RTP Header : Version must be set to 2', u'RTP packet must have a payload']
+        #TODO ['RTP Header : Version must be set to 2', 'RTP packet must have a payload']
         """
         errors = self._errors
         if not self.extended:
@@ -211,7 +211,7 @@ class FecPacket(object):
 
     @property
     def D(self):
-        u"""
+        """
         Returns the vertical size of the FEC matrix (rows).
 
         **Example usage**
@@ -226,7 +226,7 @@ class FecPacket(object):
 
     @property
     def L(self):
-        u"""
+        """
         Returns the horizontal size of the FEC matrix (columns).
 
         **Example usage**
@@ -242,7 +242,7 @@ class FecPacket(object):
 
     @property
     def header_size(self):
-        u"""
+        """
         Returns the length (aka size) of the header.
 
         **Example usage**
@@ -258,7 +258,7 @@ class FecPacket(object):
 
     @property
     def payload_size(self):
-        u"""
+        """
         Returns the length (aka size) of the payload.
 
         **Example usage**
@@ -274,7 +274,7 @@ class FecPacket(object):
 
     @property
     def header_bytes(self):
-        u"""
+        """
         Returns SMPTE 2022-1 FEC header bytes.
 
         **Example usage**
@@ -299,7 +299,7 @@ class FecPacket(object):
         missing               = []
         >>> fec_header = fec.header_bytes
         >>> assert(len(fec_header) == FecPacket.HEADER_LENGTH)
-        >>> print(u''.join(' %02x' % b for b in fec_header))
+        >>> print(''.join(' %02x' % b for b in fec_header))
          00 0a 04 a9 80 00 00 00 00 00 00 ac 40 01 02 00
         >>> fec_header += fec.payload_recovery
         >>> rtp = RtpPacket.create(26, 100, RtpPacket.DYNAMIC_PT, fec_header)
@@ -391,7 +391,7 @@ class FecPacket(object):
 
     @staticmethod
     def compute(sequence, algorithm, direction, L, D, packets):
-        u"""
+        """
         This method will generate FEC packet's field by applying FEC algorithm to input packets.
         In case of error (e.g. bad version number) the method will abort filling fields and un-updated fields are set to
         their corresponding default value.
@@ -414,8 +414,8 @@ class FecPacket(object):
         Testing invalid input collection of packets:
 
         >>> from ..rtp import RtpPacket
-        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, u'a'),
-        ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, u'b')]
+        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, 'a'),
+        ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, 'b')]
         >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, 2, 2, packets)
         Traceback (most recent call last):
             ...
@@ -423,10 +423,10 @@ class FecPacket(object):
 
         Testing valid input collection of packets:
 
-        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),
-        ...            RtpPacket.create(14, 14, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')),
-        ...            RtpPacket.create(18, 18, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')),
-        ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
+        >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, bytearray('gaga', 'utf-8')),
+        ...            RtpPacket.create(14, 14, RtpPacket.MP2T_PT, bytearray('salut', 'utf-8')),
+        ...            RtpPacket.create(18, 18, RtpPacket.MP2T_PT, bytearray('12345', 'utf-8')),
+        ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, bytearray('robot', 'utf-8'))]
         >>> fec = FecPacket.compute(2, FecPacket.XOR, FecPacket.COL, 4, 4, packets)
         >>> print(fec)
         errors                = []
@@ -442,7 +442,7 @@ class FecPacket(object):
         length recovery       = 1
         payload recovery size = 5
         missing               = []
-        >>> print(u''.join('%02x:' % x for x in fec.payload_recovery))
+        >>> print(''.join('%02x:' % x for x in fec.payload_recovery))
         57:5d:5a:4f:35:
 
         Testing fec packet generation (based on source RTP packets):
@@ -482,15 +482,15 @@ class FecPacket(object):
         >>> assert(fec.length_recovery == expected_lenght_recovery)
         >>> for i in xrange(fec.payload_size):
         ...     if fec.payload_recovery[i] != expected_payload_recovery[i]:
-        ...         print(u'Payload recovery test failed with i = ' + i)
+        ...         print('Payload recovery test failed with i = ' + i)
         """
         # Fields default values
         fec = FecPacket()
         fec.sequence = sequence
         if not algorithm in FecPacket.ALGORITHM_RANGE:
-            raise ValueError(to_bytes(u'algorithm is not a valid FEC algorithm'))
+            raise ValueError(to_bytes('algorithm is not a valid FEC algorithm'))
         if not direction in FecPacket.DIRECTION_RANGE:
-            raise ValueError(to_bytes(u'direction is not a valid FEC direction'))
+            raise ValueError(to_bytes('direction is not a valid FEC direction'))
         fec.algorithm = algorithm
         fec.direction = direction
         if fec.direction == FecPacket.COL:
@@ -502,7 +502,7 @@ class FecPacket(object):
         if fec.algorithm != FecPacket.XOR:
             raise NotImplementedError(to_bytes(FecPacket.ER_ALGORITHM))
         if len(packets) != fec.na:
-            raise ValueError(to_bytes(u'packets must contain exactly {0} packets'.format(fec.na)))
+            raise ValueError(to_bytes('packets must contain exactly {0} packets'.format(fec.na)))
         fec.snbase = packets[0].sequence
         # Detect maximum length of packets payload and check packets validity
         size = 0
@@ -533,15 +533,15 @@ class FecPacket(object):
         return fec
 
     def set_missing(self, media_sequence):
-        u"""
+        """
         Register a protected media packet as missing.
 
         **Example usage**
 
-        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray(u'gaga', u'utf-8')),
-        ...            RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray(u'salut', u'utf-8')),
-        ...            RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray(u'12345', u'utf-8')),
-        ...            RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray(u'robot', u'utf-8'))]
+        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray('gaga', 'utf-8')),
+        ...            RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray('salut', 'utf-8')),
+        ...            RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray('12345', 'utf-8')),
+        ...            RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray('robot', 'utf-8'))]
         >>> fec = FecPacket.compute(4, FecPacket.XOR, FecPacket.COL, 3, 4, packets)
         >>> print(fec)
         errors                = []
@@ -619,7 +619,7 @@ class FecPacket(object):
         return j
 
     def set_recovered(self, media_sequence):
-        u"""
+        """
         TODO
         """
         j = self.computeJ(media_sequence)
@@ -629,7 +629,7 @@ class FecPacket(object):
         return j
 
     def computeJ(self, media_sequence):
-        u"""
+        """
         TODO
         """
         delta = media_sequence - self.snbase
@@ -640,7 +640,7 @@ class FecPacket(object):
         return int(delta / self.offset)
 
     def __eq__(self, other):
-        u"""
+        """
         Test equality field by field !
         """
         if isinstance(other, self.__class__):
@@ -652,7 +652,7 @@ class FecPacket(object):
                     self.payload_recovery == other.payload_recovery)
 
     def __str__(self):
-        u"""
+        """
         Returns a string containing a formated representation of the packet fields.
 
         **Example usage**
@@ -693,7 +693,7 @@ class FecPacket(object):
         payload recovery size = 10
         missing               = []
         """
-        return (u"""errors                = {0}
+        return ("""errors                = {0}
 sequence              = {1}
 algorithm             = {2}
 direction             = {3}

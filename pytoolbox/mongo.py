@@ -36,7 +36,7 @@ from .validation import valid_email, valid_secret, valid_uuid
 
 
 class Model(JsoneableObject):
-    u"""
+    """
     A base model using an UUID string has id.
     Maybe useful for the developers that use pyMongo driver directly w/o any ODM mapper.
 
@@ -50,17 +50,17 @@ class Model(JsoneableObject):
 
     def is_valid(self, raise_exception):
         if not valid_uuid(self._id, none_allowed=False):
-            self._E(raise_exception, u'_id is not a valid uuid string')
+            self._E(raise_exception, '_id is not a valid uuid string')
         return True
 
     def _E(self, raise_exception, message):
         if raise_exception:
-            raise TypeError(to_bytes(u'{0} : {1}'.format(self.__class__.__name__, message)))
+            raise TypeError(to_bytes('{0} : {1}'.format(self.__class__.__name__, message)))
         return False
 
 
 class TaskModel(Model):
-    u"""
+    """
     A base model storing some statistics and the status of a celery task.
     Maybe useful for the developers that use pyMongo driver directly w/o any ODM mapper.
 
@@ -70,8 +70,8 @@ class TaskModel(Model):
     """
 
     ALL_STATUS = PENDING, RECEIVED, STARTED, PROGRESS, SUCCESS, FAILURE, REVOKING, REVOKED, RETRY, IGNORED, UNKNOWN = \
-        states.PENDING, states.RECEIVED, states.STARTED, u'PROGRESS', states.SUCCESS, states.FAILURE, u'REVOKING', \
-        states.REVOKED, states.RETRY, states.IGNORED, u'UNKNOWN'
+        states.PENDING, states.RECEIVED, states.STARTED, 'PROGRESS', states.SUCCESS, states.FAILURE, 'REVOKING', \
+        states.REVOKED, states.RETRY, states.IGNORED, 'UNKNOWN'
 
     PENDING_STATUS = (PENDING, RECEIVED)
     RUNNING_STATUS = (STARTED, PROGRESS, RETRY)
@@ -96,7 +96,7 @@ class TaskModel(Model):
 
     def get_hostname(self):
         try:
-            return AsyncResult(self._id).result[u'hostname']
+            return AsyncResult(self._id).result['hostname']
         except:
             return None
 
@@ -109,7 +109,7 @@ class TaskModel(Model):
                 try:
                     self.statistic.update(async_result.result)
                 except:
-                    self.statistic[u'error'] = unicode(async_result.result)
+                    self.statistic['error'] = unicode(async_result.result)
             except NotImplementedError:
                 self.status = TaskModel.UNKNOWN
         else:
@@ -117,7 +117,7 @@ class TaskModel(Model):
 
 
 class User(Model):
-    u"""Example User model inherited from Model.
+    """Example User model inherited from Model.
 
     .. seealso::
 
@@ -130,7 +130,7 @@ class User(Model):
         self.last_name = last_name
         self.mail = mail
         self.secret = secret
-        self.admin_platform = (unicode(admin_platform).lower() == u'true')
+        self.admin_platform = (unicode(admin_platform).lower() == 'true')
 
     @property
     def credentials(self):
@@ -139,12 +139,12 @@ class User(Model):
     @property
     def name(self):
         if self.first_name and self.last_name:
-            return u'{0} {1}'.format(self.first_name, self.last_name)
-        return u'anonymous'
+            return '{0} {1}'.format(self.first_name, self.last_name)
+        return 'anonymous'
 
     @property
     def is_secret_hashed(self):
-        return self.secret is not None and self.secret.startswith(u'$pbkdf2-sha512$')
+        return self.secret is not None and self.secret.startswith('$pbkdf2-sha512$')
 
     def is_valid(self, raise_exception):
         if not super(User, self).is_valid(raise_exception):
@@ -152,19 +152,19 @@ class User(Model):
         # FIXME check first_name
         # FIXME check last_name
         if not valid_email(self.mail):
-            self._E(raise_exception, u'mail is not a valid email address')
+            self._E(raise_exception, 'mail is not a valid email address')
         if not self.is_secret_hashed and not valid_secret(self.secret, True):
-            self._E(raise_exception, u'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
+            self._E(raise_exception, 'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
         # FIXME check admin_platform
         return True
 
     def hash_secret(self, rounds=12000, salt=None, salt_size=16):
-        u"""
+        """
         Hashes user's secret if it is not already hashed.
 
         **Example usage**
 
-        >>> user = User(first_name=u'D.', last_name=u'F.', mail=u'd@f.com', secret=u'Secr4taB', admin_platform=True)
+        >>> user = User(first_name='D.', last_name='F.', mail='d@f.com', secret='Secr4taB', admin_platform=True)
         >>> user.is_secret_hashed
         False
         >>> len(user.secret)
@@ -183,20 +183,20 @@ class User(Model):
                 self.secret, rounds=rounds, salt=salt, salt_size=salt_size)
 
     def verify_secret(self, secret):
-        u"""
+        """
         Returns True if secret is equal to user's secret.
 
         **Example usage**
 
-        >>> user = User(first_name=u'D.', last_name=u'F.', mail='d@f.com', secret=u'Secr4taB', admin_platform=True)
-        >>> user.verify_secret(u'bad_secret')
+        >>> user = User(first_name='D.', last_name='F.', mail='d@f.com', secret='Secr4taB', admin_platform=True)
+        >>> user.verify_secret('bad_secret')
         False
-        >>> user.verify_secret(u'Secr4taB')
+        >>> user.verify_secret('Secr4taB')
         True
         >>> user.hash_secret()
-        >>> user.verify_secret(u'bad_secret')
+        >>> user.verify_secret('bad_secret')
         False
-        >>> user.verify_secret(u'Secr4taB')
+        >>> user.verify_secret('Secr4taB')
         True
         """
         if self.is_secret_hashed:
@@ -205,9 +205,9 @@ class User(Model):
 
 
 def mongo_do(action, database=None, fail=True, log=None, **kwargs):
-    action_file = tempfile.NamedTemporaryFile(mode=u'w', suffix=u'.js')
+    action_file = tempfile.NamedTemporaryFile(mode='w', suffix='.js')
     action_file.write(action)
     try:
-        return cmd(filter(None, [u'mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
+        return cmd(filter(None, ['mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
     finally:
         action_file.close()

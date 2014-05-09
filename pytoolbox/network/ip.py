@@ -36,29 +36,29 @@ else:
 
 
 def IPSocket(string):
-    u"""
+    """
     This helper create a dictionary containing address and port from a parsed IP address string.
     Throws ValueError in case of failure (e.g. string is not a valid IP address).
 
     **Example usage**
 
-    >>> IPSocket(u'gaga:gogo')
+    >>> IPSocket('gaga:gogo')
     Traceback (most recent call last):
         ...
     ValueError: gaga:gogo is not a valid IP socket.
     >>>
     >>> from nose.tools import eq_
-    >>> eq_(IPSocket(u'239.232.0.222:5004'), {u'ip': u'239.232.0.222', u'port': 5004})
+    >>> eq_(IPSocket('239.232.0.222:5004'), {'ip': '239.232.0.222', 'port': 5004})
 
     .. warning::
 
-        TODO IPv6 ready : >>> IPSocket(u'[2001:0db8:0000:0000:0000:ff00:0042]:8329')
+        TODO IPv6 ready : >>> IPSocket('[2001:0db8:0000:0000:0000:ff00:0042]:8329')
     """
     try:
-        (ip, port) = string.rsplit(u':', 1)
+        (ip, port) = string.rsplit(':', 1)
         #ip = ip.translate(None, '[]')
         ip_address(ip)  # Seem not IPv6 ready
         port = int(port)
     except Exception:
-        raise ValueError(u'{0} is not a valid IP socket.'.format(string))
-    return {u'ip': ip, u'port': port}
+        raise ValueError('{0} is not a valid IP socket.'.format(string))
+    return {'ip': ip, 'port': port}

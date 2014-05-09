@@ -33,29 +33,29 @@ from pytoolbox.filesystem import from_template
 configure_unicode()
 
 # Detect modules, thanks to find !
-modules = sorted(m.replace(u'.py', u'').replace(u'./', u'').replace(u'/', u'.')
-                 for m in cmd(u'find . -type f -name "*.py"', cwd=u'../pytoolbox', shell=True)[u'stdout'].split()
-                 if m.endswith(u'.py') and not u'__init__' in m)
+modules = sorted(m.replace('.py', '').replace('./', '').replace('/', '.')
+                 for m in cmd('find . -type f -name "*.py"', cwd='../pytoolbox', shell=True)['stdout'].split()
+                 if m.endswith('.py') and not '__init__' in m)
 
-print(u'Detected modules are: {0}'.format(modules))
+print('Detected modules are: {0}'.format(modules))
 
-api_toc = u''
+api_toc = ''
 for module in modules:
-    if u'django' in module or u'crypto' in module:
+    if 'django' in module or 'crypto' in module:
         continue  # FIXME temporary hack, see issue #6
-    module = u'pytoolbox.{0}'.format(module)
-    title = module.replace(u'.', u' > ')
-    api_toc += u'    {0}\n'.format(module)
-    from_template(u'templates/module.rst.template', u'source/{0}.rst'.format(module),
-                  {u'module': module, u'title': title, u'equals': u'='*len(title)})
+    module = 'pytoolbox.{0}'.format(module)
+    title = module.replace('.', ' > ')
+    api_toc += '    {0}\n'.format(module)
+    from_template('templates/module.rst.template', 'source/{0}.rst'.format(module),
+                  {'module': module, 'title': title, 'equals': '='*len(title)})
 
-from_template(u'templates/api.rst.template', u'source/api.rst', {u'api_toc': api_toc})
-shutil.rmtree(u'build/html', ignore_errors=True)
-result = cmd(u'make html', fail=False)
+from_template('templates/api.rst.template', 'source/api.rst', {'api_toc': api_toc})
+shutil.rmtree('build/html', ignore_errors=True)
+result = cmd('make html', fail=False)
 
-print(u'\nOutputs\n=======\n')
-print(result[u'stdout'])
-print(u'\nErrors\n======\n')
-print(result[u'stderr'])
+print('\nOutputs\n=======\n')
+print(result['stdout'])
+print('\nErrors\n======\n')
+print(result['stderr'])
 
-sys.exit(0 if not result[u'stderr'] else 1)
+sys.exit(0 if not result['stderr'] else 1)
