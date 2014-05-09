@@ -3,8 +3,13 @@ changelog
 =========
 
 --------------------------
-v8.0.0-beta -> v8.0.5-beta
+v8.0.0-beta -> v8.1.0-beta
 --------------------------
+
+Features
+========
+
+* Add class validation.StrongTypedMixin
 
 Fixes and enhancements
 ======================

@@ -38,6 +38,34 @@ else:
         from ipaddr import IPAddress as ip_address
 
 
+if sys.version_info[0] > 2:
+    class StrongTypedMixin(object):
+        u"""
+        Annotate arguments of the class __init__ with types and then you'll get a class with type checking.
+
+        **Example usage**
+
+        >>> class Settings(StrongTypedMixin):
+        ...     def __init__(self, *, locale: str, broker: dict, debug: bool=True, timezone=None):
+        ...        self.locale = locale
+        ...        self.broker = broker
+        ...        self.debug = debug
+        ...        self.timezone = timezone
+        ...
+        >>> settings = Settings(locale='fr', broker={}, debug=False)
+        >>> settings = Settings(locale='fr', broker={}, timezone='this argument is not type checked')
+        >>> settings = Settings(locale=10, broker={})
+        Traceback (most recent call last):
+            ...
+        AssertionError: Attribute locale must be set to an instance of <class 'str'>
+        """
+        def __setattr__(self, name, value):
+            the_type = self.__init__.__annotations__.get(name)
+            if the_type:
+                assert isinstance(value, the_type), 'Attribute %s must be set to an instance of %s' % (name, the_type)
+            super().__setattr__(name, value)
+
+
 def valid_filename(filename):
     u"""
     Returns True if ``filename`` is a valid filename.
