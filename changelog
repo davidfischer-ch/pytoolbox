@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.0.0-beta -> v8.1.0-beta
+v8.0.0-beta -> v8.1.1-beta
 --------------------------
 
 Features
@@ -16,6 +16,7 @@ Fixes and enhancements
 
 * Improve datetime.str2time to handle microseconds 
 * Improve multimedia.ffprobe.get_media_duration (return None in case of error)
+* StrongTypedMixin: Allow setting arg to the default value (if set)
 * Split HelpTextToPlaceholderMixin logic to allow modify behavior by inheritance
 * Fix multimedia.ffmpeg.encode (convert default_in_duration to time)
 * Fix multimedia.ffmpeg.encode (may return None - out_duration)

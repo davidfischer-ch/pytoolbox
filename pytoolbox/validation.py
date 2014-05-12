@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, httplib, re, socket, sys, uuid
+import errno, httplib, inspect, re, socket, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
 from .encoding import to_bytes
@@ -46,7 +46,7 @@ if sys.version_info[0] > 2:
         **Example usage**
 
         >>> class Settings(StrongTypedMixin):
-        ...     def __init__(self, *, locale: str, broker: dict, debug: bool=True, timezone=None):
+        ...     def __init__(self, *, locale: (str, list), broker: dict=None, debug: bool=True, timezone=None):
         ...        self.locale = locale
         ...        self.broker = broker
         ...        self.debug = debug
@@ -54,15 +54,22 @@ if sys.version_info[0] > 2:
         ...
         >>> settings = Settings(locale='fr', broker={}, debug=False)
         >>> settings = Settings(locale='fr', broker={}, timezone='this argument is not type checked')
+        >>> settings = Settings(locale='fr')
+        >>> print(settings.broker)
+        None
+        >>> settings = Settings(locale=['en', 'fr'], broker={})
         >>> settings = Settings(locale=10, broker={})
         Traceback (most recent call last):
             ...
-        AssertionError: Attribute locale must be set to an instance of <class 'str'>
+        AssertionError: Attribute locale must be set to an instance of (<class 'str'>, <class 'list'>)
         """
         def __setattr__(self, name, value):
             the_type = self.__init__.__annotations__.get(name)
             if the_type:
-                assert isinstance(value, the_type), 'Attribute %s must be set to an instance of %s' % (name, the_type)
+                default = inspect.signature(self.__init__).parameters[name].default
+                if value != default:
+                    assert isinstance(value, the_type), (
+                        'Attribute %s must be set to an instance of %s' % (name, the_type))
             super().__setattr__(name, value)
 
 
