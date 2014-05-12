@@ -137,14 +137,12 @@ def time_ratio(numerator, denominator, zero_div_result=1.0):
 
     **Example usage**
 
+    >>> from nose.tools import assert_raises
     >>> print(time_ratio('0:30:00', '01:30:00'))  # doctest: +ELLIPSIS
     0.33...
     >>> print(time_ratio('0:00:05', '00:00:00'))  # doctest: +ELLIPSIS
     1.0
-    >>> print(time_ratio('01:42:34', 'N/A'))
-    Traceback (most recent call last):
-        ...
-    ValueError: could not convert string to float: N/A
+    >>> assert_raises(ValueError, time_ratio, '01:42:34', 'N/A')
     """
     try:
         ratio = total_seconds(numerator) / total_seconds(denominator)

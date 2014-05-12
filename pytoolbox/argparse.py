@@ -50,40 +50,14 @@ from .encoding import to_bytes
 
 
 def is_dir(path):
-    """
-    Check if path is an actual directory and return it.
-
-    Please find a "real world" example in the docstring of this module.
-
-    **Example usage**
-
-    >>> print(is_dir('/home'))
-    /home
-    >>> is_dir('sjdsajkd')
-    Traceback (most recent call last):
-        ...
-    ArgumentTypeError: sjdsajkd is not a directory
-    """
+    """Check if path is an actual directory and return it."""
     if os.path.isdir(path):
         return path
     raise argparse.ArgumentTypeError(to_bytes('{0} is not a directory'.format(path)))
 
 
 def is_file(path):
-    """
-    Check if path is an actual file and return it.
-
-    Please find a "real world" example in the docstring of this module.
-
-    **Example usage**
-
-    >>> print(is_file('/etc/hosts'))
-    /etc/hosts
-    >>> is_file('wdjiwdji')
-    Traceback (most recent call last):
-        ...
-    ArgumentTypeError: wdjiwdji is not a file
-    """
+    """Check if path is an actual file and return it."""
     if os.path.isfile(path):
         return path
     raise argparse.ArgumentTypeError(to_bytes('{0} is not a file'.format(path)))

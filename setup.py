@@ -34,6 +34,7 @@ kwargs = {}
 if major >= 3:
     print('Converting code to Python 3 helped by 2to3')
     kwargs['use_2to3'] = True
+    kwargs['use_2to3_exclude_fixers'] = ['lib2to3.fixes.fix_import']
 
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 
