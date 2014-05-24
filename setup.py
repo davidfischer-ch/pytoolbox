@@ -29,13 +29,6 @@ import sys
 from codecs import open
 from setuptools import setup, find_packages
 
-major, minor = sys.version_info[:2]
-kwargs = {}
-if major >= 3:
-    print('Converting code to Python 3 helped by 2to3')
-    kwargs['use_2to3'] = True
-    kwargs['use_2to3_exclude_fixers'] = ['lib2to3.fixes.fix_import']
-
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 
 classifiers = """
@@ -92,7 +85,9 @@ extras_require = {
 # * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
 # * sudo pip-3.3 install ming    -> File "/tmp/pip_build_root/ming/setup.py", line 5, SyntaxError: invalid syntax
 
-if major < 3:
+PY3 = sys.version_info[0] > 2
+
+if not PY3:
     extras_require['ming'] = ['ming']  # FIXME version
     try:
         import hashlib
@@ -138,4 +133,6 @@ setup(name='pytoolbox',
       install_requires=install_requires,
       tests_require=['coverage', 'mock', 'nose'],
       # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-      test_suite='tests.pytoolbox_runtests.main', **kwargs)
+      test_suite='tests.pytoolbox_runtests.main',
+      use_2to3=PY3,
+      use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'])
