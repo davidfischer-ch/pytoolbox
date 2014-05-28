@@ -68,6 +68,16 @@ class ModelBasedFormCleanupMixin(object):
             return self.cleaned_data
 
 
+class RequestMixin(object):
+    """
+    Accept request as a optional (default: None) argument of the constructor and set it as an attribute of the object.
+    """
+
+    def __init__(self, request=None, **kwargs):
+        super(RequestMixin, self).__init__(**kwargs)
+        self.request = request
+
+
 class UpdateWidgetAttributeMixin(object):
     """
     Update the widgets of the form based on a set of rules applied depending of the form field's class.

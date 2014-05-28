@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.0.0-beta -> v8.2.0-beta
+v8.0.0-beta -> v8.3.0-beta
 --------------------------
 
 Features
@@ -11,6 +11,9 @@ Features
 
 * Add class validation.CleanAttributesMixin
 * Add class validation.StrongTypedMixin
+* Add class django.forms.RequestMixin
+* Add class django.views.AddRequestToFormKwargsMixin
+* Add class django.views.LoggedCookieMixin
 
 Fixes and enhancements
 ======================

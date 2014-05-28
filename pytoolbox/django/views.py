@@ -43,11 +43,13 @@ def only_published(queryset, request):
         return queryset
 
 
-class PublishedMixin(object):
-    """Filter the queryset with the function :function:`only_published`."""
+class AddRequestToFormKwargsMixin(object):
+    """Add the view request to the keywords arguments for instantiating the form."""
 
-    def get_queryset(self):
-        return only_published(super(PublishedMixin, self).get_queryset(), self.request)
+    def get_form_kwargs(self):
+        kwargs = super(AddRequestToFormKwargsMixin, self).get_form_kwargs()
+        kwargs.update({'request': self.request})
+        return kwargs
 
 
 class CancellableDeleteView(DeleteView):
@@ -57,3 +59,19 @@ class CancellableDeleteView(DeleteView):
         if 'cancel' in request.POST:
             return HttpResponseRedirect(self.success_url)
         return super(CancellableDeleteView, self).post(request, *args, **kwargs)
+
+
+class LoggedCookieMixin(object):
+    """Add a "logged" cookie set to "True" if user is authenticated else to "False"."""
+
+    def post(self, *args, **kwargs):
+        response = super(LoggedCookieMixin, self).post(*args, **kwargs)
+        response.set_cookie('logged', self.request.user.is_authenticated())
+        return response
+
+
+class PublishedMixin(object):
+    """Filter the queryset with the function :function:`only_published`."""
+
+    def get_queryset(self):
+        return only_published(super(PublishedMixin, self).get_queryset(), self.request)
