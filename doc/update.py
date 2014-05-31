@@ -5,7 +5,7 @@
 #                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2013 David Fischer. All rights reserved.
+#  Copyright      : Copyright (c) 2012-2014 David Fischer. All rights reserved.
 #
 #**********************************************************************************************************************#
 #
