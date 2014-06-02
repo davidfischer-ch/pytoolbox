@@ -46,7 +46,7 @@ class SaveInstanceFilesMixin(object):
     """
     def save(self, *args, **kwargs):
         saved_fields = {}
-        if self.id is None:
+        if self.pk is None:
             for field in self._meta.fields:
                 if isinstance(field, FileField):
                     saved_fields[field.name] = getattr(self, field.name)
