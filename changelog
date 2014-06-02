@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.0.0-beta -> v8.3.2-beta
+v8.0.0-beta -> v8.3.3-beta
 --------------------------
 
 Features
@@ -20,7 +20,8 @@ Fixes and enhancements
 
 * Add module django.urls with utility regular expressions
 * Fix SaveInstanceFilesMixin (use .pk instead of .id)
-* Improve datetime.str2time to handle microseconds 
+* Improve datetime.str2time to handle microseconds
+* Improve filesystem.try_remove to handle directories (when recursive=True)
 * Improve multimedia.ffprobe.get_media_duration (return None in case of error)
 * StrongTypedMixin: Allow setting arg to the default value (if set)
 * Split HelpTextToPlaceholderMixin logic to allow modify behavior by inheritance

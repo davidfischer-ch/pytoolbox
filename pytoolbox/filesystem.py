@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import errno, grp, pwd, os, shutil, time
 from codecs import open
+from os.path import dirname, exists, expanduser, isfile, join, samefile
 from .datetime import datetime_now
 from .encoding import string_types
 
@@ -44,7 +45,7 @@ def first_that_exist(*paths):
     None
     """
     for path in paths:
-        if os.path.exists(path):
+        if exists(path):
             return path
     return None
 
@@ -87,12 +88,12 @@ def get_size(path):
     If given ``path`` is a directory (or symlink to a directory), then returned value is computed by summing the size of
     all files, and that recursively.
     """
-    if os.path.isfile(path):
+    if isfile(path):
         return os.stat(path).st_size
     size = 0
     for root, dirnames, filenames in os.walk(path):
         for filename in filenames:
-            size += os.stat(os.path.join(root, filename)).st_size
+            size += os.stat(join(root, filename)).st_size
     return size
 
 
@@ -117,11 +118,11 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
         for src_root, dirnames, filenames in os.walk(source_path):
             for filename in filenames:
                 dst_root = src_root.replace(source_path, destination_path)
-                src_path = os.path.join(src_root, filename)
-                dst_path = os.path.join(dst_root, filename)
+                src_path = join(src_root, filename)
+                dst_path = join(dst_root, filename)
 
                 # Initialize block-based copy
-                try_makedirs(os.path.dirname(dst_path))
+                try_makedirs(dirname(dst_path))
                 block_size = 1024 * 1024
                 src_file = open(src_path, 'rb')
                 dst_file = open(dst_path, 'wb')
@@ -190,7 +191,7 @@ def try_makedirs(path):
         raise  # Re-raise exception if a different error occurred
 
 
-def try_remove(path):
+def try_remove(path, recursive=False):
     """
     Tries to remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
@@ -202,10 +203,29 @@ def try_remove(path):
     True
     >>> try_remove('try_remove.example')
     False
+
+    >>> for file_name in ('try_remove/a', 'try_remove/b/c', 'try_remove/d/e/f'):
+    ...     _ = try_makedirs(dirname(file_name))
+    ...     open(file_name, 'w', encoding='utf-8').write('salut les pépés')
+    >>> try_remove('try_remove/d/e', recursive=True)
+    True
+    >>> try_remove('try_remove/d/e', recursive=True)
+    False
+    >>> from nose.tools import assert_raises
+    >>> assert_raises(OSError, try_remove, 'try_remove/b')
+    >>> try_remove('try_remove', recursive=True)
+    True
     """
     try:
-        os.remove(path)
-        return True
+        try:
+            os.remove(path)
+            return True
+        except OSError as e:
+            # Is a directory and recursion is allowed
+            if e.errno == errno.EISDIR and recursive:
+                shutil.rmtree(path)
+                return True
+            raise  # Re-raise exception if a different error occurred
     except OSError as e:
         # File does not exist
         if e.errno == errno.ENOENT:
@@ -224,7 +244,7 @@ def try_symlink(source, link_name):
     >>> a = try_remove('/tmp/does_not_exist')
     >>> a = try_remove('/tmp/does_not_exist_2')
     >>> a = try_remove('/tmp/link_etc')
-    >>> a = try_remove(os.path.expanduser('~/broken_link'))
+    >>> a = try_remove(expanduser('~/broken_link'))
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
@@ -254,22 +274,22 @@ def try_symlink(source, link_name):
     >>> assert_raises(OSError, try_symlink, '~/does_not_exist_2', '~/broken_link')
     >>> assert_raises(OSError, try_symlink, '/home', '~/broken_link')
     >>> os.remove('/tmp/link_etc')
-    >>> os.remove(os.path.expanduser('~/broken_link'))
+    >>> os.remove(expanduser('~/broken_link'))
     """
     try:
-        source = os.path.expanduser(source)
-        link_name = os.path.expanduser(link_name)
+        source = expanduser(source)
+        link_name = expanduser(link_name)
         os.symlink(source, link_name)
         return True
     except OSError as e1:
         # File exists
         if e1.errno == errno.EEXIST:
             try:
-                if os.path.samefile(source, link_name):
+                if samefile(source, link_name):
                     return False
             except OSError as e2:
                 # Handle broken symlink that point to same target
-                target = os.path.expanduser(os.readlink(link_name))
+                target = expanduser(os.readlink(link_name))
                 if e2.errno == errno.ENOENT:
                     if target == source:
                         return False
@@ -287,6 +307,6 @@ def chown(path, user=None, group=None, recursive=False):
         for root, dirnames, filenames in os.walk(path):
             os.chown(root, uid, gid)
             for filename in filenames:
-                os.chown(os.path.join(root, filename), uid, gid)
+                os.chown(join(root, filename), uid, gid)
     else:
         os.chown(path, uid, gid)
