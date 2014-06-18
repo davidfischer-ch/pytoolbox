@@ -28,7 +28,7 @@ import hashlib
 from .encoding import string_types
 
 
-def githash(data, encoding='utf-8'):
+def githash(data, encoding='utf-8', is_filename=False):
     """
     Return the blob of some data.
 
@@ -48,8 +48,13 @@ def githash(data, encoding='utf-8'):
     abdd1818289725c072eff0f5ce185457679650be
     >>> print(githash('et ça fonctionne !\\n'))
     91de5baf6aaa1af4f662aac4383b27937b0e663d
+    >>> print(githash('small.mp4', is_filename=True))
+    1fc478842f51e7519866f474a02ad605235bc6a6
     """
-    data_bytes = data.encode(encoding) if isinstance(data, string_types) else data
+    if is_filename:
+        data_bytes = open(data, 'rb').read()
+    else:
+        data_bytes = data.encode(encoding) if isinstance(data, string_types) else data
     s = hashlib.sha1()
     s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
     s.update(data_bytes)
