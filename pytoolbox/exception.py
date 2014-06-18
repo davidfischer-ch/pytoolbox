@@ -27,6 +27,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from .encoding import to_bytes
 
 
+class BadHTTPResponseCodeError(Exception):
+    """An error raised an unexpected HTTP response code."""
+    pass
+
+
+class CorruptedFileError(Exception):
+    """An error raised when a file is corrupted."""
+    pass
+
+
 class ForbiddenError(Exception):
     """A forbidden error."""
     pass

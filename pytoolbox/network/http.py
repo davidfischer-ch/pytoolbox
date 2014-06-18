@@ -24,15 +24,72 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import urllib2, urlparse
+import os, requests, urllib2, urlparse
 from codecs import open
+
 from ..encoding import to_bytes
+from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
 
 def download(url, filename):
     """Read the content of given ``url`` and save it as a file ``filename``."""
     with open(filename, 'wb') as f:
         f.write(urllib2.urlopen(url).read())
+
+
+def download_ext(url, filename, code=200, force=True, hash_method=None, expected_hash=None,
+                 code_msg='Download request {url} code {r_code} expected {code}.',
+                 hash_msg='Downloaded file {filename} is corrupted.', **kwargs):
+    """
+    Read the content of given ``url`` and save it as a file ``filename``, extended version.
+
+    * Set ``code`` to expected response code.
+    * Set ``force`` to False to avoid downloading the file if it already exists.
+    * Set ``hash_method`` to any callable with this signature: ``file_hash = (filename, is_filename=True)``.
+    * Set ``expected_hash`` to the expected hash value, warning: this will force computing the hash of the file.
+    * Set ``kwargs`` to any extra argument accepted by ``requests.get()``.
+
+    **Example usage**
+
+    >>> from pytoolbox.crypto import githash
+    >>> url = 'http://techslides.com/demos/sample-videos/small.mp4'
+
+    >>> download_ext(url, 'small.mp4')
+    (True, True, None)
+    >>> download_ext(url, 'small.mp4', force=False)
+    (True, False, None)
+    >>> download_ext(url, 'small.mp4', force=False, hash_method=githash)
+    (True, False, '1fc478842f51e7519866f474a02ad605235bc6a6')
+
+    >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='1fc478842f51e7519866f474a02ad605235bc6a6')
+    (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
+
+    >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='2ad605235bc6a6842f51e7519866f1fc478474a0')
+    Traceback (most recent call last):
+        ...
+    CorruptedFileError: Downloaded file small.mp4 is corrupted.
+
+    >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
+    (False, False, None)
+
+    >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4')
+    Traceback (most recent call last):
+        ...
+    BadHTTPResponseCodeError: Download request http://techslides.com/monkey.mp4 code 404 expected 200.
+    """
+    exists, downloaded = os.path.exists(filename), False
+    if force or not exists:
+        response = requests.get(url, **kwargs)
+        if response.status_code != code:
+            raise BadHTTPResponseCodeError(code_msg.format(url=url, code=code, r_code=response.status_code))
+        if response.status_code == 200:
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+            downloaded = True
+    file_hash = hash_method(filename, is_filename=True) if hash_method else None
+    if expected_hash and file_hash != expected_hash:
+        raise CorruptedFileError(hash_msg.format(filename=filename, file_hash=file_hash, expected_hash=expected_hash))
+    return exists, downloaded, file_hash
 
 
 def get_request_data(request, accepted_keys=None, required_keys=None, sources=['query', 'form', 'json'],
