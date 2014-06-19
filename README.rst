@@ -25,6 +25,9 @@ Afraid of red status ? Please click on the link, sometimes this is not my fault 
 
 This module is a Toolbox for Python scripts.
 
+This library supports Python 2.6, 2.7, 3.2, 3.3, 3.4 and PyPy.
+
+
 ------------------------------------
 What the release number stands for ?
 ------------------------------------
