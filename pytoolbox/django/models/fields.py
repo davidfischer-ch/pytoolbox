@@ -28,6 +28,7 @@ from django.db import models
 
 __all__ = ('StripCharField', 'StripTextField')
 
+# https://code.djangoproject.com/ticket/6362#no1
 
 class StripCharField(models.CharField):
 
