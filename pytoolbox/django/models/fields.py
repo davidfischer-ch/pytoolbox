@@ -30,10 +30,13 @@ __all__ = ('StripCharField', 'StripTextField')
 
 # https://code.djangoproject.com/ticket/6362#no1
 
+
 class StripCharField(models.CharField):
 
     def clean(self, value, model_instance):
-        value = self.to_python(value).strip()
+        value = self.to_python(value)
+        if value:
+            value = value.strip()
         self.validate(value, model_instance)
         self.run_validators(value)
         return value
@@ -42,7 +45,9 @@ class StripCharField(models.CharField):
 class StripTextField(models.TextField):
 
     def clean(self, value, model_instance):
-        value = self.to_python(value).strip()
+        value = self.to_python(value)
+        if value:
+            value = value.strip()
         self.validate(value, model_instance)
         self.run_validators(value)
         return value
