@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #**********************************************************************************************************************#
@@ -25,21 +24,24 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
-from os.path import dirname, join
-from pytoolbox.network.http import download
-from pytoolbox.unittest import runtests
+from django.db import models
+
+__all__ = ('StripCharField', 'StripTextField')
 
 
-def main():
-    print('Download the test media assets')
-    root = dirname(__file__)
-    download('http://techslides.com/demos/sample-videos/small.mp4', join(root, 'small.mp4'))
-    print('Run the tests with nose')
-    # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = ('fields.py|forms.py|mixins.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_tags.py' +
-              ('|session.py|schema.py' if sys.version_info[0] > 2 else ''))
-    return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'], ignore=ignore)
+class StripCharField(models.CharField):
 
-if __name__ == '__main__':
-    main()
+    def clean(self, value, model_instance):
+        value = self.to_python(value).strip()
+        self.validate(value, model_instance)
+        self.run_validators(value)
+        return value
+
+
+class StripTextField(models.TextField):
+
+    def clean(self, value, model_instance):
+        value = self.to_python(value).strip()
+        self.validate(value, model_instance)
+        self.run_validators(value)
+        return value

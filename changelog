@@ -3,12 +3,18 @@ changelog
 =========
 
 --------------------------
-v8.0.0-beta -> v8.4.0-beta
+v8.0.0-beta -> v8.5.0-beta
 --------------------------
+
+Minor compatibility breaks
+==========================
+
+* Rename module django.models -> django.models.mixins
 
 Features
 ========
 
+* Add module django.models.fields
 * Add class validation.CleanAttributesMixin
 * Add class validation.StrongTypedMixin
 * Add class django.forms.RequestMixin
