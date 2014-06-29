@@ -167,7 +167,7 @@ def read_async(fd):
 def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
     if not url:
         config = open(join(directory, '.git', 'config')).read()
-        url = re.search(r'\[remote "{0}"\]\s+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
+        url = re.search(r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
 
 
