@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess
 import threading, time
-from os.path import exists, isdir, normpath
+from os.path import exists, join, isdir, normpath
 from .encoding import to_bytes, string_types
 from .filesystem import try_makedirs
 
@@ -163,6 +163,13 @@ def read_async(fd):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+
+def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
+    if not url:
+        config = open(join(directory, '.git', 'config')).read()
+        url = re.search(r'\[remote "{0}"\]\s+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
+    return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
+
 
 def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=None, **kwargs):
     if exists(directory):
