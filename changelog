@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.0.0-beta -> v8.5.1-beta
+v8.0.0-beta -> v8.5.2-beta
 --------------------------
 
 Minor compatibility breaks
@@ -20,6 +20,7 @@ Features
 * Add class django.forms.RequestMixin
 * Add class django.views.AddRequestToFormKwargsMixin
 * Add class django.views.LoggedCookieMixin
+* Add class unittest.AwareTearDownMixin
 * Add function subprocess.git_add_submodule
 * Add function network.http.download_ext
 

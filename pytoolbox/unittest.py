@@ -76,6 +76,17 @@ def mock_side_effect(*args, **kwargs):
     return result
 
 
+class AwareTearDownMixin(object):
+
+    def awareTearDown(self, result):
+        pass  # de bleu, c'est fantastique !
+
+    def run(self, result=None):
+        result = super().run(result)
+        self.awareTearDown(result)
+        return result
+
+
 class PseudoTestCase(TestCase):
     """
     Pseudo test-case to map result from :mod:`nose` to :mod:`unittest`.
