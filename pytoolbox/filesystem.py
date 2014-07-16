@@ -91,9 +91,9 @@ def get_size(path):
     if isfile(path):
         return os.stat(path).st_size
     size = 0
-    for root, dirnames, filenames in os.walk(path):
+    for dirpath, dirnames, filenames in os.walk(path):
         for filename in filenames:
-            size += os.stat(join(root, filename)).st_size
+            size += os.stat(join(dirpath, filename)).st_size
     return size
 
 
@@ -304,9 +304,9 @@ def chown(path, user=None, group=None, recursive=False):
     uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
     gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
     if recursive:
-        for root, dirnames, filenames in os.walk(path):
-            os.chown(root, uid, gid)
+        for dirpath, dirnames, filenames in os.walk(path):
+            os.chown(dirpath, uid, gid)
             for filename in filenames:
-                os.chown(join(root, filename), uid, gid)
+                os.chown(join(dirpath, filename), uid, gid)
     else:
         os.chown(path, uid, gid)
