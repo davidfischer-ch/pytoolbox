@@ -233,6 +233,6 @@ def get_media_infos(filename):
 
     try:
         return json.loads(check_output(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format',
-                          '-show_streams', filename]))
+                          '-show_streams', filename]).decode('utf-8'))
     except:
         return None
