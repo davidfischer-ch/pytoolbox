@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import json, os, re
+import json, math, os, re
 from datetime import time
 from subprocess import check_output
 from xml.dom import minidom
@@ -40,7 +40,7 @@ MPD_TEST = """<?xml version="1.0"?>
 """
 
 
-def get_media_duration(filename_or_infos):
+def get_media_duration(filename_or_infos, time_class=time):
     """
     Returns the duration of a media as an instance of time or None in case of error.
 
@@ -69,8 +69,8 @@ def get_media_duration(filename_or_infos):
 
     >>> with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
     ...     f.write(MPD_TEST)
-    >>> print(get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S'))
-    00:06:10
+    >>> print(get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'))
+    00:06:07.830000
     >>> os.remove('/tmp/test.mpd')
 
     A MP4:
@@ -86,9 +86,9 @@ def get_media_duration(filename_or_infos):
         if mpd.firstChild.nodeName == 'MPD':
             match = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
             if match is not None:
-                seconds = float(match.group('seconds'))
-                seconds, microseconds = 10, 10
-                return time(int(match.group('hours')), int(match.group('minutes')), seconds, microseconds)
+                microseconds, seconds = math.modf(float(match.group('seconds')))
+                return time(int(match.group('hours')), int(match.group('minutes')), int(seconds),
+                            int(1000000 * microseconds))
     else:
         infos = get_media_infos(filename_or_infos) if is_filename else filename_or_infos
         try:
