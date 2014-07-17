@@ -40,7 +40,7 @@ MPD_TEST = """<?xml version="1.0"?>
 """
 
 
-def get_media_duration(filename):
+def get_media_duration(filename_or_infos):
     """
     Returns the duration of a media as an instance of time or None in case of error.
 
@@ -51,21 +51,38 @@ def get_media_duration(filename):
     **Example usage**
 
     >>> from codecs import open
+
+    Bad file format:
+
     >>> with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
     ...     f.write('Hey, I am not a MPD nor a média')
     >>> print(get_media_duration('/tmp/test.txt'))
     None
     >>> os.remove('/tmp/test.txt')
+
+    Some random bad things:
+
+    >>> print(get_media_duration({}))
+    None
+
+    A MPEG-DASH MPD:
+
     >>> with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
     ...     f.write(MPD_TEST)
     >>> print(get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S'))
     00:06:10
     >>> os.remove('/tmp/test.mpd')
+
+    A MP4:
+
     >>> print(get_media_duration('small.mp4').strftime('%H:%M:%S'))
     00:00:05
+    >>> print(get_media_duration(get_media_infos('small.mp4')).strftime('%H:%M:%S'))
+    00:00:05
     """
-    if os.path.splitext(filename)[1] == '.mpd':
-        mpd = minidom.parse(filename)
+    is_filename = not isinstance(filename_or_infos, dict)
+    if is_filename and os.path.splitext(filename_or_infos)[1] == '.mpd':
+        mpd = minidom.parse(filename_or_infos)
         if mpd.firstChild.nodeName == 'MPD':
             match = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
             if match is not None:
@@ -73,7 +90,7 @@ def get_media_duration(filename):
                 seconds, microseconds = 10, 10
                 return time(int(match.group('hours')), int(match.group('minutes')), seconds, microseconds)
     else:
-        infos = get_media_infos(filename)
+        infos = get_media_infos(filename_or_infos) if is_filename else filename_or_infos
         try:
             duration = secs_to_time(float(infos['format']['duration'])) if infos else None
         except KeyError:
@@ -83,7 +100,7 @@ def get_media_duration(filename):
     return None
 
 
-def get_media_resolution(filename_or_infos=None):
+def get_media_resolution(filename_or_infos):
     """
     Return [width, height] of the first video stream in ``filename_or_infos`` or None in case of error.
 
@@ -105,9 +122,9 @@ def get_media_resolution(filename_or_infos=None):
     ... ]}))
     [1920, 1080]
     """
+    if not isinstance(filename_or_infos, dict):
+        filename_or_infos = get_media_infos(filename_or_infos)
     try:
-        if not isinstance(filename_or_infos, dict):
-            filename_or_infos = get_media_infos(filename_or_infos)
         first_video_stream = next(s for s in filename_or_infos['streams'] if s['codec_type'] == 'video')
         return [int(first_video_stream['width']), int(first_video_stream['height'])]
     except:
