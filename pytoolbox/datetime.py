@@ -94,9 +94,25 @@ def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
     return datetime.datetime.strptime(date, format)
 
 
-def secs_to_time(value, defaults_to_zero=False):
+def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):
     """
-    Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
+    Return an instance of time/timedelta out of the parts.
+
+    **Example usage**
+
+    >>> parts_to_time(23, 15, 7, 3500)
+    datetime.time(23, 15, 7, 3500)
+    >>> parts_to_time(23, 15, 7, 3500, as_delta=True)
+    datetime.timedelta(0, 83707, 3500)
+    """
+    if as_delta:
+        return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+    return datetime.time(hours, minutes, seconds, microseconds)
+
+
+def secs_to_time(value, defaults_to_zero=False, as_delta=False):
+    """
+    Return an instance of time/timedelta, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
 
     **Example usage**
 
@@ -105,12 +121,19 @@ def secs_to_time(value, defaults_to_zero=False):
     >>> secs_to_time(None)
     >>> secs_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
+
+    >>> secs_to_time(83707.0035, as_delta=True)
+    datetime.timedelta(0, 83707, 3500)
+    >>> secs_to_time(None, as_delta=True)
+    >>> secs_to_time(None, defaults_to_zero=True, as_delta=True)
+    datetime.timedelta(0)
     """
     try:
-        return (datetime.datetime.min + datetime.timedelta(seconds=float(value))).time()
+        delta = datetime.timedelta(seconds=float(value))
+        return delta if as_delta else (datetime.datetime.min + delta).time()
     except (TypeError, ValueError):
         if defaults_to_zero and not value:
-            return datetime.time(second=0)
+            return datetime.timedelta(seconds=0) if as_delta else datetime.time(second=0)
         return None
 
 

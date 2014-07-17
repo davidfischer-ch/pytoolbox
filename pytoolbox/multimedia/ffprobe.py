@@ -25,10 +25,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import json, math, os, re
-from datetime import time
+from datetime import time, timedelta
 from subprocess import check_output
 from xml.dom import minidom
-from ..datetime import secs_to_time
+from ..datetime import parts_to_time, secs_to_time
 
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 WIDTH, HEIGHT = range(2)
@@ -40,7 +40,7 @@ MPD_TEST = """<?xml version="1.0"?>
 """
 
 
-def get_media_duration(filename_or_infos, time_class=time):
+def get_media_duration(filename_or_infos, as_delta=False):
     """
     Returns the duration of a media as an instance of time or None in case of error.
 
@@ -51,6 +51,7 @@ def get_media_duration(filename_or_infos, time_class=time):
     **Example usage**
 
     >>> from codecs import open
+    >>> from nose.tools import eq_
 
     Bad file format:
 
@@ -71,6 +72,8 @@ def get_media_duration(filename_or_infos, time_class=time):
     ...     f.write(MPD_TEST)
     >>> print(get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'))
     00:06:07.830000
+    >>> get_media_duration('/tmp/test.mpd', as_delta=True)
+    datetime.timedelta(0, 367, 830000)
     >>> os.remove('/tmp/test.mpd')
 
     A MP4:
@@ -79,6 +82,7 @@ def get_media_duration(filename_or_infos, time_class=time):
     00:00:05
     >>> print(get_media_duration(get_media_infos('small.mp4')).strftime('%H:%M:%S'))
     00:00:05
+    >>> eq_(get_media_duration(get_media_infos('small.mp4'), as_delta=True).seconds, 5)
     """
     is_filename = not isinstance(filename_or_infos, dict)
     if is_filename and os.path.splitext(filename_or_infos)[1] == '.mpd':
@@ -86,17 +90,19 @@ def get_media_duration(filename_or_infos, time_class=time):
         if mpd.firstChild.nodeName == 'MPD':
             match = DURATION_REGEX.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
             if match is not None:
+                hours, minutes = int(match.group('hours')), int(match.group('minutes'))
                 microseconds, seconds = math.modf(float(match.group('seconds')))
-                return time(int(match.group('hours')), int(match.group('minutes')), int(seconds),
-                            int(1000000 * microseconds))
+                microseconds, seconds = int(1000000 * microseconds), int(seconds)
+                return parts_to_time(hours, minutes, seconds, microseconds, as_delta=as_delta)
     else:
         infos = get_media_infos(filename_or_infos) if is_filename else filename_or_infos
         try:
-            duration = secs_to_time(float(infos['format']['duration'])) if infos else None
+            duration = secs_to_time(float(infos['format']['duration']), as_delta=as_delta) if infos else None
         except KeyError:
             return None
         # ffmpeg may return this so strange value, 00:00:00.04, let it being None
-        return duration if duration and duration >= time(0, 0, 1) else None
+        if duration and (duration >= timedelta(seconds=1) if as_delta else duration >= time(0, 0, 1)):
+            return duration
     return None
 
 
