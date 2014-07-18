@@ -90,7 +90,32 @@ def get_subprocess(in_filenames, out_filename, options):
 
 
 def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', time_format='%H:%M:%S', base_track=0,
-           ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05):
+           ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05,
+           encoding='utf-8'):
+
+    """
+    **Example usage**
+
+    >>> from ..filesystem import try_remove
+
+    >>> results = list(encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
+    >>> try_remove('ff_output.mp4')
+    True
+    >>> print(results[-1]['status'])
+    SUCCESS
+
+    >>> results = list(encode('small.mp4', 'ff_output.mp4', 'crazy_option'))
+    >>> try_remove('ff_output.mp4')
+    False
+    >>> print(results[-1]['status'])
+    ERROR
+
+    >>> results = list(encode({'missing.mp4'}, 'ff_output.mp4', '-c:a copy -c:v copy'))
+    >>> try_remove('ff_output.mp4')
+    False
+    >>> print(results[-1]['status'])
+    ERROR
+    """
 
     ffmpeg, in_filenames, options = get_subprocess(in_filenames, out_filename, options)
 
@@ -108,6 +133,8 @@ def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', 
         # Wait for data to become available
         select.select([ffmpeg.stderr], [], [])
         chunk = ffmpeg.stderr.read()
+        if not isinstance(chunk, string_types):
+            chunk = chunk.decode(encoding)
         output += chunk
         elapsed_time = time.time() - start_time
         match = ENCODING_REGEX.match(chunk)
