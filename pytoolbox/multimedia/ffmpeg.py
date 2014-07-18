@@ -41,7 +41,7 @@ ENCODING_REGEX = re.compile(
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)')
 
 
-def get_subprocess(in_filenames, out_filename, options):
+def get_subprocess(in_filenames, out_filename, options, executable='ffmpeg'):
     """
     Return a ffmpeg subprocess with stderr made asynchronous.
 
@@ -78,7 +78,7 @@ def get_subprocess(in_filenames, out_filename, options):
     in_filenames = [f for f in ([in_filenames] if isinstance(in_filenames, string_types) else in_filenames)]
     options = (shlex.split(options) if isinstance(options, string_types) else options) or []
 
-    args = ['ffmpeg', '-y']
+    args = [executable, '-y']
     for in_filename in in_filenames:
         args.extend(['-i', in_filename])
     args.extend(options + [out_filename])
@@ -91,7 +91,7 @@ def get_subprocess(in_filenames, out_filename, options):
 
 def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', time_format='%H:%M:%S', base_track=0,
            ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05,
-           encoding='utf-8'):
+           encoding='utf-8', executable='ffmpeg'):
 
     """
     **Example usage**
@@ -117,7 +117,7 @@ def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', 
     ERROR
     """
 
-    ffmpeg, in_filenames, options = get_subprocess(in_filenames, out_filename, options)
+    ffmpeg, in_filenames, options = get_subprocess(in_filenames, out_filename, options, executable=executable)
 
     # Get input media duration and size to be able to estimate ETA
     in_duration = get_media_duration(in_filenames[base_track]) or str2time(default_in_duration)

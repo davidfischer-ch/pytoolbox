@@ -39,7 +39,7 @@ ENCODING_REGEX = re.compile(
 
 
 def encode(in_filename, out_filename, encoder_string, default_in_duration='00:00:00', ratio_delta=0.01, time_delta=1,
-           max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05):
+           max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05, executable='x264'):
 
     # Get input media duration and size to be able to estimate ETA
     in_duration = get_media_duration(in_filename) or default_in_duration
@@ -54,7 +54,7 @@ def encode(in_filename, out_filename, encoder_string, default_in_duration='00:00
     prev_ratio = prev_time = ratio = 0
 
     # Create x264 subprocess
-    cmd = 'x264 {0} -o "{1}" "{2}"'.format(encoder_string, out_filename, in_filename)
+    cmd = '{0} {1} -o "{2}" "{3}"'.format(executable, encoder_string, out_filename, in_filename)
     x264 = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
     make_async(x264.stderr)
 
