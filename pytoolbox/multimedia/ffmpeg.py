@@ -41,12 +41,58 @@ ENCODING_REGEX = re.compile(
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)')
 
 
-def encode(in_filenames, out_filename, encoder_string, default_in_duration='00:00:00', time_format='%H:%M:%S',
-           base_track=0, ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95,
-           sanity_max_ratio=1.05):
+def get_subprocess(in_filenames, out_filename, options):
+    """
+    Return a ffmpeg subprocess with stderr made asynchronous.
 
-    if isinstance(in_filenames, string_types):
-        in_filenames = [in_filenames]
+    * Set in_filenames to a string or a "list" with the input filenames.
+    * Set out_filename to a string.
+    * Set argument to a string or a list with the options for ffmpeg (except ones related to input(s) / output).
+
+    In return you will get a tuple with (subprocess, in_filenames -> list, options -> list).
+    This function ensure subprocess.args is set to the arguments of the ffmpeg subprocess.
+
+    **Example usage**
+
+    >>> from nose.tools import assert_list_equal as leq_
+    >>> options_string = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
+
+    >>> ffmpeg, in_filenames, options = get_subprocess('input.mp4', 'output.mkv', options_string)
+    >>> leq_(in_filenames, ['input.mp4'])
+    >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
+    >>> leq_(ffmpeg.args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+    >>> ffmpeg.kill()
+
+    >>> ffmpeg, in_filenames, options = get_subprocess({'input.avi'}, 'output.mp4', options_string)
+    >>> leq_(in_filenames, ['input.avi'])
+    >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
+    >>> leq_(ffmpeg.args, ['ffmpeg', '-y', '-i', 'input.avi'] + options + ['output.mp4'])
+    >>> ffmpeg.kill()
+
+    >>> ffmpeg, in_filenames, options = get_subprocess(('video.h264', 'audio.mp3'), 'output.mp4', options)
+    >>> leq_(sorted(in_filenames), ['audio.mp3', 'video.h264'])
+    >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
+    >>> leq_(ffmpeg.args, ['ffmpeg', '-y', '-i', 'video.h264', '-i', 'audio.mp3'] + options + ['output.mp4'])
+    >>> ffmpeg.kill()
+    """
+    in_filenames = [f for f in ([in_filenames] if isinstance(in_filenames, string_types) else in_filenames)]
+    options = (shlex.split(options) if isinstance(options, string_types) else options) or []
+
+    args = ['ffmpeg', '-y']
+    for in_filename in in_filenames:
+        args.extend(['-i', in_filename])
+    args.extend(options + [out_filename])
+    ffmpeg = Popen(args, stderr=PIPE, close_fds=True)
+    if not hasattr(ffmpeg, 'args'):
+        ffmpeg.args = args
+    make_async(ffmpeg.stderr)
+    return ffmpeg, in_filenames, options
+
+
+def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', time_format='%H:%M:%S', base_track=0,
+           ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05):
+
+    ffmpeg, in_filenames, options = get_subprocess(in_filenames, options)
 
     # Get input media duration and size to be able to estimate ETA
     in_duration = get_media_duration(in_filenames[base_track]) or str2time(default_in_duration)
@@ -57,12 +103,6 @@ def encode(in_filenames, out_filename, encoder_string, default_in_duration='00:0
     stats = {}
     start_date, start_time = datetime_now(), time.time()
     prev_ratio = prev_time = ratio = 0
-
-    # Create FFmpeg subprocess
-    in_filenames_string = ' '.join('-i "' + f + '"' for f in in_filenames)
-    cmd = 'ffmpeg -y {0} {1} "{2}"'.format(in_filenames_string, encoder_string, out_filename)
-    ffmpeg = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
-    make_async(ffmpeg.stderr)
 
     while True:
         # Wait for data to become available

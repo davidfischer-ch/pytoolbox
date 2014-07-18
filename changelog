@@ -3,6 +3,15 @@ changelog
 =========
 
 --------------------------
+v8.6.0-beta -> v8.6.1-beta
+--------------------------
+
+Fixes and enhancements
+======================
+
+* Add function multimedia.ffmpeg.get_subprocess
+
+--------------------------
 v8.0.0-beta -> v8.6.0-beta
 --------------------------
 
