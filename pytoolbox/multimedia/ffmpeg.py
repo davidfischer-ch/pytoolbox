@@ -92,7 +92,7 @@ def get_subprocess(in_filenames, out_filename, options):
 def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', time_format='%H:%M:%S', base_track=0,
            ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05):
 
-    ffmpeg, in_filenames, options = get_subprocess(in_filenames, options)
+    ffmpeg, in_filenames, options = get_subprocess(in_filenames, out_filename, options)
 
     # Get input media duration and size to be able to estimate ETA
     in_duration = get_media_duration(in_filenames[base_track]) or str2time(default_in_duration)
