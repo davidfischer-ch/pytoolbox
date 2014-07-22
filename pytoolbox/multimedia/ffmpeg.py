@@ -89,9 +89,14 @@ def get_subprocess(in_filenames, out_filename, options, executable='ffmpeg'):
     return ffmpeg, in_filenames, options
 
 
+def _get_statistics(chunk):
+    match = ENCODING_REGEX.match(chunk)
+    return match.groupdict() if match else {}
+
+
 def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', time_format='%H:%M:%S', base_track=0,
            ratio_delta=0.01, time_delta=1, max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05,
-           encoding='utf-8', executable='ffmpeg'):
+           encoding='utf-8', executable='ffmpeg', get_statistics=None):
 
     """
     **Example usage**
@@ -116,8 +121,8 @@ def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', 
     >>> print(results[-1]['status'])
     ERROR
     """
-
     ffmpeg, in_filenames, options = get_subprocess(in_filenames, out_filename, options, executable=executable)
+    get_statistics = get_statistics or _get_statistics
 
     # Get input media duration and size to be able to estimate ETA
     in_duration = get_media_duration(in_filenames[base_track]) or str2time(default_in_duration)
@@ -137,9 +142,8 @@ def encode(in_filenames, out_filename, options, default_in_duration='00:00:00', 
             chunk = chunk.decode(encoding)
         output += chunk
         elapsed_time = time.time() - start_time
-        match = ENCODING_REGEX.match(chunk)
-        if match:
-            stats = match.groupdict()
+        stats = get_statistics(chunk)
+        if stats:
             try:
                 out_duration = str2time(stats['time'])
                 ratio = time_ratio(out_duration, in_duration)
