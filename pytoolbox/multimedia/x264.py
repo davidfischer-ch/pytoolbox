@@ -24,12 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re, select, shlex, time
-from subprocess import Popen, PIPE
-from .ffprobe import get_media_duration
-from ..datetime import datetime_now, secs_to_time, time_ratio, total_seconds
-from ..filesystem import get_size
-from ..subprocess import make_async
+import datetime, re, shlex
+from .ffmpeg import FFmpeg
+from ..datetime import total_seconds
+
+from ..encoding import string_types
 
 # [79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02
 ENCODING_REGEX = re.compile(
@@ -38,82 +37,25 @@ ENCODING_REGEX = re.compile(
 )
 
 
-def encode(in_filename, out_filename, encoder_string, default_in_duration='00:00:00', ratio_delta=0.01, time_delta=1,
-           max_time_delta=5, sanity_min_ratio=0.95, sanity_max_ratio=1.05, executable='x264'):
+class X264(FFmpeg):
 
-    # Get input media duration and size to be able to estimate ETA
-    in_duration = get_media_duration(in_filename) or default_in_duration
-    in_duration_secs = total_seconds(in_duration)
-    in_size = get_size(in_filename)
-    out_filename = out_filename or '/dev/null'
+    encoding_regex = ENCODING_REGEX
+    encoding_executable = 'x264'
 
-    # Initialize metrics
-    output = ''
-    stats = {}
-    start_date, start_time = datetime_now(), time.time()
-    prev_ratio = prev_time = ratio = 0
+    def _get_arguments(self, in_filenames, out_filename, options):
+        in_filenames = [f for f in ([in_filenames] if isinstance(in_filenames, string_types) else in_filenames)]
+        if len(in_filenames) > 1:
+            raise NotImplementedError('Unable to handle more than one input filename.')
+        out_filename = out_filename or '/dev/null'
+        options = (shlex.split(options) if isinstance(options, string_types) else options) or []
+        args = [self.encoder_executable] + options + ['-o', out_filename] + in_filenames
+        return args, in_filenames, out_filename, options
 
-    # Create x264 subprocess
-    cmd = '{0} {1} -o "{2}" "{3}"'.format(executable, encoder_string, out_filename, in_filename)
-    x264 = Popen(shlex.split(cmd), stderr=PIPE, close_fds=True)
-    make_async(x264.stderr)
+    def _get_progress(self, in_duration, stats):
+        out_duration = in_duration * float(stats['percent'])
+        ratio = float(stats['frame']) / float(stats['frame_total'])
+        return out_duration, ratio
 
-    while True:
-        # Wait for data to become available
-        select.select([x264.stderr], [], [])
-        chunk = x264.stderr.read()
-        output += chunk
-        elapsed_time = time.time() - start_time
-        match = ENCODING_REGEX.match(chunk)
-        if match:
-            stats = match.groupdict()
-            out_duration = secs_to_time(in_duration_secs * float(stats['percent']))
-            ratio = float(stats['frame']) / float(stats['frame_total'])
-            delta_time = elapsed_time - prev_time
-            if (ratio - prev_ratio > ratio_delta and delta_time > time_delta) or delta_time > max_time_delta:
-                prev_ratio, prev_time = ratio, elapsed_time
-                yield {
-                    # FIXME report frame_total ?
-                    'status': 'PROGRESS',
-                    'output': output,
-                    'returncode': None,
-                    'start_date': start_date,
-                    'elapsed_time': elapsed_time,
-                    'eta_time': total_seconds(stats['eta']),
-                    'in_size': in_size,
-                    'in_duration': in_duration,
-                    'out_size': get_size(out_filename),
-                    'out_duration': out_duration,
-                    'percent': float(stats['percent']),
-                    'frame': int(stats['frame']),
-                    'fps': float(stats['fps']),
-                    'bitrate': stats['bitrate'],
-                    'quality': None,  # FIXME
-                    'sanity': None
-                }
-        returncode = x264.poll()
-        if returncode is not None:
-            break
-
-    # Output media file sanity check
-    out_duration = get_media_duration(out_filename)
-    ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
-    yield {
-        # FIXME report frame_total ?
-        'status': 'ERROR' if returncode else 'SUCCESS',
-        'output': output,
-        'returncode': returncode,
-        'start_date': start_date,
-        'elapsed_time': elapsed_time,
-        'eta_time': 0,
-        'in_size': in_size,
-        'in_duration': in_duration,
-        'out_size': get_size(out_filename),
-        'out_duration': out_duration,
-        'percent': float(stats.get('percent', 0)) if returncode else 100,  # Assume that a successful encoding = 100%
-        'frame': int(stats.get('frame', 0)),
-        'fps': float(stats.get('fps', 0)),
-        'bitrate': stats.get('bitrate'),
-        'quality': None,  # FIXME
-        'sanity': sanity_min_ratio <= ratio <= sanity_max_ratio
-    }
+    def _clean_statistics(self, stats, **statistics):
+        statistics.setdefault('eta_time', datetime.timedelta(seconds=total_seconds(stats['eta'])))
+        return statistics
