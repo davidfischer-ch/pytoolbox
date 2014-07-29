@@ -62,22 +62,22 @@ keywords = [
 ]
 
 install_requires = [
-    'argparse',     # FIXME version
-    'mock',         # FIXME version
-    'passlib',      # FIXME version
-    'pyaml',        # FIXME version
-    'pycallgraph',  # FIXME version
-    'pygal',        # FIXME version
-    'pymongo',      # FIXME version
-    'pytz',         # FIXME version
-    'six',          # FIXME version
+    'argparse',
+    'mock',
+    'passlib',
+    'pyaml',
+    'pycallgraph',
+    'pygal',
+    'pymongo',
+    'pytz',
+    'six',
 ]
 
 extras_require = {
-    'django':    ['django'],   # FIXME version
-    'flask':     ['flask'],    # FIXME version
-    'mongo':     ['celery'],   # FIXME version
-    'smpte2022': ['fastxor'],  # FIXME version
+    'django':    ['django'],
+    'flask':     ['flask'],
+    'mongo':     ['celery'],
+    'smpte2022': ['fastxor'],
 }
 
 # Why not installing following packages for python 3 ?
@@ -89,14 +89,14 @@ extras_require = {
 PY3 = sys.version_info[0] > 2
 
 if not PY3:
-    extras_require['ming'] = ['ming']  # FIXME version
+    extras_require['ming'] = ['ming']
     try:
         import hashlib
     except ImportError:
-        install_requires.append('hashlib')  # FIXME version
+        install_requires.append('hashlib')
     install_requires += [
-        'ipaddr',   # FIXME version
-        'kitchen',  # FIXME version
+        'ipaddr',
+        'kitchen',
     ]
 
 description = 'Toolbox for Python scripts'
