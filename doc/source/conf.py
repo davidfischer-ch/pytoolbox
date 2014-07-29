@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 #
 # pytoolbox documentation build configuration file, created by
 # sphinx-quickstart on Tue Oct  1 11:17:20 2013.
