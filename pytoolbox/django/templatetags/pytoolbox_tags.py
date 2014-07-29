@@ -162,13 +162,13 @@ def status_label(value, autoescape=None, default=''):
 
 
 @register.filter(is_safe=True)
-def to_filesize(value, string_format='{value:.4g} {unit}'):
+def to_filesize(value, string_format='{value:.3g} {unit}'):
     """
     Return a human readable representation of a file size taking value as the size in bytes.
 
     Output::
 
-        16487211.33568|to_filesize -> 15.72 MiB
+        16487211.33568|to_filesize -> 15.7 MiB
         16487211.33568|to_filesize:'{value:.0f} {unit}' -> 16 MiB
         None|to_filesize -> (nothing)
     """
