@@ -74,7 +74,7 @@ install_requires = [
 ]
 
 extras_require = {
-    'django':    ['django'],
+    'django':    ['bitmath', 'django'],
     'flask':     ['flask'],
     'mongo':     ['celery'],
     'smpte2022': ['fastxor'],

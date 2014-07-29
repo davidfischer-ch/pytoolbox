@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re
+import bitmath, re
 from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -159,3 +159,19 @@ def status_label(value, autoescape=None, default=''):
     esc = conditional_escape if autoescape else lambda x: x
     value = esc(value).upper()
     return mark_safe('<span class="label {0}">{1}</span>'.format(LABEL_TO_CLASS.get(value, default), value))
+
+
+@register.filter(is_safe=True)
+def to_filesize(value, string_format='{value:.2f} {unit}'):
+    """
+    Return a human readable representation of a file size taking value as the size in bytes.
+
+    Output::
+
+        16487211.33568|to_filesize -> 15.72 MiB
+        16487211.33568|to_filesize:'{value:.0f} {unit}' -> 16 MiB
+        None|to_filesize -> (nothing)
+    """
+    if value is None:
+        return settings.TEMPLATE_STRING_IF_INVALID
+    return bitmath.Byte(value).best_prefix().format(string_format)
