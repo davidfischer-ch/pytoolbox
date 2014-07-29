@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import bitmath, re
+import bitmath, re, time
 from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -159,6 +159,21 @@ def status_label(value, autoescape=None, default=''):
     esc = conditional_escape if autoescape else lambda x: x
     value = esc(value).upper()
     return mark_safe('<span class="label {0}">{1}</span>'.format(LABEL_TO_CLASS.get(value, default), value))
+
+
+@register.filter(is_safe=True)
+def timedelta(value, string_format='%H:%M:%S'):
+    """
+    Return a string with representation of the timedelta.
+
+    Output::
+
+        None|time_format:"H:i:s.u" -> (nothing)
+        timedelta(0, 6317)|timedelta -> 01:45:17
+    """
+    if value is None:
+        return settings.TEMPLATE_STRING_IF_INVALID
+    return time.strftime('%H:%M:%S', time.gmtime(value.total_seconds()))
 
 
 @register.filter(is_safe=True)
