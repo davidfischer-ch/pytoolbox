@@ -162,7 +162,7 @@ def status_label(value, autoescape=None, default=''):
 
 
 @register.filter(is_safe=True)
-def to_filesize(value, string_format='{value:.2f} {unit}'):
+def to_filesize(value, string_format='{value:.4g} {unit}'):
     """
     Return a human readable representation of a file size taking value as the size in bytes.
 
