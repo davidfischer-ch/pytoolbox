@@ -3,13 +3,18 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.0.0-beta
+v8.6.1-beta -> v9.0.1-beta
 --------------------------
 
 Compatibility breaks
 ====================
 
 * Refactor multimedia modules
+
+Fixes and enhancements
+======================
+
+* Function filesystem.from_template can now use jinja2 to generate the content
 
 --------------------------
 v8.6.0-beta -> v8.6.1-beta

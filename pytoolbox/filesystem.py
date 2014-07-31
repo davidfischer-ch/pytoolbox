@@ -50,9 +50,9 @@ def first_that_exist(*paths):
     return None
 
 
-def from_template(template, destination, values):
+def from_template(template, destination, values, jinja2=False):
     """
-    Generate a ``destination`` file from a ``template`` file filled with ``values``.
+    Generate a ``destination`` file from a ``template`` file filled with ``values``, method: string.format or jinja2!
 
     **Example usage**
 
@@ -78,7 +78,13 @@ def from_template(template, destination, values):
     """
     with open(template, 'r', 'utf-8') as template_file:
         with open(destination, 'w', 'utf-8') as destination_file:
-            destination_file.write(template_file.read().format(**values))
+            content = template_file.read()
+            if jinja2:
+                from jinja2 import Template
+                content = Template(content).render(**values)
+            else:
+                content = content.format(**values)
+            destination_file.write(content)
 
 
 def get_size(path):
