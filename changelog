@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.0.1-beta
+v8.6.1-beta -> v9.0.2-beta
 --------------------------
 
 Compatibility breaks
@@ -14,6 +14,7 @@ Compatibility breaks
 Fixes and enhancements
 ======================
 
+* Function datetime.total_seconds now accept instance of timedelta
 * Function filesystem.from_template can now use jinja2 to generate the content
 
 --------------------------

@@ -188,6 +188,8 @@ def total_seconds(time):
     16.4
     >>> total_seconds(143.2)
     143.2
+    >>> total_seconds(datetime.timedelta(seconds=152, microseconds=500000))
+    152.5
     >>> total_seconds(datetime.datetime(2010, 6, 10, 0, 1, 30))
     90.0
     >>> total_seconds(datetime.datetime(2010, 6, 10, 14, 15, 23))
@@ -196,10 +198,12 @@ def total_seconds(time):
     86399.0
     """
     try:
-        if isinstance(time, string_types):
-            hours, minutes, seconds = time.split(':')
+        if isinstance(time, datetime.timedelta):
+            return time.total_seconds()
         elif isinstance(time, numbers.Number):
             return time
+        elif isinstance(time, string_types):
+            hours, minutes, seconds = time.split(':')
         else:
             hours, minutes, seconds = time.hour, time.minute, time.second
         return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
