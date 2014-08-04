@@ -132,7 +132,7 @@ def secs_to_time(value, defaults_to_zero=False):
     Output::
 
         83707.0035|secs_to_time|time:"H:i:s.u" -> 23:15:07.003500
-        None|secs_to_time|time:"H:i:s.u"       -> (nothing)
+        None|secs_to_time|time:"H:i:s.u"       -> (empty string)
         None|secs_to_time:True|time:"H:i:s.u"  -> 00:00:00.000000
     """
     value = _secs_to_time(value, defaults_to_zero=defaults_to_zero)
@@ -168,10 +168,11 @@ def timedelta(value, string_format='%H:%M:%S'):
 
     Output::
 
-        None|time_format:"H:i:s.u" -> (nothing)
         timedelta(0, 6317)|timedelta -> 01:45:17
+        None|timedelta:"H:i:s.u" -> (empty string)
+        (empty string)|timedelta -> (empty string)
     """
-    if value is None:
+    if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
     return time.strftime('%H:%M:%S', time.gmtime(value.total_seconds()))
 
@@ -185,8 +186,9 @@ def to_filesize(value, string_format='{value:.3g} {unit}'):
 
         16487211.33568|to_filesize -> 15.7 MiB
         16487211.33568|to_filesize:'{value:.0f} {unit}' -> 16 MiB
-        None|to_filesize -> (nothing)
+        None|to_filesize -> (empty string)
+        (empty string)|to_filesize -> (empty string)
     """
-    if value is None:
+    if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
     return bitmath.Byte(value).best_prefix().format(string_format)
