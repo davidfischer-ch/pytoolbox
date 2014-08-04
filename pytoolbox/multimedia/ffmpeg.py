@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, json, math, os, re, select, shlex, time
+import datetime, errno, json, math, os, re, select, shlex, time
 from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
@@ -352,7 +352,7 @@ class FFmpeg(object):
     def get_size(self, path):
         return filesystem.get_size(path)
 
-    def encode(self, in_filenames, out_filename, options, base_track=0):
+    def encode(self, in_filenames, out_filename, options, base_track=0, create_out_directory=True):
         """
         Encode a set of input files input an output file.
 
@@ -386,6 +386,10 @@ class FFmpeg(object):
             # Get input media duration and size to be able to estimate ETA
             in_duration = self.get_media_duration(in_filenames[base_track]) or self.default_in_duration
             in_size = self.get_size(in_filenames[base_track])
+
+            # Create output directory
+            if create_out_directory:
+                filesystem.try_makedirs(os.path.dirname(out_filename))
 
             # Initialize metrics
             output = ''
