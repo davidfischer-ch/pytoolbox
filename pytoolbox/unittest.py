@@ -98,7 +98,8 @@ class PseudoTestCase(TestCase):
         self.result = result
 
     def __call__(self, something):
-        assert(self.result)
+        if not self.result:
+            sys.exit(1)
 
 
 def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
