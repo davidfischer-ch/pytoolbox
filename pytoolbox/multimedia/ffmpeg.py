@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, errno, json, math, os, re, select, shlex, time
+import datetime, json, math, os, re, select, shlex, time
 from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
@@ -389,7 +389,9 @@ class FFmpeg(object):
 
             # Create output directory
             if create_out_directory:
-                filesystem.try_makedirs(os.path.dirname(out_filename))
+                directory = os.path.dirname(out_filename)
+                if directory:
+                    filesystem.try_makedirs(directory)
 
             # Initialize metrics
             output = ''

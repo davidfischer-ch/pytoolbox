@@ -37,8 +37,8 @@ def main():
     download('http://techslides.com/demos/sample-videos/small.mp4', join(root, 'small.mp4'))
     print('Run the tests with nose')
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = ('fields.py|forms.py|mixins.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_tags.py' +
-              ('|session.py|schema.py' if sys.version_info[0] > 2 else ''))
+    ignore = ('fields.py|forms.py|mixins.py|signals.py|storage.py|views.py|widgets.py|pytoolbox_filters.py|'
+              'pytoolbox_tags.py' + ('|session.py|schema.py' if sys.version_info[0] > 2 else ''))
     return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'], ignore=ignore)
 
 if __name__ == '__main__':
