@@ -3,13 +3,19 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.0.3-beta
+v8.6.1-beta -> v9.1.0-beta
 --------------------------
 
 Compatibility breaks
 ====================
 
 * Refactor multimedia modules
+* Rename module django.templatetags.pytoolbox_tags to _filters
+
+Features
+========
+
+* Add module django.templatetags.pytoolbox_tags
 
 Fixes and enhancements
 ======================
