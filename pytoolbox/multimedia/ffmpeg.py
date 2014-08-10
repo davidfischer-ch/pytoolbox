@@ -381,17 +381,18 @@ class FFmpeg(object):
         ERROR
         """
         arguments, in_filenames, out_filename, options = self._get_arguments(in_filenames, out_filename, options)
+
+        # Create output directory
+        if create_out_directory:
+            directory = os.path.dirname(out_filename)
+            if directory:
+                filesystem.try_makedirs(directory)
+
         process = self._get_process(arguments)
         try:
             # Get input media duration and size to be able to estimate ETA
             in_duration = self.get_media_duration(in_filenames[base_track]) or self.default_in_duration
             in_size = self.get_size(in_filenames[base_track])
-
-            # Create output directory
-            if create_out_directory:
-                directory = os.path.dirname(out_filename)
-                if directory:
-                    filesystem.try_makedirs(directory)
 
             # Initialize metrics
             output = ''

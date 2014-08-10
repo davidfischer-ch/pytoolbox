@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.1.0-beta
+v8.6.1-beta -> v9.1.1-beta
 --------------------------
 
 Compatibility breaks
@@ -23,7 +23,8 @@ Fixes and enhancements
 * Function datetime.total_seconds now accept instance of timedelta
 * Function filesystem.from_template can now use jinja2 to generate the content
 * timedelta & to_filesize Django template filters now handle empty string input
-" Add argument create_out_directory to method multimedia.ffmpeg.FFmpeg.encode
+* Add argument create_out_directory to method multimedia.ffmpeg.FFmpeg.encode
+* Fix multimedia.ffmpeg.FFmpeg.encode: Create output directory before the subprocess
 
 --------------------------
 v8.6.0-beta -> v8.6.1-beta
