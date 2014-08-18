@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, json, math, os, re, select, shlex, time
+import datetime, errno, json, math, os, re, select, shlex, sys, time
 from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
@@ -442,6 +442,11 @@ class FFmpeg(object):
                 fps=fps, bitrate=stats.get('bitrate'), quality=stats.get('q'),
                 sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio
             )
-        except:
-            process.kill()
-            raise
+        except Exception as exception:
+            tb = sys.exc_info()[2]
+            try:
+                process.kill()
+            except OSError as e:
+                if e.errno != errno.ESRCH:
+                    raise
+            raise exception.with_traceback(tb) if hasattr(exception, 'with_traceback') else exception
