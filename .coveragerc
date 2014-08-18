@@ -1,3 +1,6 @@
+[run]
+source = pytoolbox
+
 [report]
 omit = 
     */python?.?/*
