@@ -28,10 +28,12 @@ import six, sys
 from codecs import open
 
 string_types = six.string_types
+text_type = six.text_type
 
 if sys.version_info[0] == 2:
     import kitchen.text.converters
     to_bytes = kitchen.text.converters.to_bytes
+    to_unicode = kitchen.text.converters.to_unicode
 
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
     def configure_unicode(encoding='utf-8'):
@@ -50,7 +52,14 @@ else:
             ...
         NotImplementedError: Saluté
         """
-        return unicode(message)
+        return str(message)
+
+    def to_unicode(message, encoding='utf-8'):
+        if isinstance(message, str):
+            return message
+        if hasattr(message, 'decode'):
+            return message.decode(encoding)
+        return str(message)
 
     def configure_unicode(encoding='utf-8'):
         """Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
@@ -67,4 +76,4 @@ def csv_reader(filename, delimiter=';', quotechar='"', encoding='utf-8'):
     #reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
     #for row in reader:
     #    yield [cell for cell in row]
-        #yield [unicode(cell, 'utf-8').encode('utf-8') for cell in row]
+        #yield [text_type(cell, 'utf-8').encode('utf-8') for cell in row]

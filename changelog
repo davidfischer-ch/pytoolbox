@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.1.1-beta
+v8.6.1-beta -> v9.1.2-beta
 --------------------------
 
 Compatibility breaks
@@ -20,6 +20,7 @@ Features
 Fixes and enhancements
 ======================
 
+* Fix unicode handling
 * Function datetime.total_seconds now accept instance of timedelta
 * Function filesystem.from_template can now use jinja2 to generate the content
 * timedelta & to_filesize Django template filters now handle empty string input

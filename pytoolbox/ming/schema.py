@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import uuid
 from ming.schema import FancySchemaItem, String, Invalid
+from ..encoding import text_type, to_unicode
 from ..validation import valid_filename, valid_email, valid_secret, valid_uuid
 
 
@@ -74,7 +75,7 @@ class Secret(String):
 
     @staticmethod
     def is_hashed(value):
-        return value is not None and unicode(value).startswith('$pbkdf2-sha512$')
+        return value is not None and to_unicode(value).startswith('$pbkdf2-sha512$')
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):
@@ -89,7 +90,7 @@ class UniqueId(String):
 
     def if_missing(self):
         '''Provides a UUID string as default.'''
-        return unicode(uuid.uuid4())
+        return text_type(uuid.uuid4())
 
     def _validate(self, value, **kwargs):
         if not isinstance(value, self.type):

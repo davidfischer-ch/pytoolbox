@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import errno, inspect, json, os, pickle, shutil
 from bson.objectid import ObjectId
 from codecs import open
-from .encoding import string_types, to_bytes
+from .encoding import string_types, text_type, to_bytes
 from .filesystem import try_makedirs
 
 
@@ -132,7 +132,7 @@ class PickleableObject(object):
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
-            return unicode(obj)
+            return text_type(obj)
         if hasattr(obj, '__dict__'):
             return obj.__dict__
         return super(SmartJSONEncoderV1, self).default(obj)
@@ -141,7 +141,7 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 class SmartJSONEncoderV2(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
-            return unicode(obj)
+            return text_type(obj)
         attributes = {}
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith('__'):

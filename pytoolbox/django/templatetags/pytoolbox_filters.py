@@ -34,6 +34,7 @@ from django.utils.translation import ugettext as _
 
 from . import register
 from ...datetime import secs_to_time as _secs_to_time
+from ...encoding import to_unicode
 
 # ====================   =====================   ===============   ===============   =====================
 # description            decorator               arguments         input             output
@@ -122,7 +123,7 @@ def rst_title(value, level):
         {% load pytoolbox_tags %}
         {{ 'My chapter'|rst_title:'chapter' }}
     """
-    value, level = unicode(value), unicode(level)
+    value, level = to_unicode(value), to_unicode(level)
     length = len(value)
     if level in ('1', 'document'):
         return '{0}\n{1}\n{2}\n'.format('=' * length, value, '=' * length)

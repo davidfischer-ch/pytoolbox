@@ -28,6 +28,7 @@ import logging
 from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
+from .encoding import text_type
 from .serialization import object2json
 from .validation import valid_uuid
 
@@ -81,17 +82,17 @@ def map_exceptions(e):
     elif isinstance(e, HTTPException):
         raise e
     elif isinstance(e, TypeError):
-        abort(400, unicode(e))
+        abort(400, text_type(e))
     elif isinstance(e, KeyError):
         abort(400, 'Key {0} not found.'.format(e))
     elif isinstance(e, IndexError):
-        abort(404, unicode(e))
+        abort(404, text_type(e))
     elif isinstance(e, ValueError):
-        abort(415, unicode(e))
+        abort(415, text_type(e))
     elif isinstance(e, NotImplementedError):
-        abort(501, unicode(e))
+        abort(501, text_type(e))
     else:
-        abort(500, '{0} {1} {2}'.format(e.__class__.__name__, repr(e), unicode(e)))
+        abort(500, '{0} {1} {2}'.format(e.__class__.__name__, repr(e), text_type(e)))
 
 
 def json_response(status, value=None, include_properties=False):

@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess
 import threading, time
 from os.path import exists, join, isdir, normpath
-from .encoding import to_bytes, string_types
+from .encoding import string_types, to_bytes, to_unicode
 from .filesystem import try_makedirs
 
 EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode': None}
@@ -82,7 +82,7 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
         if user:
             command = ['sudo', '-u', user] + command
         args_list = [to_bytes(a) for a in command if a is not None]
-        args_string = ' '.join([unicode(a) for a in command if a is not None])
+        args_string = ' '.join([to_unicode(a) for a in command if a is not None])
     # log the execution
     if log_debug:
         log_debug('Execute {0}{1}{2}'.format('' if input is None else 'echo {0}|'.format(repr(input)), args_string,
@@ -177,7 +177,7 @@ def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=
             cmd(['git', 'reset', '--hard'], cwd=directory, fail=fail, log=log, **kwargs)
         cmd(['git', 'pull'], cwd=directory, fail=fail, log=log, **kwargs)
     else:
-        cmd(['git', 'clone', '--depth', unicode(clone_depth), url, directory], fail=fail, log=log, **kwargs)
+        cmd(['git', 'clone', '--depth', to_unicode(clone_depth), url, directory], fail=fail, log=log, **kwargs)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ def screen_launch(name, command, fail=True, log=None, **kwargs):
 def screen_list(name=None, log=None, **kwargs):
     """Returns a list containing all instances of screen. Can be filtered by ``name``."""
     screens = cmd(['screen', '-ls', name], fail=False, log=log, **kwargs)['stdout']
-    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', unicode(screens))
+    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', to_unicode(screens))
 
 
 def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):

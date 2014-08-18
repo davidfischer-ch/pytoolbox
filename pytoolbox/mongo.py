@@ -29,7 +29,7 @@ from celery import states
 from celery.result import AsyncResult
 from passlib.hash import pbkdf2_sha512
 from passlib.utils import consteq
-from .encoding import to_bytes
+from .encoding import text_type, to_bytes, to_unicode
 from .serialization import JsoneableObject
 from .subprocess import cmd
 from .validation import valid_email, valid_secret, valid_uuid
@@ -46,7 +46,7 @@ class Model(JsoneableObject):
     """
 
     def __init__(self, _id=None):
-        self._id = _id or unicode(uuid.uuid4())
+        self._id = _id or text_type(uuid.uuid4())
 
     def is_valid(self, raise_exception):
         if not valid_uuid(self._id, none_allowed=False):
@@ -109,7 +109,7 @@ class TaskModel(Model):
                 try:
                     self.statistic.update(async_result.result)
                 except:
-                    self.statistic['error'] = unicode(async_result.result)
+                    self.statistic['error'] = to_unicode(async_result.result)
             except NotImplementedError:
                 self.status = TaskModel.UNKNOWN
         else:
@@ -130,7 +130,7 @@ class User(Model):
         self.last_name = last_name
         self.mail = mail
         self.secret = secret
-        self.admin_platform = (unicode(admin_platform).lower() == 'true')
+        self.admin_platform = (to_unicode(admin_platform).lower() == 'true')
 
     @property
     def credentials(self):

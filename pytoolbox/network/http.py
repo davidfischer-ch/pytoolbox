@@ -51,6 +51,7 @@ def download_ext(url, filename, code=200, force=True, hash_method=None, expected
 
     **Example usage**
 
+    >>> from nose.tools import assert_raises as ar_
     >>> from pytoolbox.crypto import githash
     >>> url = 'http://techslides.com/demos/sample-videos/small.mp4'
 
@@ -64,18 +65,13 @@ def download_ext(url, filename, code=200, force=True, hash_method=None, expected
     >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='1fc478842f51e7519866f474a02ad605235bc6a6')
     (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
 
-    >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='2ad605235bc6a6842f51e7519866f1fc478474a0')
-    Traceback (most recent call last):
-        ...
-    CorruptedFileError: Downloaded file small.mp4 is corrupted.
+    >>> ar_(CorruptedFileError, download_ext, url, 'small.mp4', hash_method=githash,
+    ...     expected_hash='2ad605235bc6a6842f51e7519866f1fc478474a0')
 
     >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
     (False, False, None)
 
-    >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4')
-    Traceback (most recent call last):
-        ...
-    BadHTTPResponseCodeError: Download request http://techslides.com/monkey.mp4 code 404 expected 200.
+    >>> ar_(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
     exists, downloaded = os.path.exists(filename), False
     if force or not exists:

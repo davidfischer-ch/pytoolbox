@@ -28,7 +28,7 @@ import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from codecs import open
 from os.path import abspath, expanduser, join
 from .console import confirm
-from .encoding import string_types, to_bytes
+from .encoding import string_types, text_type, to_bytes, to_unicode
 from .filesystem import from_template, try_remove, try_symlink
 from .exception import TimeoutError
 from .subprocess import cmd
@@ -105,11 +105,11 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     env['JUJU_HOME'] = expanduser('~/.juju')
     if is_destroy:
         # FIXME Automate yes answer to destroy-environment
-        c_string = ' '.join([unicode(arg) for arg in the_command])
+        c_string = ' '.join([to_unicode(arg) for arg in the_command])
         return subprocess.check_call(c_string, shell=True) if fail else subprocess.call(c_string, shell=True)
     result = cmd(the_command, fail=False, log=log, env=env, **kwargs)
     if result['returncode'] != 0 and fail:
-        command_string = ' '.join([unicode(arg) for arg in the_command])
+        command_string = ' '.join([to_unicode(arg) for arg in the_command])
         raise RuntimeError(to_bytes('Subprocess failed {0} : {1}.'.format(command_string, result['stderr'])))
     return yaml.load(result['stdout'])
 
@@ -132,8 +132,8 @@ def load_unit_config(config, log=None):
             for option in options:
                 config[option] = options[option]['default']
     for option, value in config.iteritems():
-        if unicode(value).lower() in ('false', 'true'):
-            config[option] = True if unicode(value).lower() == 'true' else False
+        if to_unicode(value).lower() in ('false', 'true'):
+            config[option] = True if to_unicode(value).lower() == 'true' else False
             if hasattr(log, '__call__'):
                 log('Convert boolean option {0} {1} -> {2}'.format(option, value, config[option]))
     return config
@@ -175,7 +175,7 @@ def add_environment(environment, type, region, access_key, secret_key, control_b
     try:
         return juju_do('bootstrap', environment)
     except RuntimeError as e:
-        if 'configuration error' in unicode(e):
+        if 'configuration error' in text_type(e):
             del environments_dict['environments'][environment]
             open(environments, 'w', encoding='utf-8').write(yaml.safe_dump(environments_dict))
             raise ValueError(to_bytes('Cannot add environment {0} ({1}).'.format(environment, e)))
@@ -242,7 +242,7 @@ class CharmConfig(object):
         self.verbose = False
 
     def __repr__(self):
-        return unicode(self.__dict__)
+        return to_unicode(self.__dict__)
 
 
 class CharmHooks(object):
@@ -627,7 +627,7 @@ class Environment(object):
                 result = juju_do('bootstrap', self.name)
             except RuntimeError as e:
                 result = None
-                if not 'already' in unicode(e):
+                if not 'already' in text_type(e):
                     raise
             if wait_started:
                 start_time = time.time()
@@ -961,7 +961,7 @@ class Environment(object):
                 result = juju_do('add-relation', self.name, options=[member1, member2])
             except RuntimeError as e:
                 # FIXME get status of service before adding relation may be cleaner.
-                if not 'already exists' in unicode(e):
+                if not 'already exists' in text_type(e):
                     raise
             return result
 
@@ -975,7 +975,7 @@ class Environment(object):
                 result = juju_do('remove-relation', self.name, options=[member1, member2])
             except RuntimeError as e:
                 # FIXME get status of service before removing relation may be cleaner.
-                if not 'exists' in unicode(e):
+                if not 'exists' in text_type(e):
                     raise
             return result
 
