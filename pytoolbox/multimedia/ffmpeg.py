@@ -108,6 +108,10 @@ class FFmpeg(object):
         args.extend(options + [out_filename])
         return args, in_filenames, out_filename, options
 
+    def _get_chunk(self, process):
+        select.select([process.stderr], [], [])
+        return process.stderr.read()
+
     def _get_process(self, arguments):
         """
         Return an encoding process with stderr made asynchronous.
@@ -402,8 +406,7 @@ class FFmpeg(object):
 
             while True:
                 # Wait for data to become available
-                select.select([process.stderr], [], [])
-                chunk = process.stderr.read()
+                chunk = self._get_chunk(process)
                 if not isinstance(chunk, string_types):
                     chunk = chunk.decode(self.encoding)
                 output += chunk
