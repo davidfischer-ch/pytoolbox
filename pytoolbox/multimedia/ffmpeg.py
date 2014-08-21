@@ -55,7 +55,7 @@ class FFmpeg(object):
     encoding_executable = 'ffmpeg'
     parsing_executable = 'ffprobe'
 
-    def __init__(self, encoding_executable='ffmpeg', parsing_executable='ffprobe',
+    def __init__(self, encoding_executable=None, parsing_executable=None,
                  default_in_duration=datetime.timedelta(seconds=0), ratio_delta=0.01, time_delta=1, max_time_delta=5,
                  sanity_min_ratio=0.95, sanity_max_ratio=1.05, encoding='utf-8'):
         self.encoding_executable = encoding_executable or self.encoding_executable
