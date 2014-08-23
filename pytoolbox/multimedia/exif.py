@@ -25,12 +25,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from datetime import datetime
-from gi.repository import GExiv2
 
 
 class Metadata(object):
 
     def __init__(self, path):
+        from gi.repository import GExiv2
         self._m = GExiv2.Metadata()
         self._m.open_path(path)
 
