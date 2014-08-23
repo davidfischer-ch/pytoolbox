@@ -437,18 +437,16 @@ class RtpPacket(object):
         csrc count   = 0
         payload size = 17
         """
-        return ("""version      = {0}
-errors       = {1}
-padding      = {2}
-extension    = {3}
-marker       = {4}
-payload type = {5}
-sequence     = {6}
-timestamp    = {7}
-clock rate   = {8}
-time         = {9}
-ssrc         = {10}
-csrc count   = {11}
-payload size = {12}""".format(self.version, self.errors, self.padding, self.extension, self.marker,
-                              self.payload_type, self.sequence, self.timestamp, self.clock_rate,
-                              int(self.time), self.ssrc, len(self.csrc), self.payload_size))
+        return ("""version      = {0.version}
+errors       = {0.errors}
+padding      = {0.padding}
+extension    = {0.extension}
+marker       = {0.marker}
+payload type = {0.payload_type}
+sequence     = {0.sequence}
+timestamp    = {0.timestamp}
+clock rate   = {0.clock_rate}
+time         = {0.time:.0f}
+ssrc         = {0.ssrc}
+csrc count   = {1}
+payload size = {0.payload_size}""".format(self, len(self.csrc)))

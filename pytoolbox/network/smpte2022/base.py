@@ -696,19 +696,17 @@ class FecPacket(object):
         payload recovery size = 10
         missing               = []
         """
-        return ("""errors                = {0}
-sequence              = {1}
-algorithm             = {2}
-direction             = {3}
-snbase                = {4}
-offset                = {5}
-na                    = {6}
-L x D                 = {7} x {8}
-payload type recovery = {9}
-timestamp recovery    = {10}
-length recovery       = {11}
-payload recovery size = {12}
-missing               = {13}""".format(self.errors, self.sequence, FecPacket.ALGORITHM_NAMES[self.algorithm],
-                                       FecPacket.DIRECTION_NAMES[self.direction], self.snbase, self.offset, self.na,
-                                       self.L, self.D, self.payload_type_recovery, self.timestamp_recovery,
-                                       self.length_recovery, self.payload_size, self.missing))
+        return ("""errors                = {0.errors}
+sequence              = {0.sequence}
+algorithm             = {1}
+direction             = {2}
+snbase                = {0.snbase}
+offset                = {0.offset}
+na                    = {0.na}
+L x D                 = {0.L} x {0.D}
+payload type recovery = {0.payload_type_recovery}
+timestamp recovery    = {0.timestamp_recovery}
+length recovery       = {0.length_recovery}
+payload recovery size = {0.payload_size}
+missing               = {0.missing}""".format(self, FecPacket.ALGORITHM_NAMES[self.algorithm],
+                                              FecPacket.DIRECTION_NAMES[self.direction]))
