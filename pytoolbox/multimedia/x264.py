@@ -25,10 +25,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime, re, shlex
+
 from .ffmpeg import FFmpeg
 from ..datetime import total_seconds
-
 from ..encoding import string_types
+
+__all__ = ('ENCODING_REGEX', 'X264')
+
 
 # [79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02
 ENCODING_REGEX = re.compile(

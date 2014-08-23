@@ -27,6 +27,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import hashlib
 from .encoding import string_types
 
+__all__ = ('githash', )
+
 
 def githash(data, encoding='utf-8', is_filename=False):
     """

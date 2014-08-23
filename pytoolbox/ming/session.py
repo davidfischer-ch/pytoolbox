@@ -27,6 +27,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ming import create_datastore, Session
 from ming.odm import ThreadLocalODMSession
 
+__all__ = ('bind', 'doc_session', 'odm_session')
+
 bind = create_datastore('mim://')
 doc_session = Session(bind)
 odm_session = ThreadLocalODMSession(doc_session=doc_session)

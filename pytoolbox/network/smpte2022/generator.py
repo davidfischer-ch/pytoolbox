@@ -24,8 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..rtp import RtpPacket
 from .base import FecPacket
+from ..rtp import RtpPacket
+
+__all__ = ('FecGenerator', )
 
 
 class FecGenerator(object):

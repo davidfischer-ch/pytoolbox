@@ -27,18 +27,18 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import errno, httplib, inspect, re, socket, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
+
 from .encoding import text_type, to_bytes
+from .network.ip import ip_address
+
+__all__ = [
+    'valid_filename', 'valid_ip', 'valid_email', 'valid_int', 'valid_port', 'valid_secret', 'valid_uri', 'valid_uuid',
+    'validate_list'
+]
 
 if sys.version_info[0] > 2:
-    from ipaddress import ip_address
-else:
-    try:
-        from ipaddr import IP as ip_address
-    except ImportError:  # previously IPAddress ...
-        from ipaddr import IPAddress as ip_address
 
-
-if sys.version_info[0] > 2:
+    __all__.extend(['CleanAttributesMixin', 'StrongTypedMixin'])
 
     class CleanAttributesMixin(object):
         """

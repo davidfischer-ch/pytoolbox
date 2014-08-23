@@ -26,7 +26,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import math
 from collections import deque
+
 from .datetime import total_seconds
+
+__all__ = ('pygal_deque', 'EventsTable')
 
 
 class pygal_deque(deque):

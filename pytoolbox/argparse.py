@@ -24,7 +24,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 """
 Module related to parsing arguments from the command-line.
 
@@ -45,6 +44,8 @@ SystemExit: 2
 
 import argparse, os
 from .encoding import to_bytes
+
+__all__ = ('is_dir', 'is_file', 'FullPaths')
 
 # Credits https://gist.github.com/brantfaircloth/1443543
 

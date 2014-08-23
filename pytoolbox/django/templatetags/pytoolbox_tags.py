@@ -29,6 +29,8 @@ from os.path import join
 
 from . import register
 
+__all__ = ('StaticPathNode', 'static_abspath')
+
 
 class StaticPathNode(StaticNode):
 

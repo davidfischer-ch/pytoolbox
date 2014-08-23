@@ -26,6 +26,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.db.models.fields.files import FileField
 
+__all__ = ('clean_files_delete_handler', )
+
 
 def clean_files_delete_handler(instance, signal, **kwargs):
     """

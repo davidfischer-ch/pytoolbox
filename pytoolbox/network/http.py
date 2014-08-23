@@ -30,6 +30,8 @@ from codecs import open
 from ..encoding import to_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
+__all__ = ('download', 'download_ext', 'get_request_data')
+
 
 def download(url, filename):
     """Read the content of given ``url`` and save it as a file ``filename``."""

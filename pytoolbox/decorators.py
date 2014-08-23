@@ -26,8 +26,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 from functools import wraps
+
 from .console import confirm
 from .subprocess import cmd
+
+__all__ = ('confirm_it', 'disable_iptables', 'root_required')
 
 
 def confirm_it(message, default=False, abort_message='Operation aborted by the user'):

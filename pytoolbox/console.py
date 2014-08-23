@@ -26,6 +26,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 
+__all__ = ('confirm', 'choice', 'print_error')
+
 
 def confirm(question=None, default=False):
     """

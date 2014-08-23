@@ -33,6 +33,10 @@ if sys.version_info[0] > 2:
 else:
     from mock import Mock
 
+__all__ = (
+    'Mock', 'MOCK_SIDE_EFFECT_RETURNS', 'mock_cmd', 'mock_side_effect', 'AwareTearDownMixin', 'PseudoTestCase',
+    'runtests'
+)
 
 MOCK_SIDE_EFFECT_RETURNS = [Exception('you must set MOCK_SIDE_EFFECT_RETURNS'), {'title': '2nd'}]
 

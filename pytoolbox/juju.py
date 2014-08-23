@@ -27,6 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from codecs import open
 from os.path import abspath, expanduser, join
+
 from .console import confirm
 from .encoding import string_types, text_type, to_bytes, to_unicode
 from .filesystem import from_template, try_remove, try_symlink

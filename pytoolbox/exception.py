@@ -26,6 +26,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from .encoding import to_bytes
 
+__all__ = (
+    'BadHTTPResponseCodeError', 'CorruptedFileError', 'ForbiddenError', 'TimeoutError', 'assert_raises_item'
+)
+
 
 class BadHTTPResponseCodeError(Exception):
     """An error raised an unexpected HTTP response code."""

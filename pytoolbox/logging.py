@@ -26,6 +26,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging, sys
 
+__all__ = ('setup_logging', )
+
 
 def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
                   fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):

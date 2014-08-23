@@ -25,10 +25,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import defaultdict
-from ...encoding import to_bytes
+
+from .base import FecPacket
 from ..ip import IPSocket
 from ..rtp import RtpPacket
-from .base import FecPacket
+from ...encoding import to_bytes
+
+__all__ = ('FecReceiver', )
 
 
 class FecReceiver(object):

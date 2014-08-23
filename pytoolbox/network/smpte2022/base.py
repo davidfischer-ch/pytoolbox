@@ -26,8 +26,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import struct
 from fastxor import fast_xor_inplace
-from ...encoding import to_bytes
+
 from ..rtp import RtpPacket
+from ...encoding import to_bytes
+
+__all__ = ('FecPacket', )
 
 
 class FecPacket(object):

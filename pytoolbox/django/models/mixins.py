@@ -28,7 +28,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FileField
 
-__all__ = ('AbsoluteUrlMixin', 'SaveInstanceFilesMixin')
+__all__ = ('AbsoluteUrlMixin', 'MapUniqueTogetherMixin', 'ReloadMixin', 'SaveInstanceFilesMixin', 'ValidateOnSaveMixin')
 
 
 class AbsoluteUrlMixin(object):

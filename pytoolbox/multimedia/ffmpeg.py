@@ -33,6 +33,8 @@ from ..datetime import datetime_now, parts_to_time, secs_to_time, str2time, time
 from ..encoding import string_types
 from ..subprocess import make_async
 
+__all__ = ('ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'FFmpeg')
+
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
     r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+\.?\d*)\s+q=\s*(?P<q>\S+)\s+\S*size=\s*(?P<size>\S+)\s+'

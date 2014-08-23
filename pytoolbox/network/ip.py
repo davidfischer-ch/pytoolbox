@@ -34,6 +34,8 @@ else:
     except ImportError:  # previously IPAddress ...
         from ipaddr import IPAddress as ip_address
 
+__all__ = ('ip_address', 'IPSocket')
+
 
 def IPSocket(string):
     """

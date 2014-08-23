@@ -27,19 +27,19 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six, sys
 from codecs import open
 
+__all__ = ('string_types', 'text_type', 'to_bytes', 'to_unicode', 'configure_unicode', 'csv_reader')
+
 string_types = six.string_types
 text_type = six.text_type
 
 if sys.version_info[0] == 2:
-    import kitchen.text.converters
-    to_bytes = kitchen.text.converters.to_bytes
-    to_unicode = kitchen.text.converters.to_unicode
+    from kitchen.text.converters import getwriter, to_bytes, to_unicode
 
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
     def configure_unicode(encoding='utf-8'):
         """Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
-        sys.stdout = kitchen.text.converters.getwriter(encoding)(sys.stdout)
-        sys.stderr = kitchen.text.converters.getwriter(encoding)(sys.stderr)
+        sys.stdout = getwriter(encoding)(sys.stdout)
+        sys.stderr = getwriter(encoding)(sys.stderr)
 else:
     def to_bytes(message):
         """Convert an Unicode message to bytes, useful for raising exceptions in Python 2.

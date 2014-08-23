@@ -27,6 +27,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from django.forms import widgets
 from django.utils.html import mark_safe
 
+__all__ = ('CalendarDateInput', 'ClockTimeInput')
+
 
 class CalendarDateInput(widgets.DateInput):
     def render(self, *args, **kwargs):

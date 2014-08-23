@@ -26,6 +26,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.core.files.storage import FileSystemStorage
 
+__all__ = ('OverwriteMixin', 'OverwriteFileSystemStorage')
+
 
 class OverwriteMixin(object):
     """Update get_available_name to remove any previously stored file (if any) before returning the name."""
