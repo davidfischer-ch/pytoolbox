@@ -43,6 +43,7 @@ Install some packages that are not handled by pip::
     sudo apt-add-repository ppa:jon-severinsson/ffmpeg
     sudo apt-get update
     sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev python-pip screen
+    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev python-gi
 
 Make sure that pip is up-to-date (PIPception)::
 
@@ -62,6 +63,7 @@ Install some packages that are not handled by pip::
     sudo apt-add-repository ppa:jon-severinsson/ffmpeg
     sudo apt-get update
     sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python3-dev python3-pip screen
+    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev python3-gi
 
 Make sure that pip is up-to-date (PIPception)::
 

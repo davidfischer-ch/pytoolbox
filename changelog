@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.1.4-beta
+v8.6.1-beta -> v9.2.0-beta
 --------------------------
 
 Compatibility breaks
@@ -16,6 +16,7 @@ Features
 ========
 
 * Add module django.templatetags.pytoolbox_tags
+* Add module multimedia.exif
 
 Fixes and enhancements
 ======================
