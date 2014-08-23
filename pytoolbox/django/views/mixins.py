@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.views.generic.edit import DeleteView
 
@@ -75,3 +76,14 @@ class PublishedMixin(object):
 
     def get_queryset(self):
         return only_published(super(PublishedMixin, self).get_queryset(), self.request)
+
+
+class ValidationErrorsMixin(object):
+
+    def form_valid(self, form):
+        try:
+            return super(ValidationErrorsMixin, self).form_valid(form)
+        except ValidationError as e:
+            for field, error in e.error_dict.items():
+                form.add_error(field, error)
+            return self.form_invalid(form)

@@ -3,7 +3,7 @@ changelog
 =========
 
 --------------------------
-v8.6.1-beta -> v9.2.0-beta
+v8.6.1-beta -> v9.3.0-beta
 --------------------------
 
 Compatibility breaks
@@ -12,11 +12,18 @@ Compatibility breaks
 * Refactor multimedia modules
 * Rename module django.templatetags.pytoolbox_tags to _filters
 
+Minor compatibility breaks
+==========================
+
+* Rename django.forms -> django.forms.mixins
+* Rename django.views -> django.views.mixins
+
 Features
 ========
 
 * Add module django.templatetags.pytoolbox_tags
 * Add module multimedia.exif
+* Add some django mixins
 
 Fixes and enhancements
 ======================

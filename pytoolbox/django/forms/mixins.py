@@ -54,6 +54,16 @@ class HelpTextToPlaceholderMixin(object):
             field.help_text = None
 
 
+class MapErrorsMixin(object):
+    """Map errors based on field name. Mandatory when the form contains a field from a model named differently."""
+
+    errors_map = {}
+
+    def add_error(self, field, error):
+        field = self.errors_map.get(field, field)
+        return super(MapErrorsMixin, self).add_error(field, error)
+
+
 class ModelBasedFormCleanupMixin(object):
     """
     Make possible the cleanup of the form by the model through a class method called ``clean_form``.

@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FileField
 
@@ -39,6 +40,26 @@ class AbsoluteUrlMixin(object):
         return reverse('{0}_{1}'.format(self.__class__.__name__.lower(),
                        suffix or ('update' if self.pk else 'create')),
                        kwargs={'pk': self.pk} if self.pk else None)
+
+
+class MapUniqueTogetherMixin(object):
+
+    map_exclude_fields = ()
+
+    def _perform_unique_checks(self, unique_checks):
+        errors = super(MapUniqueTogetherMixin, self)._perform_unique_checks(unique_checks)
+        non_field_errors = errors.pop(NON_FIELD_ERRORS, [])
+        for error in non_field_errors:
+            for field in error.params['unique_check']:
+                if field not in self.map_exclude_fields:
+                    errors.setdefault(field, []).append(self.unique_error_message(error.params['model_class'], [field]))
+        return errors
+
+
+class ReloadMixin(object):
+
+    def reload(self):
+        return self.__class__.objects.get(pk=self.pk)
 
 
 class SaveInstanceFilesMixin(object):
@@ -57,3 +78,12 @@ class SaveInstanceFilesMixin(object):
             for name, value in saved_fields.iteritems():
                 setattr(self, name, value)
         super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
+
+
+class ValidateOnSaveMixin(object):
+
+    def save(self, *args, **kwargs):
+        # FIXME throws a ValidationError if using get_or_create() to instantiate model!
+        #if not kwargs.get('force_insert', False):
+        self.full_clean()
+        super(ValidateOnSaveMixin, self).save(*args, **kwargs)
