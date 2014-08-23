@@ -24,12 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django import template
 from django.templatetags.static import PrefixNode, StaticNode
 from os.path import join
 
-from . import register
+__all__ = ('register', 'StaticPathNode', 'static_abspath')
 
-__all__ = ('StaticPathNode', 'static_abspath')
+register = template.Library()
 
 
 class StaticPathNode(StaticNode):

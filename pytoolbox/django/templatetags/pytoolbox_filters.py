@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import bitmath, re, time
+from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.template.defaulttags import include_is_allowed
@@ -32,12 +33,11 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
-from . import register
 from ...datetime import secs_to_time as _secs_to_time
 from ...encoding import to_unicode
 
 __all__ = (
-    'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'rst_title', 'secs_to_time', 'status_label',
+    'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'rst_title', 'secs_to_time', 'status_label',
     'timedelta', 'to_filesize'
 )
 
@@ -55,6 +55,7 @@ __all__ = (
 #     3. Marked as needing escaping, always escaped on output, regardless in autoescape block or not, EscapeBytes/Text
 # [2]: esc = conditional_escape if autoescape else lambda x: x
 
+register = template.Library()
 
 NUMERIC_TEST = re.compile('^\d+$')
 LABEL_TO_CLASS = {
