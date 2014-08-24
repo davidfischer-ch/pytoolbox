@@ -38,7 +38,7 @@ from ...encoding import to_unicode
 
 __all__ = (
     'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'rst_title', 'secs_to_time', 'status_label',
-    'timedelta', 'to_filesize'
+    'timedelta', 'to_filesize', 'verbose_name', 'verbose_name_plural'
 )
 
 # ====================   =====================   ===============   ===============   =====================
@@ -212,3 +212,19 @@ def to_filesize(value, string_format='{value:.3g} {unit}'):
     if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
     return bitmath.Byte(value).best_prefix().format(string_format)
+
+
+@register.filter
+def verbose_name(instance):
+    """Return the verbose name (singular) of a model."""
+    if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
+        return settings.TEMPLATE_STRING_IF_INVALID
+    return instance._meta.verbose_name
+
+
+@register.filter
+def verbose_name_plural(instance):
+    """Return the verbose name (plural) of a model."""
+    if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
+        return settings.TEMPLATE_STRING_IF_INVALID
+    return instance._meta.verbose_name
