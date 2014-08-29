@@ -215,6 +215,38 @@ class FFmpeg(object):
                 return duration
         return None
 
+    def get_media_framerate(self, filename_or_infos):
+        """
+        Return the frame rate of the first video stream in ``filename_or_infos`` or None in case of error.
+
+        **Example usage**
+
+        >>> print(FFmpeg().get_media_framerate(3.14159265358979323846))
+        None
+        >>> print(FFmpeg().get_media_framerate({}))
+        None
+        >>> print(FFmpeg().get_media_framerate(FFmpeg().get_media_infos('small.mp4')))
+        30.0
+        >>> print(FFmpeg().get_media_framerate('small.mp4'))
+        30.0
+        >>> print(FFmpeg().get_media_framerate({'streams': [
+        ...     {'codec_type': 'audio'},
+        ...     {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
+        ... ]}))
+        59.0
+        """
+        if not isinstance(filename_or_infos, dict):
+            filename_or_infos = self.get_media_infos(filename_or_infos)
+        try:
+            first_video_stream = next(s for s in filename_or_infos['streams'] if s['codec_type'] == 'video')
+            fps = first_video_stream['avg_frame_rate']
+            if '/' in fps:
+                num, denom = fps.split('/')
+                return float(num) / float(denom)
+            return float(fps)
+        except:
+            return None
+
     def get_media_infos(self, filename):
         """
         Return a Python dictionary containing informations about the media informations or None in case of error.
