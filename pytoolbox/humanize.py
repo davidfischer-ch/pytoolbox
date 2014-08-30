@@ -26,14 +26,29 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import math
 
-__all__ = ('DEFAULT_UNITS', 'naturalbitrate')
+__all__ = ('DEFAULT_BITRATE_UNITS', 'DEFAULT_FILESIZE_ARGS', 'naturalbitrate', 'naturalfilesize')
 
-DEFAULT_UNITS = ('bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s')
+DEFAULT_BITRATE_UNITS = ('bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s')
+DEFAULT_FILESIZE_ARGS = {
+    'gnu': {'base': 1000, 'units': ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')},
+    'nist': {'base': 1024, 'units': ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')},
+    'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')},
+}
 
 
-def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEFAULT_UNITS):
+def _naturalnumber(number, base, units, format='{sign}{value:.3g} {unit}', scale=None):
+    sign, number = '' if number >= 0 else '-', abs(number)
+    scale = int(math.log(number or 1, base) if scale is None else scale)
+    unit = units[scale]
+    value = number / (base ** scale)
+    return format.format(sign=sign, value=value, unit=unit)
+
+
+def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEFAULT_BITRATE_UNITS):
     """
-    Return the bitrate ``bps`` (integer value in bit/s) converted to a string with unit taken from:
+    Return the bitrate ``bps`` (integer value in bit/s) converted to a string.
+
+    The unit is taken from:
 
     * The ``scale`` if not None (0=bit/s, 1=kb/s, 2=Mb/s, ...).
     * The right scale from ``units``.
@@ -55,8 +70,44 @@ def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEF
     >>> print(naturalbitrate(3210837, scale=1, format='{value:.2f} {unit}'))
     3210.84 kb/s
     """
-    sign, bps = '' if bps >= 0 else '-', abs(bps)
-    scale = int(math.log10(bps or 1) // 3 if scale is None else scale)
-    unit = units[scale]
-    value = bps / (1000 ** scale)
-    return format.format(sign=sign, value=value, unit=unit)
+    return _naturalnumber(bps, base=1000, format=format, scale=scale, units=units)
+
+
+def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', scale=None, args=DEFAULT_FILESIZE_ARGS):
+    """
+    Return the file size ``bytes`` (number in bytes) converted to a string.
+
+    The base and units taken from:
+
+    * The value in ``args`` with key ``system`` if not None.
+    * The ``args`` if ``system`` is None.
+
+    The unit is taken from:
+
+    * The ``scale`` if not None (0=Bytes, 1=KiB, 2=MiB, ...).
+    * The right scale from units previously retrieved from ``args``.
+
+    **Example usage**
+
+    >>> print(naturalfilesize(-10))
+    -10 B
+    >>> print(naturalfilesize(0))
+    0 B
+    >>> print(naturalfilesize(1))
+    1 B
+    >>> print(naturalfilesize(69.5, format='{value:.2g} {unit}'))
+    70 B
+    >>> print(naturalfilesize(999.9, format='{value:.0f}{unit}'))
+    1000B
+    >>> print(naturalfilesize(1060))
+    1.04 kB
+    >>> print(naturalfilesize(1060, system='si'))
+    1.06 KiB
+    >>> print(naturalfilesize(3210837))
+    3.06 MB
+    >>> print(naturalfilesize(3210837, scale=1, format='{value:.2f} {unit}'))
+    3135.58 kB
+    >>> print(naturalfilesize(314159265358979323846, system='gnu'))
+    314 E
+    """
+    return _naturalnumber(bytes, format=format, scale=scale, **(args[system] if system else args))
