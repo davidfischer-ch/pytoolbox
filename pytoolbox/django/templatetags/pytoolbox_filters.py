@@ -36,6 +36,7 @@ from django.utils.translation import ugettext as _
 from ... import humanize
 from ...datetime import secs_to_time as _secs_to_time
 from ...encoding import to_unicode
+from ...private import _parse_kwargs_string
 
 __all__ = (
     'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'naturalbitrate', 'naturalfilesize',
@@ -70,10 +71,6 @@ LABEL_TO_CLASS = {
     'SUCCESS':  'label-success'
 }
 LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
-
-
-def _parse_kwargs(kwargs):
-    return {k: v for k, v in [kwarg.strip().split('=') for kwarg in kwargs.split(';')]} if kwargs else {}
 
 
 @register.filter(is_safe=True)
@@ -113,7 +110,7 @@ def inline(filepath, msg=True, autoescape=True):
 
 
 @register.filter(is_safe=True)
-def naturalbitrate(bps, kwargs=None):
+def naturalbitrate(bps, kwargs_string=None):
     """
     Return a human readable representation of a bit rate taking ``bps`` as the rate in bits/s.
     See documentation of :func:`pytoolbox.humanize.naturalbitrate` for further examples.
@@ -129,11 +126,11 @@ def naturalbitrate(bps, kwargs=None):
     """
     if bps in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    return humanize.naturalbitrate(bps, **_parse_kwargs(kwargs))
+    return humanize.naturalbitrate(bps, **_parse_kwargs_string(kwargs_string, format=str, scale=int))
 
 
 @register.filter(is_safe=True)
-def naturalfilesize(bytes, kwargs=None):
+def naturalfilesize(bytes, kwargs_string=None):
     """
     Return a human readable representation of a *file* size taking ``bytes`` as the size in bytes.
     See documentation of :func:`pytoolbox.humanize.naturalfilesize` for further examples.
@@ -150,7 +147,7 @@ def naturalfilesize(bytes, kwargs=None):
     """
     if bytes in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    return humanize.naturalfilesize(bytes, **_parse_kwargs(kwargs))
+    return humanize.naturalfilesize(bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
 
 
 @register.filter(is_safe=True)
