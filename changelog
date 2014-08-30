@@ -3,7 +3,7 @@ changelog
 =========
 
 ---------------------
-v9.3.0-beta -> v9.4.1
+v9.3.0-beta -> v9.4.2
 ---------------------
 
 Features
@@ -18,8 +18,10 @@ Fixes and enhancements
 
 * Add __all__ to make the API explicit
 * Add method get_media_framerate to FFmpeg class
+* Add module private (with _parse_kwargs_string)
 * network module: Cleaner usage of string.format()
 * Refactor module humanize + add naturalfilesize
+* Improve humanize functions to handle [0-1] range + big numbers
 
 --------------------------
 v8.6.1-beta -> v9.3.0-beta

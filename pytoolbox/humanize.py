@@ -38,7 +38,8 @@ DEFAULT_FILESIZE_ARGS = {
 
 def _naturalnumber(number, base, units, format='{sign}{value:.3g} {unit}', scale=None):
     sign, number = '' if number >= 0 else '-', abs(number)
-    scale = int(math.log(number or 1, base) if scale is None else scale)
+    if scale is None:
+        scale = min(int(math.log(max(1, number), base)), len(units) - 1)
     unit = units[scale]
     value = number / (base ** scale)
     return format.format(sign=sign, value=value, unit=unit)
@@ -57,8 +58,8 @@ def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEF
 
     >>> print(naturalbitrate(-10))
     -10 bit/s
-    >>> print(naturalbitrate(0))
-    0 bit/s
+    >>> print(naturalbitrate(0.233))
+    0.233 bit/s
     >>> print(naturalbitrate(69.5, format='{value:.2g} {unit}'))
     70 bit/s
     >>> print(naturalbitrate(999.9, format='{value:.0f}{unit}'))
@@ -67,6 +68,8 @@ def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEF
     1.06 kb/s
     >>> print(naturalbitrate(3210837))
     3.21 Mb/s
+    >>> print(naturalbitrate(16262710, units=['bps', 'Kbps']))
+    1.63e+04 Kbps
     >>> print(naturalbitrate(3210837, scale=1, format='{value:.2f} {unit}'))
     3210.84 kb/s
     """
@@ -91,8 +94,8 @@ def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', sca
 
     >>> print(naturalfilesize(-10))
     -10 B
-    >>> print(naturalfilesize(0))
-    0 B
+    >>> print(naturalfilesize(0.233))
+    0.233 B
     >>> print(naturalfilesize(1))
     1 B
     >>> print(naturalfilesize(69.5, format='{value:.2g} {unit}'))
@@ -107,6 +110,8 @@ def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', sca
     3.06 MB
     >>> print(naturalfilesize(3210837, scale=1, format='{value:.2f} {unit}'))
     3135.58 kB
+    >>> print(naturalfilesize(16262710, system=None, args={'base': 1000, 'units': ['B', 'K']}))
+    1.63e+04 K
     >>> print(naturalfilesize(314159265358979323846, system='gnu'))
     314 E
     """
