@@ -46,7 +46,7 @@ def _naturalnumber(number, base, units, format='{sign}{value:.3g} {unit}', scale
 
 def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEFAULT_BITRATE_UNITS):
     """
-    Return the bitrate ``bps`` (integer value in bit/s) converted to a string.
+    Return a human readable representation of a bit rate taking ``bps`` as the rate in bits/s.
 
     The unit is taken from:
 
@@ -75,7 +75,7 @@ def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEF
 
 def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', scale=None, args=DEFAULT_FILESIZE_ARGS):
     """
-    Return the file size ``bytes`` (number in bytes) converted to a string.
+    Return a human readable representation of a *file* size taking ``bytes`` as the size in bytes.
 
     The base and units taken from:
 

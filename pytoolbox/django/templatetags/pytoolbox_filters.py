@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import bitmath, re, time
+import re, time
 from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -33,12 +33,13 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
+from ... import humanize
 from ...datetime import secs_to_time as _secs_to_time
 from ...encoding import to_unicode
 
 __all__ = (
-    'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'rst_title', 'secs_to_time', 'status_label',
-    'timedelta', 'to_filesize', 'verbose_name', 'verbose_name_plural'
+    'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'naturalbitrate', 'naturalfilesize',
+    'rst_title', 'secs_to_time', 'status_label', 'timedelta', 'verbose_name', 'verbose_name_plural'
 )
 
 # ====================   =====================   ===============   ===============   =====================
@@ -69,6 +70,10 @@ LABEL_TO_CLASS = {
     'SUCCESS':  'label-success'
 }
 LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
+
+
+def _parse_kwargs(kwargs):
+    return {k: v for k, v in [kwarg.strip().split('=') for kwarg in kwargs.split(';')]} if kwargs else {}
 
 
 @register.filter(is_safe=True)
@@ -105,6 +110,47 @@ def inline(filepath, msg=True, autoescape=True):
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
         return _("[Didn't have permission to include file {0}]").format(filepath_escaped)
     return settings.TEMPLATE_STRING_IF_INVALID
+
+
+@register.filter(is_safe=True)
+def naturalbitrate(bps, kwargs=None):
+    """
+    Return a human readable representation of a bit rate taking ``bps`` as the rate in bits/s.
+    See documentation of :func:`pytoolbox.humanize.naturalbitrate` for further examples.
+
+    Output::
+
+        16487211.33|naturalbitrate -> 16.5 Mb/s
+        16487211.33|naturalbitrate:'format={value:.0f} {unit}' -> 16 Mb/s
+        16487211.33|naturalbitrate:'format={sign}{value:.0f} {unit}; scale=1' -> 16487 kb/s
+        -16487211.33|naturalbitrate:'format={sign}{value:.0f} {unit}' -> -16 Mb/s
+        None|naturalbitrate -> (empty string)
+        (empty string)|naturalbitrate -> (empty string)
+    """
+    if bps in (None, settings.TEMPLATE_STRING_IF_INVALID):
+        return settings.TEMPLATE_STRING_IF_INVALID
+    return humanize.naturalbitrate(bps, **_parse_kwargs(kwargs))
+
+
+@register.filter(is_safe=True)
+def naturalfilesize(bytes, kwargs=None):
+    """
+    Return a human readable representation of a *file* size taking ``bytes`` as the size in bytes.
+    See documentation of :func:`pytoolbox.humanize.naturalfilesize` for further examples.
+
+    Output::
+
+        16487211.33|naturalfilesize -> 15.7 MB
+        16487211.33|naturalfilesize:'system=si' -> 16.5 MiB
+        16487211.33|naturalfilesize:'format={value:.0f} {unit}; system=gnu' -> 16 M
+        16487211.33|naturalfilesize:'format={sign}{value:.0f} {unit}; scale=1' -> 16101 kB
+        -16487211.33|naturalfilesize:'format={sign}{value:.0f} {unit}' -> -16 MB
+        None|naturalfilesize -> (empty string)
+        (empty string)|naturalfilesize -> (empty string)
+    """
+    if bytes in (None, settings.TEMPLATE_STRING_IF_INVALID):
+        return settings.TEMPLATE_STRING_IF_INVALID
+    return humanize.naturalfilesize(bytes, **_parse_kwargs(kwargs))
 
 
 @register.filter(is_safe=True)
@@ -195,23 +241,6 @@ def timedelta(value, string_format='%H:%M:%S'):
     if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
     return time.strftime('%H:%M:%S', time.gmtime(value.total_seconds()))
-
-
-@register.filter(is_safe=True)
-def to_filesize(value, string_format='{value:.3g} {unit}'):
-    """
-    Return a human readable representation of a file size taking value as the size in bytes.
-
-    Output::
-
-        16487211.33568|to_filesize -> 15.7 MiB
-        16487211.33568|to_filesize:'{value:.0f} {unit}' -> 16 MiB
-        None|to_filesize -> (empty string)
-        (empty string)|to_filesize -> (empty string)
-    """
-    if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
-    return bitmath.Byte(value).best_prefix().format(string_format)
 
 
 @register.filter
