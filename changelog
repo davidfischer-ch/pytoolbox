@@ -2,6 +2,24 @@
 changelog
 =========
 
+---------------------
+v9.3.0-beta -> v9.4.0
+---------------------
+
+Features
+========
+
+* Add module humanize
+* Add module django.models.query.mixins
+* Add module django.test.runner.mixins
+
+Fixes and enhancements
+======================
+
+* Add __all__ to make the API explicit
+* Add method get_media_framerate to FFmpeg class
+* network module: Cleaner usage of string.format()
+
 --------------------------
 v8.6.1-beta -> v9.3.0-beta
 --------------------------

@@ -32,7 +32,7 @@ from setuptools import setup, find_packages
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 
 classifiers = """
-Development Status :: 4 - Beta
+Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Framework :: Flask
 License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)
@@ -120,7 +120,7 @@ if len(sys.argv) > 1 and sys.argv[1] in ('develop', 'install', 'test'):
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
 setup(name='pytoolbox',
-      version='9.3.0-beta',
+      version='9.4.0',
       packages=find_packages(exclude=['tests']),
       description=description,
       long_description=open('README.rst', 'r', encoding='utf-8').read(),
