@@ -70,14 +70,14 @@ install_requires = [
     'pygal',
     'pymongo',
     'pytz',
-    'six',
+    'six'
 ]
 
 extras_require = {
     'django':    ['django'],
     'flask':     ['flask'],
     'mongo':     ['celery'],
-    'smpte2022': ['fastxor'],
+    'smpte2022': ['fastxor']
 }
 
 # Why not installing following packages for python 3 ?
