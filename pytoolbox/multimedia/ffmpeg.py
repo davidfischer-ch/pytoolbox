@@ -29,7 +29,7 @@ from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
 from .. import filesystem
-from ..datetime import datetime_now, parts_to_time, secs_to_time, str2time, time_ratio
+from ..datetime import datetime_now, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
 from ..subprocess import make_async
 
@@ -135,7 +135,7 @@ class FFmpeg(object):
         return process
 
     def _get_progress(self, in_duration, stats):
-        out_duration = str2time(stats['time'])
+        out_duration = str_to_time(stats['time'])
         ratio = time_ratio(out_duration, in_duration)
         return out_duration, ratio
 

@@ -31,8 +31,8 @@ from time import mktime
 from .encoding import string_types
 
 __all__ = (
-    'datetime_now', 'datetime2str', 'str2datetime', 'parts_to_time', 'secs_to_time', 'str2time', 'time_ratio',
-    'total_seconds', 'datetime2epoch', 'epoch2datetime'
+    'datetime_now', 'datetime_to_str', 'str_to_datetime', 'parts_to_time', 'secs_to_time', 'str_to_time', 'time_ratio',
+    'total_seconds', 'datetime_to_epoch', 'epoch_to_datetime'
 )
 
 
@@ -80,19 +80,19 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     return (now.strftime(format) + (' UTC' if tz == pytz.utc and append_utc else '')) if format else now
 
 
-def datetime2str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
+def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     return date_time.strftime(format) + (' UTC' if append_utc else '')
 
 
-def str2datetime(date, format='%Y-%m-%d %H:%M:%S'):
+def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S'):
     """
     Return the date string converted into an instance of datetime.
 
     **Example usage**
 
-    >>> str2datetime('1985-01-06 05:02:00')
+    >>> str_to_datetime('1985-01-06 05:02:00')
     datetime.datetime(1985, 1, 6, 5, 2)
-    >>> str2datetime('this is not a date')
+    >>> str_to_datetime('this is not a date')
     Traceback (most recent call last):
         ...
     ValueError: time data 'this is not a date' does not match format '%Y-%m-%d %H:%M:%S'
@@ -143,15 +143,15 @@ def secs_to_time(value, defaults_to_zero=False, as_delta=False):
         return None
 
 
-def str2time(value):
+def str_to_time(value):
     """
     Return the string of format 'hh:mm:ss' into an instance of time.
 
     **Example usage**
 
-    >>> str2time('08:23:57')
+    >>> str_to_time('08:23:57')
     datetime.time(8, 23, 57)
-    >>> str2time('00:03:02.12')
+    >>> str_to_time('00:03:02.12')
     datetime.time(0, 3, 2, 120)
     """
     hours, minutes, seconds_float = value.split(':')
@@ -217,29 +217,29 @@ def total_seconds(time):
         return float(time)
 
 
-def datetime2epoch(date_time, utc=True, factor=1):
+def datetime_to_epoch(date_time, utc=True, factor=1):
     """
     Return the datetime/date converted into an Unix epoch.
     Default ``factor`` means that the result is in seconds.
 
     **Example usage**
 
-    >>> datetime2epoch(datetime.datetime(1970, 1, 1), factor=1)
+    >>> datetime_to_epoch(datetime.datetime(1970, 1, 1), factor=1)
     0
-    >>> datetime2epoch(datetime.datetime(2010, 6, 10))
+    >>> datetime_to_epoch(datetime.datetime(2010, 6, 10))
     1276128000
-    >>> datetime2epoch(datetime.datetime(2010, 6, 10), factor=1000)
+    >>> datetime_to_epoch(datetime.datetime(2010, 6, 10), factor=1000)
     1276128000000
-    >>> datetime2epoch(datetime.date(2010, 6, 10), factor=1000)
+    >>> datetime_to_epoch(datetime.date(2010, 6, 10), factor=1000)
     1276128000000
-    >>> datetime2epoch(datetime.date(1987, 6, 10), factor=1000)
+    >>> datetime_to_epoch(datetime.date(1987, 6, 10), factor=1000)
     550281600000
 
     In Switzerland:
 
-    >> datetime2epoch(datetime.datetime(1970, 1, 1), utc=False, factor=1)
+    >> datetime_to_epoch(datetime.datetime(1970, 1, 1), utc=False, factor=1)
     -3600
-    >> datetime2epoch(datetime.date(1970, 1, 1), utc=False, factor=1)
+    >> datetime_to_epoch(datetime.date(1970, 1, 1), utc=False, factor=1)
     -3600
     """
     if utc:
@@ -248,22 +248,22 @@ def datetime2epoch(date_time, utc=True, factor=1):
     return int(mktime(date_time.timetuple()) * factor)
 
 
-def epoch2datetime(unix_epoch, tz=pytz.utc, factor=1):
+def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     """
     Return the Unix epoch converted to a datetime. Default ``factor`` means that the ``unix_epoch`` is in seconds.
 
     **Example usage**
 
     >>> from nose.tools import eq_
-    >>> epoch2datetime(0, factor=1)
+    >>> epoch_to_datetime(0, factor=1)
     datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>)
-    >>> epoch2datetime(1276128000, factor=1)
+    >>> epoch_to_datetime(1276128000, factor=1)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
-    >>> epoch2datetime(1276128000, tz=pytz.timezone('Europe/Zurich'), factor=1)
+    >>> epoch_to_datetime(1276128000, tz=pytz.timezone('Europe/Zurich'), factor=1)
     datetime.datetime(2010, 6, 10, 2, 0, tzinfo=<DstTzInfo 'Europe/Zurich' CEST+2:00:00 DST>)
-    >>> epoch2datetime(1276128000000, factor=1000)
+    >>> epoch_to_datetime(1276128000000, factor=1000)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
     >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
-    >>> eq_(epoch2datetime(datetime2epoch(today, factor=1000), factor=1000), today)
+    >>> eq_(epoch_to_datetime(datetime_to_epoch(today, factor=1000), factor=1000), today)
     """
     return datetime.datetime.fromtimestamp(unix_epoch / factor, tz)

@@ -524,7 +524,7 @@ class CharmHooks(object):
         """Calls the ``command`` and returns a dictionary with *stdout*, *stderr*, and the *returncode*."""
         return cmd(command, log=self.debug if logging else None, **kwargs)
 
-    def template2config(self, template, config, values):
+    def template_to_config(self, template, config, values):
         from_template(template, config, values)
         self.remark('File {0} successfully generated'.format(config))
 

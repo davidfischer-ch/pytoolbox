@@ -32,8 +32,8 @@ from .encoding import string_types, text_type, to_bytes
 from .filesystem import try_makedirs
 
 __all__ = (
-    'to_file', 'PickleableObject', 'SmartJSONEncoderV1', 'SmartJSONEncoderV2', 'object2json', 'json2object',
-    'jsonfile2object', 'JsoneableObject', 'object2dict', 'object2dictV2', 'dict2object'
+    'to_file', 'PickleableObject', 'SmartJSONEncoderV1', 'SmartJSONEncoderV2', 'object_to_json', 'json_to_object',
+    'jsonfile_to_object', 'JsoneableObject', 'object_to_dict', 'object_to_dictV2', 'dict_to_object'
 )
 
 
@@ -158,7 +158,7 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
-def object2json(obj, include_properties, **kwargs):
+def object_to_json(obj, include_properties, **kwargs):
     """
     Serialize an :class:`object` to a JSON string. Use one of the *smart* JSON encoder of this module.
 
@@ -176,9 +176,9 @@ def object2json(obj, include_properties, **kwargs):
     ...     def z(self):
     ...         return self.x + self.y
     >>> p1 = Point(x=16, y=-5)
-    >>> eq_(object2json(p1, include_properties=False, sort_keys=True), '{"x": 16, "y": -5}')
-    >>> eq_(object2json(p1, include_properties=True, sort_keys=True), '{"x": 16, "y": -5, "z": 11}')
-    >>> print(object2json(p1, include_properties=True, sort_keys=True, indent=4)) # doctest: +NORMALIZE_WHITESPACE
+    >>> eq_(object_to_json(p1, include_properties=False, sort_keys=True), '{"x": 16, "y": -5}')
+    >>> eq_(object_to_json(p1, include_properties=True, sort_keys=True), '{"x": 16, "y": -5, "z": 11}')
+    >>> print(object_to_json(p1, include_properties=True, sort_keys=True, indent=4)) # doctest: +NORMALIZE_WHITESPACE
     {
         "x": 16,
         "y": -5,
@@ -188,23 +188,23 @@ def object2json(obj, include_properties, **kwargs):
     return json.dumps(obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1), **kwargs)
 
 
-def json2object(cls, json_string, inspect_constructor):
+def json_to_object(cls, json_string, inspect_constructor):
     """
     Deserialize the JSON string ``json_string`` to an instance of ``cls``.
 
     Set ``inspect_constructor`` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
     constructor (``__init__``) of ``cls``.
     """
-    return dict2object(cls, json.loads(json_string), inspect_constructor)
+    return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
-def jsonfile2object(cls, filename_or_file, inspect_constructor):
+def jsonfile_to_object(cls, filename_or_file, inspect_constructor):
     """
     Load and deserialize the JSON string stored in a file ``filename`` to an instance of ``cls``.
 
     .. warning::
 
-        Class constructor is responsible of converting attributes to instances of classes with ``dict2object``.
+        Class constructor is responsible of converting attributes to instances of classes with ``dict_to_object``.
 
     **Example usage**
 
@@ -218,19 +218,19 @@ def jsonfile2object(cls, filename_or_file, inspect_constructor):
     ...         self.x = x
     ...         self.y = y
     >>> p1 = Point(name='My point', x=10, y=-5)
-    >>> open('test.json', 'w', encoding='utf-8').write(object2json(p1, include_properties=False))
+    >>> open('test.json', 'w', encoding='utf-8').write(object_to_json(p1, include_properties=False))
 
     Deserialize the freshly saved file:
 
-    >>> p2 = jsonfile2object(Point, 'test.json', inspect_constructor=False)
+    >>> p2 = jsonfile_to_object(Point, 'test.json', inspect_constructor=False)
     >>> eq_(p1.__dict__, p2.__dict__)
-    >>> p2 = jsonfile2object(Point, open('test.json', 'r', encoding='utf-8'), inspect_constructor=False)
+    >>> p2 = jsonfile_to_object(Point, open('test.json', 'r', encoding='utf-8'), inspect_constructor=False)
     >>> eq_(p1.__dict__, p2.__dict__)
     >>> os.remove('test.json')
     """
     f = (open(filename_or_file, 'r', encoding='utf-8') if isinstance(filename_or_file, string_types)
          else filename_or_file)
-    return json2object(cls, f.read(), inspect_constructor)
+    return json_to_object(cls, f.read(), inspect_constructor)
 
 
 class JsoneableObject(object):
@@ -239,7 +239,7 @@ class JsoneableObject(object):
 
     .. warning::
 
-        Class constructor is responsible of converting attributes to instances of classes with ``dict2object``.
+        Class constructor is responsible of converting attributes to instances of classes with ``dict_to_object``.
 
     Convert-back from JSON strings containing extra parameters:
 
@@ -254,7 +254,7 @@ class JsoneableObject(object):
     >>>
     >>> class Media(JsoneableObject):
     ...     def __init__(self, author, title):
-    ...         self.author = dict2object(User, author, True) if isinstance(author, dict) else author
+    ...         self.author = dict_to_object(User, author, True) if isinstance(author, dict) else author
     ...         self.title = title
 
     Sounds good:
@@ -293,7 +293,7 @@ class JsoneableObject(object):
     def read(cls, filename, store_filename=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(filename, 'r', 'utf-8') as f:
-            the_object = dict2object(cls, json.loads(f.read()), inspect_constructor)
+            the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
             if store_filename:
                 the_object._json_filename = filename
             return the_object
@@ -304,29 +304,29 @@ class JsoneableObject(object):
             filename = self._json_filename
             try:
                 del self._json_filename
-                to_file(filename, data=object2json(self, include_properties, **kwargs),
+                to_file(filename, data=object_to_json(self, include_properties, **kwargs),
                         binary=False, safe=safe, backup=backup, makedirs=makedirs)
             finally:
                 self._json_filename = filename
         elif filename is not None:
-            to_file(filename, data=object2json(self, include_properties, **kwargs),
+            to_file(filename, data=object_to_json(self, include_properties, **kwargs),
                     binary=False, safe=safe, backup=backup, makedirs=makedirs)
         else:
             raise ValueError('A filename must be specified')
 
     def to_json(self, include_properties, **kwargs):
         """Serialize this instance to a JSON string."""
-        return object2json(self, include_properties, **kwargs)
+        return object_to_json(self, include_properties, **kwargs)
 
     @classmethod
     def from_json(cls, json_string, inspect_constructor):
         """Deserialize a JSON string to an instance of ``JsoneableObject``."""
-        return dict2object(cls, json.loads(json_string), inspect_constructor)
+        return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
 # Object <-> Dictionary ------------------------------------------------------------------------------------------------
 
-def object2dict(obj, include_properties):
+def object_to_dict(obj, include_properties):
     """
     Convert an :class:`object` to a python dictionary.
 
@@ -351,43 +351,43 @@ def object2dict(obj, include_properties):
     ...         return self.x - self.y
     >>>
     >>> p1_dict = {'y': 2, 'x': 5, 'name': 'p1', 'p': {'y': 4, 'x': 3, 'name': 'p2', 'p': None}}
-    >>> eq_(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
+    >>> eq_(object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
     >>>
     >>> p2_dict = {'y': 4, 'p': None, 'z': -1, 'name': 'p2', 'x': 3}
     >>> p1_dict = {'y': 2, 'p': p2_dict, 'z': 3, 'name': 'p1', 'x': 5}
-    >>> eq_(object2dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
+    >>> eq_(object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
     >>>
     >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
     >>> p1.p, p2.p = p2, p1
-    >>> print(object2dict(p1, True))
+    >>> print(object_to_dict(p1, True))
     Traceback (most recent call last):
         ...
     ValueError: Circular reference detected
     """
-    return json2object(dict, object2json(obj, include_properties), inspect_constructor=False)
+    return json_to_object(dict, object_to_json(obj, include_properties), inspect_constructor=False)
 
 
-def object2dictV2(obj, remove_underscore):
+def object_to_dictV2(obj, remove_underscore):
     if isinstance(obj, dict):
         something_dict = {}
         for key, value in obj.iteritems():
             if remove_underscore and key[0] == '_':
                 key = key[1:]
-            something_dict[key] = object2dictV2(value, remove_underscore)
+            something_dict[key] = object_to_dictV2(value, remove_underscore)
         return something_dict
     elif hasattr(obj, '__iter__'):
-        return [object2dictV2(value, remove_underscore) for value in obj]
+        return [object_to_dictV2(value, remove_underscore) for value in obj]
     elif hasattr(obj, '__dict__'):
         something_dict = {}
         for key, value in obj.__dict__.iteritems():
             if remove_underscore and key[0] == '_':
                 key = key[1:]
-            something_dict[key] = object2dictV2(value, remove_underscore)
+            something_dict[key] = object_to_dictV2(value, remove_underscore)
         return something_dict
     return obj
 
 
-def dict2object(cls, the_dict, inspect_constructor):
+def dict_to_object(cls, the_dict, inspect_constructor):
     """
     Convert a python dictionary to an instance of a class.
 
@@ -407,13 +407,13 @@ def dict2object(cls, the_dict, inspect_constructor):
     ...
     >>> user_dict = {'first_name': 'Victor', 'last_name': 'Fischer', 'unexpected': 10}
     >>>
-    >>> dict2object(User, user_dict, inspect_constructor=False)
+    >>> dict_to_object(User, user_dict, inspect_constructor=False)
     Traceback (most recent call last):
         ...
     TypeError: __init__() got an unexpected keyword argument 'unexpected'
     >>>
     >>> expected = {'first_name': 'Victor', 'last_name': 'Fischer'}
-    >>> eq_(dict2object(User, user_dict, inspect_constructor=True).__dict__, expected)
+    >>> eq_(dict_to_object(User, user_dict, inspect_constructor=True).__dict__, expected)
     """
     if inspect_constructor:
         the_dict = {arg: the_dict.get(arg, None) for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'}

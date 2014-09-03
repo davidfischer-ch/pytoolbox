@@ -30,7 +30,7 @@ from flask import abort, Response
 from werkzeug.exceptions import HTTPException
 
 from .encoding import text_type
-from .serialization import object2json
+from .serialization import object_to_json
 from .validation import valid_uuid
 
 __all__ = ('STATUS_TO_EXCEPTION', 'check_id', 'map_exceptions', 'json_response')
@@ -100,7 +100,7 @@ def map_exceptions(e):
 
 def json_response(status, value=None, include_properties=False):
     response = Response(
-        response=object2json({'status': status, 'value': value}, include_properties),
+        response=object_to_json({'status': status, 'value': value}, include_properties),
         status=status, mimetype='application/json')
     response.status_code = status
     return response
