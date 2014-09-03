@@ -24,7 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .encoding import to_bytes
+import io, traceback
+
+from .encoding import PY2, to_bytes
 
 __all__ = (
     'BadHTTPResponseCodeError', 'CorruptedFileError', 'ForbiddenError', 'TimeoutError', 'assert_raises_item'
@@ -102,3 +104,18 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
                              e.__class__.__name__, exception_cls.__name__)))
         return
     raise AssertionError(to_bytes('Exception {0} not raised.'.format(exception_cls.__name__)))
+
+
+def get_exception_with_traceback(exception, encoding='utf-8'):
+    """
+    Return a string with the exception traceback.
+
+    **Example usage**
+
+    >>> from nose.tools import eq_
+    >>> from pytoolbox.encoding import to_bytes
+    >>> eq_(get_exception_with_traceback(ValueError(to_bytes('yé'))), 'ValueError: yé\\n')
+    """
+    exception_io = io.BytesIO() if PY2 else io.StringIO()
+    traceback.print_exception(type(exception), exception, getattr(exception, '__traceback__', None), file=exception_io)
+    return exception_io.getvalue().decode(encoding) if PY2 else exception_io.getvalue()

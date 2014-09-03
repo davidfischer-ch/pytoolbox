@@ -27,12 +27,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six, sys
 from codecs import open
 
-__all__ = ('string_types', 'text_type', 'to_bytes', 'to_unicode', 'configure_unicode', 'csv_reader')
+__all__ = ('PY2', 'string_types', 'text_type', 'to_bytes', 'to_unicode', 'configure_unicode', 'csv_reader')
 
+PY2 = six.PY2
 string_types = six.string_types
 text_type = six.text_type
 
-if sys.version_info[0] == 2:
+if PY2:
     from kitchen.text.converters import getwriter, to_bytes, to_unicode
 
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
