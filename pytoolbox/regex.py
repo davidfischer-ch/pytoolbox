@@ -26,31 +26,42 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import re
 
-__all__ = ('TIME_REGEX_PARTS', 'findall_partial')
+__all__ = ('TIME_REGEX_PARTS', 'embed_in_regex', 'findall_partial')
 
 TIME_REGEX_PARTS = ['[0-2]', '[0-9]', ':', '[0-5]', '[0-9]', ':', '[0-5]', '[0-9]']
 
 
-def findall_partial(string, regex_parts):
+def embed_in_regex(string, regex_parts, index, as_string=True):
     """
-    TODO
-
     **Example usage**
 
-    >>> list(''.join(r) for i, r in findall_partial('12:15:2', TIME_REGEX_PARTS))
-    ['12:15:2[0-9]']
-    >>> list(''.join(r) for i, r in findall_partial('18:2', TIME_REGEX_PARTS))
-    ['18:2[0-9]:[0-5][0-9]', '[0-2][0-9]:18:2[0-9]']
-    >>> list(''.join(r) for i, r in findall_partial('59:1', TIME_REGEX_PARTS))
-    ['[0-2][0-9]:59:1[0-9]']
-    >>> set(''.join(r) for i, r in findall_partial(':', TIME_REGEX_PARTS))
-    {'[0-2][0-9]:[0-5][0-9]:[0-5][0-9]'}
+    >>> from nose.tools import eq_
+
+    >>> eq_(embed_in_regex('L', ['[a-z]', '[a-z]'], 0), (0, 'L[a-z]'))
+    >>> eq_(embed_in_regex('L', ['[a-z]', '[a-z]'], 1), (1, '[a-z]L'))
+    >>> eq_(embed_in_regex('L', ['[a-z]', '[a-z]'], 1, as_string=False), (1, ['[a-z]', 'L']))
     """
-    length = len(string)
-    for index in range(0, len(regex_parts) - length + 1):
-        regex = regex_parts[index:index+length]
+    regex = regex_parts[:]
+    regex[index:index+len(string)] = string
+    return index, ''.join(regex) if as_string else regex
+
+
+def findall_partial(string, regex_parts):
+    """
+    **Example usage**
+
+    >>> from nose.tools import eq_
+    >>> result = [i for s, r, i in findall_partial(':', TIME_REGEX_PARTS)]
+    >>> eq_(result, [2, 5])
+    >>> result = [embed_in_regex(s, r, i) for s, r, i in findall_partial('12:15:2', TIME_REGEX_PARTS)]
+    >>> eq_(result, [(0, '12:15:2[0-9]')])
+    >>> result = [embed_in_regex(s, r, i) for s, r, i in findall_partial('18:2', TIME_REGEX_PARTS)]
+    >>> eq_(result, [(0, '18:2[0-9]:[0-5][0-9]'), (3, '[0-2][0-9]:18:2[0-9]')])
+    >>> result = [embed_in_regex(s, r, i) for s, r, i in findall_partial('59:1', TIME_REGEX_PARTS)]
+    >>> eq_(result, [(3, '[0-2][0-9]:59:1[0-9]')])
+    """
+    for index in range(0, len(regex_parts) - len(string) + 1):
+        regex = regex_parts[index:index + len(string)]
         match = re.search(''.join(regex), string)
         if match:
-            regex = regex_parts[:]
-            regex[index:index+length] = string
-            yield index, regex
+            yield string, regex_parts, index
