@@ -42,7 +42,7 @@ def embed_in_regex(string, regex_parts, index, as_string=True):
     >>> eq_(embed_in_regex('L', ['[a-z]', '[a-z]'], 1, as_string=False), (1, ['[a-z]', 'L']))
     """
     regex = regex_parts[:]
-    regex[index:index+len(string)] = string
+    regex[index:index + len(string)] = string
     return index, ''.join(regex) if as_string else regex
 
 
