@@ -3,13 +3,19 @@ changelog
 =========
 
 ----------------
-v9.4.2 -> v9.5.0
+v9.4.2 -> v9.5.1
 ----------------
 
 Minor compatibility breaks
 ==========================
 
 * Rename all functions with _to_ instead of 2 (e.g. str2time -> str_to_time)
+* Rename some methods of the class ffmpeg.FFmpeg
+
+Fixes and enhancements
+======================
+
+* Add *streams* methods to ffmpeg.FFmpeg
 
 ---------------------
 v9.3.0-beta -> v9.4.2

@@ -215,38 +215,6 @@ class FFmpeg(object):
                 return duration
         return None
 
-    def get_media_framerate(self, filename_or_infos):
-        """
-        Return the frame rate of the first video stream in ``filename_or_infos`` or None in case of error.
-
-        **Example usage**
-
-        >>> print(FFmpeg().get_media_framerate(3.14159265358979323846))
-        None
-        >>> print(FFmpeg().get_media_framerate({}))
-        None
-        >>> print(FFmpeg().get_media_framerate(FFmpeg().get_media_infos('small.mp4')))
-        30.0
-        >>> print(FFmpeg().get_media_framerate('small.mp4'))
-        30.0
-        >>> print(FFmpeg().get_media_framerate({'streams': [
-        ...     {'codec_type': 'audio'},
-        ...     {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
-        ... ]}))
-        59.0
-        """
-        if not isinstance(filename_or_infos, dict):
-            filename_or_infos = self.get_media_infos(filename_or_infos)
-        try:
-            first_video_stream = next(s for s in filename_or_infos['streams'] if s['codec_type'] == 'video')
-            fps = first_video_stream['avg_frame_rate']
-            if '/' in fps:
-                num, denom = fps.split('/')
-                return float(num) / float(denom)
-            return float(fps)
-        except:
-            return None
-
     def get_media_infos(self, filename):
         """
         Return a Python dictionary containing informations about the media informations or None in case of error.
@@ -354,33 +322,78 @@ class FFmpeg(object):
         except:
             return None
 
-    def get_media_resolution(self, filename_or_infos):
+    def get_streams(self, filename_or_infos, condition=lambda stream: True):
+        if not isinstance(filename_or_infos, dict):
+            filename_or_infos = self.get_media_infos(filename_or_infos)
+        try:
+            return [s for s in filename_or_infos['streams'] if condition(s)]
+        except:
+            return []
+
+    def get_audio_streams(self, filename_or_infos):
+        return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
+
+    def get_video_streams(self, filename_or_infos):
+        return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
+
+    def get_video_framerate(self, filename_or_infos, index=0):
         """
-        Return [width, height] of the first video stream in ``filename_or_infos`` or None in case of error.
+        Return the frame rate of the video stream at ``index`` in ``filename_or_infos`` or None in case of error.
 
         **Example usage**
 
-        >>> print(FFmpeg().get_media_resolution(3.14159265358979323846))
+        >>> print(FFmpeg().get_video_framerate(3.14159265358979323846))
         None
-        >>> print(FFmpeg().get_media_resolution({}))
+        >>> print(FFmpeg().get_video_framerate({}))
         None
-        >>> print(FFmpeg().get_media_resolution(FFmpeg().get_media_infos('small.mp4')))
+        >>> print(FFmpeg().get_video_framerate(FFmpeg().get_media_infos('small.mp4')))
+        30.0
+        >>> print(FFmpeg().get_video_framerate('small.mp4'))
+        30.0
+        >>> print(FFmpeg().get_video_framerate({'streams': [
+        ...     {'codec_type': 'audio'},
+        ...     {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
+        ... ]}))
+        59.0
+        """
+        video_streams = self.get_video_streams(filename_or_infos)
+        try:
+            fps = video_streams[index]['avg_frame_rate']
+            if '/' in fps:
+                num, denom = fps.split('/')
+                return float(num) / float(denom)
+            return float(fps)
+        except:
+            return None
+
+    def get_video_resolution(self, filename_or_infos, index=0):
+        """
+        Return [width, height] of the video stream at ``index`` in ``filename_or_infos`` or None in case of error.
+
+        **Example usage**
+
+        >>> print(FFmpeg().get_video_resolution(3.14159265358979323846))
+        None
+        >>> print(FFmpeg().get_video_resolution({}))
+        None
+        >>> print(FFmpeg().get_video_resolution(FFmpeg().get_media_infos('small.mp4')))
         [560, 320]
-        >>> print(FFmpeg().get_media_resolution('small.mp4'))
+        >>> print(FFmpeg().get_video_resolution('small.mp4'))
         [560, 320]
-        >>> print(FFmpeg().get_media_resolution('small.mp4')[HEIGHT])
+        >>> print(FFmpeg().get_video_resolution('small.mp4', index=1))
+        None
+        >>> print(FFmpeg().get_video_resolution('small.mp4')[HEIGHT])
         320
-        >>> print(FFmpeg().get_media_resolution({'streams': [
+        >>> print(FFmpeg().get_video_resolution({'streams': [
         ...     {'codec_type': 'audio'},
         ...     {'codec_type': 'video', 'width': '1920', 'height': '1080'}
         ... ]}))
         [1920, 1080]
         """
-        if not isinstance(filename_or_infos, dict):
-            filename_or_infos = self.get_media_infos(filename_or_infos)
+        video_streams = self.get_video_streams(filename_or_infos)
         try:
-            first_video_stream = next(s for s in filename_or_infos['streams'] if s['codec_type'] == 'video')
-            return [int(first_video_stream['width']), int(first_video_stream['height'])]
+            video_stream = video_streams[index]
+            return [int(video_stream['width']), int(video_stream['height'])]
         except:
             return None
 
