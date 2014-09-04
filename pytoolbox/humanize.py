@@ -24,9 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import math
+import math, re
 
-__all__ = ('DEFAULT_BITRATE_UNITS', 'DEFAULT_FILESIZE_ARGS', 'naturalbitrate', 'naturalfilesize')
+__all__ = ('DEFAULT_BITRATE_UNITS', 'DEFAULT_FILESIZE_ARGS', 'naturalbitrate', 'naturalfilesize', 'natural_int_key')
 
 DEFAULT_BITRATE_UNITS = ('bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s')
 DEFAULT_FILESIZE_ARGS = {
@@ -34,6 +34,7 @@ DEFAULT_FILESIZE_ARGS = {
     'nist': {'base': 1024, 'units': ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')},
     'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')},
 }
+DIGIT_REGEX = re.compile(r'(\d+)')
 
 
 def _naturalnumber(number, base, units, format='{sign}{value:.3g} {unit}', scale=None):
@@ -116,3 +117,19 @@ def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', sca
     314 E
     """
     return _naturalnumber(bytes, format=format, scale=scale, **(args[system] if system else args))
+
+
+def natural_int_key(text):
+    """
+    Function to be called as the key argument for list.sort() or sorted() in order to sort collections containing
+    textual numbers on a more intuitive way.
+
+    **Example usage**
+
+    >>> from nose.tools import eq_
+    >>> result = sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'])
+    >>> eq_(result, ['a1', 'a10', 'a19', 'a26', 'a3', 'a4', 'b12', 'b2'])
+    >>> result = sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'], key=natural_int_key)
+    >>> eq_(result, ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12'])
+    """
+    return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
