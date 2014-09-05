@@ -32,45 +32,46 @@ from .encoding import text_type, to_bytes
 from .network.ip import ip_address
 
 __all__ = [
-    'valid_filename', 'valid_ip', 'valid_email', 'valid_int', 'valid_port', 'valid_secret', 'valid_uri', 'valid_uuid',
-    'validate_list'
+    'CleanAttributesMixin', 'valid_filename', 'valid_ip', 'valid_email', 'valid_int', 'valid_port', 'valid_secret',
+    'valid_uri', 'valid_uuid', 'validate_list'
 ]
+
+
+class CleanAttributesMixin(object):
+    """
+    Put validation logic, cleanup code, ... into a method clean_<attribute_name> and this method will be called
+    every time the attribute is set.
+
+    **Example usage**
+
+    >>> class Settings(CleanAttributesMixin):
+    ...     def __init__(self, locale, broker):
+    ...        self.locale = locale
+    ...        self.broker = broker
+    ...
+    ...     def clean_locale(self, value):
+    ...         value = str(value)
+    ...         assert(len(value) == 2)
+    ...         return value
+
+    >>> settings = Settings('fr', {})
+    >>> settings = Settings(10, {})
+    >>> print(type(settings.locale))
+    <class 'str'>
+    >>> settings = Settings(100, 'a string')
+    Traceback (most recent call last):
+        ...
+    AssertionError
+    """
+    def __setattr__(self, name, value):
+        cleanup_method = getattr(self, 'clean_' + name, None)
+        if cleanup_method:
+            value = cleanup_method(value)
+        super(CleanAttributesMixin, self).__setattr__(name, value)
 
 if sys.version_info[0] > 2:
 
-    __all__.extend(['CleanAttributesMixin', 'StrongTypedMixin'])
-
-    class CleanAttributesMixin(object):
-        """
-        Put validation logic, cleanup code, ... into a method clean_<attribute_name> and this method will be called
-        every time the attribute is set.
-
-        **Example usage**
-
-        >>> class Settings(CleanAttributesMixin):
-        ...     def __init__(self, locale, broker):
-        ...        self.locale = locale
-        ...        self.broker = broker
-        ...
-        ...     def clean_locale(self, value):
-        ...         value = str(value)
-        ...         assert(len(value) == 2)
-        ...         return value
-
-        >>> settings = Settings('fr', {})
-        >>> settings = Settings(10, {})
-        >>> print(type(settings.locale))
-        <class 'str'>
-        >>> settings = Settings(100, 'a string')
-        Traceback (most recent call last):
-            ...
-        AssertionError
-        """
-        def __setattr__(self, name, value):
-            cleanup_method = getattr(self, 'clean_' + name, None)
-            if cleanup_method:
-                value = cleanup_method(value)
-            super().__setattr__(name, value)
+    __all__.append('StrongTypedMixin')
 
     class StrongTypedMixin(object):
         """
