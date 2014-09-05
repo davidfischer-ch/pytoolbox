@@ -24,16 +24,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, errno, json, math, os, re, select, shlex, sys, time
+import datetime, errno, json, math, numbers, os, re, select, shlex, sys, time
 from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
-from .. import filesystem
+from .. import filesystem, validation
 from ..datetime import datetime_now, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
 from ..subprocess import make_async
 
-__all__ = ('ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'FFmpeg')
+__all__ = (
+    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'FFmpeg', 'VideoCodec', 'VideoStream'
+)
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
@@ -50,12 +52,62 @@ MPD_TEST = """<?xml version="1.0"?>
 """
 
 
+def _to_framerate(fps):
+    """
+    Return the frame rate as float or None in case of error.
+
+    **Example usage**
+
+    >>> print(_to_framerate({}))
+    None
+    >>> print(_to_framerate(3.14159265358979323846))
+    3.141592653589793
+    >>> print(_to_framerate('59000/1000'))
+    59.0
+    """
+    try:
+        if isinstance(fps, numbers.Number):
+            return fps
+        if '/' in fps:
+            num, denom = fps.split('/')
+            return float(num) / float(denom)
+        return float(fps)
+    except:
+        return None
+
+
+class VideoCodec(object):
+    pass
+
+
+class VideoStream(validation.CleanAttributesMixin):
+
+    __slots__ = (
+        'avg_frame_rate', 'codec', 'display_aspect_ratio', 'disposition', 'has_b_frames', 'height', 'index', 'level',
+        'pix_fmt', 'r_frame_rate', 'sample_aspect_ratio', 'time_base', 'width'
+    )
+
+    def __init__(self, infos):
+        for attr in self.__slots__:
+            if attr == 'codec':
+                self.codec = VideoCodec()
+            else:
+                setattr(self, attr, infos[attr])
+
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: _to_framerate(v)
+    clean_height = clean_level = clean_width = lambda s, v: int(v)
+
+
 class FFmpeg(object):
 
     duration_regex = DURATION_REGEX
     encoding_regex = ENCODING_REGEX
     encoding_executable = 'ffmpeg'
     parsing_executable = 'ffprobe'
+    stream_classes = {
+        'audio': None,
+        'video': None
+    }
 
     def __init__(self, encoding_executable=None, parsing_executable=None,
                  default_in_duration=datetime.timedelta(seconds=0), ratio_delta=0.01, time_delta=1, max_time_delta=5,
@@ -323,17 +375,39 @@ class FFmpeg(object):
             return None
 
     def get_streams(self, filename_or_infos, condition=lambda stream: True):
-        if not isinstance(filename_or_infos, dict):
-            filename_or_infos = self.get_media_infos(filename_or_infos)
+        infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
         try:
-            return [s for s in filename_or_infos['streams'] if condition(s)]
+            raw_streams = (s for s in infos['streams'] if condition(s))
         except:
             return []
+        streams = []
+        for stream in raw_streams:
+            stream_class = self.stream_classes[stream['codec_type']]
+            streams.append(stream_class(stream) if stream_class and not isinstance(stream, stream_class) else stream)
+        return streams
 
     def get_audio_streams(self, filename_or_infos):
         return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
 
     def get_video_streams(self, filename_or_infos):
+        """
+        Return a list with the video streams ``filename_or_infos`` or [] in case of error.
+
+        **Example usage**
+
+        >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.stream_classes['video'] = None
+        >>> streams = ffmpeg.get_video_streams('small.mp4')
+        >>> type(streams[0])
+        <class 'dict'>
+        >>> print(streams[0]['avg_frame_rate'])
+        30/1
+        >>> ffmpeg.stream_classes['video'] = VideoStream
+        >>> streams = ffmpeg.get_video_streams('small.mp4')
+        >>> assert type(streams[0]) is VideoStream
+        >>> streams[0].avg_frame_rate
+        30.0
+        """
         return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
 
     def get_video_framerate(self, filename_or_infos, index=0):
@@ -358,11 +432,7 @@ class FFmpeg(object):
         """
         video_streams = self.get_video_streams(filename_or_infos)
         try:
-            fps = video_streams[index]['avg_frame_rate']
-            if '/' in fps:
-                num, denom = fps.split('/')
-                return float(num) / float(denom)
-            return float(fps)
+            return _to_framerate(video_streams[index]['avg_frame_rate'])
         except:
             return None
 
