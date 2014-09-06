@@ -64,6 +64,7 @@ keywords = [
 install_requires = [
     'argparse',
     'mock',
+    'nose',
     'passlib',
     'pyaml',
     'pycallgraph',
