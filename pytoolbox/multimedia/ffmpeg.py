@@ -60,8 +60,8 @@ def _to_framerate(fps):
 
     >>> print(_to_framerate({}))
     None
-    >>> print(_to_framerate(3.14159265358979323846))
-    3.141592653589793
+    >>> print(_to_framerate(25.0))
+    25.0
     >>> print(_to_framerate('59000/1000'))
     59.0
     """
@@ -398,13 +398,12 @@ class FFmpeg(object):
         >>> ffmpeg = FFmpeg()
         >>> ffmpeg.stream_classes['video'] = None
         >>> streams = ffmpeg.get_video_streams('small.mp4')
-        >>> type(streams[0])
-        <class 'dict'>
+        >>> assert isinstance(streams[0], dict)
         >>> print(streams[0]['avg_frame_rate'])
         30/1
         >>> ffmpeg.stream_classes['video'] = VideoStream
         >>> streams = ffmpeg.get_video_streams('small.mp4')
-        >>> assert type(streams[0]) is VideoStream
+        >>> assert isinstance(streams[0], VideoStream)
         >>> streams[0].avg_frame_rate
         30.0
         """

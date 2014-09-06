@@ -28,7 +28,7 @@ import errno, httplib, inspect, re, socket, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
 
-from .encoding import text_type, to_bytes
+from .encoding import string_types, text_type, to_bytes
 from .network.ip import ip_address
 
 __all__ = [
@@ -56,8 +56,7 @@ class CleanAttributesMixin(object):
 
     >>> settings = Settings('fr', {})
     >>> settings = Settings(10, {})
-    >>> print(type(settings.locale))
-    <class 'str'>
+    >>> assert isinstance(settings.locale, string_types)
     >>> settings = Settings(100, 'a string')
     Traceback (most recent call last):
         ...
