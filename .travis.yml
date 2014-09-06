@@ -7,7 +7,7 @@ python:
   - 3.4
   - pypy
 install:
-  - travis_retry yes | sudo apt-add-repository ppa:jon-severinsson/ffmpeg
+  - travis_retry yes | sudo apt-add-repository ppa:mc3man/trusty-media
   - travis_retry sudo apt-get update
   - travis_retry sudo apt-get install ffmpeg screen
   - travis_retry sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors

@@ -17,7 +17,7 @@ pytoolbox
 .. image:: https://landscape.io/github/davidfischer-ch/pytoolbox/master/landscape.png
    :target: https://landscape.io/github/davidfischer-ch/pytoolbox/master
 
-.. image:: https://badge.waffle.io/davidfischer-ch/pytoolbox.png?label=ready&title=Ready 
+.. image:: https://badge.waffle.io/davidfischer-ch/pytoolbox.png?label=ready&title=Ready
    :target: https://waffle.io/davidfischer-ch/pytoolbox
    :alt: 'Stories in Ready'
 
@@ -40,7 +40,7 @@ How to install it (Python 2.7) ?
 
 Install some packages that are not handled by pip::
 
-    sudo apt-add-repository ppa:jon-severinsson/ffmpeg
+    sudo apt-add-repository ppa:mc3man/trusty-media
     sudo apt-get update
     sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev python-pip screen
     sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev python-gi
@@ -60,7 +60,7 @@ How to install it (Python 3.3) ?
 
 Install some packages that are not handled by pip::
 
-    sudo apt-add-repository ppa:jon-severinsson/ffmpeg
+    sudo apt-add-repository ppa:mc3man/trusty-media
     sudo apt-get update
     sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python3-dev python3-pip screen
     sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev python3-gi
