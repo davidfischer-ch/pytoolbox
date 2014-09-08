@@ -34,7 +34,7 @@ from ..encoding import string_types
 from ..subprocess import make_async
 
 __all__ = (
-    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'FFmpeg', 'VideoCodec', 'VideoStream'
+    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'AudioStream', 'VideoStream', 'FFmpeg'
 )
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -76,8 +76,36 @@ def _to_framerate(fps):
         return None
 
 
-class VideoCodec(object):
-    pass
+class Codec(validation.CleanAttributesMixin):
+
+    __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
+
+    def __init__(self, infos):
+        for attr in self.__slots__:
+            setattr(self, attr, infos['codec_' + attr])
+
+    clean_time_base = lambda s, v: _to_framerate(v)
+
+
+class AudioStream(validation.CleanAttributesMixin):
+
+    __slots__ = (
+        'avg_frame_rate', 'bit_rate', 'bits_per_sample', 'channel_layout', 'channels', 'codec', 'disposition',
+        'duration', 'duration_ts', 'index', 'nb_frames', 'r_frame_rate', 'sample_fmt', 'sample_rate', 'start_pts',
+        'start_time', 'tags', 'time_base'
+    )
+
+    def __init__(self, infos):
+        for attr in self.__slots__:
+            if attr == 'codec':
+                self.codec = Codec(infos)
+            else:
+                setattr(self, attr, infos[attr])
+
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: _to_framerate(v)
+    clean_bit_rate = clean_bits_per_sample = clean_channels = clean_duration_ts = clean_index = clean_nb_frames = \
+        clean_sample_rate = clean_start_pts = lambda s, v: int(v)
+    clean_duration = clean_start_time = lambda s, v: float(v)
 
 
 class VideoStream(validation.CleanAttributesMixin):
@@ -90,12 +118,12 @@ class VideoStream(validation.CleanAttributesMixin):
     def __init__(self, infos):
         for attr in self.__slots__:
             if attr == 'codec':
-                self.codec = VideoCodec()
+                self.codec = Codec(infos)
             else:
                 setattr(self, attr, infos[attr])
 
     clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: _to_framerate(v)
-    clean_height = clean_level = clean_width = lambda s, v: int(v)
+    clean_height = clean_index = clean_level = clean_width = lambda s, v: int(v)
 
 
 class FFmpeg(object):
@@ -387,6 +415,28 @@ class FFmpeg(object):
         return streams
 
     def get_audio_streams(self, filename_or_infos):
+        """
+        Return a list with the audio streams ``filename_or_infos`` or [] in case of error.
+
+        **Example usage**
+
+        >>> from nose.tools import eq_
+        >>> ffmpeg = FFmpeg()
+
+        >>> ffmpeg.stream_classes['audio'] = None
+        >>> streams = ffmpeg.get_audio_streams('small.mp4')
+        >>> assert isinstance(streams[0], dict)
+        >>> eq_(streams[0]['avg_frame_rate'], '0/0')
+        >>> eq_(streams[0]['channels'], 1)
+        >>> eq_(streams[0]['codec_time_base'], '1/48000')
+
+        >>> ffmpeg.stream_classes['audio'] = AudioStream
+        >>> streams = ffmpeg.get_audio_streams('small.mp4')
+        >>> assert isinstance(streams[0], AudioStream)
+        >>> eq_(streams[0].avg_frame_rate, None)
+        >>> eq_(streams[0].channels, 1)
+        >>> eq_(streams[0].codec.time_base, 1 / 48000)
+        """
         return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
 
     def get_video_streams(self, filename_or_infos):
@@ -395,17 +445,18 @@ class FFmpeg(object):
 
         **Example usage**
 
+        >>> from nose.tools import eq_
         >>> ffmpeg = FFmpeg()
+
         >>> ffmpeg.stream_classes['video'] = None
         >>> streams = ffmpeg.get_video_streams('small.mp4')
         >>> assert isinstance(streams[0], dict)
-        >>> print(streams[0]['avg_frame_rate'])
-        30/1
+        >>> eq_(streams[0]['avg_frame_rate'], '30/1')
+
         >>> ffmpeg.stream_classes['video'] = VideoStream
         >>> streams = ffmpeg.get_video_streams('small.mp4')
         >>> assert isinstance(streams[0], VideoStream)
-        >>> streams[0].avg_frame_rate
-        30.0
+        >>> eq_(streams[0].avg_frame_rate, 30.0)
         """
         return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
 
