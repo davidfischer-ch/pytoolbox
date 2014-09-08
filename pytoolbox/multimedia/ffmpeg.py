@@ -28,7 +28,7 @@ import datetime, errno, json, math, numbers, os, re, select, shlex, sys, time
 from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
-from .. import filesystem, validation
+from .. import comparison, filesystem, validation
 from ..datetime import datetime_now, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
 from ..subprocess import make_async
@@ -76,7 +76,7 @@ def _to_framerate(fps):
         return None
 
 
-class Codec(validation.CleanAttributesMixin):
+class Codec(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
@@ -87,7 +87,7 @@ class Codec(validation.CleanAttributesMixin):
     clean_time_base = lambda s, v: _to_framerate(v)
 
 
-class AudioStream(validation.CleanAttributesMixin):
+class AudioStream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     __slots__ = (
         'avg_frame_rate', 'bit_rate', 'bits_per_sample', 'channel_layout', 'channels', 'codec', 'disposition',
@@ -108,7 +108,7 @@ class AudioStream(validation.CleanAttributesMixin):
     clean_duration = clean_start_time = lambda s, v: float(v)
 
 
-class VideoStream(validation.CleanAttributesMixin):
+class VideoStream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     __slots__ = (
         'avg_frame_rate', 'codec', 'display_aspect_ratio', 'disposition', 'has_b_frames', 'height', 'index', 'level',
