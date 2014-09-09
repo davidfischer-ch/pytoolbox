@@ -155,6 +155,7 @@ class FFmpeg(object):
     encoding_regex = ENCODING_REGEX
     encoding_executable = 'ffmpeg'
     parsing_executable = 'ffprobe'
+    media_class = Media
     stream_classes = {
         'audio': None,
         'video': None
@@ -188,7 +189,7 @@ class FFmpeg(object):
         >>> leq_(handle([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
         """
         values = [value] if isinstance(value, (string_types, Media)) else value
-        return [Media(v) if isinstance(v, string_types) else v for v in values]
+        return [self.media_class(v) if isinstance(v, string_types) else v for v in values]
 
     def _get_arguments(self, inputs, outputs, options=None):
         """
