@@ -34,7 +34,8 @@ from ..encoding import string_types
 from ..subprocess import make_async
 
 __all__ = (
-    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'AudioStream', 'VideoStream', 'FFmpeg'
+    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'AudioStream', 'VideoStream', 'Media',
+    'FFmpeg'
 )
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -126,6 +127,28 @@ class VideoStream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin
     clean_height = clean_index = clean_level = clean_width = lambda s, v: int(v)
 
 
+class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+
+    __slots__ = ('filename', 'options')
+
+    def __init__(self, filename, options=None):
+        self.filename = filename
+        self.options = options
+
+    @property
+    def directory(self):
+        return os.path.abspath(os.path.dirname(self.filename))
+
+    def clean_options(self, value):
+        return (shlex.split(value) if isinstance(value, string_types) else value) or []
+
+    def create_directory(self):
+        filesystem.try_makedirs(self.directory)
+
+    def to_args(self, is_input):
+        return self.options + (['-i', self.filename] if is_input else [self.filename])
+
+
 class FFmpeg(object):
 
     duration_regex = DURATION_REGEX
@@ -150,45 +173,66 @@ class FFmpeg(object):
         self.sanity_max_ratio = sanity_max_ratio
         self.encoding = encoding
 
-    def _get_arguments(self, in_filenames, out_filename, options):
+    def _clean_medias_argument(self, value):
         """
-        Return the arguments for the encoding process.
-
-        * Set in_filenames to a string or a "list" with the input filenames.
-        * Set out_filename to a string.
-        * Set argument to a string or a list with the options for the process (except ones related to input(s)/output).
-
-        In return you will get a tuple with (arguments, in_filenames -> list, out_filename -> str, options -> list).
+        Return a list of Media instances from passed value. Value can be one or multiple instances of string or Media.
 
         **Example usage**
 
         >>> from nose.tools import assert_list_equal as leq_
-        >>> options_string = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
-        >>> get_args = FFmpeg()._get_arguments
+        >>> handle = FFmpeg()._clean_medias_argument
 
-        >>> args, in_filenames, out_filename, options = get_args('input.mp4', 'output.mkv', options_string)
-        >>> leq_(in_filenames, ['input.mp4'])
+        >>> leq_(handle('a.mp4'), [Media('a.mp4')])
+        >>> leq_(handle(['a.mp4', 'b.mp3']), [Media('a.mp4'), Media('b.mp3')])
+        >>> leq_(handle(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
+        >>> leq_(handle([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
+        """
+        values = [value] if isinstance(value, (string_types, Media)) else value
+        return [Media(v) if isinstance(v, string_types) else v for v in values]
+
+    def _get_arguments(self, inputs, outputs, options=None):
+        """
+        Return the arguments for the encoding process.
+
+        * Set inputs to one or multiple strings (filenames) or Media instances (with options).
+        * Set outputs to one or multiple strings (filenames) or Media instances (with options).
+        * Set options to a string or a list with the options to put in-between the inputs and outputs (legacy API).
+
+        In return you will get a tuple with (arguments, inputs -> list Media, outputs -> list Media, options -> list).
+
+        **Example usage**
+
+        >>> from nose.tools import assert_list_equal as leq_
+        >>> get = FFmpeg()._get_arguments
+
+        Using options (the legacy API, also simplify simple calls):
+
+        >>> options_string = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
+
+        >>> args, inputs, outputs, options = get('input.mp4', 'output.mkv', options_string)
+        >>> leq_(inputs, [Media('input.mp4')])
+        >>> leq_(outputs, [Media('output.mkv')])
         >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
         >>> leq_(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
 
-        >>> args, in_filenames, out_filename, options = get_args({'input.avi'}, 'output.mp4', options_string)
-        >>> leq_(in_filenames, ['input.avi'])
-        >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
-        >>> leq_(args, ['ffmpeg', '-y', '-i', 'input.avi'] + options + ['output.mp4'])
+        Using instances of Media (the newest API, greater flexibility):
 
-        >>> args, in_filenames, out_filename, options = get_args(('video.h264', 'audio.mp3'), 'output.mp4', options)
-        >>> leq_(sorted(in_filenames), ['audio.mp3', 'video.h264'])
-        >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
-        >>> leq_(args, ['ffmpeg', '-y', '-i', 'video.h264', '-i', 'audio.mp3'] + options + ['output.mp4'])
+        >>> args, inputs, outputs, options = get(Media('in', '-f mp4'), Media('out.mkv', '-acodec copy -vcodec copy'))
+        >>> leq_(inputs, [Media('in', ['-f', 'mp4'])])
+        >>> leq_(outputs, [Media('out.mkv', ['-acodec', 'copy', '-vcodec', 'copy'])])
+        >>> leq_(options, [])
+        >>> leq_(args, ['ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'])
         """
-        in_filenames = [f for f in ([in_filenames] if isinstance(in_filenames, string_types) else in_filenames)]
-        options = (shlex.split(options) if isinstance(options, string_types) else options) or []
-
+        inputs = self._clean_medias_argument(inputs)
+        outputs = self._clean_medias_argument(outputs)
+        options = Media.clean_options(None, options)
         args = [self.encoding_executable, '-y']
-        for in_filename in in_filenames:
-            args.extend(['-i', in_filename])
-        args.extend(options + [out_filename])
-        return args, in_filenames, out_filename, options
+        for the_input in inputs:
+            args.extend(the_input.to_args(is_input=True))
+        args.extend(options)
+        for output in outputs:
+            args.extend(output.to_args(is_input=False))
+        return args, inputs, outputs, options
 
     def _get_chunk(self, process):
         select.select([process.stderr], [], [])
@@ -523,9 +567,11 @@ class FFmpeg(object):
     def get_size(self, path):
         return filesystem.get_size(path)
 
-    def encode(self, in_filenames, out_filename, options, base_track=0, create_out_directory=True):
+    def encode(self, inputs, outputs, options=None, base_track=0, create_directories=True):
         """
-        Encode a set of input files input an output file.
+        Encode a set of input files input to a set of output files.
+
+        .. note:: Current implementation only handles a unique output.
 
         **Example usage**
 
@@ -533,37 +579,38 @@ class FFmpeg(object):
 
         >>> encoder = FFmpeg()
 
-        >>> results = list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
+        >>> results = list(encoder.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
         >>> try_remove('ff_output.mp4')
         True
         >>> print(results[-1]['status'])
         SUCCESS
 
-        >>> results = list(encoder.encode('small.mp4', 'ff_output.mp4', 'crazy_option'))
+        >>> results = list(encoder.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
         >>> try_remove('ff_output.mp4')
         False
         >>> print(results[-1]['status'])
         ERROR
 
-        >>> results = list(encoder.encode({'missing.mp4'}, 'ff_output.mp4', '-c:a copy -c:v copy'))
+        >>> results = list(encoder.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
         >>> try_remove('ff_output.mp4')
         False
         >>> print(results[-1]['status'])
         ERROR
         """
-        arguments, in_filenames, out_filename, options = self._get_arguments(in_filenames, out_filename, options)
+        arguments, inputs, outputs, _ = self._get_arguments(inputs, outputs, options)
+        if len(outputs) != 1:
+            raise NotImplementedError()
 
-        # Create output directory
-        if create_out_directory:
-            directory = os.path.dirname(out_filename)
-            if directory:
-                filesystem.try_makedirs(directory)
+        # Create outputs directories
+        if create_directories:
+            for output in outputs:
+                output.create_directory()
 
         process = self._get_process(arguments)
         try:
             # Get input media duration and size to be able to estimate ETA
-            in_duration = self.get_media_duration(in_filenames[base_track]) or self.default_in_duration
-            in_size = self.get_size(in_filenames[base_track])
+            in_duration = self.get_media_duration(inputs[base_track].filename) or self.default_in_duration
+            in_size = self.get_size(inputs[base_track].filename)
 
             # Initialize metrics
             output = ''
@@ -591,16 +638,16 @@ class FFmpeg(object):
                         yield self._clean_statistics(
                             stats=stats, status='PROGRESS', output=output, returncode=None, start_date=start_date,
                             elapsed_time=datetime.timedelta(seconds=elapsed_time), ratio=ratio, in_size=in_size,
-                            in_duration=in_duration, out_size=self.get_size(out_filename), out_duration=out_duration,
-                            frame=int(stats['frame']), fps=float(stats['fps']), bitrate=stats['bitrate'],
-                            quality=stats.get('q'), sanity=None
+                            in_duration=in_duration, out_size=self.get_size(outputs[0].filename),
+                            out_duration=out_duration, frame=int(stats['frame']), fps=float(stats['fps']),
+                            bitrate=stats['bitrate'], quality=stats.get('q'), sanity=None
                         )
                 returncode = process.poll()
                 if returncode is not None:
                     break
 
             # Output media file sanity check
-            out_duration = self.get_media_duration(out_filename)
+            out_duration = self.get_media_duration(outputs[0].filename)
             ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
             frame = int(stats.get('frame', 0))  # FIXME compute latest frame based on output infos
             fps = float(stats.get('fps', 0))  # FIXME compute average fps
@@ -608,8 +655,8 @@ class FFmpeg(object):
                 stats=stats, status='ERROR' if returncode else 'SUCCESS', output=output, returncode=returncode,
                 start_date=start_date, elapsed_time=datetime.timedelta(seconds=elapsed_time),
                 eta_time=datetime.timedelta(0), ratio=ratio if returncode else 1.0, in_size=in_size,
-                in_duration=in_duration, out_size=self.get_size(out_filename), out_duration=out_duration, frame=frame,
-                fps=fps, bitrate=stats.get('bitrate'), quality=stats.get('q'),
+                in_duration=in_duration, out_size=self.get_size(outputs[0].filename), out_duration=out_duration,
+                frame=frame, fps=fps, bitrate=stats.get('bitrate'), quality=stats.get('q'),
                 sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio
             )
         except Exception as exception:
