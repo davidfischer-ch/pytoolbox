@@ -505,7 +505,7 @@ class FFmpeg(object):
         """
         return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
 
-    def get_video_framerate(self, filename_or_infos, index=0):
+    def get_video_framerate(self, filename_or_infos, index=0, fail=False):
         """
         Return the frame rate of the video stream at ``index`` in ``filename_or_infos`` or None in case of error.
 
@@ -525,13 +525,15 @@ class FFmpeg(object):
         ... ]}))
         59.0
         """
-        video_streams = self.get_video_streams(filename_or_infos)
         try:
-            return _to_framerate(video_streams[index]['avg_frame_rate'])
+            stream = self.get_video_streams(filename_or_infos)[index]
+            return _to_framerate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
         except:
+            if fail:
+                raise
             return None
 
-    def get_video_resolution(self, filename_or_infos, index=0):
+    def get_video_resolution(self, filename_or_infos, index=0, fail=False):
         """
         Return [width, height] of the video stream at ``index`` in ``filename_or_infos`` or None in case of error.
 
@@ -555,11 +557,13 @@ class FFmpeg(object):
         ... ]}))
         [1920, 1080]
         """
-        video_streams = self.get_video_streams(filename_or_infos)
         try:
-            video_stream = video_streams[index]
-            return [int(video_stream['width']), int(video_stream['height'])]
+            stream = self.get_video_streams(filename_or_infos)[index]
+            is_dict = isinstance(stream, dict)
+            return [int(stream['width']), int(stream['height'])] if is_dict else [stream.width, stream.height]
         except:
+            if fail:
+                raise
             return None
 
     def get_now(self):
