@@ -34,8 +34,8 @@ from ..encoding import string_types
 from ..subprocess import make_async
 
 __all__ = (
-    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'AudioStream', 'VideoStream', 'Media',
-    'FFmpeg'
+    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'Stream', 'AudioStream', 'VideoStream',
+    'Media', 'FFmpeg'
 )
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -88,7 +88,24 @@ class Codec(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     clean_time_base = lambda s, v: _to_framerate(v)
 
 
-class AudioStream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+class Stream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+
+    codec_class = Codec
+    defaults = {}
+
+    def __init__(self, infos):
+        for attr in self.__slots__:
+            if attr == 'codec':
+                self.codec = self.codec_class(infos)
+            else:
+                self._set_attribute(attr, infos)
+
+    def _set_attribute(self, name, infos):
+        """Set attribute ``name`` value from the ``infos`` or ``self.defaults`` dictionary."""
+        setattr(self, name, infos.get(name, self.defaults.get(name)))
+
+
+class AudioStream(Stream):
 
     __slots__ = (
         'avg_frame_rate', 'bit_rate', 'bits_per_sample', 'channel_layout', 'channels', 'codec', 'disposition',
@@ -96,35 +113,21 @@ class AudioStream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin
         'start_time', 'tags', 'time_base'
     )
 
-    def __init__(self, infos):
-        for attr in self.__slots__:
-            if attr == 'codec':
-                self.codec = Codec(infos)
-            else:
-                setattr(self, attr, infos[attr])
-
-    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: _to_framerate(v)
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else _to_framerate(v)
     clean_bit_rate = clean_bits_per_sample = clean_channels = clean_duration_ts = clean_index = clean_nb_frames = \
-        clean_sample_rate = clean_start_pts = lambda s, v: int(v)
-    clean_duration = clean_start_time = lambda s, v: float(v)
+        clean_sample_rate = clean_start_pts = lambda s, v: None if v is None else int(v)
+    clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
 
 
-class VideoStream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+class VideoStream(Stream):
 
     __slots__ = (
         'avg_frame_rate', 'codec', 'display_aspect_ratio', 'disposition', 'has_b_frames', 'height', 'index', 'level',
         'pix_fmt', 'r_frame_rate', 'sample_aspect_ratio', 'time_base', 'width'
     )
 
-    def __init__(self, infos):
-        for attr in self.__slots__:
-            if attr == 'codec':
-                self.codec = Codec(infos)
-            else:
-                setattr(self, attr, infos[attr])
-
-    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: _to_framerate(v)
-    clean_height = clean_index = clean_level = clean_width = lambda s, v: int(v)
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else _to_framerate(v)
+    clean_height = clean_index = clean_level = clean_width = lambda s, v: None if v is None else int(v)
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
