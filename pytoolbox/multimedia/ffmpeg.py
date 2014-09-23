@@ -159,10 +159,7 @@ class FFmpeg(object):
     encoding_executable = 'ffmpeg'
     parsing_executable = 'ffprobe'
     media_class = Media
-    stream_classes = {
-        'audio': None,
-        'video': None
-    }
+    stream_classes = {'audio': None, 'video': None}
 
     def __init__(self, encoding_executable=None, parsing_executable=None,
                  default_in_duration=datetime.timedelta(seconds=0), ratio_delta=0.01, time_delta=1, max_time_delta=5,
@@ -186,13 +183,15 @@ class FFmpeg(object):
         >>> from nose.tools import assert_list_equal as leq_
         >>> handle = FFmpeg()._clean_medias_argument
 
+        >>> leq_(handle(None), [])
+        >>> leq_(handle([]), [])
         >>> leq_(handle('a.mp4'), [Media('a.mp4')])
         >>> leq_(handle(['a.mp4', 'b.mp3']), [Media('a.mp4'), Media('b.mp3')])
         >>> leq_(handle(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
         >>> leq_(handle([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
         """
         values = [value] if isinstance(value, (string_types, Media)) else value
-        return [self.media_class(v) if isinstance(v, string_types) else v for v in values]
+        return [self.media_class(v) if isinstance(v, string_types) else v for v in values] if values else []
 
     def _get_arguments(self, inputs, outputs, options=None):
         """
@@ -218,6 +217,10 @@ class FFmpeg(object):
         >>> leq_(outputs, [Media('output.mkv')])
         >>> leq_(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
         >>> leq_(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+
+        >>> args, _, outputs, options = get('input.mp4', None, options_string)
+        >>> leq_(outputs, [])
+        >>> leq_(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options)
 
         Using instances of Media (the newest API, greater flexibility):
 
