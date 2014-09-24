@@ -68,7 +68,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
 
     >>> def progress(current, total):
-    ...     print(current, total)
+    ...     print('(%d, %d)' % (current, total))
 
     >>> download_ext(url, 'small.mp4', progress_callback=progress)
     (102400, 383631)

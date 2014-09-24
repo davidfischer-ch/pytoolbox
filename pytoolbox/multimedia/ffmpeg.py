@@ -53,6 +53,10 @@ MPD_TEST = """<?xml version="1.0"?>
 """
 
 
+def _to_args_list(value):
+    return (shlex.split(value) if isinstance(value, string_types) else value) or []
+
+
 def _to_framerate(fps):
     """
     Return the frame rate as float or None in case of error.
@@ -143,7 +147,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
         return os.path.abspath(os.path.dirname(self.filename))
 
     def clean_options(self, value):
-        return (shlex.split(value) if isinstance(value, string_types) else value) or []
+        return _to_args_list(value)
 
     def create_directory(self):
         filesystem.try_makedirs(self.directory)
@@ -232,7 +236,7 @@ class FFmpeg(object):
         """
         inputs = self._clean_medias_argument(inputs)
         outputs = self._clean_medias_argument(outputs)
-        options = Media.clean_options(None, options)
+        options = _to_args_list(options)
         args = [self.encoding_executable, '-y']
         for the_input in inputs:
             args.extend(the_input.to_args(is_input=True))
