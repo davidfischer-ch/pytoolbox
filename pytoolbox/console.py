@@ -113,22 +113,23 @@ if __name__ == '__main__':
     print(choice('Select a language', ['Italian', 'French']))
 
 
-def progress_bar(current, total, size=50, done='=', todo=' ', template='\r[{done}{todo}]', stream=sys.stdout):
+def progress_bar(start_time, current, total, size=50, done='=', todo=' ', template='\r[{done}{todo}]',
+                 stream=sys.stdout):
     """
     Show a progress bar. Default template string starts with a carriage return to update progress on same line.
 
     **Example usage**
 
-    >>> import functools
+    >>> import functools, time
     >>> progress = functools.partial(progress_bar, template='[{done}{todo}]', stream=sys.stdout)
 
-    >>> progress(10, 15, size=30)
+    >>> progress(time.time(), 10, 15, size=30)
     [====================          ]
 
-    >>> progress(1, 6, size=10)
+    >>> progress(time.time(), 1, 6, size=10)
     [=         ]
 
-    >>> progress(3, 5, size=5, done='+', todo='-')
+    >>> progress(time.time(), 3, 5, size=5, done='+', todo='-')
     [+++--]
     """
     if total:

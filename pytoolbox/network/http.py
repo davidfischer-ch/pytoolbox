@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, requests, urllib2, urlparse
+import os, requests, time, urllib2, urlparse
 from codecs import open
 
 from ..encoding import to_bytes
@@ -67,7 +67,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='1fc478842f51e7519866f474a02ad605235bc6a6')
     (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
 
-    >>> def progress(current, total):
+    >>> def progress(start_time, current, total):
     ...     print('(%d, %d)' % (current, total))
 
     >>> download_ext(url, 'small.mp4', progress_callback=progress)
@@ -94,13 +94,14 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
         if response.status_code == 200:
             with open(filename, 'wb') as f:
                 if chunk_size:
+                    start_time = time.time()
                     # chunked download (may report progress as a progress bar)
                     position, length = 0, None if length is None else int(length)
                     for data in response.iter_content(chunk_size):
                         f.write(data)
                         if progress_callback:
                             position += len(data)
-                            progress_callback(position, length)
+                            progress_callback(start_time, position, length)
                 else:
                     f.write(response.content)
             downloaded = True
