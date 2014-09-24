@@ -3,7 +3,7 @@ changelog
 =========
 
 ----------------
-v9.4.2 -> v9.6.0
+v9.4.2 -> v9.6.1
 ----------------
 
 Minor compatibility breaks
@@ -11,6 +11,7 @@ Minor compatibility breaks
 
 * Rename all functions with _to_ instead of 2 (e.g. str2time -> str_to_time)
 * Rename some methods of the class ffmpeg.FFmpeg
+* Change signature of console module functions
 
 Features
 ========
@@ -19,12 +20,14 @@ Features
 * Add module regex
 * Add function exception.get_exception_with_traceback
 * Add function humanize.natural_int_key
+* Add function console.progress_bar
 
 Fixes and enhancements
 ======================
 
 * Add *streams* methods to ffmpeg.FFmpeg
 * Improve ffmpeg module (add Media class for inputs/outputs)
+* Improve network.http.download_ext (Can download in chunks + progress callback)
 
 ---------------------
 v9.3.0-beta -> v9.4.2

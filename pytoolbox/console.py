@@ -26,10 +26,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 
-__all__ = ('confirm', 'choice', 'print_error')
+__all__ = ('confirm', 'choice', 'print_error', 'progress_bar')
 
 
-def confirm(question=None, default=False):
+def confirm(question=None, default=False, stream=sys.stdout):
     """
     Return True if user confirm the action, else False. ``default`` if user only press ENTER.
 
@@ -56,10 +56,10 @@ def confirm(question=None, default=False):
             return True
         elif ans in ('n', 'N'):
             return False
-        print('please enter y or n.')
+        stream.write('please enter y or n.\n')
 
 
-def choice(question='', choices=[]):
+def choice(question='', choices=[], stream=sys.stdout):
     """
     Prompt the user for a choice and return his/her answer.
 
@@ -85,21 +85,21 @@ def choice(question='', choices=[]):
         ans = raw_input(question)
         if ans in choices:
             return ans
-        print('Please choose between {0}.'.format(choices_string))
+        stream.write('Please choose between {0}.\n'.format(choices_string))
 
 
-def print_error(message, output=sys.stderr, exit_code=1):
+def print_error(message, exit_code=1, stream=sys.stderr):
     """
     Print a error message and exit if ``exit_code`` is not None.
 
     **Example usage**
 
-    In following example output is set to ``stdout`` and exit is disabled (for :mod:`doctest`):
+    In following example stream is set to ``stdout`` and exit is disabled (for :mod:`doctest`):
 
-    >>> print_error(u"It's not a bug - it's an undocumented feature.", output=sys.stdout, exit_code=None)
+    >>> print_error(u"It's not a bug - it's an undocumented feature.", exit_code=None, stream=sys.stdout)
     [ERROR] It's not a bug - it's an undocumented feature.
     """
-    print('[ERROR] {0}'.format(message), file=output)
+    stream.write('[ERROR] {0}\n'.format(message))
     if exit_code is not None:
         sys.exit(exit_code)
 
@@ -111,3 +111,27 @@ if __name__ == '__main__':
         print('You do not like my question')
 
     print(choice('Select a language', ['Italian', 'French']))
+
+
+def progress_bar(current, total, size=50, done='=', todo=' ', template='\r[{done}{todo}]', stream=sys.stdout):
+    """
+    Show a progress bar. Default template string starts with a carriage return to update progress on same line.
+
+    **Example usage**
+
+    >>> import functools
+    >>> progress = functools.partial(progress_bar, template='[{done}{todo}]', stream=sys.stdout)
+
+    >>> progress(10, 15, size=30)
+    [====================          ]
+
+    >>> progress(1, 6, size=10)
+    [=         ]
+
+    >>> progress(3, 5, size=5, done='+', todo='-')
+    [+++--]
+    """
+    if total:
+        progress = int(size * current / total)
+        stream.write(template.format(done=done * progress, todo=todo * (size - progress)))
+        stream.flush()
