@@ -39,9 +39,9 @@ def download(url, filename):
         f.write(urllib2.urlopen(url).read())
 
 
-def download_ext(url, filename, code=200, force=True, hash_method=None, expected_hash=None,
-                 code_msg='Download request {url} code {r_code} expected {code}.',
-                 hash_msg='Downloaded file {filename} is corrupted.', **kwargs):
+def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_method=None, expected_hash=None,
+                 progress_callback=None, code_msg='Download request {url} code {r_code} expected {code}.',
+                 hash_msg='Downloaded file {filename} is corrupted.',  **kwargs):
     """
     Read the content of given ``url`` and save it as a file ``filename``, extended version.
 
@@ -67,6 +67,16 @@ def download_ext(url, filename, code=200, force=True, hash_method=None, expected
     >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='1fc478842f51e7519866f474a02ad605235bc6a6')
     (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
 
+    >>> def progress(current, total):
+    ...     print(current, total)
+
+    >>> download_ext(url, 'small.mp4', progress_callback=progress)
+    (102400, 383631)
+    (204800, 383631)
+    (307200, 383631)
+    (383631, 383631)
+    (True, True, None)
+
     >>> ar_(CorruptedFileError, download_ext, url, 'small.mp4', hash_method=githash,
     ...     expected_hash='2ad605235bc6a6842f51e7519866f1fc478474a0')
 
@@ -77,12 +87,22 @@ def download_ext(url, filename, code=200, force=True, hash_method=None, expected
     """
     exists, downloaded = os.path.exists(filename), False
     if force or not exists:
-        response = requests.get(url, **kwargs)
+        response = requests.get(url, stream=bool(chunk_size), **kwargs)
+        length = response.headers.get('content-length')
         if response.status_code != code:
             raise BadHTTPResponseCodeError(code_msg.format(url=url, code=code, r_code=response.status_code))
         if response.status_code == 200:
             with open(filename, 'wb') as f:
-                f.write(response.content)
+                if chunk_size:
+                    # chunked download (may report progress as a progress bar)
+                    position, length = 0, None if length is None else int(length)
+                    for data in response.iter_content(chunk_size):
+                        f.write(data)
+                        if progress_callback:
+                            position += len(data)
+                            progress_callback(position, length)
+                else:
+                    f.write(response.content)
             downloaded = True
     file_hash = hash_method(filename, is_filename=True) if hash_method else None
     if expected_hash and file_hash != expected_hash:
