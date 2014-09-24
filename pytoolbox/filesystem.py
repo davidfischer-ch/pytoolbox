@@ -32,8 +32,8 @@ from .datetime import datetime_now
 from .encoding import string_types
 
 __all__ = (
-    'first_that_exist', 'from_template', 'get_size', 'recursive_copy', 'try_makedirs', 'try_remove', 'try_symlink',
-    'chown'
+    'first_that_exist', 'from_template', 'get_bytes', 'get_size', 'recursive_copy', 'try_makedirs', 'try_remove',
+    'try_symlink', 'chown'
 )
 
 
@@ -91,6 +91,17 @@ def from_template(template, destination, values, jinja2=False):
             else:
                 content = content.format(**values)
             destination_file.write(content)
+
+
+def get_bytes(filename_or_data, encoding='utf-8', is_filename=False):
+    """
+    Return the content read from the given ``filename`` or the ``data`` converted to bytes.
+
+    Remark: Value of ``encoding`` is used only if ``data`` is actually a string.
+    """
+    if is_filename:
+        return open(filename_or_data, 'rb').read()
+    return filename_or_data.encode(encoding) if isinstance(filename_or_data, string_types) else filename_or_data
 
 
 def get_size(path):

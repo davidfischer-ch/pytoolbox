@@ -25,12 +25,34 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import hashlib
-from .encoding import string_types
+from .filesystem import get_bytes
 
-__all__ = ('githash', )
+__all__ = ('checksum', 'githash')
 
 
-def githash(data, encoding='utf-8', is_filename=False):
+def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256):
+    """
+    Return the result of hashing ``data`` by given hash ``algorithm``.
+
+    **Example usage**
+
+    >>> print(checksum(''))
+    e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    >>> print(checksum('', algorithm=hashlib.md5))
+    d41d8cd98f00b204e9800998ecf8427e
+    >>> print(checksum('give me some hash please'))
+    cebf462dd7771c78d3957446b1b4a2f5928731ca41eff66aa8817a6513ea1313
+    >>> print(checksum('et ça fonctionne !\\n'))
+    ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef
+    >>> print(checksum('small.mp4', is_filename=True))
+    1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
+    """
+    hasher = algorithm()
+    hasher.update(get_bytes(filename_or_data, encoding, is_filename))
+    return hasher.hexdigest()
+
+
+def githash(filename_or_data, encoding='utf-8', is_filename=False):
     """
     Return the blob of some data.
 
@@ -53,10 +75,7 @@ def githash(data, encoding='utf-8', is_filename=False):
     >>> print(githash('small.mp4', is_filename=True))
     1fc478842f51e7519866f474a02ad605235bc6a6
     """
-    if is_filename:
-        data_bytes = open(data, 'rb').read()
-    else:
-        data_bytes = data.encode(encoding) if isinstance(data, string_types) else data
+    data_bytes = get_bytes(filename_or_data, encoding, is_filename)
     s = hashlib.sha1()
     s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
     s.update(data_bytes)
