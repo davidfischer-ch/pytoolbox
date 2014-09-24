@@ -63,6 +63,7 @@ keywords = [
 
 install_requires = [
     'argparse',
+    'jinja2',
     'mock',
     'nose',
     'passlib',
