@@ -127,11 +127,12 @@ class VideoStream(Stream):
 
     __slots__ = (
         'avg_frame_rate', 'codec', 'display_aspect_ratio', 'disposition', 'has_b_frames', 'height', 'index', 'level',
-        'pix_fmt', 'r_frame_rate', 'sample_aspect_ratio', 'time_base', 'width'
+        'nb_frames', 'pix_fmt', 'r_frame_rate', 'sample_aspect_ratio', 'time_base', 'width'
     )
 
     clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else _to_framerate(v)
-    clean_height = clean_index = clean_level = clean_width = lambda s, v: None if v is None else int(v)
+    clean_height = clean_index = clean_level = clean_nb_frames = clean_width = \
+        lambda s, v: None if v is None else int(v)
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
