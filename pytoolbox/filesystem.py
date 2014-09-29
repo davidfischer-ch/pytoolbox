@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, grp, pwd, os, shutil, time
+import collections, copy, errno, grp, pwd, os, shutil, tempfile, time, uuid
 from codecs import open
 from os.path import dirname, exists, expanduser, isfile, join, samefile
 
@@ -33,7 +33,7 @@ from .encoding import string_types
 
 __all__ = (
     'first_that_exist', 'from_template', 'get_bytes', 'get_size', 'recursive_copy', 'try_makedirs', 'try_remove',
-    'try_symlink', 'chown'
+    'try_symlink', 'chown', 'TempStorage'
 )
 
 
@@ -333,3 +333,110 @@ def chown(path, user=None, group=None, recursive=False):
                 os.chown(join(dirpath, filename), uid, gid)
     else:
         os.chown(path, uid, gid)
+
+
+class TempStorage(object):
+    """
+    Temporary storage handling made easy.
+
+    **Example usage**
+
+    As a context manager:
+
+    >>> from nose.tools import eq_
+    >>> from os.path import isdir
+
+    >>> with TempStorage() as tmp:
+    ...     directory = tmp.create_tmp_directory()
+    ...     eq_(isdir(directory), True)
+    >>> eq_(isdir(directory), False)
+    """
+    def __init__(self, root=None):
+        self.root = root or tempfile.gettempdir()
+        self._directory_to_key = {}
+        self._directories_by_key = collections.defaultdict(set)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.remove_all()
+
+    def create_tmp_directory(self, path='tmp-{uuid}', key=None, user=None, group=None):
+        """
+        **Example usage**
+
+        >>> from nose.tools import eq_
+        >>> from os.path import isdir
+        >>> tmp = TempStorage()
+
+        >>> directory = tmp.create_tmp_directory()
+        >>> eq_(isdir(directory), True)
+        >>> tmp.remove_all()
+        """
+        directory = join(self.root, path.format(uuid=uuid.uuid4().hex))
+        self._directory_to_key[directory] = key
+        self._directories_by_key[key].add(directory)
+        try_makedirs(directory)
+        chown(directory, user, group, recursive=True)
+        return directory
+
+    def remove_by_path(self, directory):
+        """
+        **Example usage**
+
+        >>> from nose.tools import assert_raises
+        >>> tmp = TempStorage()
+
+        >>> directory = tmp.create_tmp_directory()
+        >>> tmp.remove_by_path(directory)
+        >>> with assert_raises(KeyError):
+        ...     tmp.remove_by_path(directory)
+        >>> with assert_raises(KeyError):
+        ...     tmp.remove_by_path('random-path')
+        """
+        key = self._directory_to_key[directory]
+        try_remove(directory, recursive=True)
+        del self._directory_to_key[directory]
+        self._directories_by_key[key].remove(directory)
+
+    def remove_by_key(self, key=None):
+        """
+        **Example usage**
+
+        >>> from nose.tools import eq_
+        >>> from os.path import isdir
+        >>> tmp = TempStorage()
+
+        >>> d1 = tmp.create_tmp_directory()
+        >>> d2 = tmp.create_tmp_directory(key=10)
+        >>> tmp.remove_by_key(10)
+        >>> eq_(isdir(d1), True)
+        >>> eq_(isdir(d2), False)
+        >>> tmp.remove_by_key()
+        >>> eq_(isdir(d1), False)
+        """
+        directories = self._directories_by_key[key]
+        for directory in copy.copy(directories):
+            try_remove(directory, recursive=True)
+            directories.remove(directory)
+            del self._directory_to_key[directory]
+        del self._directories_by_key[key]
+
+    def remove_all(self):
+        """
+        **Example usage**
+
+        >>> from nose.tools import eq_
+        >>> from os.path import isdir
+        >>> tmp = TempStorage()
+
+        >>> d1 = tmp.create_tmp_directory()
+        >>> d2 = tmp.create_tmp_directory(key=10)
+        >>> tmp.remove_all()
+        >>> eq_(isdir(d1), False)
+        >>> eq_(isdir(d2), False)
+        >>> tmp.remove_all()
+        """
+        for key in self._directories_by_key.copy().keys():
+            self.remove_by_key(key)
