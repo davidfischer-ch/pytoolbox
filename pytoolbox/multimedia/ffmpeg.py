@@ -467,7 +467,7 @@ class FFmpeg(object):
         except:
             return None
 
-    def get_streams(self, filename_or_infos, condition=lambda stream: True):
+    def get_media_streams(self, filename_or_infos, condition=lambda stream: True):
         infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
         try:
             raw_streams = (s for s in infos['streams'] if condition(s))
@@ -502,11 +502,11 @@ class FFmpeg(object):
         >>> eq_(streams[0].channels, 1)
         >>> eq_(streams[0].codec.time_base, 1 / 48000)
         """
-        return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
+        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
 
     def get_subtitle_streams(self, filename_or_infos):
         """Return a list with the subtitle streams ``filename_or_infos`` or [] in case of error."""
-        return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle')
+        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle')
 
     def get_video_streams(self, filename_or_infos):
         """
@@ -527,7 +527,7 @@ class FFmpeg(object):
         >>> assert isinstance(streams[0], VideoStream)
         >>> eq_(streams[0].avg_frame_rate, 30.0)
         """
-        return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
+        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
 
     def get_video_framerate(self, filename_or_infos, index=0, fail=False):
         """
