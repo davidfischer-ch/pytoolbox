@@ -34,8 +34,8 @@ from ..encoding import string_types
 from ..subprocess import make_async
 
 __all__ = (
-    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'Stream', 'AudioStream', 'VideoStream',
-    'Media', 'FFmpeg'
+    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'Stream', 'AudioStream',
+    'SubtitleStream', 'VideoStream', 'Media', 'FFmpeg'
 )
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -126,6 +126,14 @@ class AudioStream(Stream):
     clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
 
 
+class SubtitleStream(Stream):
+
+    __slots__ = ('duration', 'duration_ts', 'start_pts', 'start_time', 'tags')
+
+    clean_duration_ts = clean_start_pts = lambda s, v: None if v is None else int(v)
+    clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
+
+
 class VideoStream(Stream):
 
     __slots__ = (
@@ -165,7 +173,7 @@ class FFmpeg(object):
     encoding_executable = 'ffmpeg'
     parsing_executable = 'ffprobe'
     media_class = Media
-    stream_classes = {'audio': None, 'video': None}
+    stream_classes = {'audio': None, 'subtitle': None, 'video': None}
 
     def __init__(self, encoding_executable=None, parsing_executable=None,
                  default_in_duration=datetime.timedelta(seconds=0), ratio_delta=0.01, time_delta=1, max_time_delta=5,
@@ -495,6 +503,10 @@ class FFmpeg(object):
         >>> eq_(streams[0].codec.time_base, 1 / 48000)
         """
         return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
+
+    def get_subtitle_streams(self, filename_or_infos):
+        """Return a list with the subtitle streams ``filename_or_infos`` or [] in case of error."""
+        return self.get_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle')
 
     def get_video_streams(self, filename_or_infos):
         """
