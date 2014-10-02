@@ -25,12 +25,15 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import hashlib
+from os.path import getsize
+
+from .encoding import string_types
 from .filesystem import get_bytes
 
 __all__ = ('checksum', 'githash')
 
 
-def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256):
+def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256, chunk_size=None):
     """
     Return the result of hashing ``data`` by given hash ``algorithm``.
 
@@ -46,13 +49,16 @@ def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=ha
     ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef
     >>> print(checksum('small.mp4', is_filename=True))
     1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
+    >>> print(checksum('small.mp4', is_filename=True, chunk_size=1024))
+    1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
     """
-    hasher = algorithm()
-    hasher.update(get_bytes(filename_or_data, encoding, is_filename))
+    hasher = hashlib.new(algorithm) if isinstance(algorithm, string_types) else algorithm()
+    for data in get_bytes(filename_or_data, encoding, is_filename, chunk_size):
+        hasher.update(data)
     return hasher.hexdigest()
 
 
-def githash(filename_or_data, encoding='utf-8', is_filename=False):
+def githash(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=None):
     """
     Return the blob of some data.
 
@@ -74,9 +80,16 @@ def githash(filename_or_data, encoding='utf-8', is_filename=False):
     91de5baf6aaa1af4f662aac4383b27937b0e663d
     >>> print(githash('small.mp4', is_filename=True))
     1fc478842f51e7519866f474a02ad605235bc6a6
+    >>> print(githash('small.mp4', is_filename=True, chunk_size=1024))
+    1fc478842f51e7519866f474a02ad605235bc6a6
     """
-    data_bytes = get_bytes(filename_or_data, encoding, is_filename)
     s = hashlib.sha1()
-    s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
-    s.update(data_bytes)
+    if is_filename:
+        s.update(('blob %d\0' % getsize(filename_or_data)).encode('utf-8'))
+        for data_bytes in get_bytes(filename_or_data, encoding, is_filename, chunk_size):
+            s.update(data_bytes)
+    else:
+        data_bytes = next(get_bytes(filename_or_data, encoding, is_filename, chunk_size=None))
+        s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
+        s.update(data_bytes)
     return s.hexdigest()

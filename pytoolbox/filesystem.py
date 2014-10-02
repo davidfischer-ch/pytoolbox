@@ -93,15 +93,24 @@ def from_template(template, destination, values, jinja2=False):
             destination_file.write(content)
 
 
-def get_bytes(filename_or_data, encoding='utf-8', is_filename=False):
+def get_bytes(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=None):
     """
-    Return the content read from the given ``filename`` or the ``data`` converted to bytes.
+    Yield the content read from the given ``filename`` or the ``data`` converted to bytes.
 
     Remark: Value of ``encoding`` is used only if ``data`` is actually a string.
     """
     if is_filename:
-        return open(filename_or_data, 'rb').read()
-    return filename_or_data.encode(encoding) if isinstance(filename_or_data, string_types) else filename_or_data
+        with open(filename_or_data, 'rb') as f:
+            if chunk_size:
+                while True:
+                    data = f.read(chunk_size)
+                    if not data:
+                        break
+                    yield data
+            else:
+                yield f.read()
+    else:
+        yield filename_or_data.encode(encoding) if isinstance(filename_or_data, string_types) else filename_or_data
 
 
 def get_size(path):

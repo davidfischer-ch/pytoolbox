@@ -3,12 +3,13 @@ changelog
 =========
 
 ----------------
-v9.4.2 -> v9.7.0
+v9.4.2 -> v9.7.1
 ----------------
 
 Minor compatibility breaks
 ==========================
 
+* Function filesystem.get_bytes returns a generator
 * Rename all functions with _to_ instead of 2 (e.g. str2time -> str_to_time)
 * Rename some methods of the class ffmpeg.FFmpeg
 * Change signature of console module functions
@@ -29,6 +30,7 @@ Fixes and enhancements
 * Add *streams* methods to ffmpeg.FFmpeg
 * Improve ffmpeg module (add Media class for inputs/outputs)
 * Improve network.http.download_ext (Can download in chunks + progress callback)
+* Improve filesystem.get_bytes + crypto.* to read a file in chunks (if chunk_size is set)
 
 ---------------------
 v9.3.0-beta -> v9.4.2
