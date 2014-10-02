@@ -47,6 +47,8 @@ def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=ha
     cebf462dd7771c78d3957446b1b4a2f5928731ca41eff66aa8817a6513ea1313
     >>> print(checksum('et ça fonctionne !\\n'))
     ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef
+    >>> print(checksum('et ça fonctionne !\\n', algorithm='md5'))
+    3ca34e7965fd59beaa13b6e7094f43e7
     >>> print(checksum('small.mp4', is_filename=True))
     1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
     >>> print(checksum('small.mp4', is_filename=True, chunk_size=1024))
