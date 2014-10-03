@@ -77,6 +77,7 @@ class SaveInstanceFilesMixin(object):
             super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
             for name, value in saved_fields.iteritems():
                 setattr(self, name, value)
+            kwargs['force_insert'] = False  # Do not force insert because we already saved the instance
         super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
 
 
