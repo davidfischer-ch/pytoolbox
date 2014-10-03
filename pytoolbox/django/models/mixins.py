@@ -85,5 +85,6 @@ class ValidateOnSaveMixin(object):
     def save(self, *args, **kwargs):
         # FIXME throws a ValidationError if using get_or_create() to instantiate model!
         #if not kwargs.get('force_insert', False):
-        self.full_clean()
+        if kwargs.pop('validate', True):
+            self.full_clean()
         super(ValidateOnSaveMixin, self).save(*args, **kwargs)
