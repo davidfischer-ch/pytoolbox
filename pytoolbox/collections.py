@@ -24,15 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import math
-from collections import deque
-
+import collections, math
 from .datetime import total_seconds
 
-__all__ = ('pygal_deque', 'EventsTable')
+__all__ = ('pygal_deque', 'window', 'EventsTable')
 
 
-class pygal_deque(deque):
+class pygal_deque(collections.deque):
     """
     A deque None'ing duplicated values to produce nicer pygal line charts (e.g. 5555322211111 -> 5__532_21___1).
 
@@ -86,6 +84,32 @@ class pygal_deque(deque):
                 else:
                     previous = self_list[i]
         return self_list
+
+
+def window(values, index, delta):
+    """
+    >>> from nose.tools import eq_
+    >>> eq_(window(['a'], 0, 2), (['a'], 0, 0))
+    >>> eq_(window(['a', 'b', 'c', 'd'], 2, 0), (['c'], 2, 2))
+    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 0, 1), (['a', 'b', 'c'], 0, 2))
+    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 1, 1), (['a', 'b', 'c'], 0, 2))
+    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 2, 1), (['b', 'c', 'd'], 1, 3))
+    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 3, 1), (['c', 'd', 'e'], 2, 4))
+    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 4, 1), (['c', 'd', 'e'], 2, 4))
+    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 3, 6), (['a', 'b', 'c', 'd', 'e'], 0, 4))
+    >>> eq_(window(range(20), 6, 6), ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12))
+    >>> eq_(window(range(20), 7, 6), ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13))
+    >>> eq_(window(range(20), 10, 6), ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16))
+    >>> eq_(window(range(20), 19, 6), ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19))
+    """
+    length = len(values)
+    left, right = index - delta, index + delta
+    if left < 0:
+        left, right = 0, right - left
+    elif right >= length:
+        left, right = left - right + length - 1, length - 1
+    left, right = max(left, 0), min(right, length - 1)
+    return values[left:right + 1], left, right
 
 
 class EventsTable(object):
