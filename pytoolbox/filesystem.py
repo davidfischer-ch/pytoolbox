@@ -413,7 +413,7 @@ class TempStorage(object):
         self._paths_by_key[key].add(filename)
         with open(filename, mode, encoding=encoding):
             pass
-        chown(filename, user, group, recursive=True)
+        chown(filename, user, group)
         return open(filename, mode, encoding=encoding) if return_file else filename
 
     def remove_by_path(self, path):
