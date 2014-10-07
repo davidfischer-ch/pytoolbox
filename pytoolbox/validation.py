@@ -28,7 +28,7 @@ import errno, httplib, inspect, re, socket, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
 
-from .encoding import string_types, text_type, to_bytes
+from .encoding import text_type, to_bytes
 from .network.ip import ip_address
 
 __all__ = [
@@ -43,6 +43,8 @@ class CleanAttributesMixin(object):
     every time the attribute is set.
 
     **Example usage**
+
+    >>> from pytoolbox.encoding import string_types
 
     >>> class Settings(CleanAttributesMixin):
     ...     def __init__(self, locale, broker):

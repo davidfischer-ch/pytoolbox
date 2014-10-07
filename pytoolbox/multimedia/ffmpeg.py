@@ -32,6 +32,7 @@ from .. import comparison, filesystem, validation
 from ..datetime import datetime_now, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
 from ..subprocess import make_async
+from ..types import get_slots
 
 __all__ = (
     'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'Stream', 'AudioStream',
@@ -86,7 +87,7 @@ class Codec(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
     def __init__(self, infos):
-        for attr in itertools.chain.from_iterable(getattr(cls, '__slots__', []) for cls in self.__class__.__mro__):
+        for attr in get_slots(self):
             setattr(self, attr, infos['codec_' + attr])
 
     clean_time_base = lambda s, v: _to_framerate(v)
@@ -100,7 +101,7 @@ class Stream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     defaults = {}
 
     def __init__(self, infos):
-        for attr in itertools.chain.from_iterable(getattr(cls, '__slots__', []) for cls in self.__class__.__mro__):
+        for attr in get_slots(self):
             if attr == 'codec':
                 self.codec = self.codec_class(infos)
             else:

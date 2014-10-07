@@ -3,7 +3,7 @@ changelog
 =========
 
 ----------------
-v9.4.2 -> v9.7.1
+v9.4.2 -> v9.7.2
 ----------------
 
 Minor compatibility breaks
@@ -19,6 +19,7 @@ Features
 
 * Add module comparison
 * Add module regex
+* Add module types
 * Add class filesystem.TempStorage
 * Add function exception.get_exception_with_traceback
 * Add function humanize.natural_int_key

@@ -24,16 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .types import get_slots
+from itertools import chain
 
-__all__ = ('SlotsEqualityMixin', )
+__all__ = ('get_slots', )
 
 
-class SlotsEqualityMixin(object):
-
-    def __eq__(self, other):
-        return get_slots(self) == get_slots(other) and \
-            all(getattr(self, attr) == getattr(other, attr) for attr in get_slots(self))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+def get_slots(obj):
+    """Return a set with the __slots__ of the obj including all parent classes __slots__."""
+    return set(chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))
