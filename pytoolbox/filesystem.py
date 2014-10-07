@@ -362,8 +362,8 @@ class TempStorage(object):
     """
     def __init__(self, root=None):
         self.root = root or tempfile.gettempdir()
-        self._directory_to_key = {}
-        self._directories_by_key = collections.defaultdict(set)
+        self._path_to_key = {}
+        self._paths_by_key = collections.defaultdict(set)
 
     def __enter__(self):
         return self
@@ -384,13 +384,39 @@ class TempStorage(object):
         >>> tmp.remove_all()
         """
         directory = join(self.root, path.format(uuid=uuid.uuid4().hex))
-        self._directory_to_key[directory] = key
-        self._directories_by_key[key].add(directory)
+        self._path_to_key[directory] = key
+        self._paths_by_key[key].add(directory)
         try_makedirs(directory)
         chown(directory, user, group, recursive=True)
         return directory
 
-    def remove_by_path(self, directory):
+    def create_tmp_file(self, path='tmp-{uuid}', extension=None, encoding='utf-8', key=None, user=None, group=None,
+                        return_file=True):
+        """
+        **Example usage**
+
+        >>> from nose.tools import eq_
+        >>> from os.path import isfile
+        >>> tmp = TempStorage()
+        >>> filename = tmp.create_tmp_file(encoding=None, return_file=False)
+        >>> eq_(isfile(filename), True)
+        >>> with tmp.create_tmp_file(extension='txt') as f:
+        ...     eq_(isfile(f.name), True)
+        ...     f.write('Je suis une théière')
+        ...     filename = f.name
+        >>> eq_(open(filename, encoding='utf-8').read(), 'Je suis une théière')
+        >>> tmp.remove_all()
+        """
+        filename = join(self.root, path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
+        mode = 'w' if encoding else 'wb'
+        self._path_to_key[filename] = key
+        self._paths_by_key[key].add(filename)
+        with open(filename, mode, encoding=encoding):
+            pass
+        chown(filename, user, group, recursive=True)
+        return open(filename, mode, encoding=encoding) if return_file else filename
+
+    def remove_by_path(self, path):
         """
         **Example usage**
 
@@ -404,10 +430,10 @@ class TempStorage(object):
         >>> with assert_raises(KeyError):
         ...     tmp.remove_by_path('random-path')
         """
-        key = self._directory_to_key[directory]
-        try_remove(directory, recursive=True)
-        del self._directory_to_key[directory]
-        self._directories_by_key[key].remove(directory)
+        key = self._path_to_key[path]
+        try_remove(path, recursive=True)
+        del self._path_to_key[path]
+        self._paths_by_key[key].remove(path)
 
     def remove_by_key(self, key=None):
         """
@@ -425,12 +451,12 @@ class TempStorage(object):
         >>> tmp.remove_by_key()
         >>> eq_(isdir(d1), False)
         """
-        directories = self._directories_by_key[key]
-        for directory in copy.copy(directories):
-            try_remove(directory, recursive=True)
-            directories.remove(directory)
-            del self._directory_to_key[directory]
-        del self._directories_by_key[key]
+        paths = self._paths_by_key[key]
+        for path in copy.copy(paths):
+            try_remove(path, recursive=True)
+            paths.remove(path)
+            del self._path_to_key[path]
+        del self._paths_by_key[key]
 
     def remove_all(self):
         """
@@ -447,5 +473,5 @@ class TempStorage(object):
         >>> eq_(isdir(d2), False)
         >>> tmp.remove_all()
         """
-        for key in self._directories_by_key.copy().keys():
+        for key in self._paths_by_key.copy().keys():
             self.remove_by_key(key)
