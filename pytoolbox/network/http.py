@@ -27,6 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, requests, time, urllib2, urlparse
 from codecs import open
 
+from ..crypto import checksum
 from ..encoding import to_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
@@ -39,15 +40,17 @@ def download(url, filename):
         f.write(urllib2.urlopen(url).read())
 
 
-def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_method=None, expected_hash=None,
-                 progress_callback=None, code_msg='Download request {url} code {r_code} expected {code}.',
+def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_method=None, hash_algorithm=None,
+                 expected_hash=None, progress_callback=None,
+                 code_msg='Download request {url} code {r_code} expected {code}.',
                  hash_msg='Downloaded file {filename} is corrupted.',  **kwargs):
     """
     Read the content of given ``url`` and save it as a file ``filename``, extended version.
 
     * Set ``code`` to expected response code.
     * Set ``force`` to False to avoid downloading the file if it already exists.
-    * Set ``hash_method`` to any callable with this signature: ``file_hash = (filename, is_filename=True)``.
+    * Set ``hash_method`` to a callable with the signature ``hash_method(filename, is_filename=True)``.
+    * Set ``hash_algorithm`` to a string or a method from the :mod:`hashlib`.
     * Set ``expected_hash`` to the expected hash value, warning: this will force computing the hash of the file.
     * Set ``kwargs`` to any extra argument accepted by ``requests.get()``.
 
@@ -67,6 +70,10 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='1fc478842f51e7519866f474a02ad605235bc6a6')
     (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
 
+    >>> download_ext(url, 'small.mp4', force=False, hash_algorithm='md5',
+    ...              expected_hash='a3ac7ddabb263c2d00b73e8177d15c8d')
+    (True, False, 'a3ac7ddabb263c2d00b73e8177d15c8d')
+
     >>> def progress(start_time, current, total):
     ...     print('(%d, %d)' % (current, total))
 
@@ -85,6 +92,8 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
 
     >>> ar_(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
+    if hash_method and hash_algorithm:
+        raise ValueError('You can set hash_method or hash_algorithm, not both.')
     exists, downloaded = os.path.exists(filename), False
     if force or not exists:
         response = requests.get(url, stream=bool(chunk_size), **kwargs)
@@ -105,7 +114,11 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
                 else:
                     f.write(response.content)
             downloaded = True
-    file_hash = hash_method(filename, is_filename=True) if hash_method else None
+    file_hash = None
+    if hash_method:
+        file_hash = hash_method(filename, is_filename=True)
+    elif hash_algorithm:
+        file_hash = checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
     if expected_hash and file_hash != expected_hash:
         raise CorruptedFileError(hash_msg.format(filename=filename, file_hash=file_hash, expected_hash=expected_hash))
     return exists, downloaded, file_hash
