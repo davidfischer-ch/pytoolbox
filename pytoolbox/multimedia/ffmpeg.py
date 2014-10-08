@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, errno, itertools, json, math, numbers, os, re, select, shlex, sys, time
+import datetime, errno, json, math, numbers, os, re, select, shlex, sys, time
 from subprocess import check_output, Popen, PIPE
 from xml.dom import minidom
 
@@ -268,10 +268,13 @@ class FFmpeg(object):
 
         **Example usage**
 
+        >>> import os.path, tempfile
         >>> from nose.tools import assert_list_equal as leq_
+        >>> ffmpeg_bin = os.path.join(tempfile.gettempdir(), 'ffmpeg')
+
         >>> options = ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2']
-        >>> process = FFmpeg()._get_process(['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
-        >>> leq_(process.args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        >>> process = FFmpeg()._get_process([ffmpeg_bin, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        >>> leq_(process.args, [ffmpeg_bin, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
         >>> process.terminate()
         """
         process = Popen(arguments, stderr=PIPE, close_fds=True)
@@ -305,39 +308,42 @@ class FFmpeg(object):
 
         **Example usage**
 
+        >>> import os.path, tempfile
         >>> from codecs import open
         >>> from nose.tools import eq_
+        >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
 
         Bad file format:
 
         >>> with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
         ...     f.write('Hey, I am not a MPD nor a média')
-        >>> print(FFmpeg().get_media_duration('/tmp/test.txt'))
+        >>> print(ffmpeg.get_media_duration('/tmp/test.txt'))
         None
         >>> os.remove('/tmp/test.txt')
 
         Some random bad things:
 
-        >>> print(FFmpeg().get_media_duration({}))
+        >>> print(ffmpeg.get_media_duration({}))
         None
 
         A MPEG-DASH MPD:
 
         >>> with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
         ...     f.write(MPD_TEST)
-        >>> print(FFmpeg().get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'))
+        >>> print(ffmpeg.get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'))
         00:06:07.830000
-        >>> FFmpeg().get_media_duration('/tmp/test.mpd', as_delta=True)
+        >>> ffmpeg.get_media_duration('/tmp/test.mpd', as_delta=True)
         datetime.timedelta(0, 367, 830000)
         >>> os.remove('/tmp/test.mpd')
 
         A MP4:
 
-        >>> print(FFmpeg().get_media_duration('small.mp4').strftime('%H:%M:%S'))
+        >>> print(ffmpeg.get_media_duration('small.mp4').strftime('%H:%M:%S'))
         00:00:05
-        >>> print(FFmpeg().get_media_duration(FFmpeg().get_media_infos('small.mp4')).strftime('%H:%M:%S'))
+        >>> print(ffmpeg.get_media_duration(ffmpeg.get_media_infos('small.mp4')).strftime('%H:%M:%S'))
         00:00:05
-        >>> eq_(FFmpeg().get_media_duration(FFmpeg().get_media_infos('small.mp4'), as_delta=True).seconds, 5)
+        >>> eq_(ffmpeg.get_media_duration(ffmpeg.get_media_infos('small.mp4'), as_delta=True).seconds, 5)
         """
         is_filename = not isinstance(filename_or_infos, dict)
         if is_filename and os.path.splitext(filename_or_infos)[1] == '.mpd':
@@ -486,8 +492,10 @@ class FFmpeg(object):
 
         **Example usage**
 
+        >>> import os.path, tempfile
         >>> from nose.tools import eq_
         >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
 
         >>> ffmpeg.stream_classes['audio'] = None
         >>> streams = ffmpeg.get_audio_streams('small.mp4')
@@ -515,8 +523,10 @@ class FFmpeg(object):
 
         **Example usage**
 
+        >>> import os.path, tempfile
         >>> from nose.tools import eq_
         >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
 
         >>> ffmpeg.stream_classes['video'] = None
         >>> streams = ffmpeg.get_video_streams('small.mp4')
@@ -536,15 +546,19 @@ class FFmpeg(object):
 
         **Example usage**
 
-        >>> print(FFmpeg().get_video_framerate(3.14159265358979323846))
+        >>> import os.path, tempfile
+        >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
+
+        >>> print(ffmpeg.get_video_framerate(3.14159265358979323846))
         None
-        >>> print(FFmpeg().get_video_framerate({}))
+        >>> print(ffmpeg.get_video_framerate({}))
         None
-        >>> print(FFmpeg().get_video_framerate(FFmpeg().get_media_infos('small.mp4')))
+        >>> print(ffmpeg.get_video_framerate(FFmpeg().get_media_infos('small.mp4')))
         30.0
-        >>> print(FFmpeg().get_video_framerate('small.mp4'))
+        >>> print(ffmpeg.get_video_framerate('small.mp4'))
         30.0
-        >>> print(FFmpeg().get_video_framerate({'streams': [
+        >>> print(ffmpeg.get_video_framerate({'streams': [
         ...     {'codec_type': 'audio'},
         ...     {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
         ... ]}))
@@ -564,19 +578,23 @@ class FFmpeg(object):
 
         **Example usage**
 
-        >>> print(FFmpeg().get_video_resolution(3.14159265358979323846))
+        >>> import os.path, tempfile
+        >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
+
+        >>> print(ffmpeg.get_video_resolution(3.14159265358979323846))
         None
-        >>> print(FFmpeg().get_video_resolution({}))
+        >>> print(ffmpeg.get_video_resolution({}))
         None
-        >>> print(FFmpeg().get_video_resolution(FFmpeg().get_media_infos('small.mp4')))
+        >>> print(ffmpeg.get_video_resolution(FFmpeg().get_media_infos('small.mp4')))
         [560, 320]
-        >>> print(FFmpeg().get_video_resolution('small.mp4'))
+        >>> print(ffmpeg.get_video_resolution('small.mp4'))
         [560, 320]
-        >>> print(FFmpeg().get_video_resolution('small.mp4', index=1))
+        >>> print(ffmpeg.get_video_resolution('small.mp4', index=1))
         None
-        >>> print(FFmpeg().get_video_resolution('small.mp4')[HEIGHT])
+        >>> print(ffmpeg.get_video_resolution('small.mp4')[HEIGHT])
         320
-        >>> print(FFmpeg().get_video_resolution({'streams': [
+        >>> print(ffmpeg.get_video_resolution({'streams': [
         ...     {'codec_type': 'audio'},
         ...     {'codec_type': 'video', 'width': '1920', 'height': '1080'}
         ... ]}))
@@ -605,23 +623,24 @@ class FFmpeg(object):
 
         **Example usage**
 
+        >>> import os.path, tempfile
         >>> from ..filesystem import try_remove
+        >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
 
-        >>> encoder = FFmpeg()
-
-        >>> results = list(encoder.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
+        >>> results = list(ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
         >>> try_remove('ff_output.mp4')
         True
         >>> print(results[-1]['status'])
         SUCCESS
 
-        >>> results = list(encoder.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
+        >>> results = list(ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
         >>> try_remove('ff_output.mp4')
         False
         >>> print(results[-1]['status'])
         ERROR
 
-        >>> results = list(encoder.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
+        >>> results = list(ffmpeg.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
         >>> try_remove('ff_output.mp4')
         False
         >>> print(results[-1]['status'])

@@ -7,10 +7,8 @@ python:
   - 3.4
   - pypy
 install:
-  - travis_retry sudo apt-add-repository ppa:mc3man/trusty-media -y
-  - travis_retry sudo add-apt-repository "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe multiverse" -y
   - travis_retry sudo apt-get update -qq
-  - travis_retry sudo apt-get install -qq ffmpeg screen
+  - travis_retry sudo apt-get install -qq screen
   - travis_retry sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
   - travis_retry sudo pip install coveralls
 script:

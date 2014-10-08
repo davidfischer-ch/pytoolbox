@@ -25,16 +25,30 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
-from os.path import dirname, join
-from pytoolbox.network.http import download
+import shutil, six, sys, tarfile, tempfile
+from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
+
+from . import constants
 
 
 def main():
-    print('Download the test media assets')
-    root = dirname(__file__)
-    download('http://techslides.com/demos/sample-videos/small.mp4', join(root, 'small.mp4'))
+    print('Download the test assets')
+    for url, filename in constants.TEST_ASSETS:
+        download_ext(url, filename, force=False)
+
+    print('Download ffmpeg static binary')
+    download_ext(constants.FFMPEG_URL, constants.FFMPEG_ARCHIVE, force=False)
+    if six.PY2:
+        import contextlib, lzma
+        with contextlib.closing(lzma.LZMAFile(constants.FFMPEG_ARCHIVE)) as xz:
+            with tarfile.open(fileobj=xz) as f:
+                f.extractall(constants.TESTS_DIRECTORY)
+    else:
+        with tarfile.open(constants.FFMPEG_ARCHIVE) as f:
+            f.extractall(constants.TESTS_DIRECTORY)
+    shutil.copy(constants.FFMPEG_BINARY, tempfile.gettempdir())
+
     print('Run the tests with nose')
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
     ignore = ('fields.py|mixins.py|signals.py|storage.py|utils.py|widgets.py|pytoolbox_filters.py|'
