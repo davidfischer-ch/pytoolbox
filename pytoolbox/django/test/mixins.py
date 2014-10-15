@@ -24,10 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django.core.urlresolvers import reverse
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.test.utils import CaptureQueriesContext
 
-__all__ = ('QueriesMixin', )
+__all__ = ('QueriesMixin', 'RestAPIMixin')
 
 
 class _AssertNumQueriesContext(CaptureQueriesContext):
@@ -56,3 +57,27 @@ class QueriesMixin(object):
             return context
         with context:
             func(*args, **kwargs)
+
+
+class RestAPIMixin(object):
+
+    def _call_api(self, method, url, data, status, **kwargs):
+        method = getattr(self.client, method)
+        response = method(reverse(url) if not 'http' in url else url, data, **kwargs)
+        self.assertEqual(response.status_code, status, response.data)
+        return response
+
+    def delete(self, url, data=None, status=204, **kwargs):
+        return self._call_api('delete', url, data, status, **kwargs)
+
+    def get(self, url, data=None, status=200, **kwargs):
+        return self._call_api('get', url, data, status, **kwargs)
+
+    def patch(self, url, data, status=200, **kwargs):
+        return self._call_api('patch', url, data, status, **kwargs)
+
+    def post(self, url, data, status=201, **kwargs):
+        return self._call_api('post', url, data, status, **kwargs)
+
+    def put(self, url, data, status=200, **kwargs):
+        return self._call_api('put', url, data, status, **kwargs)
