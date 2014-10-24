@@ -62,7 +62,7 @@ class QueriesMixin(object):
 class RestAPIMixin(object):
 
     def _call_api(self, method, url, data, status, qs=None, **kwargs):
-        method, url = getattr(self.client, method), reverse(url) if not 'http' in url else url
+        method, url = getattr(self.client, method), reverse(url) if 'http' not in url else url
         response = method(url + ('?%s' % qs if qs else ''), data, **kwargs)
         self.assertEqual(response.status_code, status, response.data)
         return response

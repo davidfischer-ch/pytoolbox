@@ -279,7 +279,7 @@ class FecReceiver(object):
         media_test = fec.snbase
         while media_test != media_max:
             # If media packet is not in the medias buffer (is missing)
-            if not media_test in self.medias:
+            if media_test not in self.medias:
                 media_lost = media_test
                 # TODO
                 cross = self.crosses.get(media_test)

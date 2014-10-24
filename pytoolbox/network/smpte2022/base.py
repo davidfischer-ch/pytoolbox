@@ -490,9 +490,9 @@ class FecPacket(object):
         # Fields default values
         fec = FecPacket()
         fec.sequence = sequence
-        if not algorithm in FecPacket.ALGORITHM_RANGE:
+        if algorithm not in FecPacket.ALGORITHM_RANGE:
             raise ValueError(to_bytes('algorithm is not a valid FEC algorithm'))
-        if not direction in FecPacket.DIRECTION_RANGE:
+        if direction not in FecPacket.DIRECTION_RANGE:
             raise ValueError(to_bytes('direction is not a valid FEC direction'))
         fec.algorithm = algorithm
         fec.direction = direction
@@ -617,7 +617,7 @@ class FecPacket(object):
         j = self.computeJ(media_sequence)
         if j is None:
             raise ValueError(FecPacket.ER_J)
-        if not media_sequence in self.missing:
+        if media_sequence not in self.missing:
             self.missing.append(media_sequence)
         return j
 

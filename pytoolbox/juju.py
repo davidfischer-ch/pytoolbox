@@ -628,7 +628,7 @@ class Environment(object):
                 result = juju_do('bootstrap', self.name)
             except RuntimeError as e:
                 result = None
-                if not 'already' in text_type(e):
+                if 'already' not in text_type(e):
                     raise
             if wait_started:
                 start_time = time.time()
@@ -962,7 +962,7 @@ class Environment(object):
                 result = juju_do('add-relation', self.name, options=[member1, member2])
             except RuntimeError as e:
                 # FIXME get status of service before adding relation may be cleaner.
-                if not 'already exists' in text_type(e):
+                if 'already exists' not in text_type(e):
                     raise
             return result
 
@@ -976,7 +976,7 @@ class Environment(object):
                 result = juju_do('remove-relation', self.name, options=[member1, member2])
             except RuntimeError as e:
                 # FIXME get status of service before removing relation may be cleaner.
-                if not 'exists' in text_type(e):
+                if 'exists' not in text_type(e):
                     raise
             return result
 

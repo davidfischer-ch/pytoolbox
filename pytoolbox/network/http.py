@@ -203,12 +203,12 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=['
 
     if required_keys is not None:
         for key in required_keys:
-            if not key in data:
+            if key not in data:
                 raise ValueError(to_bytes('Missing key "{0} from the request, required: {1}.'.format(
                                  key, required_keys)))
     if accepted_keys is not None:
         for key in data:
-            if not key in accepted_keys:
+            if key not in accepted_keys:
                 raise ValueError(to_bytes('Invalid key "{0}" from the request, valid: {1}.'.format(
                                  key, accepted_keys)))
     if not data and not optional:
