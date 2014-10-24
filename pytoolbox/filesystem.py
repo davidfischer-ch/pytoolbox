@@ -101,7 +101,7 @@ def get_bytes(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=
     """
     if is_filename:
         with open(filename_or_data, 'rb') as f:
-            if chunk_size:
+            if chunk_size is not None:
                 while True:
                     data = f.read(chunk_size)
                     if not data:

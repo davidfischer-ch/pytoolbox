@@ -81,11 +81,11 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
         log_debug = log_warning = log_exception = log
     # create a list and a string of the arguments
     if isinstance(command, string_types):
-        if user:
+        if user is not None:
             command = 'sudo -u {0} {1}'.format(user, command)
         args_list, args_string = shlex.split(to_bytes(command)), command
     else:
-        if user:
+        if user is not None:
             command = ['sudo', '-u', user] + command
         args_list = [to_bytes(a) for a in command if a is not None]
         args_string = ' '.join([to_unicode(a) for a in command if a is not None])
@@ -171,7 +171,7 @@ def read_async(fd):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
-    if not url:
+    if url is not None:
         config = open(join(directory, '.git', 'config')).read()
         url = re.search(r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
@@ -239,7 +239,7 @@ def rsync(source, destination, source_is_dir=False, destination_is_dir=False, ma
         command += ['--include={0}'.format(i) for i in includes]
     if exclude_vcs:
         command += ['--exclude=.svn', '--exclude=.git']
-    if extra_args:
+    if extra_args is not None:
         command += extra_args
     command += [source, destination]
     return cmd(filter(None, command), fail=fail, log=log, **kwargs)

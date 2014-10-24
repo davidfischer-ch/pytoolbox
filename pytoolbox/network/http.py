@@ -92,7 +92,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
 
     >>> ar_(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
-    if hash_method and hash_algorithm:
+    if hash_method is not None and hash_algorithm is not None:
         raise ValueError('You can set hash_method or hash_algorithm, not both.')
     exists, downloaded = os.path.exists(filename), False
     if force or not exists:
@@ -108,18 +108,18 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
                     position, length = 0, None if length is None else int(length)
                     for data in response.iter_content(chunk_size):
                         f.write(data)
-                        if progress_callback:
+                        if progress_callback is not None:
                             position += len(data)
                             progress_callback(start_time, position, length)
                 else:
                     f.write(response.content)
             downloaded = True
     file_hash = None
-    if hash_method:
+    if hash_method is not None:
         file_hash = hash_method(filename, is_filename=True)
-    elif hash_algorithm:
+    elif hash_algorithm is not None:
         file_hash = checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
-    if expected_hash and file_hash != expected_hash:
+    if expected_hash is not None and file_hash != expected_hash:
         raise CorruptedFileError(hash_msg.format(filename=filename, file_hash=file_hash, expected_hash=expected_hash))
     return exists, downloaded, file_hash
 

@@ -75,7 +75,7 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     '2013-10-17 03:54:08'
     """
     now = datetime.datetime.now(tz)
-    if offset:
+    if offset is not None:
         now += offset
     return (now.strftime(format) + (' UTC' if tz == pytz.utc and append_utc else '')) if format else now
 

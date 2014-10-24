@@ -87,9 +87,9 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
             backup_filename = None
     write_filename = '{0}.tmp'.format(filename) if safe else filename
     with open(write_filename, 'wb' if binary else 'w', None if binary else 'utf-8') as f:
-        if data:
+        if data is not None:
             f.write(data)
-        if pickle_data:
+        if pickle_data is not None:
             pickle.dump(pickle_data, f)
     if safe:
         os.rename(write_filename, filename)
