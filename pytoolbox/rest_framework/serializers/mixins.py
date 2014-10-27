@@ -52,7 +52,7 @@ class FromPrivateKeyMixin(object):
 
     def from_native(self, data, files=None):
         if not data or isinstance(data, dict):
-            return super().from_native(data, files)
+            return super(FromPrivateKeyMixin, self).from_native(data, files)
         try:
             obj = self.opts.model.objects.get(pk=data)
             obj._from_pk = True
