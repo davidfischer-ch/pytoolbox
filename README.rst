@@ -23,6 +23,11 @@ pytoolbox
 
 Afraid of red status ? Please click on the link, sometimes this is not my fault ;-)
 
+Remarks:
+
+* Current build fail on Travis CI because it runs on old Ubuntu VM with old release of ffmpeg.
+* Current method of running tests reports a bad coverage, in fact, coverage is approx 65%.
+
 This module is a Toolbox for Python scripts.
 
 This library supports Python 2.6, 2.7, 3.2, 3.3, 3.4 and PyPy.
