@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import nose, os, sys
+import nose, os, sys, time
 from os.path import abspath, dirname
 from unittest import TestCase
 
@@ -34,8 +34,8 @@ else:
     from mock import Mock
 
 __all__ = (
-    'Mock', 'MOCK_SIDE_EFFECT_RETURNS', 'mock_cmd', 'mock_side_effect', 'AwareTearDownMixin', 'PseudoTestCase',
-    'runtests'
+    'Mock', 'MOCK_SIDE_EFFECT_RETURNS', 'mock_cmd', 'mock_side_effect', 'runtests', 'AwareTearDownMixin',
+    'PseudoTestCase', 'TimingMixin'
 )
 
 MOCK_SIDE_EFFECT_RETURNS = [Exception('you must set MOCK_SIDE_EFFECT_RETURNS'), {'title': '2nd'}]
@@ -80,6 +80,20 @@ def mock_side_effect(*args, **kwargs):
     return result
 
 
+def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
+    """Run tests and report coverage with nose and coverage."""
+    from .encoding import configure_unicode
+    configure_unicode()
+    extra_options = extra_options or []
+    cover_packages = ['--cover-package={0}'.format(package) for package in cover_packages]
+    nose_options = filter(None, [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'] +
+                          cover_packages + ['--cover-html', '-vv', '-w', dirname(test_file)] + packages + extra_options)
+    if ignore:
+        nose_options += ['-I', ignore]
+    os.chdir(abspath(dirname(test_file)))
+    return PseudoTestCase(nose.run(argv=nose_options))
+
+
 class AwareTearDownMixin(object):
 
     def awareTearDown(self, result):
@@ -106,15 +120,15 @@ class PseudoTestCase(TestCase):
             sys.exit(1)
 
 
-def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
-    """Run tests and report coverage with nose and coverage."""
-    from .encoding import configure_unicode
-    configure_unicode()
-    extra_options = extra_options or []
-    cover_packages = ['--cover-package={0}'.format(package) for package in cover_packages]
-    nose_options = filter(None, [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'] +
-                          cover_packages + ['--cover-html', '-vv', '-w', dirname(test_file)] + packages + extra_options)
-    if ignore:
-        nose_options += ['-I', ignore]
-    os.chdir(abspath(dirname(test_file)))
-    return PseudoTestCase(nose.run(argv=nose_options))
+class TimingMixin(object):
+
+    timing_logger = None
+
+    def setUp(self):
+        self.start_time = time.time()
+        super(TimingMixin, self).setUp()
+
+    def tearDown(self):
+        super(TimingMixin, self).tearDown()
+        if self.timing_logger:
+            self.timing_logger.info('{0}: {1:.3f}'.format(self.id(), time.time() - self.start_time))
