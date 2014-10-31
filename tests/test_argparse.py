@@ -24,17 +24,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import argparse
-from nose.tools import assert_raises, eq_
+import argparse, unittest
 from pytoolbox.argparse import is_dir, is_file
 
 
-class TestArgparse(object):
+class TestArgparse(unittest.TestCase):
 
     def test_is_dir(self):
-        eq_(is_dir('/home'), '/home')
-        assert_raises(argparse.ArgumentTypeError, is_dir, 'sjdsajkd')
+        self.assertEqual(is_dir('/home'), '/home')
+        with self.assertRaises(argparse.ArgumentTypeError):
+            is_dir('sjdsajkd')
 
     def test_is_file(self):
-        eq_(is_file('/etc/hosts'), '/etc/hosts')
-        assert_raises(argparse.ArgumentTypeError, is_file, 'wdjiwdji')
+        self.assertEqual(is_file('/etc/hosts'), '/etc/hosts')
+        with self.assertRaises(argparse.ArgumentTypeError):
+            is_file('wdjiwdji')

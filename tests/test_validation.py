@@ -24,21 +24,21 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from nose.tools import raises
+import unittest
 from pytoolbox.validation import validate_list
 
 
-class TestValidation(object):
+class TestValidation(unittest.TestCase):
 
     def test_validate_list(self):
         regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, "call(['my_var', recursive=False])"], regexes)
 
-    @raises(IndexError)
     def test_validate_list_fail_size(self):
-        validate_list([1, 2], [1, 2, 3])
+        with self.assertRaises(IndexError):
+            validate_list([1, 2], [1, 2, 3])
 
-    @raises(ValueError)
     def test_validate_list_fail_value(self):
-        regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
-        validate_list([10, "call(['my_var', recursive='error'])"], regexes)
+        with self.assertRaises(ValueError):
+            regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+            validate_list([10, "call(['my_var', recursive='error'])"], regexes)

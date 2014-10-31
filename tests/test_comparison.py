@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from nose.tools import eq_, assert_not_equal as ne_
+import unittest
 from pytoolbox.comparison import SlotsEqualityMixin
 
 
@@ -53,25 +53,25 @@ class Point3D(SlotsEqualityMixin):
         self.name = name
 
 
-class TestSlotsEqualityMixin(object):
+class TestSlotsEqualityMixin(unittest.TestCase):
 
     def test_equality_same_class(self):
         p1 = Point2D(10, -3, 'dot')
         p2 = Point2D(10, -3, 'dot')
         p3 = Point2D(10, -4, 'dot')
-        eq_(p1, p2)
-        ne_(p1, p3)
+        self.assertEqual(p1, p2)
+        self.assertNotEqual(p1, p3)
 
     def test_equality_inheritance(self):
         p1 = Point2D(10, -3, 'dot')
         p2 = Point2Dv2(10, -3, 'dot')
         p3 = Point2Dv2(10, -4, 'dot')
-        eq_(p1, p2)
-        ne_(p1, p3)
+        self.assertEqual(p1, p2)
+        self.assertNotEqual(p1, p3)
 
     def test_equality_different_class(self):
         p1 = Point2D(10, -3, 'dot')
         p2 = Point3D(10, -3, 5, 'dot')
         p3 = Point3D(10, -4, 2, 'dot')
-        ne_(p1, p2)
-        ne_(p1, p3)
+        self.assertNotEqual(p1, p2)
+        self.assertNotEqual(p1, p3)

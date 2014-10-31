@@ -25,20 +25,18 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
-from pytoolbox.filesystem import try_remove
-from pytoolbox.multimedia.ffmpeg import FFmpeg
+from pytoolbox import exception
 
 
-class RaiseFFmpeg(FFmpeg):
+class TestException(unittest.TestCase):
 
-    def _clean_statistics(self, **statistics):
-        raise ValueError('This is the exception.')
+    def test_message_mixin_to_string(self):
+        ex = exception.MessageMixin(ten=10, dict={}, string='chaîne de caractères')
+        ex.message = 'Ten equals {ten} an empty dict {dict} a string is a {string}'
+        self.assertEqual('%s' % ex, 'Ten equals 10 an empty dict {} a string is a chaîne de caractères')
 
-
-class TestFFmpeg(unittest.TestCase):
-
-    def test_kill_process_handle_missing(self):
-        encoder = RaiseFFmpeg()
-        with self.assertRaises(ValueError):
-            list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
-        self.assertTrue(try_remove('ff_output.mp4'))
+    def test_message_mixin_to_string_missing_key(self):
+        ex = exception.MessageMixin(ten=10, dict={})
+        ex.message = 'Ten equals {ten} an empty dict {dict} a string is a {string}'
+        with self.assertRaises(KeyError):
+            '%s' % ex
