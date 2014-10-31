@@ -117,11 +117,11 @@ class FilterByTagsMixin(object):
 
     @classmethod
     def get_only_tags(cls):
-        return os.environ.get(cls.only_tags_variable, '').split(',')
+        return [t for t in os.environ.get(cls.only_tags_variable, '').split(',') if t]
 
     @classmethod
     def get_skip_tags(cls):
-        return os.environ.get(cls.skip_tags_variable, '').split(',')
+        return [t for t in os.environ.get(cls.skip_tags_variable, '').split(',') if t]
 
     @staticmethod
     def should_run(tags, only_tags, skip_tags):
