@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import nose, os, sys, time
+import nose, os, sys, time, unittest
 from os.path import abspath, dirname
 from unittest import TestCase
 
@@ -103,6 +103,38 @@ class AwareTearDownMixin(object):
         result = super().run(result)
         self.awareTearDown(result)
         return result
+
+
+class FilterByTagsMixin(object):
+
+    tags = ()
+    only_tags_variable = 'TEST_ONLY_TAGS'
+    skip_tags_variable = 'TEST_SKIP_TAGS'
+
+    @classmethod
+    def get_tags(cls):
+        return cls.tags
+
+    @classmethod
+    def get_only_tags(cls):
+        return os.environ.get(cls.only_tags_variable, '').split(',')
+
+    @classmethod
+    def get_skip_tags(cls):
+        return os.environ.get(cls.skip_tags_variable, '').split(',')
+
+    @staticmethod
+    def should_run(tags, only_tags, skip_tags):
+        tags = frozenset(tags or [])
+        only_tags = frozenset(only_tags or [])
+        skip_tags = frozenset(skip_tags or [])
+        return not tags & skip_tags and (bool(tags & only_tags) if tags and only_tags else True)
+
+    @classmethod
+    def setUpClass(cls):
+        if not cls.should_run(cls.get_tags(), cls.get_only_tags(), cls.get_skip_tags()):
+            raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
+        super(FilterByTagsMixin, cls).setUpClass()
 
 
 class PseudoTestCase(TestCase):
