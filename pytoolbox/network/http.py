@@ -41,9 +41,7 @@ def download(url, filename):
 
 
 def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_method=None, hash_algorithm=None,
-                 expected_hash=None, progress_callback=None,
-                 code_msg='Download request {url} code {r_code} expected {code}.',
-                 hash_msg='Downloaded file {filename} is corrupted.',  **kwargs):
+                 expected_hash=None, progress_callback=None, **kwargs):
     """
     Read the content of given ``url`` and save it as a file ``filename``, extended version.
 
@@ -99,7 +97,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
         response = requests.get(url, stream=bool(chunk_size), **kwargs)
         length = response.headers.get('content-length')
         if response.status_code != code:
-            raise BadHTTPResponseCodeError(code_msg.format(url=url, code=code, r_code=response.status_code))
+            raise BadHTTPResponseCodeError(url=url, code=code, r_code=response.status_code)
         if response.status_code == 200:
             with open(filename, 'wb') as f:
                 if chunk_size:
@@ -120,7 +118,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     elif hash_algorithm is not None:
         file_hash = checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
     if expected_hash is not None and file_hash != expected_hash:
-        raise CorruptedFileError(hash_msg.format(filename=filename, file_hash=file_hash, expected_hash=expected_hash))
+        raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
     return exists, downloaded, file_hash
 
 

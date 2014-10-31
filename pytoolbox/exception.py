@@ -29,18 +29,34 @@ import io, traceback, sys
 from .encoding import PY2, to_bytes
 
 __all__ = (
-    'BadHTTPResponseCodeError', 'CorruptedFileError', 'ForbiddenError', 'TimeoutError', 'assert_raises_item'
+    'MessageMixin', 'BadHTTPResponseCodeError', 'CorruptedFileError', 'ForbiddenError', 'TimeoutError',
+    'assert_raises_item'
 )
 
 
-class BadHTTPResponseCodeError(Exception):
+class MessageMixin(Exception):
+
+    message = None
+
+    def __init__(self, message=None, **kwargs):
+        message = message or self.message
+        self.__dict__.update(kwargs)
+        super(MessageMixin, self).__init__(self, message)
+
+    def __unicode__(self):
+        return self.message.format(**self.__dict__)
+
+    __str__ = __unicode__
+
+
+class BadHTTPResponseCodeError(MessageMixin, Exception):
     """An error raised an unexpected HTTP response code."""
-    pass
+    message = 'Download request {url} code {r_code} expected {code}.'
 
 
-class CorruptedFileError(Exception):
+class CorruptedFileError(MessageMixin, Exception):
     """An error raised when a file is corrupted."""
-    pass
+    message = 'Downloaded file {filename} is corrupted checksum {file_hash} expected {expected_hash}.'
 
 
 class ForbiddenError(Exception):
