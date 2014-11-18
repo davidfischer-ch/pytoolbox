@@ -44,10 +44,10 @@ class TestSubprocess(unittest.TestCase):
             r"call\(u*'Execute cat missing_file'\)",
             r"call\(u*'Attempt 1 out of 1: Failed'\)"
         ])
-        assert(cmd('my.funny.missing.script.sh', fail=False)['stderr'] != '')
+        self.assertNotEqual(cmd('my.funny.missing.script.sh', fail=False)['stderr'], '')
         result = cmd('cat {0}'.format(__file__))
         # There are at least 30 lines in this source file !
-        assert(len(result['stdout'].splitlines()) > 30)
+        self.assertGreater(len(result['stdout'].splitlines()), 30)
 
     def test_cmd_missing_binary(self):
         self.assertEqual(cmd('hfuejnvwqkdivengz', fail=False)['returncode'], 2)
@@ -90,9 +90,11 @@ class TestSubprocess(unittest.TestCase):
             self.assertEqual(len(screen_launch('my_2nd_screen', 'top', fail=False)['stderr']), 0)
             # List the launched screen sessions
             screens = screen_list(name='my_1st_screen')
-            assert(len(screens) >= 1 and screens[0].endswith('my_1st_screen'))
+            self.assertGreaterEqual(len(screens), 1)
+            self.assertTrue(screens[0].endswith('my_1st_screen'))
             screens = screen_list(name='my_2nd_screen')
-            assert(len(screens) >= 1 and screens[0].endswith('my_2nd_screen'))
+            self.assertGreaterEqual(len(screens), 1)
+            self.assertTrue(screens[0].endswith('my_2nd_screen'))
         finally:
             # Cleanup
             log = Mock()

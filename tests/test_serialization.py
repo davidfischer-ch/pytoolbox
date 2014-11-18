@@ -57,11 +57,11 @@ class TestSerialization(unittest.TestCase):
         os.remove('test.pkl')
         os.remove('test2.pkl')
         p2.write()
-        assert(not os.path.exists('test2.pkl'))
+        self.assertFalse(os.path.exists('test2.pkl'))
         self.assertEqual(p2._pickle_filename, 'test.pkl')
         os.remove('test.pkl')
         p2.write('test2.pkl', store_filename=True)
-        assert(not os.path.exists('test.pkl'))
+        self.assertFalse(os.path.exists('test.pkl'))
         self.assertEqual(p2._pickle_filename, 'test2.pkl')
         del p2._pickle_filename
         with self.assertRaises(ValueError):
