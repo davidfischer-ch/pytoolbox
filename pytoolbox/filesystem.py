@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, copy, errno, grp, pwd, os, shutil, tempfile, time, uuid
+import collections, copy, errno, fnmatch, grp, pwd, os, shutil, tempfile, time, uuid
 from codecs import open
 from os.path import dirname, exists, expanduser, isfile, join, samefile
 
@@ -32,9 +32,27 @@ from .datetime import datetime_now
 from .encoding import string_types
 
 __all__ = (
-    'first_that_exist', 'from_template', 'get_bytes', 'get_size', 'recursive_copy', 'try_makedirs', 'try_remove',
-    'try_symlink', 'chown', 'TempStorage'
+    'find_recursive', 'first_that_exist', 'from_template', 'get_bytes', 'get_size', 'recursive_copy', 'try_makedirs',
+    'try_remove', 'try_symlink', 'chown', 'TempStorage'
 )
+
+
+def find_recursive(directory, patterns, **kwargs):
+    """
+    Yields filenames matching any of the patterns. May return duplicate filenames (the ones matching multiple patterns).
+
+    **Example usage**
+
+    >>> print(next(find_recursive('/etc', ['interfaces'])))
+    /etc/network/interfaces
+    >>> filenames = list(find_recursive('/etc/network', ['interfaces', 'inter*aces', '*.jpg']))
+    >>> filenames.count('/etc/network/interfaces')
+    2
+    """
+    for dirpath, dirnames, filenames in os.walk(directory, **kwargs):
+        for pattern in patterns:
+            for filename in fnmatch.filter(filenames, pattern):
+                yield join(dirpath, filename)
 
 
 def first_that_exist(*paths):
