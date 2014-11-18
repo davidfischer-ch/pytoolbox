@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import nose, os, sys, time, unittest
 from os.path import abspath, dirname
-from unittest import TestCase
 
 if sys.version_info[0] > 2:
     from unittest.mock import Mock
@@ -35,7 +34,7 @@ else:
 
 __all__ = (
     'Mock', 'MOCK_SIDE_EFFECT_RETURNS', 'mock_cmd', 'mock_side_effect', 'runtests', 'AwareTearDownMixin',
-    'PseudoTestCase', 'TimingMixin'
+    'TimingMixin'
 )
 
 MOCK_SIDE_EFFECT_RETURNS = [Exception('you must set MOCK_SIDE_EFFECT_RETURNS'), {'title': '2nd'}]
@@ -91,7 +90,7 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
     if ignore:
         nose_options += ['-I', ignore]
     os.chdir(abspath(dirname(test_file)))
-    return PseudoTestCase(nose.run(argv=nose_options))
+    return nose.main(argv=nose_options)
 
 
 class AwareTearDownMixin(object):
@@ -135,21 +134,6 @@ class FilterByTagsMixin(object):
         if not cls.should_run(cls.get_tags(), cls.get_only_tags(), cls.get_skip_tags()):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
         super(FilterByTagsMixin, cls).setUpClass()
-
-
-class PseudoTestCase(TestCase):
-    """
-    Pseudo test-case to map result from :mod:`nose` to :mod:`unittest`.
-
-    In fact, :mod:`unittest` ``loader.py`` check if we return an instance of TestCase ...
-    """
-
-    def __init__(self, result):
-        self.result = result
-
-    def __call__(self, something):
-        if not self.result:
-            sys.exit(1)
 
 
 class TimingMixin(object):
