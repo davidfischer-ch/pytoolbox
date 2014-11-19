@@ -43,12 +43,14 @@ def find_recursive(directory, patterns, **kwargs):
 
     **Example usage**
 
-    >>> print(next(find_recursive('/etc', ['interfaces'])))
+    >>> print(next(find_recursive('/etc', 'interfaces')))
     /etc/network/interfaces
     >>> filenames = list(find_recursive('/etc/network', ['interfaces', 'inter*aces', '*.jpg']))
     >>> filenames.count('/etc/network/interfaces')
     2
     """
+    if isinstance(patterns, string_types):
+        patterns = [patterns]
     for dirpath, dirnames, filenames in os.walk(directory, **kwargs):
         for pattern in patterns:
             for filename in fnmatch.filter(filenames, pattern):
