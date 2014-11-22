@@ -149,13 +149,13 @@ def get_size(path):
     return size
 
 
-def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, time_delta=1, check_size=True,
-                   remove_on_error=True):
+def recursive_copy(source_path, destination_path, progress_callback=None, ratio_delta=0.01, time_delta=1,
+                   check_size=True, remove_on_error=True):
     """
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
 
-    Given ``callback`` would be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
+    Given ``progress_callback`` will be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
     *ratio*. Set ``remove_on_error`` to remove the destination directory in case of error.
 
     This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
@@ -190,11 +190,12 @@ def recursive_copy(source_path, destination_path, callback, ratio_delta=0.01, ti
                         ratio = 1.0
                     elapsed_time = time.time() - start_time
                     # Update status of job only if delta time or delta ratio is sufficient
-                    if ratio - prev_ratio > ratio_delta and elapsed_time - prev_time > time_delta:
+                    if progress_callback is not None and \
+                            ratio - prev_ratio > ratio_delta and elapsed_time - prev_time > time_delta:
                         prev_ratio = ratio
                         prev_time = elapsed_time
                         eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
-                        callback(start_date, elapsed_time, eta_time, src_size, dst_size, ratio)
+                        progress_callback(start_date, elapsed_time, eta_time, src_size, dst_size, ratio)
                     block_length = len(block)
                     block_pos += block_length
                     dst_size += block_length
