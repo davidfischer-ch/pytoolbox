@@ -35,8 +35,8 @@ from ..subprocess import make_async
 from ..types import get_slots
 
 __all__ = (
-    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'Codec', 'Stream', 'AudioStream',
-    'SubtitleStream', 'VideoStream', 'Media', 'FFmpeg'
+    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'MPD_TEST', 'BaseInfo', 'Codec', 'Format', 'Stream',
+    'AudioStream', 'SubtitleStream', 'VideoStream', 'Media', 'FFmpeg'
 )
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -82,7 +82,20 @@ def _to_framerate(fps):
         return None
 
 
-class Codec(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+
+    defaults = {}
+
+    def __init__(self, infos):
+        for attr in get_slots(self):
+            self._set_attribute(attr, infos)
+
+    def _set_attribute(self, name, infos):
+        """Set attribute ``name`` value from the ``infos`` or ``self.defaults`` dictionary."""
+        setattr(self, name, infos.get(name, self.defaults.get(name)))
+
+
+class Codec(BaseInfo):
 
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
@@ -93,12 +106,23 @@ class Codec(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     clean_time_base = lambda s, v: _to_framerate(v)
 
 
-class Stream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+class Format(BaseInfo):
+
+    __slots__ = (
+        'bit_rate', 'duration', 'filename', 'format_name', 'format_long_name', 'nb_programs', 'nb_streams',
+        'probe_score', 'size', 'start_time'
+    )
+
+    clean_bit_rate = clean_nb_programs = clean_nb_streams = clean_probe_score = clean_size = \
+        lambda s, v: None if v is None else int(v)
+    clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
+
+
+class Stream(BaseInfo):
 
     __slots__ = ('avg_frame_rate', 'codec', 'disposition', 'index', 'r_frame_rate', 'time_base')
 
     codec_class = Codec
-    defaults = {}
 
     def __init__(self, infos):
         for attr in get_slots(self):
@@ -106,10 +130,6 @@ class Stream(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
                 self.codec = self.codec_class(infos)
             else:
                 self._set_attribute(attr, infos)
-
-    def _set_attribute(self, name, infos):
-        """Set attribute ``name`` value from the ``infos`` or ``self.defaults`` dictionary."""
-        setattr(self, name, infos.get(name, self.defaults.get(name)))
 
     clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else _to_framerate(v)
     clean_index = lambda s, v: None if v is None else int(v)
@@ -174,6 +194,7 @@ class FFmpeg(object):
     encoding_executable = 'ffmpeg'
     parsing_executable = 'ffprobe'
     media_class = Media
+    format_class = None
     stream_classes = {'audio': None, 'subtitle': None, 'video': None}
 
     def __init__(self, encoding_executable=None, parsing_executable=None,
@@ -474,11 +495,47 @@ class FFmpeg(object):
         except:
             return None
 
-    def get_media_streams(self, filename_or_infos, condition=lambda stream: True):
+    def get_media_format(self, filename_or_infos, fail=False):
+        """
+        Return informations about the container (and file) or None in case of error.
+
+        **Example usage**
+
+        >>> import os.path, tempfile
+        >>> from nose.tools import eq_
+        >>> ffmpeg = FFmpeg()
+        >>> ffmpeg.encoding_executable = os.path.join(tempfile.gettempdir(), 'ffmpeg')
+
+        >>> ffmpeg.format_class = None
+        >>> media_format = ffmpeg.get_media_format('small.mp4', fail=True)
+        >>> assert isinstance(media_format, dict)
+        >>> eq_(media_format['bit_rate'], '551193')
+        >>> eq_(media_format['format_long_name'], 'QuickTime / MOV')
+        >>> eq_(media_format['probe_score'], 100)
+
+        >>> ffmpeg.format_class = Format
+        >>> media_format = ffmpeg.get_media_format('small.mp4', fail=True)
+        >>> assert isinstance(media_format, Format)
+        >>> eq_(media_format.bit_rate, 551193)
+        >>> eq_(media_format.format_long_name, 'QuickTime / MOV')
+        >>> eq_(media_format.probe_score, 100)
+        """
+        infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
+        try:
+            cls, the_format = self.format_class, infos['format']
+            return cls(the_format) if cls and not isinstance(the_format, cls) else the_format
+        except:
+            if fail:
+                raise
+            return None
+
+    def get_media_streams(self, filename_or_infos, condition=lambda stream: True, fail=False):
         infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
         try:
             raw_streams = (s for s in infos['streams'] if condition(s))
         except:
+            if fail:
+                raise
             return []
         streams = []
         for stream in raw_streams:
@@ -486,7 +543,7 @@ class FFmpeg(object):
             streams.append(stream_class(stream) if stream_class and not isinstance(stream, stream_class) else stream)
         return streams
 
-    def get_audio_streams(self, filename_or_infos):
+    def get_audio_streams(self, filename_or_infos, fail=False):
         """
         Return a list with the audio streams ``filename_or_infos`` or [] in case of error.
 
@@ -511,13 +568,13 @@ class FFmpeg(object):
         >>> eq_(streams[0].channels, 1)
         >>> eq_(streams[0].codec.time_base, 1 / 48000)
         """
-        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio')
+        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
 
-    def get_subtitle_streams(self, filename_or_infos):
+    def get_subtitle_streams(self, filename_or_infos, fail=False):
         """Return a list with the subtitle streams ``filename_or_infos`` or [] in case of error."""
-        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle')
+        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
 
-    def get_video_streams(self, filename_or_infos):
+    def get_video_streams(self, filename_or_infos, fail=False):
         """
         Return a list with the video streams ``filename_or_infos`` or [] in case of error.
 
@@ -538,7 +595,7 @@ class FFmpeg(object):
         >>> assert isinstance(streams[0], VideoStream)
         >>> eq_(streams[0].avg_frame_rate, 30.0)
         """
-        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video')
+        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video', fail=fail)
 
     def get_video_framerate(self, filename_or_infos, index=0, fail=False):
         """
