@@ -30,7 +30,7 @@ from os.path import getsize
 from .encoding import string_types
 from .filesystem import get_bytes
 
-__all__ = ('checksum', 'githash')
+__all__ = ('checksum', 'githash', 'guess_algorithm')
 
 
 def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256, chunk_size=None):
