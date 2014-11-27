@@ -108,8 +108,7 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
     >>> long_checksum = '43d92a466b57e3744532eab7d760708028a7562d9678f6762bf341f29b921e42'
     >>> short_checksum = '2b31de8940dfd3286f70c316f701a54a'
 
-    >>> guess_algorithm('')
-    set()
+    >>> eq_(guess_algorithm('', algorithms), set())
     >>> eq_(set(a.name for a in guess_algorithm(long_checksum, algorithms)), {'sha256'})
     >>> print(guess_algorithm(long_checksum, algorithms, unique=True).name)
     sha256
@@ -124,7 +123,10 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
     if algorithms:
         algorithms = [hashlib.new(a) if isinstance(a, string_types) else a for a in algorithms]
     else:
-        algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
+        try:
+            algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
+        except AttributeError:
+            raise NotImplementedError("Your version of hashlib doesn't implement algorithms_available")
     digest_size_to_algorithms = collections.defaultdict(set)
     for algorithm in algorithms:
         digest_size_to_algorithms[algorithm.digest_size].add(algorithm)
