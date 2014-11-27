@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import hashlib
+import collections, hashlib
 from os.path import getsize
 
 from .encoding import string_types
@@ -95,3 +95,40 @@ def githash(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=No
         s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
         s.update(data_bytes)
     return s.hexdigest()
+
+
+def guess_algorithm(checksum, algorithms=None, unique=False):
+    """
+    Guess the algorithms that have produced the checksum, based on its size.
+
+    **Example usage**
+
+    >>> from nose.tools import eq_
+    >>> algorithms = ('md4', 'md5', 'sha256', 'sha512', 'whirlpool')
+    >>> long_checksum = '43d92a466b57e3744532eab7d760708028a7562d9678f6762bf341f29b921e42'
+    >>> short_checksum = '2b31de8940dfd3286f70c316f701a54a'
+
+    >>> guess_algorithm('')
+    set()
+    >>> eq_(set(a.name for a in guess_algorithm(long_checksum, algorithms)), {'sha256'})
+    >>> print(guess_algorithm(long_checksum, algorithms, unique=True).name)
+    sha256
+    >>> print(guess_algorithm(short_checksum, algorithms, unique=True))
+    None
+
+    Following examples depends of your system, so they are disabled:
+    >> eq_(set(a.name for a in guess_algorithm(short_checksum)), {'md4', 'md5'})
+    >> eq_(set(a.name for a in guess_algorithm(long_checksum)), {'sha256'})
+    """
+    digest_size = len(checksum) / 2
+    if algorithms:
+        algorithms = [hashlib.new(a) if isinstance(a, string_types) else a for a in algorithms]
+    else:
+        algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
+    digest_size_to_algorithms = collections.defaultdict(set)
+    for algorithm in algorithms:
+        digest_size_to_algorithms[algorithm.digest_size].add(algorithm)
+    possible_algorithms = digest_size_to_algorithms[digest_size]
+    if unique:
+        return possible_algorithms.pop() if len(possible_algorithms) == 1 else None
+    return possible_algorithms
