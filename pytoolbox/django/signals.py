@@ -22,9 +22,48 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
+"""
+    :file:`apps.py` ::
+
+        from django.apps import AppConfig
+        from django.utils.translation import ugettext_lazy as _
+
+        from . import signals
+
+        __all__ = ('MyApp', )
+
+
+        class MyAppConfig(AppConfig):
+            name = 'myapp'
+            verbose_name = _('My Application')
+
+            def ready(self):
+                signals.connect(self)
+
+
+    :file:`signals.py` ::
+
+        from pytoolbox.django.signals import create_site, strip_strings_and_validate_model
+
+        # ...
+
+        def connect(config):
+            '''Connect signal handlers to signals.'''
+            signals.post_migrate.connect(create_site, sender=config)
+            signals.pre_save.connect(strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
+"""
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import logging
+from django.conf import settings
+from django.db.models import fields
+from django.contrib.sites import models as site_app
 from django.db.models.fields.files import FileField
+
+from ..encoding import string_types
+
+logger = logging.getLogger(__name__)
 
 __all__ = ('clean_files_delete_handler', )
 
@@ -44,3 +83,39 @@ def clean_files_delete_handler(instance, signal, **kwargs):
             file_field = getattr(instance, field.name)
             if file_field.path:
                 file_field.delete(save=False)
+
+
+def create_site(sender, **kwargs):
+    """
+    Ensure the site name and domain is well configured.
+
+    Some alternative:
+
+    * Loading an initial fixture with the values for the site
+    * The application `django-defaultsite <https://github.com/oppian/django-defaultsite>`_
+    * Other options discussed `here <https://groups.google.com/forum/#!topic/django-developers/X-ef0C0V8Rk>`_
+    """
+    should_update = False
+    try:
+        site = site_app.Site.objects.filter(id__exact=settings.SITE_ID)[0]
+        should_update = site.domain != settings.SITE_DOMAIN or site.name != settings.SITE_NAME
+    except IndexError:
+        should_update = True
+
+    if should_update:
+        site = site_app.Site(id=settings.SITE_ID, domain=settings.SITE_DOMAIN, name=settings.SITE_NAME)
+        logger.info('Updating settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
+        site.save()
+
+
+def strip_strings_and_validate_model(sender, instance, raw, **kwargs):
+    """Strip the string fields of the instance and run the instance's full_clean()."""
+    if not raw:
+        logger.debug('Validate model {0} on save() with kwargs={1}'.format(instance, kwargs))
+        for field in instance._meta.fields:
+            if isinstance(field, (fields.CharField, fields.TextField)):
+                field_value = getattr(instance, field.name)
+                if isinstance(field_value, string_types):
+                    setattr(instance, field.name, field_value.strip())
+        if instance.password:
+            instance.full_clean()
