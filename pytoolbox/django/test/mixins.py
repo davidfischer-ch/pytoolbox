@@ -31,28 +31,27 @@ from django.test.utils import CaptureQueriesContext
 __all__ = ('QueriesMixin', 'RestAPIMixin')
 
 
-class _AssertNumQueriesContext(CaptureQueriesContext):
+class _AssertNumQueriesInContext(CaptureQueriesContext):
 
-    def __init__(self, callback, num, connection):
-        self.callback = callback
-        self.num = num
-        super(_AssertNumQueriesContext, self).__init__(connection)
+    def __init__(self, num_range, connection):
+        self.range = num_range
+        super(_AssertNumQueriesInContext, self).__init__(connection)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        super(_AssertNumQueriesContext, self).__exit__(exc_type, exc_value, traceback)
+        super(_AssertNumQueriesInContext, self).__exit__(exc_type, exc_value, traceback)
         if exc_type is None:
             executed = len(self)
-            self.callback(executed, self.num, "%d queries executed, %d expected\nCaptured queries were:\n%s" % (
-                executed, self.num, '\n'.join(query['sql'] for query in self.captured_queries))
+            self.assertIn(executed, self.range, '{0} queries executed, {1.range} expected\nCaptured queries were:\n{2}'
+                .format(executed, self, '\n'.join(query['sql'] for query in self.captured_queries))
             )
 
 
 class QueriesMixin(object):
 
-    def assertNumQueries(self, num, callback=None, func=None, *args, **kwargs):
-        using = kwargs.pop("using", DEFAULT_DB_ALIAS)
-        conn = connections[using]
-        context = _AssertNumQueriesContext(callback or self.assertEqual, num, conn)
+    def assertNumQueriesIn(self, num_range, func=None, *args, **kwargs):
+        using = kwargs.pop('using', DEFAULT_DB_ALIAS)
+        connection = connections[using]
+        context = _AssertNumQueriesInContext(num_range, connection)
         if func is None:
             return context
         with context:
