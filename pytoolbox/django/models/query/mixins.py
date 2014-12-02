@@ -31,17 +31,21 @@ __all__ = ('AtomicGetUpdateOrCreateMixin', 'AtomicGetRestoreOrCreateMixin')
 
 class AtomicGetUpdateOrCreateMixin(object):
 
+    savepoint = False
+
     def get_or_create(self, defaults=None, **kwargs):
-        with transaction.atomic():
+        with transaction.atomic(savepoint=self.savepoint):
             return super(AtomicGetUpdateOrCreateMixin, self).get_or_create(defaults=defaults, **kwargs)
 
     def update_or_create(self, defaults=None, **kwargs):
-        with transaction.atomic():
+        with transaction.atomic(savepoint=self.savepoint):
             return super(AtomicGetUpdateOrCreateMixin, self).update_or_create(defaults=defaults, **kwargs)
 
 
 class AtomicGetRestoreOrCreateMixin(object):
 
+    savepoint = False
+
     def get_restore_or_create(self, *args, **kwargs):
-        with transaction.atomic():
+        with transaction.atomic(savepoint=self.savepoint):
             return super().get_restore_or_create(*args, **kwargs)
