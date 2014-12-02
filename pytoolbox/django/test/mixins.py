@@ -28,6 +28,8 @@ from django.core.urlresolvers import reverse
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.test.utils import CaptureQueriesContext
 
+from ...encoding import string_types
+
 __all__ = ('QueriesMixin', 'UrlMixin', 'RestAPIMixin')
 
 
@@ -63,12 +65,12 @@ class QueriesMixin(object):
 class UrlMixin(object):
 
     def resolve(self, value, qs=None, *args, **kwargs):
-        if '/' in value:
-            url = value
+        if isinstance(value, string_types):
+            url = value if '/' in value else reverse(value, *args, **kwargs)
         elif hasattr(value, 'get_absolute_url'):
             url = value.get_absolute_url()
         else:
-            url = reverse(value, *args, **kwargs)
+            raise NotImplementedError('Unexpected value {0!r}'.format(value))
         return url + ('?%s' % qs if qs is not None else '')
 
 
