@@ -28,7 +28,7 @@ from django.core.urlresolvers import reverse
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.test.utils import CaptureQueriesContext
 
-__all__ = ('QueriesMixin', 'RestAPIMixin')
+__all__ = ('QueriesMixin', 'UrlMixin', 'RestAPIMixin')
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
@@ -60,25 +60,38 @@ class QueriesMixin(object):
             func(*args, **kwargs)
 
 
-class RestAPIMixin(object):
+class UrlMixin(object):
 
-    def _call_api(self, method, url, data, status, qs=None, **kwargs):
-        method, url = getattr(self.client, method), reverse(url) if 'http' not in url else url
-        response = method(url + ('?%s' % qs if qs is not None else ''), data, **kwargs)
-        self.assertEqual(response.status_code, status, response.data)
+    def resolve(self, value, qs=None, *args, **kwargs):
+        if '/' in value:
+            url = value
+        elif hasattr(value, 'get_absolute_url'):
+            url = value.get_absolute_url()
+        else:
+            url = reverse(value, *args, **kwargs)
+        return url + ('?%s' % qs if qs is not None else '')
+
+
+class RestAPIMixin(UrlMixin):
+
+    def _call(self, method, url, data, status, qs=None, url_args=None, url_kwargs=None,
+              msg=lambda r: getattr(r, 'data', r), **kwargs):
+        url = self.resolve(url, qs=qs, *(url_args or []), **(url_kwargs or {}))
+        response = getattr(self.client, method)(url, data, **kwargs)
+        self.assertEqual(response.status_code, status, msg(response))
         return response
 
     def delete(self, url, data=None, status=204, **kwargs):
-        return self._call_api('delete', url, data, status, **kwargs)
+        return self._call('delete', url, data, status, **kwargs)
 
     def get(self, url, data=None, status=200, **kwargs):
-        return self._call_api('get', url, data, status, **kwargs)
+        return self._call('get', url, data, status, **kwargs)
 
     def patch(self, url, data, status=200, **kwargs):
-        return self._call_api('patch', url, data, status, **kwargs)
+        return self._call('patch', url, data, status, **kwargs)
 
     def post(self, url, data, status=201, **kwargs):
-        return self._call_api('post', url, data, status, **kwargs)
+        return self._call('post', url, data, status, **kwargs)
 
     def put(self, url, data, status=200, **kwargs):
-        return self._call_api('put', url, data, status, **kwargs)
+        return self._call('put', url, data, status, **kwargs)
