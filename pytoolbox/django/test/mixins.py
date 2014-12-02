@@ -71,7 +71,7 @@ class UrlMixin(object):
             url = value.get_absolute_url()
         else:
             raise NotImplementedError('Unexpected value {0!r}'.format(value))
-        return url + ('?%s' % qs if qs is not None else '')
+        return url if qs is None else '{0}?{1}'.format(url, qs)
 
 
 class RestAPIMixin(UrlMixin):
