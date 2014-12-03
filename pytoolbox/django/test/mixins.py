@@ -64,22 +64,22 @@ class QueriesMixin(object):
 
 class UrlMixin(object):
 
-    def resolve(self, value, qs=None, *args, **kwargs):
-        if isinstance(value, string_types):
-            url = value if '/' in value else reverse(value, *args, **kwargs)
+    def resolve(self, value, qs=None, urlconf=None, args=None, kwargs=None, current_app=None):
+        if isinstance(value, string_types) and '/' in value:
+            url = value
         elif hasattr(value, 'get_absolute_url'):
             url = value.get_absolute_url()
         else:
-            raise NotImplementedError('Unexpected value {0!r}'.format(value))
+            url = reverse(value, urlconf, args, kwargs, current_app)
         return url if qs is None else '{0}?{1}'.format(url, qs)
 
 
 class RestAPIMixin(UrlMixin):
 
-    def _call(self, method, url, data, status, qs=None, url_args=None, url_kwargs=None,
-              msg=lambda r: getattr(r, 'data', r), **kwargs):
-        url = self.resolve(url, qs=qs, *(url_args or []), **(url_kwargs or {}))
-        response = getattr(self.client, method)(url, data, **kwargs)
+    def _call(self, method, url, data, status, qs=None, urlconf=None, args=None, kwargs=None, current_app=None,
+              msg=lambda r: getattr(r, 'data', r), **call_kwargs):
+        url = self.resolve(url, qs, urlconf, args, kwargs, current_app)
+        response = getattr(self.client, method)(url, data, **call_kwargs)
         self.assertEqual(response.status_code, status, msg(response))
         return response
 
