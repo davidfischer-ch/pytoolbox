@@ -24,13 +24,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.test.utils import CaptureQueriesContext
 
 from ...encoding import string_types
 
-__all__ = ('QueriesMixin', 'UrlMixin', 'RestAPIMixin')
+__all__ = ('ClearSiteCacheMixin', 'QueriesMixin', 'UrlMixin', 'RestAPIMixin')
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
@@ -49,6 +50,20 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
                     executed, self, '\n'.join(query['sql'] for query in self.captured_queries)
                 )
             )
+
+
+class ClearSiteCacheMixin(object):
+
+    def clear_site_cache(self):
+        Site.objects.clear_cache()
+
+    def setUp(self):
+        self.clear_site_cache()
+        super(ClearSiteCacheMixin, self).setUp()
+
+    def assertNumQueries(self, *args, **kwargs):
+        self.clear_site_cache()
+        return super(ClearSiteCacheMixin, self).assertNumQueries(*args, **kwargs)
 
 
 class QueriesMixin(object):
