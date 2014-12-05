@@ -134,5 +134,4 @@ def strip_strings_and_validate_model(sender, instance, raw, **kwargs):
                 field_value = getattr(instance, field.name)
                 if isinstance(field_value, string_types):
                     setattr(instance, field.name, field_value.strip())
-        if instance.password:
-            instance.full_clean()
+        instance.full_clean()
