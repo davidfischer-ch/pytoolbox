@@ -51,7 +51,7 @@ def main():
 
     print('Run the tests with nose')
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = ('fields.py|mixins.py|signals.py|storage.py|utils.py|widgets.py|pytoolbox_filters.py|'
+    ignore = ('fields.py|mixins.py|signals.py|storage.py|utils.py|validators.py|widgets.py|pytoolbox_filters.py|'
               'pytoolbox_tags.py' + ('|session.py|schema.py' if sys.version_info[0] > 2 else ''))
     return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'], ignore=ignore)
 
