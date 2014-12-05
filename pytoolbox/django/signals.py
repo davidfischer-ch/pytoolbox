@@ -43,14 +43,19 @@
 
     :file:`signals.py` ::
 
-        from pytoolbox.django.signals import create_site, strip_strings_and_validate_model
+        from django.db.models import signals as dj_signals
+        from django.db.backends import signals as dj_db_signals
+        from pytoolbox.django.signals import (
+            create_site, setup_postgresql_hstore_extension, strip_strings_and_validate_model
+        )
 
         # ...
 
         def connect(config):
             '''Connect signal handlers to signals.'''
-            signals.post_migrate.connect(create_site, sender=config)
-            signals.pre_save.connect(strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
+            dj_db_signals.connection_created.connect(setup_postgresql_hstore_extension)
+            dj_signals.post_migrate.connect(create_site, sender=config)
+            dj_signals.pre_save.connect(strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -61,11 +66,13 @@ from django.db.models import fields
 from django.contrib.sites import models as site_app
 from django.db.models.fields.files import FileField
 
-from ..encoding import string_types
+from ..encoding import PY2, string_types
 
 logger = logging.getLogger(__name__)
 
-__all__ = ('clean_files_delete_handler', )
+__all__ = (
+    'clean_files_delete_handler', 'create_site', 'setup_postgresql_hstore_extension', 'strip_strings_and_validate_model'
+)
 
 
 def clean_files_delete_handler(instance, signal, **kwargs):
@@ -106,6 +113,16 @@ def create_site(sender, **kwargs):
         site = site_app.Site(id=settings.SITE_ID, domain=settings.SITE_DOMAIN, name=settings.SITE_NAME)
         logger.info('Updating settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
         site.save()
+
+
+def setup_postgresql_hstore_extension(sender, connection, **kwargs):
+    from psycopg2.extras import register_hstore
+    cursor = connection.connection.cursor()
+    cursor.execute('CREATE EXTENSION IF NOT EXISTS hstore')
+    if PY2:
+        register_hstore(connection.connection, globally=True, unicode=True)
+    else:
+        register_hstore(connection.connection, globally=True)
 
 
 def strip_strings_and_validate_model(sender, instance, raw, **kwargs):
