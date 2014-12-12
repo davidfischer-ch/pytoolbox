@@ -44,7 +44,7 @@ class MessageMixin(Exception):
         super(MessageMixin, self).__init__(self, message)
 
     def __unicode__(self):
-        return self.message.format(**self.__dict__)
+        return self.message.format(**{a: getattr(self, a) for a in dir(self) if a[0] != '_'})
 
     __str__ = __unicode__
 
