@@ -35,8 +35,16 @@ class TestException(unittest.TestCase):
         ex.message = 'Ten equals {ten} an empty dict {dict} a string is a {string}'
         self.assertEqual('%s' % ex, 'Ten equals 10 an empty dict {} a string is a chaîne de caractères')
 
+    def test_message_mixin_to_string_includes_class_attributes(self):
+
+        class NewError(exception.MessageMixin):
+            message = 'The attribute from {my_attr}'
+            my_attr = 'class'
+
+        self.assertEqual('%s' % NewError(), 'The attribute from class')
+        self.assertEqual('%s' % NewError(my_attr='instance'), 'The attribute from instance')
+
     def test_message_mixin_to_string_missing_key(self):
-        ex = exception.MessageMixin(ten=10, dict={})
-        ex.message = 'Ten equals {ten} an empty dict {dict} a string is a {string}'
+        ex = exception.MessageMixin('Ten equals {ten} an empty dict {dict} a string is a {string}', ten=10, dict={})
         with self.assertRaises(KeyError):
             '%s' % ex
