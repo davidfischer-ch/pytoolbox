@@ -39,9 +39,10 @@ class MessageMixin(Exception):
     message = None
 
     def __init__(self, message=None, **kwargs):
-        message = message or self.message
+        if message is not None:
+            self.message = message
         self.__dict__.update(kwargs)
-        super(MessageMixin, self).__init__(self, message)
+        super(MessageMixin, self).__init__(self)
 
     def __unicode__(self):
         return self.message.format(**{a: getattr(self, a) for a in dir(self) if a[0] != '_'})
