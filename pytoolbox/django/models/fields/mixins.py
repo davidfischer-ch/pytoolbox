@@ -24,30 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from django.db import models
-
-__all__ = ('StripCharField', 'StripTextField')
-
-# https://code.djangoproject.com/ticket/6362#no1
+__all__ = ('StripMixin', )
 
 
-class StripCharField(models.CharField):
+class StripMixin(object):
+    """https://code.djangoproject.com/ticket/6362#no1"""
 
-    def clean(self, value, model_instance):
-        value = self.to_python(value)
-        if value:
-            value = value.strip()
-        self.validate(value, model_instance)
-        self.run_validators(value)
-        return value
-
-
-class StripTextField(models.TextField):
-
-    def clean(self, value, model_instance):
-        value = self.to_python(value)
-        if value:
-            value = value.strip()
-        self.validate(value, model_instance)
-        self.run_validators(value)
-        return value
+    def to_python(self, value):
+        value = super(StripMixin, self).to_python(value)
+        return value.strip() if value else value
