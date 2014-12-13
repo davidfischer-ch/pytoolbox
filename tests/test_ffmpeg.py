@@ -271,6 +271,7 @@ class TestFFmpeg(unittest.TestCase):
         self.assertEqual(media_format.format_long_name, 'QuickTime / MOV')
         self.assertEqual(media_format.probe_score, 100)
 
+    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_get_process(self):
         options = ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2']
         process = self.ffmpeg._get_process([STATIC_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
@@ -291,7 +292,7 @@ class TestFFmpeg(unittest.TestCase):
     def test_get_video_framerate(self):
         self.assertIsNone(self.ffmpeg.get_video_framerate(3.14159265358979323846))
         self.assertIsNone(self.ffmpeg.get_video_framerate({}))
-        self.assertEqual(self.ffmpeg.get_video_framerate(FFmpeg().get_media_infos('small.mp4')), 30.0)
+        self.assertEqual(self.ffmpeg.get_video_framerate(self.ffmpeg.get_media_infos('small.mp4')), 30.0)
         self.assertEqual(self.ffmpeg.get_video_framerate('small.mp4'), 30.0)
         self.assertEqual(self.ffmpeg.get_video_framerate({'streams': [
             {'codec_type': 'audio'},
@@ -301,7 +302,7 @@ class TestFFmpeg(unittest.TestCase):
     def test_get_video_resolution(self):
         self.assertIsNone(self.ffmpeg.get_video_resolution(3.14159265358979323846))
         self.assertIsNone(self.ffmpeg.get_video_resolution({}))
-        self.assertListEqual(self.ffmpeg.get_video_resolution(FFmpeg().get_media_infos('small.mp4')), [560, 320])
+        self.assertListEqual(self.ffmpeg.get_video_resolution(self.ffmpeg.get_media_infos('small.mp4')), [560, 320])
         self.assertListEqual(self.ffmpeg.get_video_resolution('small.mp4'), [560, 320])
         self.assertIsNone(self.ffmpeg.get_video_resolution('small.mp4', index=1))
         self.assertEqual(self.ffmpeg.get_video_resolution('small.mp4')[HEIGHT], 320)
@@ -310,6 +311,7 @@ class TestFFmpeg(unittest.TestCase):
             {'codec_type': 'video', 'width': '1920', 'height': '1080'}
         ]}), [1920, 1080])
 
+    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_kill_process_handle_missing(self):
         encoder = RaiseFFmpeg()
         with self.assertRaises(ValueError):
