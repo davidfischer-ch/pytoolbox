@@ -26,6 +26,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import shutil, six, sys, tarfile, tempfile
+from pytoolbox.exception import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
 
@@ -38,16 +39,19 @@ def main():
         download_ext(url, filename, force=False)
 
     print('Download ffmpeg static binary')
-    download_ext(constants.FFMPEG_URL, constants.FFMPEG_ARCHIVE, force=False)
-    if six.PY2:
-        import contextlib, lzma
-        with contextlib.closing(lzma.LZMAFile(constants.FFMPEG_ARCHIVE)) as xz:
-            with tarfile.open(fileobj=xz) as f:
+    try:
+        download_ext(constants.FFMPEG_URL, constants.FFMPEG_ARCHIVE, force=False)
+        if six.PY2:
+            import contextlib, lzma
+            with contextlib.closing(lzma.LZMAFile(constants.FFMPEG_ARCHIVE)) as xz:
+                with tarfile.open(fileobj=xz) as f:
+                    f.extractall(constants.TESTS_DIRECTORY)
+        else:
+            with tarfile.open(constants.FFMPEG_ARCHIVE) as f:
                 f.extractall(constants.TESTS_DIRECTORY)
-    else:
-        with tarfile.open(constants.FFMPEG_ARCHIVE) as f:
-            f.extractall(constants.TESTS_DIRECTORY)
-    shutil.copy(constants.FFMPEG_BINARY, tempfile.gettempdir())
+        shutil.copy(constants.FFMPEG_BINARY, tempfile.gettempdir())
+    except BadHTTPResponseCodeError:
+        print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 
     print('Run the tests with nose')
     # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
