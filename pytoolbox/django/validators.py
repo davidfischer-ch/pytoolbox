@@ -25,11 +25,18 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import copy
+from django.core import validators
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import ugettext_lazy as _
 
-__all__ = ('KeysValidator', )
+__all__ = ('EmptyValidator', 'KeysValidator')
+
+
+class EmptyValidator(validators.RegexValidator):
+    regex = r'\S+'
+    message = _('This field cannot be blank.')
+    code = 'blank'
 
 
 @deconstructible

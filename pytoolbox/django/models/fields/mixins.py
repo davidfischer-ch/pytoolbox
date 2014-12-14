@@ -24,12 +24,19 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from ... import validators
+
 __all__ = ('StripMixin', )
 
 
 class StripMixin(object):
     """https://code.djangoproject.com/ticket/6362#no1"""
 
-    def to_python(self, value):
-        value = super(StripMixin, self).to_python(value)
-        return value.strip() if value else value
+    default_validators = [validators.EmptyValidator()]
+
+    def pre_save(self, model_instance, add):
+        value = getattr(model_instance, self.attname)
+        if value:
+            value = value.strip()
+            setattr(model_instance, self.attname, value)
+        return value
