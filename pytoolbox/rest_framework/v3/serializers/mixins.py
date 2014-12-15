@@ -25,8 +25,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.compat import smart_text
 
 __all__ = ('FromPrivateKeyMixin', 'NestedCreateMixin', 'NestedUpdateMixin')
 
