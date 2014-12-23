@@ -29,7 +29,6 @@ from codecs import open
 
 from ..crypto import checksum
 from ..encoding import to_bytes
-from ..filesystem import get_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
 __all__ = ('download', 'download_ext', 'get_request_data')
@@ -115,7 +114,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
                     position, length = 0, None if length is None else int(length)
                     for data in response.iter_content(chunk_size):
                         if file_hash:
-                            file_hash.update(get_bytes(data))
+                            file_hash.update(data)
                         f.write(data)
                         if progress_callback is not None:
                             position += len(data)
