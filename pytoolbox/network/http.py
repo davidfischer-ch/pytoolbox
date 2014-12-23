@@ -24,11 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, requests, time, urllib2, urlparse
+import hashlib, os, requests, time, urllib2, urlparse
 from codecs import open
 
 from ..crypto import checksum
 from ..encoding import to_bytes
+from ..filesystem import get_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
 __all__ = ('download', 'download_ext', 'get_request_data')
@@ -43,14 +44,18 @@ def download(url, filename):
 def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_method=None, hash_algorithm=None,
                  expected_hash=None, progress_callback=None, **kwargs):
     """
-    Read the content of given ``url`` and save it as a file ``filename``, extended version.
+    Read the content of given `url` and save it as a file `filename`, extended version.
 
-    * Set ``code`` to expected response code.
-    * Set ``force`` to False to avoid downloading the file if it already exists.
-    * Set ``hash_method`` to a callable with the signature ``hash_method(filename, is_filename=True)``.
-    * Set ``hash_algorithm`` to a string or a method from the :mod:`hashlib`.
-    * Set ``expected_hash`` to the expected hash value, warning: this will force computing the hash of the file.
-    * Set ``kwargs`` to any extra argument accepted by ``requests.get()``.
+    * Set `code` to expected response code.
+    * Set `force` to False to avoid downloading the file if it already exists.
+    * Set `hash_method` to a callable with the signature ``hash_method(filename, is_filename=True, chunk_size=102400)``.
+    * Set `hash_algorithm` to a string or a method from the :mod:`hashlib`.
+    * Set `expected_hash` to the expected hash value, warning: this will force computing the hash of the file.
+    * Set `kwargs` to any extra argument accepted by ``requests.get()``.
+
+    If `chunk_size` and `hash_algorithm` are both set then the hash algorithm will be called for every chunk of data,
+    this may optimize the performances. In any case, if a hash method or algorithm is defined then you will get a hash
+    even if the file is already downloaded.
 
     **Example usage**
 
@@ -93,6 +98,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     if hash_method is not None and hash_algorithm is not None:
         raise ValueError('You can set hash_method or hash_algorithm, not both.')
     exists, downloaded = os.path.exists(filename), False
+    file_hash = None
     if force or not exists:
         response = requests.get(url, stream=bool(chunk_size), **kwargs)
         length = response.headers.get('content-length')
@@ -101,10 +107,15 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
         if response.status_code == 200:
             with open(filename, 'wb') as f:
                 if chunk_size:
+                    # May compute hash on chunks
+                    if hash_algorithm is not None:
+                        file_hash = hashlib.new(hash_algorithm)
                     start_time = time.time()
                     # chunked download (may report progress as a progress bar)
                     position, length = 0, None if length is None else int(length)
                     for data in response.iter_content(chunk_size):
+                        if file_hash:
+                            file_hash.update(get_bytes(data))
                         f.write(data)
                         if progress_callback is not None:
                             position += len(data)
@@ -112,11 +123,13 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
                 else:
                     f.write(response.content)
             downloaded = True
-    file_hash = None
-    if hash_method is not None:
-        file_hash = hash_method(filename, is_filename=True)
-    elif hash_algorithm is not None:
-        file_hash = checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
+    if file_hash:  # was computed during the download
+        file_hash = file_hash.hexdigest()
+    else:  # is not yet computed for any valid reason
+        if hash_method is not None:
+            file_hash = hash_method(filename, is_filename=True, chunk_size=chunk_size)
+        elif hash_algorithm is not None:
+            file_hash = checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
     if expected_hash is not None and file_hash != expected_hash:
         raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
     return exists, downloaded, file_hash
