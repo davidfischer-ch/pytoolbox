@@ -30,7 +30,14 @@ from os.path import getsize
 from .encoding import string_types
 from .filesystem import get_bytes
 
-__all__ = ('checksum', 'githash', 'guess_algorithm')
+__all__ = ('checksum', 'githash', 'guess_algorithm', 'new')
+
+
+def new(algorithm=hashlib.sha256):
+    """
+    Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm` is a string else instantiate algorithm.
+    """
+    return hashlib.new(algorithm) if isinstance(algorithm, string_types) else algorithm()
 
 
 def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256, chunk_size=None):
@@ -54,7 +61,7 @@ def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=ha
     >>> print(checksum('small.mp4', is_filename=True, chunk_size=1024))
     1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
     """
-    hasher = hashlib.new(algorithm) if isinstance(algorithm, string_types) else algorithm()
+    hasher = new(algorithm)
     for data in get_bytes(filename_or_data, encoding, is_filename, chunk_size):
         hasher.update(data)
     return hasher.hexdigest()

@@ -24,10 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import hashlib, os, requests, time, urllib2, urlparse
+import os, requests, time, urllib2, urlparse
 from codecs import open
 
-from ..crypto import checksum
+from ..crypto import checksum, new
 from ..encoding import to_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
@@ -108,7 +108,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
                 if chunk_size:
                     # May compute hash on chunks
                     if hash_algorithm is not None:
-                        file_hash = hashlib.new(hash_algorithm)
+                        file_hash = new(hash_algorithm)
                     start_time = time.time()
                     # chunked download (may report progress as a progress bar)
                     position, length = 0, None if length is None else int(length)
