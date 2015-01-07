@@ -42,19 +42,19 @@ EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode
 def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True, timeout=None, fail=True,
         log=None, tries=1, delay_min=5, delay_max=10, **kwargs):
     """
-    Calls the ``command`` and returns a dictionary with process, stdout, stderr, and the returncode.
+    Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
-    Returned returncode, stdout and stderr will be None if ``communicate`` is set to False.
+    Returned returncode, stdout and stderr will be None if `communicate` is set to False.
 
-    :param user: If set, this will use ``sudo -u <user> ...`` to execute ``command`` as ``user``.
+    :param user: If set, this will use ``sudo -u <user> ...`` to execute `command` as `user`.
     :type user: unicode
-    :param input: If set, sended to stdin (if ``communicate`` is True).
+    :param input: If set, sended to stdin (if `communicate` is True).
     :type input: unicode
     :param cli_input: If set, sended to stdin (no condition).
     :type cli_input: unicode
     :param cli_output: Set to True to output (in real-time) stdout to stdout and stderr to stderr.
     :type cli_output: bool
-    :param fail: Set to False to avoid the exception ``subprocess.CalledProcessError``.
+    :param fail: Set to False to avoid the exception `subprocess.CalledProcessError`.
     :type fail: bool
     :param log: A function to log/print details about what is executed/any failure, can be a standard logger.
     :type log: callable, logging.Logger
@@ -69,7 +69,7 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     :param delay_max: Maximum delay to sleep after every attempt communicate must be True.
     :type delay: float, int
 
-    * Delay will be a random number in range (``delay_min``, ``delay_max``)
+    * Delay will be a random number in range (`delay_min`, `delay_max`)
     * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
 
     """
@@ -246,7 +246,7 @@ def rsync(source, destination, source_is_dir=False, destination_is_dir=False, ma
 
 
 def screen_kill(name=None, fail=True, log=None, **kwargs):
-    """Kill all screen instances called ``name`` or all if ``name`` is None."""
+    """Kill all screen instances called `name` or all if `name` is None."""
     for name in screen_list(name=name, log=log):
         cmd(['screen', '-S', name, '-X', 'quit'], fail=fail, log=log, **kwargs)
 
@@ -258,7 +258,7 @@ def screen_launch(name, command, fail=True, log=None, **kwargs):
 
 
 def screen_list(name=None, log=None, **kwargs):
-    """Returns a list containing all instances of screen. Can be filtered by ``name``."""
+    """Returns a list containing all instances of screen. Can be filtered by `name`."""
     screens = cmd(['screen', '-ls', name], fail=False, log=log, **kwargs)['stdout']
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', to_unicode(screens))
 

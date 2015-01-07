@@ -56,7 +56,7 @@ def set_disabled(form, field_name, value=False):
 
 def update_widget_attributes(widget, updates):
     """
-    Update attributes of a ``widget`` with content of ``updates`` handling classes addition [+], removal [-] and
+    Update attributes of a `widget` with content of `updates` handling classes addition [+], removal [-] and
     toggle [^].
 
     **Example usage**

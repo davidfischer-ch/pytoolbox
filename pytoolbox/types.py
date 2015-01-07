@@ -30,5 +30,5 @@ __all__ = ('get_slots', )
 
 
 def get_slots(obj):
-    """Return a set with the __slots__ of the obj including all parent classes __slots__."""
+    """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
     return set(chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))

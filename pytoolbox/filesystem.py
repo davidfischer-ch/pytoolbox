@@ -78,7 +78,7 @@ def first_that_exist(*paths):
 
 def from_template(template, destination, values, jinja2=False):
     """
-    Generate a ``destination`` file from a ``template`` file filled with ``values``, method: string.format or jinja2!
+    Generate a `destination` file from a `template` file filled with `values`, method: string.format or jinja2!
 
     **Example usage**
 
@@ -115,9 +115,9 @@ def from_template(template, destination, values, jinja2=False):
 
 def get_bytes(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=None):
     """
-    Yield the content read from the given ``filename`` or the ``data`` converted to bytes.
+    Yield the content read from the given `filename` or the `data` converted to bytes.
 
-    Remark: Value of ``encoding`` is used only if ``data`` is actually a string.
+    Remark: Value of `encoding` is used only if `data` is actually a string.
     """
     if is_filename:
         with open(filename_or_data, 'rb') as f:
@@ -137,7 +137,7 @@ def get_size(path):
     """
     Returns the size of a file or directory.
 
-    If given ``path`` is a directory (or symlink to a directory), then returned value is computed by summing the size of
+    If given `path` is a directory (or symlink to a directory), then returned value is computed by summing the size of
     all files, and that recursively.
     """
     if isfile(path):
@@ -155,11 +155,11 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
 
-    Given ``progress_callback`` will be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
-    *ratio*. Set ``remove_on_error`` to remove the destination directory in case of error.
+    Given `progress_callback` will be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
+    *ratio*. Set `remove_on_error` to remove the destination directory in case of error.
 
     This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
-    At the end of the copy, if the size of the destination directory is not equal to the source then a ``IOError`` is
+    At the end of the copy, if the size of the destination directory is not equal to the source then a `IOError` is
     raised.
     """
     try:
@@ -288,9 +288,8 @@ def try_remove(path, recursive=False):
 
 def try_symlink(source, link_name):
     """
-    Tries to symlink a file/directory (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if found & target is ``link_name`` and re-raise any other type of
-    exception.
+    Tries to symlink a file/directory (which may already exists) without throwing an exception. Returns True if
+    operation is successful, False if found & target is `link_name` and re-raise any other type of exception.
 
     **Example usage**
 

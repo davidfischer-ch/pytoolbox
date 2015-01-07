@@ -112,7 +112,7 @@ def inline(filepath, msg=True, autoescape=True):
 @register.filter(is_safe=True)
 def naturalbitrate(bps, kwargs_string=None):
     """
-    Return a human readable representation of a bit rate taking ``bps`` as the rate in bits/s.
+    Return a human readable representation of a bit rate taking `bps` as the rate in bits/s.
     See documentation of :func:`pytoolbox.humanize.naturalbitrate` for further examples.
 
     Output::
@@ -132,7 +132,7 @@ def naturalbitrate(bps, kwargs_string=None):
 @register.filter(is_safe=True)
 def naturalfilesize(bytes, kwargs_string=None):
     """
-    Return a human readable representation of a *file* size taking ``bytes`` as the size in bytes.
+    Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
     See documentation of :func:`pytoolbox.humanize.naturalfilesize` for further examples.
 
     Output::

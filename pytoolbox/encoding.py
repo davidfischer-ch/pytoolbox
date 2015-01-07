@@ -38,7 +38,7 @@ if PY2:
 
     # http://pythonhosted.org/kitchen/unicode-frustrations.html
     def configure_unicode(encoding='utf-8'):
-        """Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
+        """Configure `sys.stdout` and `sys.stderr` to be in Unicode (Do nothing if Python 3)."""
         sys.stdout = getwriter(encoding)(sys.stdout)
         sys.stderr = getwriter(encoding)(sys.stderr)
 else:
@@ -63,7 +63,7 @@ else:
         return str(message)
 
     def configure_unicode(encoding='utf-8'):
-        """Configure ``sys.stdout`` and ``sys.stderr`` to be in Unicode (Do nothing if Python 3)."""
+        """Configure `sys.stdout` and `sys.stderr` to be in Unicode (Do nothing if Python 3)."""
         pass
 
 

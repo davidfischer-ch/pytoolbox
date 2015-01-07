@@ -51,14 +51,14 @@ __all__ = ('is_dir', 'is_file', 'FullPaths')
 
 
 def is_dir(path):
-    """Check if path is an actual directory and return it."""
+    """Check if `path` is an actual directory and return it."""
     if os.path.isdir(path):
         return path
     raise argparse.ArgumentTypeError(to_bytes('{0} is not a directory'.format(path)))
 
 
 def is_file(path):
-    """Check if path is an actual file and return it."""
+    """Check if `path` is an actual file and return it."""
     if os.path.isfile(path):
         return path
     raise argparse.ArgumentTypeError(to_bytes('{0} is not a file'.format(path)))

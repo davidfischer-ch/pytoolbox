@@ -48,12 +48,12 @@ def _naturalnumber(number, base, units, format='{sign}{value:.3g} {unit}', scale
 
 def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEFAULT_BITRATE_UNITS):
     """
-    Return a human readable representation of a bit rate taking ``bps`` as the rate in bits/s.
+    Return a human readable representation of a bit rate taking `bps` as the rate in bits/s.
 
     The unit is taken from:
 
-    * The ``scale`` if not None (0=bit/s, 1=kb/s, 2=Mb/s, ...).
-    * The right scale from ``units``.
+    * The `scale` if not None (0=bit/s, 1=kb/s, 2=Mb/s, ...).
+    * The right scale from `units`.
 
     **Example usage**
 
@@ -79,17 +79,17 @@ def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEF
 
 def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', scale=None, args=DEFAULT_FILESIZE_ARGS):
     """
-    Return a human readable representation of a *file* size taking ``bytes`` as the size in bytes.
+    Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
 
     The base and units taken from:
 
-    * The value in ``args`` with key ``system`` if not None.
-    * The ``args`` if ``system`` is None.
+    * The value in `args` with key `system` if not None.
+    * The `args` if `system` is None.
 
     The unit is taken from:
 
-    * The ``scale`` if not None (0=Bytes, 1=KiB, 2=MiB, ...).
-    * The right scale from units previously retrieved from ``args``.
+    * The `scale` if not None (0=Bytes, 1=KiB, 2=MiB, ...).
+    * The right scale from units previously retrieved from `args`.
 
     **Example usage**
 

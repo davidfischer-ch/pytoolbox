@@ -35,7 +35,7 @@ __all__ = ('download', 'download_ext', 'get_request_data')
 
 
 def download(url, filename):
-    """Read the content of given ``url`` and save it as a file ``filename``."""
+    """Read the content of given `url` and save it as a file `filename`."""
     with open(filename, 'wb') as f:
         f.write(urllib2.urlopen(url).read())
 
@@ -139,8 +139,8 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=['
     """
     Return a python dictionary containing the values retrieved from various attributes (sources) of the request.
 
-    This function is specifically implemented to retrieve data from an instance of ``werkzeug.wrappers.Request`` or
-    ``django.http.request.HttpRequest`` by only using ``getattr`` to respect the duck typing philosophy.
+    This function is specifically implemented to retrieve data from an instance of `werkzeug.wrappers.Request` or
+    `django.http.request.HttpRequest` by only using `getattr` to respect the duck typing philosophy.
 
     FIXME : Add an example that have a JSON content ....
 

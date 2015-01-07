@@ -81,7 +81,7 @@ SUPER_COMMANDS = ('destroy-environment', )
 
 def juju_do(command, environment=None, options=None, fail=True, log=None, **kwargs):
     """
-    Execute a command ``command`` into environment ``environment``.
+    Execute a command `command` into environment `environment`.
 
     **Known issue**:
 
@@ -119,9 +119,9 @@ def load_unit_config(config, log=None):
     """
     Returns a dictionary containing the options names as keys and options default values as values.
 
-    The parameter ``config`` can be:
+    The parameter `config` can be:
 
-    * The filename of a charm configuration file (e.g. ``config.yaml``).
+    * The filename of a charm configuration file (e.g. `config.yaml`).
     * A dictionary containing already loaded options names as keys and options values as values.
     """
     if isinstance(config, string_types):
@@ -250,8 +250,8 @@ class CharmHooks(object):
     """
     A base class to build charms based on python hooks, callable even if juju is not installed.
 
-    Attribute ``local_config`` must be set by derived class to an instance of ``serialization.PickelableObject``.
-    This should be loaded from a file that is local to the unit by ``__init__``. This file is used to store service/
+    Attribute `local_config` must be set by derived class to an instance of `serialization.PickelableObject`. This
+    should be loaded from a file that is local to the unit by `__init__`. This file is used to store service/
     unit-specific configuration. In EBU's project called OSCIED, this file is even read by the encapsulated python
     code of the worker (celery daemon).
 
@@ -456,7 +456,7 @@ class CharmHooks(object):
 
     def load_config(self, config):
         """
-        Updates ``config`` attribute with given configuration.
+        Updates `config` attribute with given configuration.
 
         **Example usage**
 
@@ -483,16 +483,16 @@ class CharmHooks(object):
         self.config.__dict__.update(load_unit_config(config, log=self.debug))
 
     def save_local_config(self):
-        """Save or update local configuration file only if this instance has the attribute ``local_config``."""
+        """Save or update local configuration file only if this instance has the attribute `local_config`."""
         if self.local_config is not None:
             self.debug('Save (updated) local configuration {0}'.format(self.local_config))
             self.local_config.write()
 
     def load_metadata(self, metadata):
         """
-        Set ``metadata`` attribute with given metadatas, ``metadata`` can be:
+        Set `metadata` attribute with given metadatas, `metadata` can be:
 
-        * The filename of a charm metadata file (e.g. ``metadata.yaml``)
+        * The filename of a charm metadata file (e.g. `metadata.yaml`)
         * A dictionary containing the metadatas.
 
         **Example usage**
@@ -521,7 +521,7 @@ class CharmHooks(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def cmd(self, command, logging=True, **kwargs):
-        """Calls the ``command`` and returns a dictionary with *stdout*, *stderr*, and the *returncode*."""
+        """Calls the `command` and returns a dictionary with `stdout`, `stderr`, and the `returncode`."""
         return cmd(command, log=self.debug if logging else None, **kwargs)
 
     def template_to_config(self, template, config, values):
@@ -532,12 +532,12 @@ class CharmHooks(object):
 
     def trigger(self, hook_name=None):
         """
-        Triggers a hook specified in ``hook_name``, defaults to ``sys.argv[1]``.
+        Triggers a hook specified in `hook_name`, defaults to ``sys.argv[1]``.
 
         Hook's name is the nice hook name that one can find in official juju documentation.
-        For example if ``config-changed`` is mapped to a call to ``self.hook_config_changed()``.
+        For example if `config-changed` is mapped to a call to ``self.hook_config_changed()``.
 
-        A ``ValueError`` containing a usage string is raised if a bad number of argument is given.
+        A `ValueError` containing a usage string is raised if a bad number of argument is given.
         """
         if hook_name is None:
             if len(sys.argv) != 2:
@@ -703,10 +703,10 @@ class Environment(object):
                          repository=None, required=True, terminate=False, to=None, units_number_to_keep=None, fail=True,
                          timeout=None):
         """
-        Ensure ``num_units`` units of ``service`` into ``environment`` by adding new or destroying useless units first !
+        Ensure `num_units` units of `service` into `environment` by adding new or destroying useless units first !
 
-        At the end of this method, the number of running units can be greater as ``num_units`` because this algorithm
-        will not destroy units with number in ``units_number_to_keep``.
+        At the end of this method, the number of running units can be greater as `num_units` because this algorithm
+        will not destroy units with number in `units_number_to_keep`.
 
         Some of the argument are forwarded to underlying methods (add_units, deploy_units, destroy_unit or nothing)
         depending on the required action.
@@ -1049,7 +1049,7 @@ class SimulatedUnits(object):
         self.number = 0
 
     def ensure_num_units(self, num_units=1, units_number_to_keep=None):
-        """Ensure ``num_units`` units by adding new units or destroying useless units first !"""
+        """Ensure `num_units` units by adding new units or destroying useless units first !"""
         assert(num_units is None or num_units >= 0)
         units_count = len(self.units)
         if num_units is None:

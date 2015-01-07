@@ -110,7 +110,7 @@ if sys.version_info[0] > 2:
 
 def valid_filename(filename):
     """
-    Returns True if ``filename`` is a valid filename.
+    Returns True if `filename` is a valid filename.
 
     **Example usage**
 
@@ -127,7 +127,7 @@ def valid_filename(filename):
 
 def valid_ip(ip):
     """
-    Returns True if ``ip`` is a valid IP address.
+    Returns True if `ip` is a valid IP address.
 
     **Example usage**
 
@@ -145,7 +145,7 @@ def valid_ip(ip):
 
 def valid_email(email):
     """
-    Returns True if ``email`` is a valid e-mail address.
+    Returns True if `email` is a valid e-mail address.
 
     **Example usage**
 
@@ -162,7 +162,7 @@ def valid_email(email):
 
 def valid_int(value):
     """
-    Returns True if ``value`` is a valid integer (can be converted to an int).
+    Returns True if `value` is a valid integer (can be converted to an int).
 
     **Example usage**
 
@@ -180,7 +180,7 @@ def valid_int(value):
 
 def valid_port(port):
     """
-    Returns True if ``port`` is a valid port.
+    Returns True if `port` is a valid port.
 
     **Example usage**
 
@@ -198,7 +198,7 @@ def valid_port(port):
 
 def valid_secret(secret, none_allowed):
     """
-    Returns True if ``secret`` is a valid secret.
+    Returns True if `secret` is a valid secret.
 
     A valid secret contains at least 8 alpha-numeric characters.
 
@@ -244,7 +244,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('docs.python.org/2/library/httplib.html', check_404=True)
     False
 
-    This function does not use scheme of ``uri`` at all, so here is the proof:
+    This function does not use scheme of `uri` at all, so here is the proof:
 
     >>> valid_uri('gluster://docs.python.org/2/library/httplib.html', check_404=True)
     True
@@ -284,7 +284,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
 
 def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     """
-    Returns True if ``id`` is a valid UUID / ObjectId.
+    Returns True if `id` is a valid UUID / ObjectId.
 
     **Example usage**
 
@@ -324,7 +324,7 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
 
 
 def validate_list(the_list, regexes):
-    """Validate every element of ``the_list`` with corresponding regular expression picked-in from ``regexes``."""
+    """Validate every element of `the_list` with corresponding regular expression picked-in from `regexes`."""
     if len(the_list) != len(regexes):
         raise IndexError(to_bytes('{0} elements to validate with {1} regular expressions'.format(
                          len(the_list), len(regexes))))

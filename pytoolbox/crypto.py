@@ -42,7 +42,7 @@ def new(algorithm=hashlib.sha256):
 
 def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256, chunk_size=None):
     """
-    Return the result of hashing ``data`` by given hash ``algorithm``.
+    Return the result of hashing `data` by given hash `algorithm`.
 
     **Example usage**
 

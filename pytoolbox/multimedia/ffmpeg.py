@@ -85,7 +85,7 @@ class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
             self._set_attribute(attr, infos)
 
     def _set_attribute(self, name, infos):
-        """Set attribute ``name`` value from the ``infos`` or ``self.defaults`` dictionary."""
+        """Set attribute `name` value from the `infos` or ``self.defaults`` dictionary."""
         setattr(self, name, infos.get(name, self.defaults.get(name)))
 
 
@@ -267,7 +267,7 @@ class FFmpeg(object):
         """
         Returns the duration of a media as an instance of time or None in case of error.
 
-        If input ``filename`` is a MPEG-DASH MPD, then duration will be parser from value of key
+        If input `filename` is a MPEG-DASH MPD, then duration will be parser from value of key
         *mediaPresentationDuration*. For any other type of file, this is a *ffprobe* subprocess
         that detect duration of the media.
         """
@@ -327,20 +327,20 @@ class FFmpeg(object):
         return streams
 
     def get_audio_streams(self, filename_or_infos, fail=False):
-        """Return a list with the audio streams ``filename_or_infos`` or [] in case of error."""
+        """Return a list with the audio streams `filename_or_infos` or [] in case of error."""
         return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
 
     def get_subtitle_streams(self, filename_or_infos, fail=False):
-        """Return a list with the subtitle streams ``filename_or_infos`` or [] in case of error."""
+        """Return a list with the subtitle streams `filename_or_infos` or [] in case of error."""
         return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
 
     def get_video_streams(self, filename_or_infos, fail=False):
-        """Return a list with the video streams ``filename_or_infos`` or [] in case of error."""
+        """Return a list with the video streams `filename_or_infos` or [] in case of error."""
         return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video', fail=fail)
 
     def get_video_framerate(self, filename_or_infos, index=0, fail=False):
         """
-        Return the frame rate of the video stream at ``index`` in ``filename_or_infos`` or None in case of error.
+        Return the frame rate of the video stream at `index` in `filename_or_infos` or None in case of error.
         """
         try:
             stream = self.get_video_streams(filename_or_infos)[index]
@@ -352,7 +352,7 @@ class FFmpeg(object):
 
     def get_video_resolution(self, filename_or_infos, index=0, fail=False):
         """
-        Return [width, height] of the video stream at ``index`` in ``filename_or_infos`` or None in case of error.
+        Return [width, height] of the video stream at `index` in `filename_or_infos` or None in case of error.
         """
         try:
             stream = self.get_video_streams(filename_or_infos)[index]

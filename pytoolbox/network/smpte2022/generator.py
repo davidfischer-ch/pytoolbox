@@ -72,7 +72,7 @@ class FecGenerator(object):
         :type L: int
         :param D: Vertical size of the FEC matrix (rows)
         :type D: int
-        :param extra: Extra argument for ``on_new_col`` and ``on_new_row`` methods
+        :param extra: Extra argument for `on_new_col` and `on_new_row` methods
         :type extra: object
         """
         self._L, self._D = L, D
@@ -87,7 +87,7 @@ class FecGenerator(object):
         """
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
-        By default this method only print a message to ``stdout``.
+        By default this method only print a message to `stdout`.
 
         .. seealso::
 
@@ -105,7 +105,7 @@ class FecGenerator(object):
         """
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 
-        By default this method only print a message to ``stdout``.
+        By default this method only print a message to `stdout`.
 
         .. seealso::
 
@@ -123,7 +123,7 @@ class FecGenerator(object):
         """
         Called by FecGenerator when the algorithm is resetted (an incoming media is out of sequence).
 
-        By default this method only print a message to ``stdout``.
+        By default this method only print a message to `stdout`.
 
         .. seealso::
 

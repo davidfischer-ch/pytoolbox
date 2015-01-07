@@ -57,7 +57,7 @@ def mock_side_effect(*args, **kwargs):
 
     Set content (only required for this doctest, see previous remark):
 
-    Pops return values with ``mock_side_effect``:
+    Pops return values with `mock_side_effect`:
 
     >>> from nose.tools import eq_
     >>>

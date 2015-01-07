@@ -147,7 +147,7 @@ class FecReceiver(object):
 
     def __init__(self, output):
         """
-        Construct a new FecReceiver and register ``output``.
+        Construct a new FecReceiver and register `output`.
 
         :param output: Where to output payload of the recovered stream.
         :type output: IOBase
@@ -582,7 +582,7 @@ class FecReceiver(object):
     @staticmethod
     def validity_window(current, start, end):
         """
-        Returns True if ``current`` is in the validity window bounded by ``start`` and ``end``.
+        Returns True if `current` is in the validity window bounded by `start` and `end`.
 
         This method is circular-buffer aware and they are 2 cases (validity window ``[====]``)::
 

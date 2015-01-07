@@ -68,7 +68,7 @@ class MapErrorsMixin(object):
 
 class ModelBasedFormCleanupMixin(object):
     """
-    Make possible the cleanup of the form by the model through a class method called ``clean_form``.
+    Make possible the cleanup of the form by the model through a class method called `clean_form`.
     Useful to cleanup the form based on complex conditions, e.g. if two fields are inter-related (start/end dates, ...).
     """
 

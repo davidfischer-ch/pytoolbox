@@ -31,7 +31,7 @@ __all__ = ('confirm', 'choice', 'print_error', 'progress_bar')
 
 def confirm(question=None, default=False, stream=sys.stdout):
     """
-    Return True if user confirm the action, else False. ``default`` if user only press ENTER.
+    Return True if user confirm the action, else False. `default` if user only press ENTER.
 
     **Example usage**
 
@@ -90,11 +90,11 @@ def choice(question='', choices=[], stream=sys.stdout):
 
 def print_error(message, exit_code=1, stream=sys.stderr):
     """
-    Print a error message and exit if ``exit_code`` is not None.
+    Print a error message and exit if `exit_code` is not None.
 
     **Example usage**
 
-    In following example stream is set to ``stdout`` and exit is disabled (for :mod:`doctest`):
+    In following example stream is set to `stdout` and exit is disabled (for :mod:`doctest`):
 
     >>> print_error(u"It's not a bug - it's an undocumented feature.", exit_code=None, stream=sys.stdout)
     [ERROR] It's not a bug - it's an undocumented feature.

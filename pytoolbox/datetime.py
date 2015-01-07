@@ -219,8 +219,7 @@ def total_seconds(time):
 
 def datetime_to_epoch(date_time, utc=True, factor=1):
     """
-    Return the datetime/date converted into an Unix epoch.
-    Default ``factor`` means that the result is in seconds.
+    Return the datetime/date converted into an Unix epoch. Default `factor` means that the result is in seconds.
 
     **Example usage**
 
@@ -250,7 +249,7 @@ def datetime_to_epoch(date_time, utc=True, factor=1):
 
 def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     """
-    Return the Unix epoch converted to a datetime. Default ``factor`` means that the ``unix_epoch`` is in seconds.
+    Return the Unix epoch converted to a datetime. Default `factor` means that the `unix_epoch` is in seconds.
 
     **Example usage**
 

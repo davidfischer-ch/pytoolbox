@@ -116,7 +116,7 @@ class PickleableObject(object):
         return the_object
 
     def write(self, filename=None, store_filename=False, safe=False, backup=False, makedirs=False):
-        """Serialize ``self`` to a file, excluding the attribute ``_pickle_filename``."""
+        """Serialize `self` to a file, excluding the attribute `_pickle_filename`."""
         pickle_filename = getattr(self, '_pickle_filename', None)
         filename = filename or pickle_filename
         if filename is None:
@@ -162,7 +162,7 @@ def object_to_json(obj, include_properties, **kwargs):
     """
     Serialize an :class:`object` to a JSON string. Use one of the *smart* JSON encoder of this module.
 
-    * Set include_properties to True to also include the properties of ``obj``.
+    * Set include_properties to True to also include the properties of `obj`.
     * Set kwargs with any argument of the function :mod:`json`.dumps excepting cls.
 
     **Example usage**
@@ -190,21 +190,21 @@ def object_to_json(obj, include_properties, **kwargs):
 
 def json_to_object(cls, json_string, inspect_constructor):
     """
-    Deserialize the JSON string ``json_string`` to an instance of ``cls``.
+    Deserialize the JSON string `json_string` to an instance of `cls`.
 
-    Set ``inspect_constructor`` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
-    constructor (``__init__``) of ``cls``.
+    Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
+    constructor (`__init__`) of `cls`.
     """
     return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
 def jsonfile_to_object(cls, filename_or_file, inspect_constructor):
     """
-    Load and deserialize the JSON string stored in a file ``filename`` to an instance of ``cls``.
+    Load and deserialize the JSON string stored in a file `filename` to an instance of `cls`.
 
     .. warning::
 
-        Class constructor is responsible of converting attributes to instances of classes with ``dict_to_object``.
+        Class constructor is responsible of converting attributes to instances of classes with `dict_to_object`.
 
     **Example usage**
 
@@ -239,7 +239,7 @@ class JsoneableObject(object):
 
     .. warning::
 
-        Class constructor is responsible of converting attributes to instances of classes with ``dict_to_object``.
+        Class constructor is responsible of converting attributes to instances of classes with `dict_to_object`.
 
     Convert-back from JSON strings containing extra parameters:
 
@@ -299,7 +299,7 @@ class JsoneableObject(object):
             return the_object
 
     def write(self, filename=None, include_properties=False, safe=False, backup=False, makedirs=False, **kwargs):
-        """Serialize ``self`` to a file, excluding the attribute ``_json_filename``."""
+        """Serialize `self` to a file, excluding the attribute `_json_filename`."""
         if filename is None and hasattr(self, '_json_filename'):
             filename = self._json_filename
             try:
@@ -320,7 +320,7 @@ class JsoneableObject(object):
 
     @classmethod
     def from_json(cls, json_string, inspect_constructor):
-        """Deserialize a JSON string to an instance of ``JsoneableObject``."""
+        """Deserialize a JSON string to an instance of `JsoneableObject`."""
         return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
@@ -332,7 +332,7 @@ def object_to_dict(obj, include_properties):
 
     .. warning::
 
-        Current implementation serialize ``obj`` to a JSON string and then deserialize this JSON string to an instance
+        Current implementation serialize `obj` to a JSON string and then deserialize this JSON string to an instance
         of :class:`dict`.
 
     **Example usage**
@@ -391,8 +391,8 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     """
     Convert a python dictionary to an instance of a class.
 
-    Set ``inspect_constructor`` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
-    constructor (``__init__``) of ``cls``.
+    Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
+    constructor (`__init__`) of `cls`.
 
     **Example usage**
 
