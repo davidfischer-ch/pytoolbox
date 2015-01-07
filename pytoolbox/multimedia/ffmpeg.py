@@ -236,13 +236,13 @@ class FFmpeg(object):
         select.select([process.stderr], [], [])
         return process.stderr.read()
 
-    def _get_process(self, arguments):
+    def _get_process(self, arguments, **process_kwargs):
         """
         Return an encoding process with stderr made asynchronous.
 
         This function ensure subprocess.args is set to the arguments of the ffmpeg subprocess.
         """
-        process = Popen(arguments, stderr=PIPE, close_fds=True)
+        process = Popen(arguments, stderr=PIPE, close_fds=True, **process_kwargs)
         if not hasattr(process, 'args'):
             process.args = arguments
         make_async(process.stderr)
@@ -369,9 +369,12 @@ class FFmpeg(object):
     def get_size(self, path):
         return filesystem.get_size(path)
 
-    def encode(self, inputs, outputs, options=None, base_track=0, create_directories=True):
+    def encode(self, inputs, outputs, options=None, base_track=0, create_directories=True, process_kwargs=None,
+               yield_at_start=False):
         """
-        Encode a set of input files input to a set of output files.
+        Encode a set of input files input to a set of output files and yields statistics about the encoding.
+
+        * Toggle `yield_at_start` to yield a python dictionary with the process when it just started.
 
         .. note:: Current implementation only handles a unique output.
         """
@@ -384,7 +387,7 @@ class FFmpeg(object):
             for output in outputs:
                 output.create_directory()
 
-        process = self._get_process(arguments)
+        process = self._get_process(arguments, **(process_kwargs or {}))
         try:
             # Get input media duration and size to be able to estimate ETA
             in_duration = self.get_media_duration(inputs[base_track].filename) or self.default_in_duration
@@ -397,6 +400,8 @@ class FFmpeg(object):
             prev_ratio = prev_time = ratio = 0
 
             while True:
+                if yield_at_start:
+                    yield {'process': process}
                 # Wait for data to become available
                 chunk = self._get_chunk(process)
                 if not isinstance(chunk, string_types):
@@ -418,7 +423,7 @@ class FFmpeg(object):
                             elapsed_time=datetime.timedelta(seconds=elapsed_time), ratio=ratio, in_size=in_size,
                             in_duration=in_duration, out_size=self.get_size(outputs[0].filename),
                             out_duration=out_duration, frame=int(stats['frame']), fps=float(stats['fps']),
-                            bitrate=stats['bitrate'], quality=stats.get('q'), sanity=None
+                            bitrate=stats['bitrate'], quality=stats.get('q'), sanity=None, process=process
                         )
                 returncode = process.poll()
                 if returncode is not None:
@@ -435,7 +440,7 @@ class FFmpeg(object):
                 eta_time=datetime.timedelta(0), ratio=ratio if returncode else 1.0, in_size=in_size,
                 in_duration=in_duration, out_size=self.get_size(outputs[0].filename), out_duration=out_duration,
                 frame=frame, fps=fps, bitrate=stats.get('bitrate'), quality=stats.get('q'),
-                sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio
+                sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio, process=process
             )
         except Exception as exception:
             tb = sys.exc_info()[2]
