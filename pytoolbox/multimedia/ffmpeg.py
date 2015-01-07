@@ -181,6 +181,16 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
         return self.options + (['-i', self.filename] if is_input else [self.filename])
 
 
+class EncodingState(object):
+    STARTED = 'STARTED'
+    PROCESSING = 'PROCESSING'
+    SUCCESS = 'SUCCESS'
+    FAILURE = 'FAILURE'
+
+    ALL_STATES = frozenset([STARTED, PROCESSING, SUCCESS, FAILURE])
+    FINAL_STATES = frozenset(['SUCCESS', 'FAILURE'])
+
+
 class FFmpeg(object):
 
     duration_regex = DURATION_REGEX
@@ -189,6 +199,7 @@ class FFmpeg(object):
     parsing_executable = 'ffprobe'
     media_class = Media
     format_class = None
+    encoding_state_class = EncodingState
     stream_classes = {'audio': None, 'subtitle': None, 'video': None}
 
     def __init__(self, encoding_executable=None, parsing_executable=None,
@@ -258,7 +269,7 @@ class FFmpeg(object):
         return match.groupdict() if match else {}
 
     def _clean_statistics(self, stats, **statistics):
-        if 'eta_time' not in statistics:
+        if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
             elapsed_time, ratio = statistics['elapsed_time'], statistics['ratio']
             statistics['eta_time'] = elapsed_time * ((1.0 - ratio) / ratio) if ratio > 0 else datetime.timedelta(0)
         return statistics
@@ -369,12 +380,9 @@ class FFmpeg(object):
     def get_size(self, path):
         return filesystem.get_size(path)
 
-    def encode(self, inputs, outputs, options=None, base_track=0, create_directories=True, process_kwargs=None,
-               yield_at_start=False):
+    def encode(self, inputs, outputs, options=None, base_track=0, create_directories=True, process_kwargs=None):
         """
         Encode a set of input files input to a set of output files and yields statistics about the encoding.
-
-        * Toggle `yield_at_start` to yield a python dictionary with the process when it just started.
 
         .. note:: Current implementation only handles a unique output.
         """
@@ -400,8 +408,11 @@ class FFmpeg(object):
             prev_ratio = prev_time = ratio = 0
 
             while True:
-                if yield_at_start:
-                    yield {'process': process}
+                yield self._clean_statistics(
+                    stats=stats, elapsed_time=datetime.timedelta(seconds=time.time() - start_time),
+                    in_duration=in_duration, in_size=in_size, output=output, process=process, returncode=None,
+                    start_date=start_date, state=self.encoding_state_class.STARTED,
+                )
                 # Wait for data to become available
                 chunk = self._get_chunk(process)
                 if not isinstance(chunk, string_types):
@@ -419,11 +430,12 @@ class FFmpeg(object):
                             delta_time > self.max_time_delta):
                         prev_ratio, prev_time = ratio, elapsed_time
                         yield self._clean_statistics(
-                            stats=stats, status='PROGRESS', output=output, returncode=None, start_date=start_date,
-                            elapsed_time=datetime.timedelta(seconds=elapsed_time), ratio=ratio, in_size=in_size,
-                            in_duration=in_duration, out_size=self.get_size(outputs[0].filename),
-                            out_duration=out_duration, frame=int(stats['frame']), fps=float(stats['fps']),
-                            bitrate=stats['bitrate'], quality=stats.get('q'), sanity=None, process=process
+                            stats=stats, bitrate=stats['bitrate'],
+                            elapsed_time=datetime.timedelta(seconds=elapsed_time), fps=float(stats['fps']),
+                            frame=int(stats['frame']), in_duration=in_duration, in_size=in_size,
+                            out_duration=out_duration, out_size=self.get_size(outputs[0].filename), output=output,
+                            process=process, quality=stats.get('q'), ratio=ratio, returncode=None, sanity=None,
+                            start_date=start_date, state=self.encoding_state_class.PROCESSING
                         )
                 returncode = process.poll()
                 if returncode is not None:
@@ -435,12 +447,12 @@ class FFmpeg(object):
             frame = int(stats.get('frame', 0))  # FIXME compute latest frame based on output infos
             fps = float(stats.get('fps', 0))  # FIXME compute average fps
             yield self._clean_statistics(
-                stats=stats, status='ERROR' if returncode else 'SUCCESS', output=output, returncode=returncode,
-                start_date=start_date, elapsed_time=datetime.timedelta(seconds=elapsed_time),
-                eta_time=datetime.timedelta(0), ratio=ratio if returncode else 1.0, in_size=in_size,
-                in_duration=in_duration, out_size=self.get_size(outputs[0].filename), out_duration=out_duration,
-                frame=frame, fps=fps, bitrate=stats.get('bitrate'), quality=stats.get('q'),
-                sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio, process=process
+                stats=stats, bitrate=stats.get('bitrate'), elapsed_time=datetime.timedelta(seconds=elapsed_time),
+                eta_time=datetime.timedelta(0), fps=fps, frame=frame, in_duration=in_duration, in_size=in_size,
+                out_duration=out_duration, out_size=self.get_size(outputs[0].filename), output=output, process=process,
+                quality=stats.get('q'), ratio=ratio if returncode else 1.0, returncode=returncode,
+                sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio, start_date=start_date,
+                state=self.encoding_state_class.FAILURE if returncode else self.encoding_state_class.SUCCESS
             )
         except Exception as exception:
             tb = sys.exc_info()[2]

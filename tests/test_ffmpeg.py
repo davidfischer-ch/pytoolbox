@@ -179,15 +179,15 @@ class TestFFmpeg(unittest.TestCase):
     def test_encode(self):
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
         self.assertTrue(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1]['status'], 'SUCCESS')
+        self.assertEqual(results[-1]['state'], self.ffmpeg.encoding_state_class.SUCCESS)
 
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
         self.assertFalse(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1]['status'], 'ERROR')
+        self.assertEqual(results[-1]['state'], self.ffmpeg.encoding_state_class.FAILURE)
 
         results = list(self.ffmpeg.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
         self.assertFalse(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1]['status'], 'ERROR')
+        self.assertEqual(results[-1]['state'], self.ffmpeg.encoding_state_class.FAILURE)
 
     def test_get_arguments(self):
         eq = self.assertListEqual
