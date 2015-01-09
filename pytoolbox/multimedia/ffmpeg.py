@@ -407,12 +407,13 @@ class FFmpeg(object):
             start_date, start_time = self.get_now(), time.time()
             prev_ratio = prev_time = ratio = 0
 
+            yield self._clean_statistics(
+                stats=stats, elapsed_time=datetime.timedelta(seconds=time.time() - start_time), in_duration=in_duration,
+                in_size=in_size, output=output, process=process, returncode=None, start_date=start_date,
+                state=self.encoding_state_class.STARTED
+            )
+
             while True:
-                yield self._clean_statistics(
-                    stats=stats, elapsed_time=datetime.timedelta(seconds=time.time() - start_time),
-                    in_duration=in_duration, in_size=in_size, output=output, process=process, returncode=None,
-                    start_date=start_date, state=self.encoding_state_class.STARTED,
-                )
                 # Wait for data to become available
                 chunk = self._get_chunk(process)
                 if not isinstance(chunk, string_types):
