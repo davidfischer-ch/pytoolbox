@@ -46,9 +46,11 @@ ENCODING_REGEX = re.compile(
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 WIDTH, HEIGHT = range(2)
 
+PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
+
 
 def _is_pipe(filename):
-    return isinstance(filename, string_types) and ('-' in filename or filename.startswith('pipe:'))
+    return isinstance(filename, string_types) and PIPE_REGEX.match(filename)
 
 
 def _to_args_list(value):
