@@ -24,8 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, errno, json, math, numbers, os, re, select, shlex, sys, time
-from subprocess import check_output, Popen, PIPE
+import datetime, errno, json, math, numbers, os, re, select, shlex, subprocess, sys, time
 from xml.dom import minidom
 
 from .. import comparison, filesystem, validation
@@ -41,15 +40,19 @@ __all__ = (
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
-    r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+\.?\d*)\s+q=\s*(?P<q>\S+)\s+\S*size=\s*(?P<size>\S+)\s+'
+    r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+\.?\d*)\s+q=\s*(?P<q>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)'
 )
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 WIDTH, HEIGHT = range(2)
 
 
+def _is_pipe(filename):
+    return '-' in filename or filename.startswith('pipe:')
+
+
 def _to_args_list(value):
-    return (shlex.split(value) if isinstance(value, string_types) else value) or []
+    return shlex.split(value) if isinstance(value, string_types) else ['%s' % v for v in value] if value else []
 
 
 def _to_framerate(fps):
@@ -169,13 +172,22 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     @property
     def directory(self):
-        return os.path.abspath(os.path.dirname(self.filename))
+        return None if self.is_pipe else os.path.abspath(os.path.dirname(self.filename))
+
+    @property
+    def is_pipe(self):
+        return _is_pipe(self.filename)
+
+    @property
+    def size(self):
+        return 0 if self.is_pipe else filesystem.get_size(self.filename)
 
     def clean_options(self, value):
         return _to_args_list(value)
 
     def create_directory(self):
-        filesystem.try_makedirs(self.directory)
+        if not self.is_pipe:
+            filesystem.try_makedirs(self.directory)
 
     def to_args(self, is_input):
         return self.options + (['-i', self.filename] if is_input else [self.filename])
@@ -202,17 +214,17 @@ class FFmpeg(object):
     encoding_state_class = EncodingState
     stream_classes = {'audio': None, 'subtitle': None, 'video': None}
 
-    def __init__(self, encoding_executable=None, parsing_executable=None,
-                 default_in_duration=datetime.timedelta(seconds=0), ratio_delta=0.01, time_delta=1, max_time_delta=5,
-                 sanity_min_ratio=0.95, sanity_max_ratio=1.05, encoding='utf-8'):
+    def __init__(self, encoding_executable=None, parsing_executable=None, chunk_read_timeout=0.1,
+                 default_in_duration=datetime.timedelta(seconds=0), encode_poll_delay=0.1, ratio_delta=0.01,
+                 time_delta=1, max_time_delta=5, encoding='utf-8'):
         self.encoding_executable = encoding_executable or self.encoding_executable
         self.parsing_executable = parsing_executable or self.parsing_executable
+        self.chunk_read_timeout = chunk_read_timeout
         self.default_in_duration = default_in_duration
+        self.encode_poll_delay = encode_poll_delay
         self.ratio_delta = ratio_delta
         self.time_delta = time_delta
         self.max_time_delta = max_time_delta
-        self.sanity_min_ratio = sanity_min_ratio
-        self.sanity_max_ratio = sanity_max_ratio
         self.encoding = encoding
 
     def _clean_medias_argument(self, value):
@@ -244,7 +256,7 @@ class FFmpeg(object):
         return args, inputs, outputs, options
 
     def _get_chunk(self, process):
-        select.select([process.stderr], [], [])
+        select.select([process.stderr], [], [], self.chunk_read_timeout)
         return process.stderr.read()
 
     def _get_process(self, arguments, **process_kwargs):
@@ -253,7 +265,7 @@ class FFmpeg(object):
 
         This function ensure subprocess.args is set to the arguments of the ffmpeg subprocess.
         """
-        process = Popen(arguments, stderr=PIPE, close_fds=True, **process_kwargs)
+        process = subprocess.Popen(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
         if not hasattr(process, 'args'):
             process.args = arguments
         make_async(process.stderr)
@@ -302,15 +314,15 @@ class FFmpeg(object):
             if duration and (duration >= datetime.timedelta(seconds=1) if as_delta else
                              duration >= datetime.time(0, 0, 1)):
                 return duration
-        return None
 
     def get_media_infos(self, filename):
         """Return a Python dictionary containing informations about the media or None in case of error."""
-        try:
-            return json.loads(check_output([self.parsing_executable, '-v', 'quiet', '-print_format', 'json',
-                                            '-show_format', '-show_streams', filename]).decode('utf-8'))
-        except:
-            return None
+        if not _is_pipe(filename):  # Read media informations from a PIPE not yet implemented
+            try:
+                return json.loads(subprocess.check_output([self.parsing_executable, '-v', 'quiet', '-print_format',
+                                  'json', '-show_format', '-show_streams', filename]).decode('utf-8'))
+            except:
+                pass
 
     def get_media_format(self, filename_or_infos, fail=False):
         """Return informations about the container (and file) or None in case of error."""
@@ -321,7 +333,6 @@ class FFmpeg(object):
         except:
             if fail:
                 raise
-            return None
 
     def get_media_streams(self, filename_or_infos, condition=lambda stream: True, fail=False):
         infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
@@ -359,7 +370,6 @@ class FFmpeg(object):
         except:
             if fail:
                 raise
-            return None
 
     def get_video_resolution(self, filename_or_infos, index=0, fail=False):
         """
@@ -372,23 +382,17 @@ class FFmpeg(object):
         except:
             if fail:
                 raise
-            return None
 
     def get_now(self):
         return datetime_now()
 
-    def get_size(self, path):
-        return filesystem.get_size(path)
-
-    def encode(self, inputs, outputs, options=None, base_track=0, create_directories=True, process_kwargs=None):
+    def encode(self, inputs, outputs, options=None, in_base_index=0, out_base_index=0, create_directories=True,
+               process_poll=True, process_kwargs=None, yield_empty=False):
         """
         Encode a set of input files input to a set of output files and yields statistics about the encoding.
-
         .. note:: Current implementation only handles a unique output.
         """
         arguments, inputs, outputs, _ = self._get_arguments(inputs, outputs, options)
-        if len(outputs) != 1:
-            raise NotImplementedError()
 
         # Create outputs directories
         if create_directories:
@@ -398,8 +402,8 @@ class FFmpeg(object):
         process = self._get_process(arguments, **(process_kwargs or {}))
         try:
             # Get input media duration and size to be able to estimate ETA
-            in_duration = self.get_media_duration(inputs[base_track].filename) or self.default_in_duration
-            in_size = self.get_size(inputs[base_track].filename)
+            in_duration = self.get_media_duration(inputs[in_base_index].filename) or self.default_in_duration
+            in_size = inputs[in_base_index].size
 
             # Initialize metrics
             output = ''
@@ -416,43 +420,49 @@ class FFmpeg(object):
             while True:
                 # Wait for data to become available
                 chunk = self._get_chunk(process)
-                if not isinstance(chunk, string_types):
-                    chunk = chunk.decode(self.encoding)
-                output += chunk
+                if chunk is None:
+                    stats = None
+                else:
+                    if not isinstance(chunk, string_types):
+                        chunk = chunk.decode(self.encoding)
+                    output += chunk
+                    stats = self._get_statistics(chunk)
                 elapsed_time = time.time() - start_time
-                stats = self._get_statistics(chunk)
-                if stats:
-                    try:
-                        out_duration, ratio = self._get_progress(in_duration, stats)
-                    except ValueError:
-                        continue  # parsed statistics are broken, skip the whole match
-                    delta_time = elapsed_time - prev_time
-                    if ((ratio - prev_ratio > self.ratio_delta and delta_time > self.time_delta) or
-                            delta_time > self.max_time_delta):
-                        prev_ratio, prev_time = ratio, elapsed_time
+                try:
+                    out_duration, ratio = self._get_progress(in_duration, stats) if stats else (0, prev_ratio)
+                except ValueError:
+                    stats = {}  # parsed statistics are broken, do not yield it
+                delta_time = elapsed_time - prev_time
+                if ((ratio - prev_ratio > self.ratio_delta and delta_time > self.time_delta) or
+                        delta_time > self.max_time_delta):
+                    prev_ratio, prev_time = ratio, elapsed_time
+                    if stats:
                         yield self._clean_statistics(
                             stats=stats, bitrate=stats['bitrate'],
                             elapsed_time=datetime.timedelta(seconds=elapsed_time), fps=float(stats['fps']),
                             frame=int(stats['frame']), in_duration=in_duration, in_size=in_size,
-                            out_duration=out_duration, out_size=self.get_size(outputs[0].filename), output=output,
-                            process=process, quality=stats.get('q'), ratio=ratio, returncode=None, sanity=None,
-                            start_date=start_date, state=self.encoding_state_class.PROCESSING
+                            out_duration=out_duration, out_size=outputs[out_base_index].size, output=output,
+                            process=process, qscale=stats.get('q'), ratio=ratio, returncode=None, start_date=start_date,
+                            state=self.encoding_state_class.PROCESSING
                         )
-                returncode = process.poll()
-                if returncode is not None:
-                    break
+                    elif yield_empty:
+                        yield {}
+                if process_poll:
+                    returncode = process.poll()
+                    if returncode is not None:
+                        break
+                if self.encode_poll_delay:
+                    time.sleep(self.encode_poll_delay)
 
-            # Output media file sanity check
-            out_duration = self.get_media_duration(outputs[0].filename)
+            out_duration = self.get_media_duration(outputs[out_base_index].filename)
             ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
             frame = int(stats.get('frame', 0))  # FIXME compute latest frame based on output infos
             fps = float(stats.get('fps', 0))  # FIXME compute average fps
             yield self._clean_statistics(
                 stats=stats, bitrate=stats.get('bitrate'), elapsed_time=datetime.timedelta(seconds=elapsed_time),
                 eta_time=datetime.timedelta(0), fps=fps, frame=frame, in_duration=in_duration, in_size=in_size,
-                out_duration=out_duration, out_size=self.get_size(outputs[0].filename), output=output, process=process,
-                quality=stats.get('q'), ratio=ratio if returncode else 1.0, returncode=returncode,
-                sanity=self.sanity_min_ratio <= ratio <= self.sanity_max_ratio, start_date=start_date,
+                out_duration=out_duration, out_size=outputs[out_base_index].size, output=output, process=process,
+                qscale=stats.get('q'), ratio=ratio if returncode else 1.0, returncode=returncode, start_date=start_date,
                 state=self.encoding_state_class.FAILURE if returncode else self.encoding_state_class.SUCCESS
             )
         except Exception as exception:
