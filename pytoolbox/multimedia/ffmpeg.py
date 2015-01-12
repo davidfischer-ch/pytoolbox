@@ -48,7 +48,7 @@ WIDTH, HEIGHT = range(2)
 
 
 def _is_pipe(filename):
-    return '-' in filename or filename.startswith('pipe:')
+    return isinstance(filename, string_types) and ('-' in filename or filename.startswith('pipe:'))
 
 
 def _to_args_list(value):

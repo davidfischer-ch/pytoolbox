@@ -165,6 +165,7 @@ class RaiseFFmpeg(FFmpeg):
 class TestMedia(unittest.TestCase):
 
     def test_pipe(self):
+        self.assertFalse(Media(None).is_pipe)
         self.assertFalse(Media('test.mp4').is_pipe)
         for filename in '-', 'pipe:3':
             media = Media(filename)
