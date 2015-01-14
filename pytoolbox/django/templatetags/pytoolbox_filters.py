@@ -227,17 +227,19 @@ def status_label(value, autoescape=None, default=''):
 @register.filter(is_safe=True)
 def timedelta(value, string_format='%H:%M:%S'):
     """
-    Return a string with representation of the timedelta.
+    Return a string with representation of total seconds given timedelta or a number.
 
     Output::
 
+        6316.9|timedelta -> 01:45:17
         timedelta(0, 6317)|timedelta -> 01:45:17
         None|timedelta:"H:i:s.u" -> (empty string)
         (empty string)|timedelta -> (empty string)
     """
     if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    return time.strftime('%H:%M:%S', time.gmtime(value.total_seconds()))
+    seconds = value.total_seconds() if hasattr(value, 'total_seconds') else float(value)
+    return time.strftime('%H:%M:%S', time.gmtime(seconds))
 
 
 @register.filter
