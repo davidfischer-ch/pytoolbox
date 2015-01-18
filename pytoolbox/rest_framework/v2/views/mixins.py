@@ -24,20 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__all__ = ('MethodToQuerysetMixin', 'MethodToSerializerMixin')
+from ...v3.views.mixins import (
+    ActionToQuerysetMixin, ActionToSerializerMixin, MethodToQuerysetMixin, MethodToSerializerMixin
+)
 
-
-class MethodToQuerysetMixin(object):
-
-    querysets = {}
-
-    def get_queryset(self):
-        return self.querysets.get(self.request.method, self.queryset)
-
-
-class MethodToSerializerMixin(object):
-
-    serializers_classes = {}
-
-    def get_serializer_class(self):
-        return self.serializers_classes.get(self.request.method, self.serializer_class)
+__all__ = ('ActionToQuerysetMixin', 'ActionToSerializerMixin', 'MethodToQuerysetMixin', 'MethodToSerializerMixin')

@@ -24,7 +24,23 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__all__ = ('MethodToQuerysetMixin', 'MethodToSerializerMixin')
+__all__ = ('ActionToQuerysetMixin', 'ActionToSerializerMixin', 'MethodToQuerysetMixin', 'MethodToSerializerMixin')
+
+
+class ActionToQuerysetMixin(object):
+
+    querysets = {}
+
+    def get_queryset(self):
+        return self.querysets.get(self.action, self.queryset)
+
+
+class ActionToSerializerMixin(object):
+
+    serializers_classes = {}
+
+    def get_serializer_class(self):
+        return self.serializers_classes.get(self.action, self.serializer_class)
 
 
 class MethodToQuerysetMixin(object):

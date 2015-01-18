@@ -2,6 +2,25 @@
 changelog
 =========
 
+-----------------
+v9.7.2 -> v10.0.0
+-----------------
+
+Compatibility breaks
+====================
+
+* Method multimedia.ffmpeg.FFmpeg.encode always yields at start
+
+Features
+========
+
+* Add some mixins in rest_framework.v*.views.mixins
+
+Fixes and enhancements
+======================
+
+* Add class multimedia.ffmpeg.EncodingState
+
 ----------------
 v9.4.2 -> v9.7.2
 ----------------
