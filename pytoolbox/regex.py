@@ -26,9 +26,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import re
 
-__all__ = ('TIME_REGEX_PARTS', 'embed_in_regex', 'findall_partial')
+__all__ = ('TIME_REGEX_PARTS', 'UUID_REGEX', 'embed_in_regex', 'findall_partial')
 
 TIME_REGEX_PARTS = ['[0-2]', '[0-9]', ':', '[0-5]', '[0-9]', ':', '[0-5]', '[0-9]']
+UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
 
 def embed_in_regex(string, regex_parts, index, as_string=True):

@@ -24,8 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from ..regex import UUID_REGEX
+
 __all__ = ('INT_PK', 'UUID_PK')
 
 
 INT_PK = r'(?P<pk>\d+)'
-UUID_PK = r'(?P<pk>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'
+UUID_PK = r'(?P<pk>%s)' % UUID_REGEX
