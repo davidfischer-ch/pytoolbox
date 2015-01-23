@@ -24,11 +24,16 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import re
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FileField
+from django.db.utils import IntegrityError
 
-__all__ = ('AbsoluteUrlMixin', 'MapUniqueTogetherMixin', 'ReloadMixin', 'SaveInstanceFilesMixin', 'ValidateOnSaveMixin')
+__all__ = (
+    'AbsoluteUrlMixin', 'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin',
+    'ReloadMixin', 'SaveInstanceFilesMixin', 'ValidateOnSaveMixin'
+)
 
 
 class AbsoluteUrlMixin(object):
@@ -54,6 +59,24 @@ class MapUniqueTogetherMixin(object):
                 if field not in self.map_exclude_fields:
                     errors.setdefault(field, []).append(self.unique_error_message(error.params['model_class'], [field]))
         return errors
+
+
+class MapUniqueTogetherIntegrityErrorToValidationErrorMixin(object):
+
+    @property
+    def unique_together_set(self):
+        return [set(fields) for fields in self._meta.unique_together]
+
+    def save(self, *args, **kwargs):
+        try:
+            return super(MapUniqueTogetherIntegrityErrorToValidationErrorMixin, self).save(*args, **kwargs)
+        except IntegrityError as e:
+            match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
+            if match:
+                fields = set(f.strip().replace('_id', '') for f in match.groupdict()['fields'].split(','))
+                if fields in self.unique_together_set:
+                    raise self.unique_error_message(self.__class__, fields)
+            raise
 
 
 class ReloadMixin(object):
