@@ -423,7 +423,7 @@ class FFmpeg(object):
                 # Wait for data to become available
                 chunk = self._get_chunk(process)
                 if chunk is None:
-                    stats = None
+                    stats = {}
                 else:
                     if not isinstance(chunk, string_types):
                         chunk = chunk.decode(self.encoding)
