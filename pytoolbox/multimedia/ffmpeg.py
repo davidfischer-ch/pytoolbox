@@ -54,7 +54,7 @@ def _is_pipe(filename):
 
 
 def _to_args_list(value):
-    return shlex.split(value) if isinstance(value, string_types) else ['%s' % v for v in value] if value else []
+    return shlex.split(value) if isinstance(value, string_types) else (['%s' % v for v in value] if value else [])
 
 
 def _to_framerate(fps):
