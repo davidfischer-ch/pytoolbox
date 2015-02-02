@@ -27,12 +27,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import re
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
+from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
+from .. import exceptions
+
 __all__ = (
     'AbsoluteUrlMixin', 'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin',
-    'ReloadMixin', 'SaveInstanceFilesMixin', 'ValidateOnSaveMixin'
+    'ReloadMixin', 'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
 )
 
 
@@ -45,6 +48,21 @@ class AbsoluteUrlMixin(object):
         return reverse('{0}_{1}'.format(self.__class__.__name__.lower(),
                        suffix or ('update' if self.pk else 'create')),
                        kwargs={'pk': self.pk} if self.pk else None)
+
+
+class AlwaysUpdateFieldsMixin(object):
+    """
+    Ensure fields listed in the attribute ``self.always_update_fields`` are always updated by ``self.save()``.
+    Makes the usage of ``self.save(update_fields=...)`` cleaner.
+    """
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields:
+            update_fields = set(update_fields)
+            update_fields.update(self.always_update_fields)
+            kwargs['update_fields'] = update_fields
+        return super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
 
 
 class MapUniqueTogetherMixin(object):
@@ -102,6 +120,34 @@ class SaveInstanceFilesMixin(object):
                 setattr(self, name, value)
             kwargs['force_insert'] = False  # Do not force insert because we already saved the instance
         super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
+
+
+class UpdatePreconditionsMixin(object):
+
+    def apply_preconditions(self, base_qs, using, pk_val, values, update_fields, force_update):
+        if self._pre_excludes:
+            base_qs = base_qs.exclude(**self._pre_excludes)
+        if self._pre_filters:
+            base_qs = base_qs.filter(**self._pre_filters)
+        return base_qs, using, pk_val, values, update_fields, force_update
+
+    def pop_preconditions(self, *args, **kwargs):
+        self._pre_excludes = kwargs.pop('pre_excludes', {})
+        self._pre_filters = kwargs.pop('pre_filters', {})
+        return args, kwargs
+
+    def save(self, *args, **kwargs):
+        args, kwargs = self.pop_preconditions(*args, **kwargs)
+        try:
+            return super(UpdatePreconditionsMixin, self).save(*args, **kwargs)
+        except DatabaseError as e:
+            if 'update_fields did not affect' in '{0}'.format(e):
+                raise exceptions.DatabaseUpdatePreconditionsError()
+            raise
+
+    def _do_update(self, base_qs, using, pk_val, values, update_fields, force_update):
+        update = super(UpdatePreconditionsMixin, self)._do_update
+        return update(*self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update))
 
 
 class ValidateOnSaveMixin(object):
