@@ -24,18 +24,20 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re
+import itertools, re
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
 from django.db import DatabaseError
+from django.db.models import FieldDoesNotExist
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
 from .. import exceptions
 
 __all__ = (
-    'AbsoluteUrlMixin', 'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin',
-    'ReloadMixin', 'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
+    'AbsoluteUrlMixin', 'AlwaysUpdateFieldsMixin', 'AutoUpdateFieldsMixin', 'MapUniqueTogetherMixin',
+    'MapUniqueTogetherIntegrityErrorToValidationErrorMixin', 'ReloadMixin', 'SaveInstanceFilesMixin',
+    'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
 )
 
 
@@ -63,6 +65,55 @@ class AlwaysUpdateFieldsMixin(object):
             update_fields.update(self.always_update_fields)
             kwargs['update_fields'] = update_fields
         return super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
+
+
+class AutoUpdateFieldsMixin(object):
+    """
+    Keep track of what fields were set in order to make UPDATE queries lighter.
+
+    This mix-in comes with the following features:
+    * Foreign keys and the mutable types are correctly handled.
+    * Models with a primary key preset to a value before being saved in database are correctly handled.
+    * The return value of the overloaded methods is not swallowed but returned.
+
+    However this low-memory footprint mix-in also comes with some limitations, it does not:
+    * Store old fields values - you cannot know if the fields are really modified or not.
+    * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
+    * Detect fields with `auto_*_now=True` - you have to set `auto_fields` to those fields names.
+
+    Set `default_force_update` to True to raise a :class:`DatabaseError` if the UPDATE did not affect any rows. The
+    default avoids this exception but the instance is not protected from saving all rows in database instead of 0!
+    """
+
+    auto_fields = ()
+    default_force_update = False
+
+    def __init__(self, *args, **kwargs):
+        super(AutoUpdateFieldsMixin, self).__init__(*args, **kwargs)
+        self.setted_fields = set()
+
+    def __setattr__(self, name, value):
+        try:
+            # Check the instance is both initialized and already stored in DB
+            if hasattr(self, 'setted_fields') and not self._state.adding:
+                field, model, direct, m2m = self._meta.get_field_by_name(name)
+                # Check some properties of the field
+                if direct and not m2m and not field.primary_key:
+                    self.setted_fields.add(name)
+        except FieldDoesNotExist:  # The attribute is not a field
+            pass
+        return super(AutoUpdateFieldsMixin, self).__setattr__(name, value)
+
+    def get_auto_fields(self):
+        return self.auto_fields
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding and hasattr(self, 'fields_in_db') and not kwargs.get('force_insert'):
+            kwargs.setdefault('force_update', self.default_force_update)
+            kwargs.setdefault('update_fields', set(itertools.chain(self.setted_fields, self.get_auto_fields())))
+        returned = super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
+        self.setted_fields = set()
+        return returned
 
 
 class MapUniqueTogetherMixin(object):
