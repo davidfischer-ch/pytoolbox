@@ -70,17 +70,14 @@ class AlwaysUpdateFieldsMixin(object):
 class AutoUpdateFieldsMixin(object):
     """
     Keep track of what fields were set in order to make UPDATE queries lighter.
-
     This mix-in comes with the following features:
     * Foreign keys and the mutable types are correctly handled.
     * Models with a primary key preset to a value before being saved in database are correctly handled.
     * The return value of the overloaded methods is not swallowed but returned.
-
     However this low-memory footprint mix-in also comes with some limitations, it does not:
     * Store old fields values - you cannot know if the fields are really modified or not.
     * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
     * Detect fields with `auto_*_now=True` - you have to set `auto_fields` to those fields names.
-
     Set `default_force_update` to True to raise a :class:`DatabaseError` if the UPDATE did not affect any rows. The
     default avoids this exception but the instance is not protected from saving all rows in database instead of 0!
     """
@@ -90,29 +87,24 @@ class AutoUpdateFieldsMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(AutoUpdateFieldsMixin, self).__init__(*args, **kwargs)
-        self.setted_fields = set()
+        self._setted_fields = set()
+        self._fields_names = set(f.attname for f in self._meta.fields)
 
     def __setattr__(self, name, value):
-        try:
-            # Check the instance is both initialized and already stored in DB
-            if hasattr(self, 'setted_fields') and not self._state.adding:
-                field, model, direct, m2m = self._meta.get_field_by_name(name)
-                # Check some properties of the field
-                if direct and not m2m and not field.primary_key:
-                    self.setted_fields.add(name)
-        except FieldDoesNotExist:  # The attribute is not a field
-            pass
+        # Check the instance is both initialized and already stored in DB
+        if name in getattr(self, '_fields_names', set()) and not self._state.adding:
+            self._setted_fields.add(name)
         return super(AutoUpdateFieldsMixin, self).__setattr__(name, value)
 
     def get_auto_fields(self):
         return self.auto_fields
 
     def save(self, *args, **kwargs):
-        if not self._state.adding and hasattr(self, 'setted_fields') and not kwargs.get('force_insert'):
+        if not self._state.adding and not kwargs.get('force_insert'):
             kwargs.setdefault('force_update', self.default_force_update)
-            kwargs.setdefault('update_fields', set(itertools.chain(self.setted_fields, self.get_auto_fields())))
+            kwargs.setdefault('update_fields', set(itertools.chain(self._setted_fields, self.get_auto_fields())))
         returned = super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
-        self.setted_fields = set()
+        self._setted_fields = set()
         return returned
 
 
@@ -176,29 +168,35 @@ class SaveInstanceFilesMixin(object):
 class UpdatePreconditionsMixin(object):
 
     def apply_preconditions(self, base_qs, using, pk_val, values, update_fields, force_update):
-        if self._pre_excludes:
-            base_qs = base_qs.exclude(**self._pre_excludes)
-        if self._pre_filters:
-            base_qs = base_qs.filter(**self._pre_filters)
+        if hasattr(self, '_preconditions'):
+            pre_excludes, pre_filters = self._preconditions
+            del self._preconditions
+            if pre_excludes:
+                base_qs = base_qs.exclude(**pre_excludes)
+            if pre_filters:
+                base_qs = base_qs.filter(**pre_filters)
         return base_qs, using, pk_val, values, update_fields, force_update
 
     def pop_preconditions(self, *args, **kwargs):
-        self._pre_excludes = kwargs.pop('pre_excludes', {})
-        self._pre_filters = kwargs.pop('pre_filters', {})
-        return args, kwargs
+        self._preconditions = kwargs.pop('pre_excludes', {}), kwargs.pop('pre_filters', {})
+        return args, kwargs, any(self._preconditions)
 
     def save(self, *args, **kwargs):
-        args, kwargs = self.pop_preconditions(*args, **kwargs)
+        args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
         try:
             return super(UpdatePreconditionsMixin, self).save(*args, **kwargs)
         except DatabaseError as e:
-            if 'update_fields did not affect' in '{0}'.format(e):
+            if has_preconditions and 'did not affect' in '{0}'.format(e):
                 raise exceptions.DatabaseUpdatePreconditionsError()
             raise
 
     def _do_update(self, base_qs, using, pk_val, values, update_fields, force_update):
-        update = super(UpdatePreconditionsMixin, self)._do_update
-        return update(*self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update))
+        # FIXME _do_update is called once for each model in the inheritance hierarchy: Handle this!
+        args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
+        updated = super(UpdatePreconditionsMixin, self)._do_update(*args)
+        if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
+            raise exceptions.DatabaseUpdatePreconditionsError()
+        return updated
 
 
 class ValidateOnSaveMixin(object):
