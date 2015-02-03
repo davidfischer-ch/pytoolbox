@@ -67,6 +67,13 @@ class AlwaysUpdateFieldsMixin(object):
         return super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
 
 
+class AutoForceInsertMixin(object):
+
+    def save(self, *args, **kwargs):
+        kwargs.setdefault('force_insert', self._state.adding)
+        return super(AutoForceInsertMixin, self).save(*args, **kwargs)
+
+
 class AutoUpdateFieldsMixin(object):
     """
     Keep track of what fields were set in order to make UPDATE queries lighter.
