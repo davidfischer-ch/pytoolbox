@@ -77,14 +77,17 @@ class AutoForceInsertMixin(object):
 class AutoUpdateFieldsMixin(object):
     """
     Keep track of what fields were set in order to make UPDATE queries lighter.
+
     This mix-in comes with the following features:
     * Foreign keys and the mutable types are correctly handled.
     * Models with a primary key preset to a value before being saved in database are correctly handled.
     * The return value of the overloaded methods is not swallowed but returned.
+
     However this low-memory footprint mix-in also comes with some limitations, it does not:
     * Store old fields values - you cannot know if the fields are really modified or not.
     * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
     * Detect fields with `auto_*_now=True` - you have to set `auto_fields` to those fields names.
+
     Set `default_force_update` to True to raise a :class:`DatabaseError` if the UPDATE did not affect any rows. The
     default avoids this exception but the instance is not protected from saving all rows in database instead of 0!
     """
