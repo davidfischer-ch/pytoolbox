@@ -108,7 +108,7 @@ class AutoUpdateFieldsMixin(object):
         return self.auto_fields
 
     def save(self, *args, **kwargs):
-        if not self._state.adding and hasattr(self, 'fields_in_db') and not kwargs.get('force_insert'):
+        if not self._state.adding and hasattr(self, 'setted_fields') and not kwargs.get('force_insert'):
             kwargs.setdefault('force_update', self.default_force_update)
             kwargs.setdefault('update_fields', set(itertools.chain(self.setted_fields, self.get_auto_fields())))
         returned = super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
