@@ -27,7 +27,26 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import collections, math
 from .datetime import total_seconds
 
-__all__ = ('pygal_deque', 'window', 'EventsTable')
+__all__ = ('flatten_dict', 'pygal_deque', 'window', 'EventsTable')
+
+
+def flatten_dict(the_dict, key_template='{0}.{1}'):
+    """
+    Flatten the keys of a nested dictionary.
+
+    **Example usage**
+
+    >>> from nose.tools import eq_
+    >>> eq_(flatten_dict({'a': 'b', 'c': 'd'}), {'a': 'b', 'c': 'd'})
+    >>> eq_(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}), {'a.b.c': ['d', 'e'], 'a.f': 'g'})
+    >>> eq_(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}'), {'c-b-a': ['d', 'e'], 'f-a': 'g'})
+    """
+    def expand_item(key, value):
+        if isinstance(value, dict):
+            return [(key_template.format(key, k), v) for k, v in flatten_dict(value, key_template).items()]
+        else:
+            return [(key, value)]
+    return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
 class pygal_deque(collections.deque):
