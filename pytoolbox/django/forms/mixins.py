@@ -28,9 +28,16 @@ from django.forms import fields
 from . import utils, widgets
 
 __all__ = (
-    'HelpTextToPlaceholderMixin', 'MapErrorsMixin', 'ModelBasedFormCleanupMixin', 'RequestMixin',
+    'EnctypeMixin', 'HelpTextToPlaceholderMixin', 'MapErrorsMixin', 'ModelBasedFormCleanupMixin', 'RequestMixin',
     'UpdateWidgetAttributeMixin'
 )
+
+
+class EnctypeMixin(object):
+
+    @property
+    def enctype(self):
+        return 'multipart/form-data' if self.is_multipart() else 'application/x-www-form-urlencoded'
 
 
 class HelpTextToPlaceholderMixin(object):
