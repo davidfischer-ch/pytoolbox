@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.views.generic.edit import DeleteView
@@ -60,6 +61,50 @@ class CancellableDeleteView(DeleteView):
         if 'cancel' in request.POST:
             return HttpResponseRedirect(self.success_url)
         return super(CancellableDeleteView, self).post(request, *args, **kwargs)
+
+
+class InitialMixin(object):
+    """Add helpers to safely use the URL query string to fill a form with initial values."""
+
+    initials = {}
+
+    def get_initial(self):
+        initial = super(InitialMixin, self).get_initial()
+        for name, default in self.initials.items():
+            self.set_inital(initial, name, default)
+        return initial
+
+    def set_inital(self, initial, name, default):
+        initial[name] = value = self.request.GET.get(name, default)
+        return value
+
+    def set_initial_from_func(self, initial, name, default, func, msg_value, mgs_missing):
+        value = self.request.GET.get(name, default)
+        if value is not default:
+            try:
+                value = func(value)
+            except ValueError:
+                messages.error(self.request, '{0} - {1}.'.format(name, msg_value))
+                return None
+            except KeyError:
+                messages.error(self.request, '{0} - {1}.'.format(name, mgs_missing))
+                return None
+        initial[name] = value
+        return value
+
+    def set_initial_from_model(self, initial, name, default, model, msg_value, mgs_missing):
+        value = self.request.GET.get(name, default)
+        if value is not default:
+            try:
+                value = model.objects.for_user(self.request.user).get(pk=value)
+            except ValueError:
+                messages.error(self.request, '{0} - {1}.'.format(name, msg_value))
+                return None
+            except model.DoesNotExist:
+                messages.error(self.request, '{0} - {1}.'.format(name, mgs_missing))
+                return None
+        initial[name] = value
+        return value
 
 
 class LoggedCookieMixin(object):
