@@ -216,8 +216,8 @@ class FFmpeg(object):
     encoding_state_class = EncodingState
     stream_classes = {'audio': None, 'subtitle': None, 'video': None}
 
-    def __init__(self, encoding_executable=None, parsing_executable=None, chunk_read_timeout=0.1,
-                 default_in_duration=datetime.timedelta(seconds=0), encode_poll_delay=0.1, ratio_delta=0.01,
+    def __init__(self, encoding_executable=None, parsing_executable=None, chunk_read_timeout=0.5,
+                 default_in_duration=datetime.timedelta(seconds=0), encode_poll_delay=0.5, ratio_delta=0.01,
                  time_delta=1, max_time_delta=5, encoding='utf-8'):
         self.encoding_executable = encoding_executable or self.encoding_executable
         self.parsing_executable = parsing_executable or self.parsing_executable
@@ -259,7 +259,12 @@ class FFmpeg(object):
 
     def _get_chunk(self, process):
         select.select([process.stderr], [], [], self.chunk_read_timeout)
-        return process.stderr.read()
+        try:
+            return process.stderr.read()
+        except IOError as e:
+            if e.errno == errno.EAGAIN:
+                return None
+            raise
 
     def _get_process(self, arguments, **process_kwargs):
         """
