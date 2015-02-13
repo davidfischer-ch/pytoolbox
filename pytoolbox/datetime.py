@@ -137,13 +137,13 @@ def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     try:
         delta = datetime.timedelta(seconds=float(value))
         return delta if as_delta else (datetime.datetime.min + delta).time()
-    except (TypeError, ValueError):
+    except (ValueError, TypeError):
         if defaults_to_zero and not value:
             return datetime.timedelta(seconds=0) if as_delta else datetime.time(second=0)
         return None
 
 
-def str_to_time(value):
+def str_to_time(value, defaults_to_zero=False, as_delta=False):
     """
     Return the string of format 'hh:mm:ss' into an instance of time.
 
@@ -153,11 +153,29 @@ def str_to_time(value):
     datetime.time(8, 23, 57)
     >>> str_to_time('00:03:02.12')
     datetime.time(0, 3, 2, 120)
+    >>> str_to_time(None)
+    >>> str_to_time(None, defaults_to_zero=True)
+    datetime.time(0, 0)
+
+    >>> str_to_time('08:23:57', as_delta=True)
+    datetime.timedelta(0, 30237)
+    >>> str_to_time('00:03:02.12', as_delta=True)
+    datetime.timedelta(0, 182, 120000)
+    >>> str_to_time(None, as_delta=True)
+    >>> str_to_time(None, defaults_to_zero=True, as_delta=True)
+    datetime.timedelta(0)
     """
-    hours, minutes, seconds_float = value.split(':')
-    seconds_float = float(seconds_float)
-    seconds = int(seconds_float)
-    return datetime.time(int(hours), int(minutes), seconds, int(1000 * (seconds_float - seconds)))
+    try:
+        hours, minutes, seconds_float = value.split(':')
+        hours, minutes, seconds_float = int(hours), int(minutes), float(seconds_float)
+        if as_delta:
+            return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds_float)
+        seconds = int(seconds_float)
+        return datetime.time(hours, minutes, seconds, int(1000 * (seconds_float - seconds)))
+    except (AttributeError, TypeError, ValueError):
+        if defaults_to_zero and not value:
+            return datetime.timedelta(seconds=0) if as_delta else datetime.time(second=0)
+        return None
 
 
 def time_ratio(numerator, denominator, zero_div_result=1.0):
