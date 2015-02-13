@@ -290,7 +290,8 @@ class FFmpeg(object):
     def _clean_statistics(self, stats, **statistics):
         if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
             elapsed_time, ratio = statistics['elapsed_time'], statistics['ratio']
-            statistics['eta_time'] = elapsed_time * ((1.0 - ratio) / ratio) if ratio > 0 else datetime.timedelta(0)
+            eta_secs = elapsed_time.total_seconds() * ((1.0 - ratio) / ratio) if ratio > 0 else 0
+            statistics['eta_time'] = datetime.timedelta(eta_secs)
         return statistics
 
     def get_media_duration(self, filename_or_infos, as_delta=False):
