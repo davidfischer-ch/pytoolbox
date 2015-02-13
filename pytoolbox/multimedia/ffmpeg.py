@@ -233,8 +233,8 @@ class FFmpeg(object):
         """
         Return a list of Media instances from passed value. Value can be one or multiple instances of string or Media.
         """
-        values = [value] if isinstance(value, (string_types, Media)) else value
-        return [self.media_class(v) if isinstance(v, string_types) else v for v in values] if values else []
+        values = [value] if isinstance(value, (string_types, self.media_class)) else value
+        return [self.to_media(v) for v in values] if values else []
 
     def _get_arguments(self, inputs, outputs, options=None):
         """
@@ -294,17 +294,16 @@ class FFmpeg(object):
             statistics['eta_time'] = datetime.timedelta(eta_secs)
         return statistics
 
-    def get_media_duration(self, filename_or_infos, as_delta=False):
+    def get_media_duration(self, media, as_delta=False, options=None):
         """
         Returns the duration of a media as an instance of time or None in case of error.
 
-        If input `filename` is a MPEG-DASH MPD, then duration will be parser from value of key
-        *mediaPresentationDuration*. For any other type of file, this is a *ffprobe* subprocess
-        that detect duration of the media.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
+        If `media` is the path to a MPEG-DASH MPD, then duration will be parser from value of key
+        *mediaPresentationDuration*.
         """
-        is_filename = not isinstance(filename_or_infos, dict)
-        if is_filename and os.path.splitext(filename_or_infos)[1] == '.mpd':
-            mpd = minidom.parse(filename_or_infos)
+        if isinstance(media, string_types) and os.path.splitext(media)[1] == '.mpd':
+            mpd = minidom.parse(media)
             if mpd.firstChild.nodeName == 'MPD':
                 match = self.duration_regex.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
                 if match is not None:
@@ -313,7 +312,7 @@ class FFmpeg(object):
                     microseconds, seconds = int(1000000 * microseconds), int(seconds)
                     return parts_to_time(hours, minutes, seconds, microseconds, as_delta=as_delta)
         else:
-            infos = self.get_media_infos(filename_or_infos) if is_filename else filename_or_infos
+            infos = self.get_media_infos(media)
             try:
                 duration = secs_to_time(float(infos['format']['duration']), as_delta=as_delta) if infos else None
             except KeyError:
@@ -323,18 +322,28 @@ class FFmpeg(object):
                              duration >= datetime.time(0, 0, 1)):
                 return duration
 
-    def get_media_infos(self, filename):
-        """Return a Python dictionary containing informations about the media or None in case of error."""
-        if not _is_pipe(filename):  # Read media informations from a PIPE not yet implemented
+    def get_media_infos(self, media):
+        """
+        Return a Python dictionary containing informations about the media or None in case of error.
+        Set `media` to an instance of `self.media_class` or a filename.
+        If `media` is a Python dictionary, then it is returned.
+        """
+        if isinstance(media, dict):
+            return media
+        media = self.to_media(media)
+        if not _is_pipe(media.filename):  # Read media informations from a PIPE not yet implemented
             try:
                 return json.loads(subprocess.check_output([self.parsing_executable, '-v', 'quiet', '-print_format',
-                                  'json', '-show_format', '-show_streams', filename]).decode('utf-8'))
+                                  'json', '-show_format', '-show_streams', media.filename]).decode('utf-8'))
             except:
                 pass
 
-    def get_media_format(self, filename_or_infos, fail=False):
-        """Return informations about the container (and file) or None in case of error."""
-        infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
+    def get_media_format(self, media, fail=False):
+        """
+        Return informations about the container (and file) or None in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
+        """
+        infos = self.get_media_infos(media)
         try:
             cls, the_format = self.format_class, infos['format']
             return cls(the_format) if cls and not isinstance(the_format, cls) else the_format
@@ -342,8 +351,12 @@ class FFmpeg(object):
             if fail:
                 raise
 
-    def get_media_streams(self, filename_or_infos, condition=lambda stream: True, fail=False):
-        infos = filename_or_infos if isinstance(filename_or_infos, dict) else self.get_media_infos(filename_or_infos)
+    def get_media_streams(self, media, condition=lambda stream: True, fail=False):
+        """
+        Return a list with the media streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
+        """
+        infos = self.get_media_infos(media)
         try:
             raw_streams = (s for s in infos['streams'] if condition(s))
         except:
@@ -356,35 +369,46 @@ class FFmpeg(object):
             streams.append(stream_class(stream) if stream_class and not isinstance(stream, stream_class) else stream)
         return streams
 
-    def get_audio_streams(self, filename_or_infos, fail=False):
-        """Return a list with the audio streams `filename_or_infos` or [] in case of error."""
-        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
-
-    def get_subtitle_streams(self, filename_or_infos, fail=False):
-        """Return a list with the subtitle streams `filename_or_infos` or [] in case of error."""
-        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
-
-    def get_video_streams(self, filename_or_infos, fail=False):
-        """Return a list with the video streams `filename_or_infos` or [] in case of error."""
-        return self.get_media_streams(filename_or_infos, condition=lambda s: s['codec_type'] == 'video', fail=fail)
-
-    def get_video_framerate(self, filename_or_infos, index=0, fail=False):
+    def get_audio_streams(self, media, fail=False):
         """
-        Return the frame rate of the video stream at `index` in `filename_or_infos` or None in case of error.
+        Return a list with the audio streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
+        """
+        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
+
+    def get_subtitle_streams(self, media, fail=False):
+        """
+        Return a list with the subtitle streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
+        """
+        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
+
+    def get_video_streams(self, media, fail=False):
+        """
+        Return a list with the video streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
+        """
+        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'video', fail=fail)
+
+    def get_video_framerate(self, media, index=0, fail=False):
+        """
+        Return the frame rate of the video stream at `index` in `media` or None in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
         """
         try:
-            stream = self.get_video_streams(filename_or_infos)[index]
+            stream = self.get_video_streams(media)[index]
             return _to_framerate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
         except:
             if fail:
                 raise
 
-    def get_video_resolution(self, filename_or_infos, index=0, fail=False):
+    def get_video_resolution(self, media, index=0, fail=False):
         """
-        Return [width, height] of the video stream at `index` in `filename_or_infos` or None in case of error.
+        Return [width, height] of the video stream at `index` in `media` or None in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_infos()`.
         """
         try:
-            stream = self.get_video_streams(filename_or_infos)[index]
+            stream = self.get_video_streams(media)[index]
             is_dict = isinstance(stream, dict)
             return [int(stream['width']), int(stream['height'])] if is_dict else [stream.width, stream.height]
         except:
@@ -394,11 +418,13 @@ class FFmpeg(object):
     def get_now(self):
         return datetime_now()
 
+    def to_media(self, media):
+        return media if isinstance(media, self.media_class) else self.media_class(media)
+
     def encode(self, inputs, outputs, options=None, in_base_index=0, out_base_index=0, create_directories=True,
                process_poll=True, process_kwargs=None, yield_empty=False):
         """
         Encode a set of input files input to a set of output files and yields statistics about the encoding.
-        .. note:: Current implementation only handles a unique output.
         """
         arguments, inputs, outputs, _ = self._get_arguments(inputs, outputs, options)
 
