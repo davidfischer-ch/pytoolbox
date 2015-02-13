@@ -292,6 +292,23 @@ class TestFFmpeg(unittest.TestCase):
         self.assertListEqual(process.args, [STATIC_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
         process.terminate()
 
+    def test_get_subclip_duration_and_size(self):
+        eq, subclip = self.assertTupleEqual, self.ffmpeg._get_subclip_duration_and_size
+        duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
+        sub_dur_1 = datetime.timedelta(seconds=3610.2)
+        sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
+        sub_dur_3 = datetime.timedelta(minutes=40, seconds=36.3)
+        sub_dur_4 = datetime.timedelta(0)
+        eq(subclip(duration, 512 * 1024, []), (duration, 512 * 1024))
+        eq(subclip(duration, 512 * 1024, ['-t']), (duration, 512 * 1024))
+        eq(subclip(duration, 512 * 1024, ['-t', '-t']), (duration, 512 * 1024))
+        eq(subclip(duration, 512 * 1024, ['-t', '3610.2']), (sub_dur_1, 348162))
+        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8']), (sub_dur_2, 464428))
+        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '00:50:00.2']), (sub_dur_3, 234953))
+        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '01:30:36.5']), (sub_dur_4, 0))
+        eq(subclip(duration, 512 * 1024, ['-ss', '01:30:53']), (sub_dur_4, 0))
+        eq(subclip(duration, 512 * 1024, ['-t', '02:00:00.0']), (duration, 512 * 1024))
+
     def test_get_video_streams(self):
         self.ffmpeg.stream_classes['video'] = None
         streams = self.ffmpeg.get_video_streams('small.mp4')

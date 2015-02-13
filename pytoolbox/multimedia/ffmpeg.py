@@ -283,6 +283,23 @@ class FFmpeg(object):
         ratio = time_ratio(out_duration, in_duration)
         return out_duration, ratio
 
+    def _get_subclip_duration_and_size(self, duration, size, options):
+        """Adjust duration and size if we only encode a sub-clip."""
+        def to_time(t):
+            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
+        try:
+            sub_pos = to_time(options[options.index('-ss') + 1]) or datetime.timedelta(0)
+        except (IndexError, ValueError):
+            sub_pos = datetime.timedelta(0)
+        try:
+            sub_dur = to_time(options[options.index('-t') + 1])
+        except (IndexError, ValueError):
+            sub_dur = duration
+        if sub_dur is not None:
+            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
+            return sub_dur, int(size * time_ratio(sub_dur, duration))
+        return duration, size
+
     def _get_statistics(self, chunk):
         match = self.encoding_regex.match(chunk)
         return match.groupdict() if match else {}
@@ -426,16 +443,16 @@ class FFmpeg(object):
         """
         Encode a set of input files input to a set of output files and yields statistics about the encoding.
         """
-        arguments, inputs, outputs, _ = self._get_arguments(inputs, outputs, options)
+        arguments, inputs, outputs, options = self._get_arguments(inputs, outputs, options)
 
         # Create outputs directories
         if create_directories:
             for output in outputs:
                 output.create_directory()
 
-        # Get input media duration and size to be able to estimate ETA
-        in_duration = self.get_media_duration(inputs[in_base_index]) or self.default_in_duration
-        in_size = inputs[in_base_index].size
+        # Get input media duration and size to be able to estimate ETA, handle sub-clipping
+        duration = self.get_media_duration(inputs[in_base_index], as_delta=True) or self.default_in_duration
+        in_duration, in_size = self._get_subclip_duration_and_size(duration, inputs[in_base_index].size, options)
 
         # Initialize metrics
         output = ''
@@ -486,7 +503,7 @@ class FFmpeg(object):
                 if self.encode_poll_delay:
                     time.sleep(self.encode_poll_delay)
 
-            out_duration = self.get_media_duration(outputs[out_base_index].filename)
+            out_duration = self.get_media_duration(outputs[out_base_index].filename, as_delta=True)
             ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
             frame = int(stats.get('frame', 0))  # FIXME compute latest frame based on output infos
             fps = float(stats.get('fps', 0))  # FIXME compute average fps
