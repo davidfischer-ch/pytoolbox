@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, httplib, inspect, re, socket, sys, uuid
+import errno, httplib, inspect, os, re, socket, sys, uuid
 from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
 
@@ -104,7 +104,7 @@ if sys.version_info[0] > 2:
                 default = inspect.signature(self.__init__).parameters[name].default
                 if value != default:
                     assert isinstance(value, the_type), (
-                        'Attribute %s must be set to an instance of %s' % (name, the_type))
+                        'Attribute {0} must be set to an instance of {1}'.format(name, the_type))
             super().__setattr__(name, value)
 
 
@@ -330,5 +330,5 @@ def validate_list(the_list, regexes):
                          len(the_list), len(regexes))))
     for i in xrange(len(regexes)):
         if not re.match(regexes[i], text_type(the_list[i])):
-            raise ValueError(to_bytes('N°{0} is invalid:\n\telement: {1}\n\tregex:   {2}'.format(
-                             i+1, the_list[i], regexes[i])))
+            raise ValueError(to_bytes('N°{1} is invalid:{0}\telement: {2}{0}\tregex:   {3}'.format(
+                             os.linesep, i+1, the_list[i], regexes[i])))

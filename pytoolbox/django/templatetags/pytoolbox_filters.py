@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re, time
+import os, re, time
 from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -175,15 +175,15 @@ def rst_title(value, level):
     value, level = to_unicode(value), to_unicode(level)
     length = len(value)
     if level in ('1', 'document'):
-        return '{0}\n{1}\n{2}\n'.format('=' * length, value, '=' * length)
+        return '{1}{0}{2}{0}{3}{0}'.format(os.linesep, '=' * length, value, '=' * length)
     elif level in ('2', 'subtitle'):
-        return '{0}\n{1}\n{2}\n'.format('-' * length, value, '-' * length)
+        return '{1}{0}{2}{0}{3}{0}'.format(os.linesep, '-' * length, value, '-' * length)
     elif level in ('3', 'chapter'):
-        return '{0}\n{1}\n'.format(value, '=' * length)
+        return '{1}{0}{2}{0}'.format(os.linesep, value, '=' * length)
     elif level in ('4', 'section'):
-        return '{0}\n{1}\n'.format(value, '-' * length)
+        return '{1}{0}{2}{0}'.format(os.linesep, value, '-' * length)
     elif level in ('5', 'subsection'):
-        return '{0}\n{1}\n'.format(value, '~' * length)
+        return '{1}{0}{2}{0}'.format(os.linesep, value, '~' * length)
     return settings.TEMPLATE_STRING_IF_INVALID
 
 

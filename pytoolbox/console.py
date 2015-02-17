@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
+import os, sys
 
 __all__ = ('confirm', 'choice', 'print_error', 'progress_bar')
 
@@ -57,7 +57,7 @@ def confirm(question=None, default=False, stream=sys.stdout):
             return True
         elif answer.lower() in ('n', 'no'):
             return False
-        stream.write('please enter y(es) or n(o).\n')
+        stream.write('please enter y(es) or n(o).' + os.linesep)
 
 
 def choice(question='', choices=[], stream=sys.stdout):
@@ -86,7 +86,7 @@ def choice(question='', choices=[], stream=sys.stdout):
         ans = raw_input(question)
         if ans in choices:
             return ans
-        stream.write('Please choose between {0}.\n'.format(choices_string))
+        stream.write('Please choose between {1}.{0}'.format(os.linesep, choices_string))
 
 
 def print_error(message, exit_code=1, stream=sys.stderr):
@@ -100,7 +100,7 @@ def print_error(message, exit_code=1, stream=sys.stderr):
     >>> print_error(u"It's not a bug - it's an undocumented feature.", exit_code=None, stream=sys.stdout)
     [ERROR] It's not a bug - it's an undocumented feature.
     """
-    stream.write('[ERROR] {0}\n'.format(message))
+    stream.write('[ERROR] {1}{0}'.format(os.linesep, message))
     if exit_code is not None:
         sys.exit(exit_code)
 

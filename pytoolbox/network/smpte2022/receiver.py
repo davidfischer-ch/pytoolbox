@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import os
 from collections import defaultdict
 
 from .base import FecPacket
@@ -131,8 +132,8 @@ class FecReceiver(object):
     ER_COL_OVERWRITE = 'Another column FEC packet is already registered to protect media packet n°{0}'
     ER_ROW_MISMATCH = 'Row FEC packet n°{0}, expected n°{1}'
     ER_ROW_OVERWRITE = 'Another row FEC packet is already registered to protect media packet n°{0}'
-    ER_GET_COL_CASCADE = 'Column FEC cascade : Unable to compute sequence # of the media packet to recover\n{0}\n'
-    ER_GET_ROW_CASCADE = 'Row FEC cascade : Unable to compute sequence # of the media packet to recover\n{0}\n'
+    ER_GET_COL_CASCADE = 'Column FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
+    ER_GET_ROW_CASCADE = 'Row FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
     ER_NULL_COL_CASCADE = 'Column FEC cascade : Unable to find linked entry in crosses buffer'
     ER_NULL_ROW_CASCADE = 'Row FEC cascade : Unable to find linked entry in crosses buffer'
     ER_STARTUP = 'Current position still not initialized (startup state)'
@@ -440,11 +441,11 @@ class FecReceiver(object):
                         self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_col)
                     else:
                         raise NotImplementedError(
-                            to_bytes('recover_media_packet({0}, {1}, {2}):\n{3}\nmedia sequence : {4}\n{5}\n'.format(
-                                     media_sequence, cross, fec, FecReceiver.ER_NULL_COL_CASCADE,
+                            to_bytes('recover_media_packet({1}, {2}, {3}):{0}{4}{0}media sequence : {5}{0}{6}{0}'
+                                     .format(os.linesep, media_sequence, cross, fec, FecReceiver.ER_NULL_COL_CASCADE,
                                      cascade_media_sequence, fec_col)))
                 else:
-                    raise NotImplementedError(to_bytes(FecReceiver.ER_GET_COL_CASCADE.format(fec_col)))
+                    raise NotImplementedError(to_bytes(FecReceiver.ER_GET_COL_CASCADE.format(os.linesep, fec_col)))
 
         if fec_row:
             if len(fec_row.missing) == 1:
@@ -456,11 +457,11 @@ class FecReceiver(object):
                         self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_row)
                     else:
                         raise NotImplementedError(
-                            to_bytes('{0}\nrecover_media_packet({1}, {2}, {3}):\nmedia sequence : {4}\n{5}\n'.format(
-                                     FecReceiver.ER_NULL_ROW_CASCADE, media_sequence, cross, fec,
+                            to_bytes('{1}{0}recover_media_packet({2}, {3}, {4}):{0}media sequence : {5}{0}{6}{0}'
+                                     .format(os.linesep, FecReceiver.ER_NULL_ROW_CASCADE, media_sequence, cross, fec,
                                      cascade_media_sequence, fec_row)))
                 else:
-                    raise NotImplementedError(to_bytes(FecReceiver.ER_GET_ROW_CASCADE.format(fec_row)))
+                    raise NotImplementedError(to_bytes(FecReceiver.ER_GET_ROW_CASCADE.format(os.linesep, fec_row)))
 
     def out(self):
         """Extract packets to output in order to keep a 'certain' amount of them in the buffer."""
@@ -519,17 +520,17 @@ class FecReceiver(object):
         """
         delayFormat = '%.0f' if self.delay_units == FecReceiver.PACKETS else '%.2f'
         mDelay = (delayFormat % self.current_delay) + ' ' + FecReceiver.DELAY_NAMES[self.delay_units]
-        return ("Name  Received Buffered Maximum Dropped\n"
-                "Media %8d%9d%8d\n"
-                "Col   %8d%9d%8d%8d\n"
-                "Row   %8d%9d%8d%8d\n"
-                "Cross         %9d%8d\n"
-                "FEC statistics, media packets :\n"
-                "Recovered Aborted Overwritten Missing\n"
-                "%9d%8d%12d%8d\n"
-                "Current position (media sequence) : %s\n"
-                "Current delay (can be set) : %s\n"
-                "FEC matrix size (LxD) : %sx%s = %s packets" %
+        return ("Name  Received Buffered Maximum Dropped{0}"
+                "Media %8d%9d%8d{0}"
+                "Col   %8d%9d%8d%8d{0}"
+                "Row   %8d%9d%8d%8d{0}"
+                "Cross         %9d%8d{0}"
+                "FEC statistics, media packets :{0}"
+                "Recovered Aborted Overwritten Missing{0}"
+                "%9d%8d%12d%8d{0}"
+                "Current position (media sequence) : %s{0}"
+                "Current delay (can be set) : %s{0}"
+                "FEC matrix size (LxD) : %sx%s = %s packets".format(os.linesep) %
                 (self.media_received, len(self.medias), self.max_media,
                  self.col_received, len(self.cols), self.max_col, self.col_dropped,
                  self.row_received, len(self.rows), self.max_row, self.row_dropped,

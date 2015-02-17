@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import os
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.db import connections, DEFAULT_DB_ALIAS
@@ -46,8 +47,8 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
         if exc_type is None:
             executed = len(self)
             self.test_case.assertIn(
-                executed, self.range, '{0} queries executed, {1.range} expected\nCaptured queries were:\n{2}'.format(
-                    executed, self, '\n'.join(query['sql'] for query in self.captured_queries)
+                executed, self.range, '{1} queries executed, {2.range} expected{0}Captured queries were:{0}{3}'.format(
+                    os.linesep, executed, self, os.linesep.join(query['sql'] for query in self.captured_queries)
                 )
             )
 

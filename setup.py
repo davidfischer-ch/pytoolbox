@@ -25,7 +25,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
+import os, sys
 from codecs import open
 from setuptools import setup, find_packages
 
@@ -130,7 +130,7 @@ setup(name='pytoolbox',
       author_email='david.fischer.ch@gmail.com',
       url='https://github.com/davidfischer-ch/pytoolbox',
       license='EUPL 1.1',
-      classifiers=filter(None, classifiers.split('\n')),
+      classifiers=filter(None, classifiers.split(os.linesep)),
       keywords=keywords,
       extras_require=extras_require,
       install_requires=install_requires,

@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import io, traceback, sys
+import io, sys, traceback
 
 from .encoding import PY2, to_bytes
 
