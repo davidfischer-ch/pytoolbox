@@ -50,6 +50,7 @@ def confirm(question=None, default=False, stream=sys.stdout):
     question = '{0} ? [{1}]: '.format(question, 'Y/n' if default else 'y/N')
     while True:
         stream.write(question)
+        stream.flush()
         answer = raw_input()
         if not answer:
             return default
@@ -58,6 +59,7 @@ def confirm(question=None, default=False, stream=sys.stdout):
         elif answer.lower() in ('n', 'no'):
             return False
         stream.write('please enter y(es) or n(o).' + os.linesep)
+        stream.flush()
 
 
 def choice(question='', choices=[], stream=sys.stdout):
@@ -101,6 +103,7 @@ def print_error(message, exit_code=1, stream=sys.stderr):
     [ERROR] It's not a bug - it's an undocumented feature.
     """
     stream.write('[ERROR] {1}{0}'.format(os.linesep, message))
+    stream.flush()
     if exit_code is not None:
         sys.exit(exit_code)
 
