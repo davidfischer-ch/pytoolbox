@@ -49,14 +49,15 @@ def confirm(question=None, default=False, stream=sys.stdout):
         question = 'Confirm'
     question = '{0} ? [{1}]: '.format(question, 'Y/n' if default else 'y/N')
     while True:
-        ans = raw_input(question)
-        if not ans:
+        stream.write(question)
+        answer = raw_input()
+        if not answer:
             return default
-        if ans in ('y', 'Y'):
+        if answer.lower() in ('y', 'yes'):
             return True
-        elif ans in ('n', 'N'):
+        elif answer.lower() in ('n', 'no'):
             return False
-        stream.write('please enter y or n.\n')
+        stream.write('please enter y(es) or n(o).\n')
 
 
 def choice(question='', choices=[], stream=sys.stdout):
