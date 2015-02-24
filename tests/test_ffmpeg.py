@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime, os.path, tempfile, unittest
 from codecs import open
 from pytoolbox.filesystem import try_remove
-from pytoolbox.multimedia.ffmpeg import AudioStream, FFmpeg, Format, Media, VideoStream, HEIGHT
+from pytoolbox.multimedia.ffmpeg import _to_bitrate, AudioStream, FFmpeg, Format, Media, VideoStream, HEIGHT
 
 MPD_TEST = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
@@ -160,6 +160,14 @@ class RaiseFFmpeg(FFmpeg):
         if 'out_duration' in statistics:
             raise ValueError('This is the exception.')
         return super(RaiseFFmpeg, self)._clean_statistics(**statistics)
+
+
+class TestUtils(unittest.TestCase):
+
+    def test_to_bitrate(self):
+        self.assertEqual(_to_bitrate('231.5kbit/s'), 231500)
+        self.assertEqual(_to_bitrate('3302.3kbits/s'), 3302300)
+        self.assertEqual(_to_bitrate('1935.9kbits/s'), 1935900)
 
 
 class TestMedia(unittest.TestCase):

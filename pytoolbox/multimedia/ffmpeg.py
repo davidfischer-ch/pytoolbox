@@ -38,6 +38,11 @@ __all__ = (
     'SubtitleStream', 'VideoStream', 'Media', 'FFmpeg'
 )
 
+_missing = object()
+
+BITRATE_REGEX = re.compile(r'(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s')
+BITRATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000000, 'g': 1000000000}
+
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
@@ -53,6 +58,15 @@ WIDTH, HEIGHT = range(2)
 
 def _is_pipe(filename):
     return isinstance(filename, string_types) and PIPE_REGEX.match(filename)
+
+
+def _to_bitrate(bitrate):
+    try:
+        match = BITRATE_REGEX.match(bitrate).groupdict()
+        return int(float(match['value']) * BITRATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
+    except:
+        pass
+    return None
 
 
 def _to_framerate(fps):
@@ -297,6 +311,9 @@ class FFmpeg(object):
         return match.groupdict() if match else {}
 
     def _clean_statistics(self, stats, **statistics):
+        bitrate = statistics.pop('bitrate', _missing)
+        if bitrate is not _missing:
+            statistics['bitrate'] = _to_bitrate(bitrate)
         if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
             elapsed_time, ratio = statistics['elapsed_time'], statistics['ratio']
             eta_secs = elapsed_time.total_seconds() * ((1.0 - ratio) / ratio) if ratio > 0 else 0
