@@ -31,8 +31,8 @@ from time import mktime
 from .encoding import string_types
 
 __all__ = (
-    'datetime_now', 'datetime_to_str', 'str_to_datetime', 'parts_to_time', 'secs_to_time', 'str_to_time', 'time_ratio',
-    'total_seconds', 'datetime_to_epoch', 'epoch_to_datetime'
+    'datetime_now', 'datetime_to_str', 'str_to_datetime', 'multiply_time', 'parts_to_time', 'secs_to_time',
+    'str_to_time', 'time_ratio', 'total_seconds', 'datetime_to_epoch', 'epoch_to_datetime'
 )
 
 
@@ -98,6 +98,24 @@ def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S'):
     ValueError: time data 'this is not a date' does not match format '%Y-%m-%d %H:%M:%S'
     """
     return datetime.datetime.strptime(date, format)
+
+
+def multiply_time(value, factor, as_delta=False):
+    """
+    Return an instance of time/timedelta corresponding to valuemultiplied by a factor.
+
+    **Example usage**
+
+    >>> multiply_time('00:10:00', 0.5)
+    datetime.time(0, 5)
+    >>> multiply_time(datetime.timedelta(seconds=60), 3)
+    datetime.time(0, 3)
+    >>> multiply_time(120, 0.1)
+    datetime.time(0, 0, 12)
+    >>> multiply_time(datetime.timedelta(seconds=152, microseconds=500000), 1, as_delta=True)
+    datetime.timedelta(0, 152, 500000)
+    """
+    return secs_to_time(total_seconds(value) * factor, as_delta=as_delta)
 
 
 def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):

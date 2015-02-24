@@ -197,6 +197,18 @@ class TestFFmpeg(unittest.TestCase):
         eq(clean(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
         eq(clean([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
 
+    def test_clean_statistics(self):
+        eq, d_eq = self.assertEqual, self.assertDictEqual
+        D = lambda seconds: datetime.timedelta(seconds=seconds)
+        clean = self.ffmpeg._clean_statistics
+        d_eq(clean(None), {})
+        d_eq(clean(None, bitrate='4kbp/s'), {'bitrate': 4000})
+        d_eq(clean(None, eta_time=100), {'eta_time': 100})
+        eq(clean(None, elapsed_time=D(60), ratio=0.0)['eta_time'], None)
+        eq(clean(None, elapsed_time=D(60), ratio=0.2)['eta_time'], D(240))
+        eq(clean(None, elapsed_time=D(60), ratio=0.5)['eta_time'], D(60))
+        eq(clean(None, elapsed_time=D(60), ratio=1.0)['eta_time'], D(0))
+
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_encode(self):
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))

@@ -28,7 +28,7 @@ import datetime, errno, json, math, numbers, os, re, select, subprocess, sys, ti
 from xml.dom import minidom
 
 from .. import comparison, filesystem, validation
-from ..datetime import datetime_now, parts_to_time, secs_to_time, str_to_time, time_ratio
+from ..datetime import datetime_now, multiply_time, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
 from ..subprocess import raw_cmd, make_async, to_args_list
 from ..types import get_slots
@@ -315,9 +315,12 @@ class FFmpeg(object):
         if bitrate is not _missing:
             statistics['bitrate'] = _to_bitrate(bitrate)
         if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
-            elapsed_time, ratio = statistics['elapsed_time'], statistics['ratio']
-            eta_secs = elapsed_time.total_seconds() * ((1.0 - ratio) / ratio) if ratio > 0 else 0
-            statistics['eta_time'] = datetime.timedelta(eta_secs)
+            ratio = statistics['ratio']
+            if ratio > 0:
+                eta_time = multiply_time(statistics['elapsed_time'], (1.0 - ratio) / ratio, as_delta=True)
+            else:
+                eta_time = None
+            statistics['eta_time'] = eta_time
         return statistics
 
     def get_media_duration(self, media, as_delta=False, options=None):
