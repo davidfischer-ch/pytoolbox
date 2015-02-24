@@ -32,11 +32,45 @@ from .encoding import string_types, to_bytes, to_unicode
 from .filesystem import try_makedirs
 
 __all__ = (
-    'EMPTY_CMD_RETURN', 'cmd', 'make_async', 'read_async', 'git_add_submodule', 'git_clone_or_pull', 'make', 'rsync',
-    'screen_kill', 'screen_launch', 'screen_list', 'ssh'
+    'EMPTY_CMD_RETURN', 'quote', 'raw_cmd', 'cmd', 'make_async', 'read_async', 'git_add_submodule', 'git_clone_or_pull',
+    'make', 'rsync', 'screen_kill', 'screen_launch', 'screen_list', 'ssh'
 )
 
 EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode': None}
+
+
+try:
+    from shlex import quote
+except ImportError:
+    from pipes import quote
+
+
+def to_args_list(args):
+    if not args:
+        return []
+    return shlex.split(args) if isinstance(args, string_types) else ['%s' % a for a in args]
+
+
+def to_args_string(args):
+    if not args:
+        return ''
+    return args if isinstance(args, string_types) else ' '.join(quote('%s' % a) for a in args)
+
+
+def raw_cmd(arguments, shell=False, **kwargs):
+    """
+    Launch a subprocess.
+
+    This function ensure that:
+
+    * subprocess arguments will be converted to a string if `shell` is True
+    * subprocess.args is set to the arguments of the subprocess
+    """
+    arguments_list = to_args_list(arguments)
+    process = subprocess.Popen(to_args_string(arguments_list) if shell else arguments_list, shell=shell, **kwargs)
+    if not hasattr(process, 'args'):
+        process.args = arguments_list
+    return process
 
 
 def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True, timeout=None, fail=True,

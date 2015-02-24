@@ -24,13 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, errno, json, math, numbers, os, re, select, shlex, subprocess, sys, time
+import datetime, errno, json, math, numbers, os, re, select, subprocess, sys, time
 from xml.dom import minidom
 
 from .. import comparison, filesystem, validation
 from ..datetime import datetime_now, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
-from ..subprocess import make_async
+from ..subprocess import raw_cmd, make_async, to_args_list
 from ..types import get_slots
 
 __all__ = (
@@ -38,23 +38,21 @@ __all__ = (
     'SubtitleStream', 'VideoStream', 'Media', 'FFmpeg'
 )
 
+DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
     r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+\.?\d*)\s+q=\s*(?P<q>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)'
 )
-DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
-WIDTH, HEIGHT = range(2)
 
 PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
+
+WIDTH, HEIGHT = range(2)
 
 
 def _is_pipe(filename):
     return isinstance(filename, string_types) and PIPE_REGEX.match(filename)
-
-
-def _to_args_list(value):
-    return shlex.split(value) if isinstance(value, string_types) else (['%s' % v for v in value] if value else [])
 
 
 def _to_framerate(fps):
@@ -185,7 +183,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
         return 0 if self.is_pipe else filesystem.get_size(self.filename)
 
     def clean_options(self, value):
-        return _to_args_list(value)
+        return to_args_list(value)
 
     def create_directory(self):
         if not self.is_pipe:
@@ -248,7 +246,7 @@ class FFmpeg(object):
         """
         inputs = self._clean_medias_argument(inputs)
         outputs = self._clean_medias_argument(outputs)
-        options = _to_args_list(options)
+        options = to_args_list(options)
         args = [self.encoding_executable, '-y']
         for the_input in inputs:
             args.extend(the_input.to_args(is_input=True))
@@ -267,14 +265,8 @@ class FFmpeg(object):
             raise
 
     def _get_process(self, arguments, **process_kwargs):
-        """
-        Return an encoding process with stderr made asynchronous.
-
-        This function ensure subprocess.args is set to the arguments of the ffmpeg subprocess.
-        """
-        process = subprocess.Popen(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
-        if not hasattr(process, 'args'):
-            process.args = arguments
+        """Return an encoding process with stderr made asynchronous."""
+        process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
         make_async(process.stderr)
         return process
 

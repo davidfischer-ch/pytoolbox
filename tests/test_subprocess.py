@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import six, unittest
 from pytoolbox.unittest import Mock
-from pytoolbox.subprocess import cmd, screen_launch, screen_list, screen_kill
+from pytoolbox.subprocess import to_args_list, to_args_string, cmd, screen_launch, screen_list, screen_kill
 from pytoolbox.validation import validate_list
 
 
@@ -34,6 +34,20 @@ class TestSubprocess(unittest.TestCase):
 
     def main(self):
         self.test_screen()
+
+    def test_to_args_list(self):
+        self.assertListEqual(to_args_list(None), [])
+        self.assertListEqual(to_args_list(''), [])
+        self.assertListEqual(to_args_list([]), [])
+        self.assertListEqual(to_args_list('tail -f "~/some file"'), ['tail', '-f', '~/some file'])
+        self.assertListEqual(to_args_list([10, None, 'string "salut"']), ['10', 'None', 'string "salut"'])
+
+    def test_to_args_string(self):
+        self.assertEqual(to_args_string(None), '')
+        self.assertEqual(to_args_string(''), '')
+        self.assertEqual(to_args_string([]), '')
+        self.assertEqual(to_args_string('tail -f "~/some file"'), 'tail -f "~/some file"')
+        self.assertEqual(to_args_string([10, None, 'string "salut"']), '10 None \'string "salut"\'')
 
     def test_cmd(self):
         log = Mock()
