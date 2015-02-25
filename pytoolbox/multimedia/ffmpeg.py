@@ -214,7 +214,7 @@ class EncodingState(object):
     FAILURE = 'FAILURE'
 
     ALL_STATES = frozenset([STARTED, PROCESSING, SUCCESS, FAILURE])
-    FINAL_STATES = frozenset(['SUCCESS', 'FAILURE'])
+    FINAL_STATES = frozenset([SUCCESS, FAILURE])
 
 
 class FFmpeg(object):
