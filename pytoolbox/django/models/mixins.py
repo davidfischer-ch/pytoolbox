@@ -177,6 +177,8 @@ class SaveInstanceFilesMixin(object):
 
 class UpdatePreconditionsMixin(object):
 
+    precondition_error_class = exceptions.DatabaseUpdatePreconditionsError
+
     def apply_preconditions(self, base_qs, using, pk_val, values, update_fields, force_update):
         if hasattr(self, '_preconditions'):
             pre_excludes, pre_filters = self._preconditions
@@ -197,7 +199,7 @@ class UpdatePreconditionsMixin(object):
             return super(UpdatePreconditionsMixin, self).save(*args, **kwargs)
         except DatabaseError as e:
             if has_preconditions and 'did not affect' in '{0}'.format(e):
-                raise exceptions.DatabaseUpdatePreconditionsError()
+                raise self.precondition_error_class()
             raise
 
     def _do_update(self, base_qs, using, pk_val, values, update_fields, force_update):
@@ -205,7 +207,7 @@ class UpdatePreconditionsMixin(object):
         args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
         updated = super(UpdatePreconditionsMixin, self)._do_update(*args)
         if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
-            raise exceptions.DatabaseUpdatePreconditionsError()
+            raise self.precondition_error_class()
         return updated
 
 
