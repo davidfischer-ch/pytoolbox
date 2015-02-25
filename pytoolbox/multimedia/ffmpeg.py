@@ -34,8 +34,9 @@ from ..subprocess import raw_cmd, make_async, to_args_list
 from ..types import get_slots
 
 __all__ = (
-    'ENCODING_REGEX', 'DURATION_REGEX', 'WIDTH', 'HEIGHT', 'BaseInfo', 'Codec', 'Format', 'Stream', 'AudioStream',
-    'SubtitleStream', 'VideoStream', 'Media', 'FFmpeg'
+    'BITRATE_REGEX', 'BITRATE_COEFFICIENT_FOR_UNIT', 'DURATION_REGEX', 'ENCODING_REGEX', 'PIPE_REGEX', 'WIDTH',
+    'HEIGHT', 'BaseInfo', 'Codec', 'Format', 'Stream', 'AudioStream', 'SubtitleStream', 'VideoStream', 'Media',
+    'EncodingState', 'FFprobe', 'FFmpeg'
 )
 
 _missing = object()
@@ -217,111 +218,16 @@ class EncodingState(object):
     FINAL_STATES = frozenset([SUCCESS, FAILURE])
 
 
-class FFmpeg(object):
+class FFprobe(object):
 
+    executable = 'ffprobe'
     duration_regex = DURATION_REGEX
-    encoding_regex = ENCODING_REGEX
-    encoding_executable = 'ffmpeg'
-    parsing_executable = 'ffprobe'
-    media_class = Media
     format_class = None
-    encoding_state_class = EncodingState
+    media_class = Media
     stream_classes = {'audio': None, 'subtitle': None, 'video': None}
 
-    def __init__(self, encoding_executable=None, parsing_executable=None, chunk_read_timeout=0.5,
-                 default_in_duration=datetime.timedelta(seconds=0), encode_poll_delay=0.5, ratio_delta=0.01,
-                 time_delta=1, max_time_delta=5, encoding='utf-8'):
-        self.encoding_executable = encoding_executable or self.encoding_executable
-        self.parsing_executable = parsing_executable or self.parsing_executable
-        self.chunk_read_timeout = chunk_read_timeout
-        self.default_in_duration = default_in_duration
-        self.encode_poll_delay = encode_poll_delay
-        self.ratio_delta = ratio_delta
-        self.time_delta = time_delta
-        self.max_time_delta = max_time_delta
-        self.encoding = encoding
-
-    def _clean_medias_argument(self, value):
-        """
-        Return a list of Media instances from passed value. Value can be one or multiple instances of string or Media.
-        """
-        values = [value] if isinstance(value, (string_types, self.media_class)) else value
-        return [self.to_media(v) for v in values] if values else []
-
-    def _get_arguments(self, inputs, outputs, options=None):
-        """
-        Return the arguments for the encoding process.
-
-        * Set inputs to one or multiple strings (filenames) or Media instances (with options).
-        * Set outputs to one or multiple strings (filenames) or Media instances (with options).
-        * Set options to a string or a list with the options to put in-between the inputs and outputs (legacy API).
-
-        In return you will get a tuple with (arguments, inputs -> list Media, outputs -> list Media, options -> list).
-        """
-        inputs = self._clean_medias_argument(inputs)
-        outputs = self._clean_medias_argument(outputs)
-        options = to_args_list(options)
-        args = [self.encoding_executable, '-y']
-        for the_input in inputs:
-            args.extend(the_input.to_args(is_input=True))
-        args.extend(options)
-        for output in outputs:
-            args.extend(output.to_args(is_input=False))
-        return args, inputs, outputs, options
-
-    def _get_chunk(self, process):
-        select.select([process.stderr], [], [], self.chunk_read_timeout)
-        try:
-            return process.stderr.read()
-        except IOError as e:
-            if e.errno == errno.EAGAIN:
-                return None
-            raise
-
-    def _get_process(self, arguments, **process_kwargs):
-        """Return an encoding process with stderr made asynchronous."""
-        process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
-        make_async(process.stderr)
-        return process
-
-    def _get_progress(self, in_duration, stats):
-        out_duration = str_to_time(stats['time'])
-        ratio = time_ratio(out_duration, in_duration)
-        return out_duration, ratio
-
-    def _get_subclip_duration_and_size(self, duration, size, options):
-        """Adjust duration and size if we only encode a sub-clip."""
-        def to_time(t):
-            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
-        try:
-            sub_pos = to_time(options[options.index('-ss') + 1]) or datetime.timedelta(0)
-        except (IndexError, ValueError):
-            sub_pos = datetime.timedelta(0)
-        try:
-            sub_dur = to_time(options[options.index('-t') + 1])
-        except (IndexError, ValueError):
-            sub_dur = duration
-        if sub_dur is not None:
-            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
-            return sub_dur, int(size * time_ratio(sub_dur, duration))
-        return duration, size
-
-    def _get_statistics(self, chunk):
-        match = self.encoding_regex.match(chunk)
-        return match.groupdict() if match else {}
-
-    def _clean_statistics(self, stats, **statistics):
-        bitrate = statistics.pop('bitrate', _missing)
-        if bitrate is not _missing:
-            statistics['bitrate'] = _to_bitrate(bitrate)
-        if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
-            ratio = statistics['ratio']
-            if ratio > 0:
-                eta_time = multiply_time(statistics['elapsed_time'], (1.0 - ratio) / ratio, as_delta=True)
-            else:
-                eta_time = None
-            statistics['eta_time'] = eta_time
-        return statistics
+    def __init__(self, executable=None):
+        self.executable = executable or self.executable
 
     def get_media_duration(self, media, as_delta=False, options=None):
         """
@@ -362,8 +268,8 @@ class FFmpeg(object):
         media = self.to_media(media)
         if not _is_pipe(media.filename):  # Read media informations from a PIPE not yet implemented
             try:
-                return json.loads(subprocess.check_output([self.parsing_executable, '-v', 'quiet', '-print_format',
-                                  'json', '-show_format', '-show_streams', media.filename]).decode('utf-8'))
+                return json.loads(subprocess.check_output([self.executable, '-v', 'quiet', '-print_format', 'json',
+                                  '-show_format', '-show_streams', media.filename]).decode('utf-8'))
             except:
                 pass
 
@@ -444,11 +350,116 @@ class FFmpeg(object):
             if fail:
                 raise
 
-    def get_now(self):
-        return datetime_now()
-
     def to_media(self, media):
         return media if isinstance(media, self.media_class) else self.media_class(media)
+
+
+class FFmpeg(object):
+    """
+    Encode a set of input files input to a set of output files and yields statistics about the encoding.
+    """
+
+    executable = 'ffmpeg'
+    encoding_regex = ENCODING_REGEX
+    ffprobe_class = FFprobe
+    states = EncodingState
+
+    def __init__(self, executable=None, chunk_read_timeout=0.5, default_in_duration=datetime.timedelta(seconds=0),
+                 encode_poll_delay=0.5, ratio_delta=0.01, time_delta=1, max_time_delta=5, encoding='utf-8'):
+        self.executable = executable or self.executable
+        self.chunk_read_timeout = chunk_read_timeout
+        self.default_in_duration = default_in_duration
+        self.encode_poll_delay = encode_poll_delay
+        self.ratio_delta = ratio_delta
+        self.time_delta = time_delta
+        self.max_time_delta = max_time_delta
+        self.encoding = encoding
+        self.ffprobe = self.ffprobe_class()
+
+    def _clean_medias_argument(self, value):
+        """
+        Return a list of Media instances from passed value. Value can be one or multiple instances of string or Media.
+        """
+        values = [value] if isinstance(value, (string_types, self.ffprobe.media_class)) else value
+        return [self.ffprobe.to_media(v) for v in values] if values else []
+
+    def _get_arguments(self, inputs, outputs, options=None):
+        """
+        Return the arguments for the encoding process.
+
+        * Set inputs to one or multiple strings (filenames) or Media instances (with options).
+        * Set outputs to one or multiple strings (filenames) or Media instances (with options).
+        * Set options to a string or a list with the options to put in-between the inputs and outputs (legacy API).
+
+        In return you will get a tuple with (arguments, inputs -> list Media, outputs -> list Media, options -> list).
+        """
+        inputs = self._clean_medias_argument(inputs)
+        outputs = self._clean_medias_argument(outputs)
+        options = to_args_list(options)
+        args = [self.executable, '-y']
+        for the_input in inputs:
+            args.extend(the_input.to_args(is_input=True))
+        args.extend(options)
+        for output in outputs:
+            args.extend(output.to_args(is_input=False))
+        return args, inputs, outputs, options
+
+    def _get_chunk(self, process):
+        select.select([process.stderr], [], [], self.chunk_read_timeout)
+        try:
+            return process.stderr.read()
+        except IOError as e:
+            if e.errno == errno.EAGAIN:
+                return None
+            raise
+
+    def _get_process(self, arguments, **process_kwargs):
+        """Return an encoding process with stderr made asynchronous."""
+        process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
+        make_async(process.stderr)
+        return process
+
+    def _get_progress(self, in_duration, stats):
+        out_duration = str_to_time(stats['time'])
+        ratio = time_ratio(out_duration, in_duration)
+        return out_duration, ratio
+
+    def _get_subclip_duration_and_size(self, duration, size, options):
+        """Adjust duration and size if we only encode a sub-clip."""
+        def to_time(t):
+            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
+        try:
+            sub_pos = to_time(options[options.index('-ss') + 1]) or datetime.timedelta(0)
+        except (IndexError, ValueError):
+            sub_pos = datetime.timedelta(0)
+        try:
+            sub_dur = to_time(options[options.index('-t') + 1])
+        except (IndexError, ValueError):
+            sub_dur = duration
+        if sub_dur is not None:
+            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
+            return sub_dur, int(size * time_ratio(sub_dur, duration))
+        return duration, size
+
+    def _get_statistics(self, chunk):
+        match = self.encoding_regex.match(chunk)
+        return match.groupdict() if match else {}
+
+    def _clean_statistics(self, stats, **statistics):
+        bitrate = statistics.pop('bitrate', _missing)
+        if bitrate is not _missing:
+            statistics['bitrate'] = _to_bitrate(bitrate)
+        if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
+            ratio = statistics['ratio']
+            if ratio > 0:
+                eta_time = multiply_time(statistics['elapsed_time'], (1.0 - ratio) / ratio, as_delta=True)
+            else:
+                eta_time = None
+            statistics['eta_time'] = eta_time
+        return statistics
+
+    def get_now(self):
+        return datetime_now()
 
     def encode(self, inputs, outputs, options=None, in_base_index=0, out_base_index=0, create_directories=True,
                process_poll=True, process_kwargs=None, yield_empty=False):
@@ -463,7 +474,7 @@ class FFmpeg(object):
                 output.create_directory()
 
         # Get input media duration and size to be able to estimate ETA, handle sub-clipping
-        duration = self.get_media_duration(inputs[in_base_index], as_delta=True) or self.default_in_duration
+        duration = self.ffprobe.get_media_duration(inputs[in_base_index], as_delta=True) or self.default_in_duration
         in_duration, in_size = self._get_subclip_duration_and_size(duration, inputs[in_base_index].size, options)
 
         # Initialize metrics
@@ -477,7 +488,7 @@ class FFmpeg(object):
             yield self._clean_statistics(
                 stats=stats, elapsed_time=datetime.timedelta(seconds=time.time() - start_time), in_duration=in_duration,
                 in_size=in_size, output=output, process=process, returncode=None, start_date=start_date,
-                state=self.encoding_state_class.STARTED
+                state=self.states.STARTED
             )
             while True:
                 chunk = self._get_chunk(process)
@@ -504,7 +515,7 @@ class FFmpeg(object):
                             frame=int(stats['frame']), in_duration=in_duration, in_size=in_size,
                             out_duration=out_duration, out_size=outputs[out_base_index].size, output=output,
                             process=process, qscale=stats.get('q'), ratio=ratio, returncode=None, start_date=start_date,
-                            state=self.encoding_state_class.PROCESSING
+                            state=self.states.PROCESSING
                         )
                     elif yield_empty:
                         yield {}
@@ -515,7 +526,7 @@ class FFmpeg(object):
                 if self.encode_poll_delay:
                     time.sleep(self.encode_poll_delay)
 
-            out_duration = self.get_media_duration(outputs[out_base_index].filename, as_delta=True)
+            out_duration = self.ffprobe.get_media_duration(outputs[out_base_index].filename, as_delta=True)
             ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
             frame = int(stats.get('frame', 0))  # FIXME compute latest frame based on output infos
             fps = float(stats.get('fps', 0))  # FIXME compute average fps
@@ -524,7 +535,7 @@ class FFmpeg(object):
                 eta_time=datetime.timedelta(0), fps=fps, frame=frame, in_duration=in_duration, in_size=in_size,
                 out_duration=out_duration, out_size=outputs[out_base_index].size, output=output, process=process,
                 qscale=stats.get('q'), ratio=ratio if returncode else 1.0, returncode=returncode, start_date=start_date,
-                state=self.encoding_state_class.FAILURE if returncode else self.encoding_state_class.SUCCESS
+                state=self.states.FAILURE if returncode else self.states.SUCCESS
             )
         except Exception as exception:
             tb = sys.exc_info()[2]

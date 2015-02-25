@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime, os.path, tempfile, unittest
 from codecs import open
 from pytoolbox.filesystem import try_remove
-from pytoolbox.multimedia.ffmpeg import _to_bitrate, AudioStream, FFmpeg, Format, Media, VideoStream, HEIGHT
+from pytoolbox.multimedia.ffmpeg import _to_bitrate, AudioStream, FFmpeg, FFprobe, Format, Media, VideoStream, HEIGHT
 
 MPD_TEST = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
@@ -146,12 +146,15 @@ MEDIA_INFOS = {
 
 class MockFFmpeg(FFmpeg):
 
-    encoding_executable = STATIC_BINARY
+    executable = STATIC_BINARY
+
+
+class MockFFprobe(FFprobe):
 
     def get_media_infos(self, filename):
         if filename == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
-        return super(MockFFmpeg, self).get_media_infos(filename)
+        return super(MockFFprobe, self).get_media_infos(filename)
 
 
 class RaiseFFmpeg(FFmpeg):
@@ -226,7 +229,7 @@ class TestFFmpeg(unittest.TestCase):
     def test_get_arguments(self):
         eq = self.assertListEqual
         get = self.ffmpeg._get_arguments
-        self.ffmpeg.encoding_executable = 'ffmpeg'
+        self.ffmpeg.executable = 'ffmpeg'
 
         # Using options (the legacy API, also simplify simple calls)
         options_string = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
@@ -247,63 +250,6 @@ class TestFFmpeg(unittest.TestCase):
         eq(outputs, [Media('out.mkv', ['-acodec', 'copy', '-vcodec', 'copy'])])
         eq(options, [])
         eq(args, ['ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'])
-
-    def test_get_audio_streams(self):
-        self.ffmpeg.stream_classes['audio'] = None
-        streams = self.ffmpeg.get_audio_streams('small.mp4')
-        self.assertIsInstance(streams[0], dict)
-        self.assertEqual(streams[0]['avg_frame_rate'], '0/0')
-        self.assertEqual(streams[0]['channels'], 1)
-        self.assertEqual(streams[0]['codec_time_base'], '1/48000')
-
-        self.ffmpeg.stream_classes['audio'] = AudioStream
-        streams = self.ffmpeg.get_audio_streams('small.mp4')
-        self.assertIsInstance(streams[0], AudioStream)
-        self.assertIsNone(streams[0].avg_frame_rate)
-        self.assertEqual(streams[0].channels, 1)
-        self.assertEqual(streams[0].codec.time_base, 1 / 48000)
-
-    def test_get_media_duration(self):
-        # Bad file format
-        with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
-            f.write('Hey, I am not a MPD nor a média')
-        self.assertIsNone(self.ffmpeg.get_media_duration('/tmp/test.txt'))
-        os.remove('/tmp/test.txt')
-
-        # Some random bad things
-        self.assertIsNone(self.ffmpeg.get_media_duration({}))
-
-        # A MPEG-DASH MPD
-        with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
-            f.write(MPD_TEST)
-        self.assertEqual(self.ffmpeg.get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'), '00:06:07.830000')
-        self.assertEqual(self.ffmpeg.get_media_duration('/tmp/test.mpd', as_delta=True),
-                         datetime.timedelta(0, 367, 830000))
-        os.remove('/tmp/test.mpd')
-
-        # A MP4
-        self.assertEqual(self.ffmpeg.get_media_duration('small.mp4').strftime('%H:%M:%S'), '00:00:05')
-        self.assertEqual(
-            self.ffmpeg.get_media_duration(self.ffmpeg.get_media_infos('small.mp4')).strftime('%H:%M:%S'), '00:00:05'
-        )
-        self.assertEqual(
-            self.ffmpeg.get_media_duration(self.ffmpeg.get_media_infos('small.mp4'), as_delta=True).seconds, 5
-        )
-
-    def test_get_media_format(self):
-        self.ffmpeg.format_class = None
-        media_format = self.ffmpeg.get_media_format('small.mp4', fail=True)
-        self.assertIsInstance(media_format, dict)
-        self.assertEqual(media_format['bit_rate'], '551193')
-        self.assertEqual(media_format['format_long_name'], 'QuickTime / MOV')
-        self.assertEqual(media_format['probe_score'], 100)
-
-        self.ffmpeg.format_class = Format
-        media_format = self.ffmpeg.get_media_format('small.mp4', fail=True)
-        self.assertIsInstance(media_format, Format)
-        self.assertEqual(media_format.bit_rate, 551193)
-        self.assertEqual(media_format.format_long_name, 'QuickTime / MOV')
-        self.assertEqual(media_format.probe_score, 100)
 
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_get_process(self):
@@ -329,42 +275,105 @@ class TestFFmpeg(unittest.TestCase):
         eq(subclip(duration, 512 * 1024, ['-ss', '01:30:53']), (sub_dur_4, 0))
         eq(subclip(duration, 512 * 1024, ['-t', '02:00:00.0']), (duration, 512 * 1024))
 
-    def test_get_video_streams(self):
-        self.ffmpeg.stream_classes['video'] = None
-        streams = self.ffmpeg.get_video_streams('small.mp4')
-        self.assertIsInstance(streams[0], dict)
-        self.assertEqual(streams[0]['avg_frame_rate'], '30/1')
-
-        self.ffmpeg.stream_classes['video'] = VideoStream
-        streams = self.ffmpeg.get_video_streams('small.mp4')
-        self.assertIsInstance(streams[0], VideoStream)
-        self.assertEqual(streams[0].avg_frame_rate, 30.0)
-
-    def test_get_video_framerate(self):
-        self.assertIsNone(self.ffmpeg.get_video_framerate(3.14159265358979323846))
-        self.assertIsNone(self.ffmpeg.get_video_framerate({}))
-        self.assertEqual(self.ffmpeg.get_video_framerate(self.ffmpeg.get_media_infos('small.mp4')), 30.0)
-        self.assertEqual(self.ffmpeg.get_video_framerate('small.mp4'), 30.0)
-        self.assertEqual(self.ffmpeg.get_video_framerate({'streams': [
-            {'codec_type': 'audio'},
-            {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
-        ]}), 59.0)
-
-    def test_get_video_resolution(self):
-        self.assertIsNone(self.ffmpeg.get_video_resolution(3.14159265358979323846))
-        self.assertIsNone(self.ffmpeg.get_video_resolution({}))
-        self.assertListEqual(self.ffmpeg.get_video_resolution(self.ffmpeg.get_media_infos('small.mp4')), [560, 320])
-        self.assertListEqual(self.ffmpeg.get_video_resolution('small.mp4'), [560, 320])
-        self.assertIsNone(self.ffmpeg.get_video_resolution('small.mp4', index=1))
-        self.assertEqual(self.ffmpeg.get_video_resolution('small.mp4')[HEIGHT], 320)
-        self.assertListEqual(self.ffmpeg.get_video_resolution({'streams': [
-            {'codec_type': 'audio'},
-            {'codec_type': 'video', 'width': '1920', 'height': '1080'}
-        ]}), [1920, 1080])
-
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_kill_process_handle_missing(self):
         encoder = RaiseFFmpeg()
         with self.assertRaises(ValueError):
             list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
         self.assertTrue(try_remove('ff_output.mp4'))
+
+
+class TestFFprobe(unittest.TestCase):
+
+    def setUp(self):
+        self.ffprobe = MockFFprobe()
+
+    def test_get_audio_streams(self):
+        self.ffprobe.stream_classes['audio'] = None
+        streams = self.ffprobe.get_audio_streams('small.mp4')
+        self.assertIsInstance(streams[0], dict)
+        self.assertEqual(streams[0]['avg_frame_rate'], '0/0')
+        self.assertEqual(streams[0]['channels'], 1)
+        self.assertEqual(streams[0]['codec_time_base'], '1/48000')
+
+        self.ffprobe.stream_classes['audio'] = AudioStream
+        streams = self.ffprobe.get_audio_streams('small.mp4')
+        self.assertIsInstance(streams[0], AudioStream)
+        self.assertIsNone(streams[0].avg_frame_rate)
+        self.assertEqual(streams[0].channels, 1)
+        self.assertEqual(streams[0].codec.time_base, 1 / 48000)
+
+    def test_get_media_duration(self):
+        # Bad file format
+        with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
+            f.write('Hey, I am not a MPD nor a média')
+        self.assertIsNone(self.ffprobe.get_media_duration('/tmp/test.txt'))
+        os.remove('/tmp/test.txt')
+
+        # Some random bad things
+        self.assertIsNone(self.ffprobe.get_media_duration({}))
+
+        # A MPEG-DASH MPD
+        with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
+            f.write(MPD_TEST)
+        self.assertEqual(self.ffprobe.get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'), '00:06:07.830000')
+        self.assertEqual(self.ffprobe.get_media_duration('/tmp/test.mpd', as_delta=True),
+                         datetime.timedelta(0, 367, 830000))
+        os.remove('/tmp/test.mpd')
+
+        # A MP4
+        self.assertEqual(self.ffprobe.get_media_duration('small.mp4').strftime('%H:%M:%S'), '00:00:05')
+        self.assertEqual(
+            self.ffprobe.get_media_duration(self.ffprobe.get_media_infos('small.mp4')).strftime('%H:%M:%S'), '00:00:05'
+        )
+        self.assertEqual(
+            self.ffprobe.get_media_duration(self.ffprobe.get_media_infos('small.mp4'), as_delta=True).seconds, 5
+        )
+
+    def test_get_media_format(self):
+        self.ffprobe.format_class = None
+        media_format = self.ffprobe.get_media_format('small.mp4', fail=True)
+        self.assertIsInstance(media_format, dict)
+        self.assertEqual(media_format['bit_rate'], '551193')
+        self.assertEqual(media_format['format_long_name'], 'QuickTime / MOV')
+        self.assertEqual(media_format['probe_score'], 100)
+
+        self.ffprobe.format_class = Format
+        media_format = self.ffprobe.get_media_format('small.mp4', fail=True)
+        self.assertIsInstance(media_format, Format)
+        self.assertEqual(media_format.bit_rate, 551193)
+        self.assertEqual(media_format.format_long_name, 'QuickTime / MOV')
+        self.assertEqual(media_format.probe_score, 100)
+
+    def test_get_video_streams(self):
+        self.ffprobe.stream_classes['video'] = None
+        streams = self.ffprobe.get_video_streams('small.mp4')
+        self.assertIsInstance(streams[0], dict)
+        self.assertEqual(streams[0]['avg_frame_rate'], '30/1')
+
+        self.ffprobe.stream_classes['video'] = VideoStream
+        streams = self.ffprobe.get_video_streams('small.mp4')
+        self.assertIsInstance(streams[0], VideoStream)
+        self.assertEqual(streams[0].avg_frame_rate, 30.0)
+
+    def test_get_video_framerate(self):
+        self.assertIsNone(self.ffprobe.get_video_framerate(3.14159265358979323846))
+        self.assertIsNone(self.ffprobe.get_video_framerate({}))
+        self.assertEqual(self.ffprobe.get_video_framerate(self.ffprobe.get_media_infos('small.mp4')), 30.0)
+        self.assertEqual(self.ffprobe.get_video_framerate('small.mp4'), 30.0)
+        self.assertEqual(self.ffprobe.get_video_framerate({'streams': [
+            {'codec_type': 'audio'},
+            {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
+        ]}), 59.0)
+
+    def test_get_video_resolution(self):
+        self.assertIsNone(self.ffprobe.get_video_resolution(3.14159265358979323846))
+        self.assertIsNone(self.ffprobe.get_video_resolution({}))
+        self.assertListEqual(self.ffprobe.get_video_resolution(self.ffprobe.get_media_infos('small.mp4')), [560, 320])
+        self.assertListEqual(self.ffprobe.get_video_resolution('small.mp4'), [560, 320])
+        self.assertIsNone(self.ffprobe.get_video_resolution('small.mp4', index=1))
+        self.assertEqual(self.ffprobe.get_video_resolution('small.mp4')[HEIGHT], 320)
+        self.assertListEqual(self.ffprobe.get_video_resolution({'streams': [
+            {'codec_type': 'audio'},
+            {'codec_type': 'video', 'width': '1920', 'height': '1080'}
+        ]}), [1920, 1080])
