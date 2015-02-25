@@ -2,6 +2,42 @@
 changelog
 =========
 
+------------------
+v10.0.0 -> v10.1.0
+------------------
+
+Minor compatibilty breaks
+=========================
+
+* Split FFmpeg class to FFmpeg + FFprobe classes
+
+Features
+========
+
+* Add module django.exceptions
+* Add class django.forms.mixins.EnctypeMixin
+* Add class django.models.mixins.AlwaysUpdateFieldsMixin
+* Add class django.models.mixins.AutoForceInsertMixin
+* Add class django.models.mixins.AutoUpdateFieldsMixin
+* Add class django.models.mixins.MapUniqueTogetherIntegrityErrorToValidationErrorMixin
+* Add class django.models.mixins.UpdatePreconditionsMixin
+* Add class django.storage.ExpressTemporaryFileMixin
+* Add class django.views.mixins.InitialMixin
+* Add function collections.flatten_dict
+* Add function datetime.multiply_time
+
+Fixes and enhancements
+======================
+
+* Avoid hardcoding \n
+* Module console: Write to given stream
+* Module datetime: Make API more consistent
+* Module multimedia.ffmpeg:
+    - Improve handling of media argument
+    - Do some analysis before launching ffmpeg subprocess
+    - Fix progress if sub-clipping
+    - Miscellaneous improvements
+
 -----------------
 v9.7.2 -> v10.0.0
 -----------------
