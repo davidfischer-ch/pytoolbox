@@ -69,11 +69,12 @@ class ClearSiteCacheMixin(object):
 
 class FormWizardMixin(object):
 
-    def post_wizard(self, url, step, data=None, **kwargs):
+    def post_wizard(self, url, step, data=None, raw_data=None, **kwargs):
         from formtools.wizard.views import normalize_name
         name = normalize_name(resolve(reverse(url)).func.__name__)
-        step_data = {'{0}-{1}'.format(step, k): v for k, v in data.items()}
+        step_data = {'{0}-{1}'.format(step, k): v for k, v in data.items()} if data else {}
         step_data['{0}-current_step'.format(name)] = step
+        step_data.update(raw_data or {})
         return self.post(url, step_data, **kwargs)
 
 
