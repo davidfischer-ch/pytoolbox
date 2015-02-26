@@ -26,13 +26,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import resolve, reverse
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.test.utils import CaptureQueriesContext
 
 from ...encoding import string_types
 
-__all__ = ('ClearSiteCacheMixin', 'QueriesMixin', 'UrlMixin', 'RestAPIMixin')
+__all__ = ('ClearSiteCacheMixin', 'FormWizardMixin', 'QueriesMixin', 'UrlMixin', 'RestAPIMixin')
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
@@ -65,6 +65,16 @@ class ClearSiteCacheMixin(object):
     def assertNumQueries(self, *args, **kwargs):
         self.clear_site_cache()
         return super(ClearSiteCacheMixin, self).assertNumQueries(*args, **kwargs)
+
+
+class FormWizardMixin(object):
+
+    def post_wizard(self, url, step, data=None, **kwargs):
+        from formtools.wizard.views import normalize_name
+        name = normalize_name(resolve(reverse(url)).func.__name__)
+        step_data = {'{0}-{1}'.format(step, k): v for k, v in data.items()}
+        step_data['{0}-current_step'.format(name)] = step
+        return self.post(url, step_data, **kwargs)
 
 
 class QueriesMixin(object):
