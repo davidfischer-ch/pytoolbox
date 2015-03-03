@@ -28,16 +28,15 @@ import itertools, re
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
 from django.db import DatabaseError
-from django.db.models import FieldDoesNotExist
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
 from .. import exceptions
 
 __all__ = (
-    'AbsoluteUrlMixin', 'AlwaysUpdateFieldsMixin', 'AutoUpdateFieldsMixin', 'MapUniqueTogetherMixin',
-    'MapUniqueTogetherIntegrityErrorToValidationErrorMixin', 'ReloadMixin', 'SaveInstanceFilesMixin',
-    'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
+    'AbsoluteUrlMixin', 'AlwaysUpdateFieldsMixin', 'AutoForceInsertMixin', 'AutoUpdateFieldsMixin',
+    'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin', 'ReloadMixin',
+    'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
 )
 
 
@@ -213,9 +212,11 @@ class UpdatePreconditionsMixin(object):
 
 class ValidateOnSaveMixin(object):
 
+    validate_on_save = True
+
     def save(self, *args, **kwargs):
         # FIXME throws a ValidationError if using get_or_create() to instantiate model!
         #if not kwargs.get('force_insert', False):
-        if kwargs.pop('validate', True):
+        if kwargs.pop('validate', self.validate_on_save):
             self.full_clean()
         super(ValidateOnSaveMixin, self).save(*args, **kwargs)
