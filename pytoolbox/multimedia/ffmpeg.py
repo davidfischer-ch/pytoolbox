@@ -407,7 +407,7 @@ class EncodeStatistics(object):
 
     @property
     def eta_time(self):
-        if self.state == self.states.SUCCESS:
+        if self.state in self.states.FINAL_STATES:
             return datetime.timedelta(0)
         if not self.ratio:
             return None
