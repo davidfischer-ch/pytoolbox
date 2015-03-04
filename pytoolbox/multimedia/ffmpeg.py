@@ -374,11 +374,6 @@ class EncodeStatistics(object):
     ffprobe_class = FFprobe
     states = EncodeState
 
-    __slots__ = (
-        'state', 'inputs', 'outputs', 'options', 'in_base_index', 'out_base_index', 'ratio_delta', 'time_delta',
-        'max_time_delta', '__dict__'
-    )
-
     def __init__(self, inputs, outputs, options, in_base_index=0, out_base_index=0, ratio_delta=0.01, time_delta=1,
                  max_time_delta=5):
         self.inputs = inputs
@@ -402,7 +397,6 @@ class EncodeStatistics(object):
         self.frame = None
         self.fps = None
         self.qscale = None
-        self.size = None
         self.bitrate = None
 
         # Retrieve input media duration and size, handle sub-clipping
@@ -438,7 +432,6 @@ class EncodeStatistics(object):
         self.elapsed_time = datetime.timedelta(0)
         self.output.duration = datetime.timedelta(0)
         self.frame = 0
-        self.size = 0
         self._update_ratio()
         return self
 
@@ -556,7 +549,7 @@ class FFmpeg(object):
         statistics = self.statistics_class(inputs, outputs, options, **(statistics_kwargs or {}))
         process = self._get_process(arguments, **(process_kwargs or {}))
         try:
-            yield statistics.start(process=process)
+            yield statistics.start(process)
             while True:
                 chunk = self._get_chunk(process)
                 if statistics.progress(chunk):
