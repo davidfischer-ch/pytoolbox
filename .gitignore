@@ -3,5 +3,5 @@ dist/
 pytoolbox3/
 .coverage
 *.pyc
-*.egg/
+*.egg*/
 *.egg-info/
