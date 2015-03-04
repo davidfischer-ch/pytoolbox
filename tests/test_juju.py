@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys, unittest
 from mock import call, Mock
-from pytoolbox.unittest import mock_cmd
+from pytoolbox.unittest import FilterByTagsMixin, mock_cmd
 
 DEFAULT = {'charms_path': '.', 'config': 'config.yaml'}
 
@@ -43,7 +43,9 @@ TEST_UNITS_LAMP_4 = {0: {}, 1: {}, 2: {}, 3: {}}
 TEST_UNITS_LAMP_5 = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
 
-class TestEnvironment(unittest.TestCase):
+class TestEnvironment(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('juju', )
 
     def test_ensure_num_units(self):
         import pytoolbox.subprocess

@@ -28,6 +28,7 @@ import math, os, unittest
 from pytoolbox.encoding import csv_reader
 from pytoolbox.filesystem import try_remove
 from pytoolbox.serialization import PickleableObject
+from pytoolbox.unittest import FilterByTagsMixin
 
 here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
 here = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests')
@@ -45,7 +46,9 @@ class MyPoint(PickleableObject):
         return math.sqrt(self.x*self.x + self.y*self.y)
 
 
-class TestSerialization(unittest.TestCase):
+class TestSerialization(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('serialization', )
 
     def test_PickleableObject(self):
         p1 = MyPoint(name='My point', x=6, y=-3)

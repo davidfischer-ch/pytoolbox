@@ -26,9 +26,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import unittest
 from pytoolbox import exception
+from pytoolbox.unittest import FilterByTagsMixin
 
 
-class TestException(unittest.TestCase):
+class TestException(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('exception', )
 
     def test_message_mixin_to_string(self):
         ex = exception.MessageMixin(ten=10, dict={}, string='chaîne de caractères')

@@ -28,6 +28,7 @@ import datetime, os.path, tempfile, unittest
 from codecs import open
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia.ffmpeg import _to_bitrate, AudioStream, FFmpeg, FFprobe, Format, Media, VideoStream, HEIGHT
+from pytoolbox.unittest import FilterByTagsMixin
 
 MPD_TEST = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
@@ -165,7 +166,9 @@ class RaiseFFmpeg(FFmpeg):
         return super(RaiseFFmpeg, self)._clean_statistics(**statistics)
 
 
-class TestUtils(unittest.TestCase):
+class TestUtils(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
 
     def test_to_bitrate(self):
         self.assertEqual(_to_bitrate('231.5kbit/s'), 231500)
@@ -173,7 +176,9 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(_to_bitrate('1935.9kbits/s'), 1935900)
 
 
-class TestMedia(unittest.TestCase):
+class TestMedia(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
 
     def test_pipe(self):
         self.assertFalse(Media(None).is_pipe)
@@ -185,7 +190,9 @@ class TestMedia(unittest.TestCase):
             self.assertEqual(media.size, 0)
 
 
-class TestFFmpeg(unittest.TestCase):
+class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
 
     def setUp(self):
         self.ffmpeg = MockFFmpeg()
@@ -283,7 +290,9 @@ class TestFFmpeg(unittest.TestCase):
         self.assertTrue(try_remove('ff_output.mp4'))
 
 
-class TestFFprobe(unittest.TestCase):
+class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
 
     def setUp(self):
         self.ffprobe = MockFFprobe()

@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import unittest
 from pytoolbox.comparison import SlotsEqualityMixin
+from pytoolbox.unittest import FilterByTagsMixin
 
 
 class Point2D(SlotsEqualityMixin):
@@ -53,7 +54,9 @@ class Point3D(SlotsEqualityMixin):
         self.name = name
 
 
-class TestSlotsEqualityMixin(unittest.TestCase):
+class TestSlotsEqualityMixin(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('comparison', )
 
     def test_equality_same_class(self):
         p1 = Point2D(10, -3, 'dot')

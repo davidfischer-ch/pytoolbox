@@ -26,9 +26,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import unittest
 from pytoolbox.multimedia.x264 import ENCODING_REGEX
+from pytoolbox.unittest import FilterByTagsMixin
 
 
-class TestX264(unittest.TestCase):
+class TestX264(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('multimedia', 'x264')
 
     def test_encoding_regex(self):
         match = ENCODING_REGEX.match('[79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02')

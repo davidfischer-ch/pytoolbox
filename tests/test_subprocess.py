@@ -27,10 +27,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six, unittest
 from pytoolbox.unittest import Mock
 from pytoolbox.subprocess import to_args_list, to_args_string, cmd, screen_launch, screen_list, screen_kill
+from pytoolbox.unittest import FilterByTagsMixin
 from pytoolbox.validation import validate_list
 
 
-class TestSubprocess(unittest.TestCase):
+class TestSubprocess(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('subprocess', )
 
     def main(self):
         self.test_screen()

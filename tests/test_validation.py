@@ -25,10 +25,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
+from pytoolbox.unittest import FilterByTagsMixin
 from pytoolbox.validation import validate_list
 
 
-class TestValidation(unittest.TestCase):
+class TestValidation(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('validation', )
 
     def test_validate_list(self):
         regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]

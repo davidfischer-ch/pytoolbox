@@ -26,9 +26,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import argparse, unittest
 from pytoolbox.argparse import is_dir, is_file
+from pytoolbox.unittest import FilterByTagsMixin
 
 
-class TestArgparse(unittest.TestCase):
+class TestArgparse(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('argparse', )
 
     def test_is_dir(self):
         self.assertEqual(is_dir('/home'), '/home')

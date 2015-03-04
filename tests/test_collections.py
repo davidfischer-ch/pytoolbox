@@ -26,9 +26,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import unittest
 from pytoolbox.collections import pygal_deque
+from pytoolbox.unittest import FilterByTagsMixin
 
 
-class TestCollections(unittest.TestCase):
+class TestCollections(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('collections', )
 
     def test_pygal_deque(self):
         p = pygal_deque(maxlen=4)

@@ -26,9 +26,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import unittest
 from pytoolbox.private import _parse_kwargs_string
+from pytoolbox.unittest import FilterByTagsMixin
 
 
-class TestPrivate(unittest.TestCase):
+class TestPrivate(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('private', )
 
     def test_parse_kwargs_string(self):
         self.assertDictEqual(_parse_kwargs_string('year=1950 ;  style=jazz', year=int, style=str), {

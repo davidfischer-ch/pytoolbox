@@ -28,7 +28,9 @@ import unittest
 from pytoolbox.unittest import FilterByTagsMixin
 
 
-class TestFilterByTagsMixin(unittest.TestCase):
+class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('unittest', )
 
     def test_should_run(self):
         self.assertTrue(FilterByTagsMixin.should_run([], [], []))
