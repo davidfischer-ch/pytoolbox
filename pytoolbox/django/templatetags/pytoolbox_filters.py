@@ -30,9 +30,11 @@ from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.template.defaulttags import include_is_allowed
 from django.utils.html import conditional_escape
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
+from .. import constants
 from ... import humanize
 from ...datetime import secs_to_time as _secs_to_time
 from ...encoding import to_unicode
@@ -247,7 +249,7 @@ def verbose_name(instance):
     """Return the verbose name (singular) of a model."""
     if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    return instance._meta.verbose_name
+    return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
 
 
 @register.filter
@@ -255,4 +257,4 @@ def verbose_name_plural(instance):
     """Return the verbose name (plural) of a model."""
     if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    return instance._meta.verbose_name
+    return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
