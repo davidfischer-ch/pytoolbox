@@ -32,51 +32,11 @@ if sys.version_info[0] > 2:
 else:
     from mock import Mock
 
-__all__ = (
-    'Mock', 'MOCK_SIDE_EFFECT_RETURNS', 'mock_cmd', 'mock_side_effect', 'runtests', 'AwareTearDownMixin',
-    'TimingMixin'
-)
-
-MOCK_SIDE_EFFECT_RETURNS = [Exception('you must set MOCK_SIDE_EFFECT_RETURNS'), {'title': '2nd'}]
+__all__ = ('Mock', 'mock_cmd', 'runtests', 'AwareTearDownMixin', 'TimingMixin')
 
 
 def mock_cmd(stdout='', stderr='', returncode=0):
     return Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
-
-
-def mock_side_effect(*args, **kwargs):
-    """
-    Pop and return values from MOCK_SIDE_EFFECT_RETURNS.
-
-    From your own module, you need to set MOCK_SIDE_EFFECT_RETURNS before using this function::
-
-        import pytoolbox.unittest
-        pytoolbox.unittest.MOCK_SIDE_EFFECT_RETURNS = ['1st', {'title': '2nd'}, EOFError('last')]
-
-    **example usage**
-
-    Set content (only required for this doctest, see previous remark):
-
-    Pops return values with `mock_side_effect`:
-
-    >>> from nose.tools import eq_
-    >>>
-    >>> print(mock_side_effect())
-    Traceback (most recent call last):
-    ...
-    Exception: you must set MOCK_SIDE_EFFECT_RETURNS
-    >>> eq_(mock_side_effect(), {'title': '2nd'})
-    >>>
-    >>> print(mock_side_effect())
-    Traceback (most recent call last):
-    ...
-    IndexError: pop from empty list
-    """
-    global MOCK_SIDE_EFFECT_RETURNS
-    result = MOCK_SIDE_EFFECT_RETURNS.pop(0)
-    if isinstance(result, Exception):
-        raise result
-    return result
 
 
 def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
