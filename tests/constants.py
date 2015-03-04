@@ -31,7 +31,7 @@ __all__ = ('BITS', 'FFMPEG_ARCHIVE', 'FFMPEG_BINARY', 'FFMPEG_URL', 'TEST_ASSETS
 
 BITS = platform.architecture()[0]
 TESTS_DIRECTORY = dirname(__file__)
-FFMPEG_URL = 'http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.4.1-{0}-static.tar.xz'.format(BITS)
+FFMPEG_URL = 'http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.5.4-{0}-static.tar.xz'.format(BITS)
 FFMPEG_ARCHIVE = join(TESTS_DIRECTORY, basename(FFMPEG_URL))
 FFMPEG_BINARY = join(FFMPEG_ARCHIVE.replace('.tar.xz', ''), 'ffmpeg')
 
