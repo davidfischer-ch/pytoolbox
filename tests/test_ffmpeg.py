@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, mock, os.path, tempfile, unittest
+import datetime, os.path, tempfile, unittest
 from codecs import open
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia.ffmpeg import (
