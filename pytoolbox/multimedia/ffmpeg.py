@@ -36,24 +36,22 @@ from ..types import get_slots
 __all__ = (
     'BITRATE_REGEX', 'BITRATE_COEFFICIENT_FOR_UNIT', 'DURATION_REGEX', 'ENCODING_REGEX', 'PIPE_REGEX', 'WIDTH',
     'HEIGHT', 'BaseInfo', 'Codec', 'Format', 'Stream', 'AudioStream', 'SubtitleStream', 'VideoStream', 'Media',
-    'EncodingState', 'FFprobe', 'FFmpeg'
+    'FFprobe', 'FFmpeg', 'EncodeState', 'EncodeStatistics'
 )
 
 _missing = object()
 
-BITRATE_REGEX = re.compile(r'(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s')
-BITRATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000000, 'g': 1000000000}
-
+BITRATE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
+BITRATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000**2, 'g': 1000**3}
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
-
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
     r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+\.?\d*)\s+q=\s*(?P<q>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)'
 )
-
 PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
-
+SIZE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
+SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
 WIDTH, HEIGHT = range(2)
 
 
@@ -62,12 +60,11 @@ def _is_pipe(filename):
 
 
 def _to_bitrate(bitrate):
-    try:
-        match = BITRATE_REGEX.match(bitrate).groupdict()
+    match = BITRATE_REGEX.match(bitrate)
+    if match:
+        match = match.groupdict()
         return int(float(match['value']) * BITRATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
-    except:
-        pass
-    return None
+    raise ValueError(bitrate)
 
 
 def _to_framerate(fps):
@@ -92,6 +89,14 @@ def _to_framerate(fps):
         return float(fps)
     except:
         return None
+
+
+def _to_size(size):
+    match = SIZE_REGEX.match(size)
+    if match:
+        match = match.groupdict()
+        return int(float(match['value']) * SIZE_COEFFICIENT_FOR_UNIT[match['units'][0].lower()])
+    raise ValueError(size)
 
 
 class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
@@ -184,6 +189,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     def __init__(self, filename, options=None):
         self.filename = filename
         self.options = options
+        self._size = None
 
     @property
     def directory(self):
@@ -195,7 +201,13 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     @property
     def size(self):
-        return 0 if self.is_pipe else filesystem.get_size(self.filename)
+        if self._size is None:
+            return 0 if self.is_pipe else filesystem.get_size(self.filename)
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
 
     def clean_options(self, value):
         return to_args_list(value)
@@ -206,16 +218,6 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     def to_args(self, is_input):
         return self.options + (['-i', self.filename] if is_input else [self.filename])
-
-
-class EncodingState(object):
-    STARTED = 'STARTED'
-    PROCESSING = 'PROCESSING'
-    SUCCESS = 'SUCCESS'
-    FAILURE = 'FAILURE'
-
-    ALL_STATES = frozenset([STARTED, PROCESSING, SUCCESS, FAILURE])
-    FINAL_STATES = frozenset([SUCCESS, FAILURE])
 
 
 class FFprobe(object):
@@ -354,27 +356,226 @@ class FFprobe(object):
         return media if isinstance(media, self.media_class) else self.media_class(media)
 
 
+class EncodeState(object):
+    NEW = 'NEW'
+    STARTED = 'STARTED'
+    PROCESSING = 'PROCESSING'
+    SUCCESS = 'SUCCESS'
+    FAILURE = 'FAILURE'
+
+    ALL_STATES = frozenset([NEW, STARTED, PROCESSING, SUCCESS, FAILURE])
+    FINAL_STATES = frozenset([SUCCESS, FAILURE])
+
+
+class EncodeStatistics(object):
+
+    default_in_duration = datetime.timedelta(seconds=0)
+    encoding_regex = ENCODING_REGEX
+    ffprobe_class = FFprobe
+    states = EncodeState
+
+    __slots__ = (
+        'state', 'inputs', 'outputs', 'options', 'in_base_index', 'out_base_index', 'ratio_delta', 'time_delta',
+        'max_time_delta', '__dict__'
+    )
+
+    def __init__(self, inputs, outputs, options, in_base_index=0, out_base_index=0, ratio_delta=0.01, time_delta=1,
+                 max_time_delta=5):
+        self.inputs = inputs
+        self.outputs = outputs
+        self.options = options
+        self.in_base_index = in_base_index
+        self.out_base_index = out_base_index
+        self.ratio_delta = ratio_delta
+        self.time_delta = datetime.timedelta(seconds=time_delta)
+        self.max_time_delta = datetime.timedelta(seconds=max_time_delta)
+
+        self.process = None
+        self.process_output = ''
+        self.returncode = None
+
+        self.state = self.states.NEW
+        self.start_date = None
+        self.start_time = None
+        self.elapsed_time = None
+        self.ratio = None
+        self.frame = None
+        self.fps = None
+        self.qscale = None
+        self.size = None
+        self.bitrate = None
+
+        # Retrieve input media duration and size, handle sub-clipping
+        duration = self.ffprobe_class().get_media_duration(self.input, as_delta=True) or self.default_in_duration
+        self.input.duration, self.input.size = \
+            self._get_subclip_duration_and_size(duration, self.input.size, options)
+        self.output.duration = None
+
+    @property
+    def eta_time(self):
+        if self.state == self.states.SUCCESS:
+            return datetime.timedelta(0)
+        if not self.ratio:
+            return None
+        return multiply_time(self.elapsed_time, (1.0 - self.ratio) / self.ratio, as_delta=True)
+
+    @property
+    def input(self):
+        return self.inputs[self.in_base_index]
+
+    @property
+    def output(self):
+        return self.outputs[self.out_base_index]
+
+    def get_now(self):
+        return datetime_now()
+
+    def start(self, process):
+        self.state = self.states.STARTED
+        self.process = process
+        self.start_date = self.get_now()
+        self.start_time = time.time()
+        self.elapsed_time = datetime.timedelta(0)
+        self.output.duration = datetime.timedelta(0)
+        self.frame = 0
+        self.size = 0
+        self._update_ratio()
+        return self
+
+    def progress(self, chunk):
+        self.state = self.states.PROCESSING
+        self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
+        ffmpeg_statistics = self._parse_chunk(chunk)
+        if ffmpeg_statistics:
+            self.output.duration = ffmpeg_statistics['time']
+            self.frame = ffmpeg_statistics['frame']
+            self.fps = ffmpeg_statistics['fps']
+            self.qscale = ffmpeg_statistics['q']
+            self.output.size = ffmpeg_statistics['size']
+            self.bitrate = ffmpeg_statistics['bitrate']
+        self._update_ratio()
+        if self._should_report():
+            return self
+
+    def end(self, returncode):
+        self.state = self.states.FAILURE if returncode else self.states.SUCCESS
+        self.returncode = returncode
+        self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
+        self.fps = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
+        self.output.duration = self.ffprobe_class().get_media_duration(self.output.filename, as_delta=True)
+        self.output.size = None
+        self._update_ratio()
+        return self
+
+    def _update_ratio(self):
+        if self.state == self.states.SUCCESS:
+            self.ratio = 1.0
+        else:
+            ratio = self._compute_ratio()
+            self.ratio = None if ratio is None else min(1.0, max(0.0, ratio))
+
+    def _compute_ratio(self):
+        if self.input.duration and self.output.duration is not None:
+            return time_ratio(self.output.duration, self.input.duration)
+
+    def _get_subclip_duration_and_size(self, duration, size, options):
+        """Adjust duration and size if we only encode a sub-clip."""
+        def to_time(t):
+            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
+        try:
+            sub_pos = to_time(options[options.index('-ss') + 1]) or datetime.timedelta(0)
+        except (IndexError, ValueError):
+            sub_pos = datetime.timedelta(0)
+        try:
+            sub_dur = to_time(options[options.index('-t') + 1])
+        except (IndexError, ValueError):
+            sub_dur = duration
+        if sub_dur is not None:
+            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
+            return sub_dur, int(size * time_ratio(sub_dur, duration))
+        return duration, size
+
+    def _parse_chunk(self, chunk):
+        self.process_output += chunk
+        match = self.encoding_regex.match(chunk.strip())
+        if match:
+            ffmpeg_statistics = match.groupdict()
+            try:
+                ffmpeg_statistics['time'] = str_to_time(ffmpeg_statistics['time'], as_delta=True)
+            except ValueError:
+                return None  # Parsed statistics are broken, do not use them
+            ffmpeg_statistics['frame'] = int(ffmpeg_statistics['frame'])
+            ffmpeg_statistics['fps'] = float(ffmpeg_statistics['fps'])
+            q = ffmpeg_statistics.get('q')
+            ffmpeg_statistics['q'] = None if q is None else float(q)
+            ffmpeg_statistics['size'] = _to_size(ffmpeg_statistics['size'])
+            ffmpeg_statistics['bitrate'] = _to_bitrate(ffmpeg_statistics['bitrate'])
+            return ffmpeg_statistics
+
+    def _should_report(self):
+        elapsed_time, ratio = self.elapsed_time or datetime.timedelta(0), self.ratio or 0
+        if not hasattr(self, '_prev_elapsed_time') or not hasattr(self, '_prev_ratio'):
+            self._prev_elapsed_time, self._prev_ratio = elapsed_time, ratio
+            return True
+        delta_time = (elapsed_time - self._prev_elapsed_time) if elapsed_time else datetime.timedelta(0)
+        delta_ratio = (ratio - self._prev_ratio) if ratio else 0
+        if (delta_ratio > self.ratio_delta and delta_time > self.time_delta) or delta_time > self.max_time_delta:
+            self._prev_elapsed_time, self._prev_ratio = elapsed_time, ratio
+            return True
+        return False
+
+
 class FFmpeg(object):
     """
     Encode a set of input files input to a set of output files and yields statistics about the encoding.
     """
 
     executable = 'ffmpeg'
-    encoding_regex = ENCODING_REGEX
     ffprobe_class = FFprobe
-    states = EncodingState
+    statistics_class = EncodeStatistics
 
-    def __init__(self, executable=None, chunk_read_timeout=0.5, default_in_duration=datetime.timedelta(seconds=0),
-                 encode_poll_delay=0.5, ratio_delta=0.01, time_delta=1, max_time_delta=5, encoding='utf-8'):
+    def __init__(self, executable=None, chunk_read_timeout=0.5, encode_poll_delay=0.5, encoding='utf-8'):
         self.executable = executable or self.executable
         self.chunk_read_timeout = chunk_read_timeout
-        self.default_in_duration = default_in_duration
         self.encode_poll_delay = encode_poll_delay
-        self.ratio_delta = ratio_delta
-        self.time_delta = time_delta
-        self.max_time_delta = max_time_delta
         self.encoding = encoding
         self.ffprobe = self.ffprobe_class()
+
+    def encode(self, inputs, outputs, options=None, create_directories=True, process_poll=True, process_kwargs=None,
+               statistics_kwargs=None):
+        """
+        Encode a set of input files input to a set of output files and yields statistics about the encoding.
+        """
+        arguments, inputs, outputs, options = self._get_arguments(inputs, outputs, options)
+
+        # Create outputs directories
+        if create_directories:
+            for output in outputs:
+                output.create_directory()
+
+        statistics = self.statistics_class(inputs, outputs, options, **(statistics_kwargs or {}))
+        process = self._get_process(arguments, **(process_kwargs or {}))
+        try:
+            yield statistics.start(process=process)
+            while True:
+                chunk = self._get_chunk(process)
+                if statistics.progress(chunk):
+                    yield statistics
+                if process_poll:
+                    returncode = process.poll()
+                    if returncode is not None:
+                        break
+                if self.encode_poll_delay:
+                    time.sleep(self.encode_poll_delay)
+            yield statistics.end(returncode)
+        except Exception as exception:
+            tb = sys.exc_info()[2]
+            try:
+                process.kill()
+            except OSError as e:
+                if e.errno != errno.ESRCH:
+                    raise
+            raise exception.with_traceback(tb) if hasattr(exception, 'with_traceback') else exception
 
     def _clean_medias_argument(self, value):
         """
@@ -407,7 +608,8 @@ class FFmpeg(object):
     def _get_chunk(self, process):
         select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
-            return process.stderr.read()
+            chunk = process.stderr.read()
+            return chunk if chunk is None or isinstance(chunk, string_types) else chunk.decode(self.encoding)
         except IOError as e:
             if e.errno == errno.EAGAIN:
                 return None
@@ -418,130 +620,3 @@ class FFmpeg(object):
         process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
         make_async(process.stderr)
         return process
-
-    def _get_progress(self, in_duration, stats):
-        out_duration = str_to_time(stats['time'])
-        ratio = time_ratio(out_duration, in_duration)
-        return out_duration, ratio
-
-    def _get_subclip_duration_and_size(self, duration, size, options):
-        """Adjust duration and size if we only encode a sub-clip."""
-        def to_time(t):
-            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
-        try:
-            sub_pos = to_time(options[options.index('-ss') + 1]) or datetime.timedelta(0)
-        except (IndexError, ValueError):
-            sub_pos = datetime.timedelta(0)
-        try:
-            sub_dur = to_time(options[options.index('-t') + 1])
-        except (IndexError, ValueError):
-            sub_dur = duration
-        if sub_dur is not None:
-            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
-            return sub_dur, int(size * time_ratio(sub_dur, duration))
-        return duration, size
-
-    def _get_statistics(self, chunk):
-        match = self.encoding_regex.match(chunk)
-        return match.groupdict() if match else {}
-
-    def _clean_statistics(self, stats, **statistics):
-        bitrate = statistics.pop('bitrate', _missing)
-        if bitrate is not _missing:
-            statistics['bitrate'] = _to_bitrate(bitrate)
-        if 'eta_time' not in statistics and 'elapsed_time' in statistics and 'ratio' in statistics:
-            ratio = statistics['ratio']
-            if ratio > 0:
-                eta_time = multiply_time(statistics['elapsed_time'], (1.0 - ratio) / ratio, as_delta=True)
-            else:
-                eta_time = None
-            statistics['eta_time'] = eta_time
-        return statistics
-
-    def get_now(self):
-        return datetime_now()
-
-    def encode(self, inputs, outputs, options=None, in_base_index=0, out_base_index=0, create_directories=True,
-               process_poll=True, process_kwargs=None, yield_empty=False):
-        """
-        Encode a set of input files input to a set of output files and yields statistics about the encoding.
-        """
-        arguments, inputs, outputs, options = self._get_arguments(inputs, outputs, options)
-
-        # Create outputs directories
-        if create_directories:
-            for output in outputs:
-                output.create_directory()
-
-        # Get input media duration and size to be able to estimate ETA, handle sub-clipping
-        duration = self.ffprobe.get_media_duration(inputs[in_base_index], as_delta=True) or self.default_in_duration
-        in_duration, in_size = self._get_subclip_duration_and_size(duration, inputs[in_base_index].size, options)
-
-        # Initialize metrics
-        output = ''
-        stats = {}
-        start_date, start_time = self.get_now(), time.time()
-        prev_ratio = prev_time = ratio = 0
-
-        process = self._get_process(arguments, **(process_kwargs or {}))
-        try:
-            yield self._clean_statistics(
-                stats=stats, elapsed_time=datetime.timedelta(seconds=time.time() - start_time), in_duration=in_duration,
-                in_size=in_size, output=output, process=process, returncode=None, start_date=start_date,
-                state=self.states.STARTED
-            )
-            while True:
-                chunk = self._get_chunk(process)
-                if chunk is None:
-                    stats = {}
-                else:
-                    if not isinstance(chunk, string_types):
-                        chunk = chunk.decode(self.encoding)
-                    output += chunk
-                    stats = self._get_statistics(chunk)
-                elapsed_time = time.time() - start_time
-                try:
-                    out_duration, ratio = self._get_progress(in_duration, stats) if stats else (0, prev_ratio)
-                except ValueError:
-                    stats = {}  # parsed statistics are broken, do not yield it
-                delta_time = elapsed_time - prev_time
-                if ((ratio - prev_ratio > self.ratio_delta and delta_time > self.time_delta) or
-                        delta_time > self.max_time_delta):
-                    prev_ratio, prev_time = ratio, elapsed_time
-                    if stats:
-                        yield self._clean_statistics(
-                            stats=stats, bitrate=stats['bitrate'],
-                            elapsed_time=datetime.timedelta(seconds=elapsed_time), fps=float(stats['fps']),
-                            frame=int(stats['frame']), in_duration=in_duration, in_size=in_size,
-                            out_duration=out_duration, out_size=outputs[out_base_index].size, output=output,
-                            process=process, qscale=stats.get('q'), ratio=ratio, returncode=None, start_date=start_date,
-                            state=self.states.PROCESSING
-                        )
-                    elif yield_empty:
-                        yield {}
-                if process_poll:
-                    returncode = process.poll()
-                    if returncode is not None:
-                        break
-                if self.encode_poll_delay:
-                    time.sleep(self.encode_poll_delay)
-
-            out_duration = self.ffprobe.get_media_duration(outputs[out_base_index].filename, as_delta=True)
-            ratio = time_ratio(out_duration, in_duration) if out_duration else 0.0
-            frame = int(stats.get('frame', 0))  # FIXME compute latest frame based on output infos
-            fps = float(stats.get('fps', 0))  # FIXME compute average fps
-            yield self._clean_statistics(
-                stats=stats, bitrate=stats.get('bitrate'), elapsed_time=datetime.timedelta(seconds=elapsed_time),
-                eta_time=datetime.timedelta(0), fps=fps, frame=frame, in_duration=in_duration, in_size=in_size,
-                out_duration=out_duration, out_size=outputs[out_base_index].size, output=output, process=process,
-                qscale=stats.get('q'), ratio=ratio if returncode else 1.0, returncode=returncode, start_date=start_date,
-                state=self.states.FAILURE if returncode else self.states.SUCCESS
-            )
-        except Exception as exception:
-            tb = sys.exc_info()[2]
-            try:
-                process.kill()
-            except OSError as e:
-                if e.errno != errno.ESRCH:
-                    raise
-            raise exception.with_traceback(tb) if hasattr(exception, 'with_traceback') else exception

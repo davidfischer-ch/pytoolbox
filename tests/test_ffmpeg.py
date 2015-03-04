@@ -24,10 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, os.path, tempfile, unittest
+import datetime, mock, os.path, tempfile, unittest
 from codecs import open
 from pytoolbox.filesystem import try_remove
-from pytoolbox.multimedia.ffmpeg import _to_bitrate, AudioStream, FFmpeg, FFprobe, Format, Media, VideoStream, HEIGHT
+from pytoolbox.multimedia.ffmpeg import (
+    _to_bitrate, _to_size, AudioStream, EncodeState, EncodeStatistics, FFmpeg, FFprobe, Format, Media, VideoStream,
+    HEIGHT
+)
 from pytoolbox.unittest import FilterByTagsMixin
 
 MPD_TEST = """<?xml version="1.0"?>
@@ -158,12 +161,20 @@ class MockFFprobe(FFprobe):
         return super(MockFFprobe, self).get_media_infos(filename)
 
 
+class MockEncodeStatistics(EncodeStatistics):
+
+    ffprobe_class = MockFFprobe
+
+
+class RaiseEncodeStatistics(EncodeStatistics):
+
+    def end(self, returncode):
+        raise ValueError('This is the error.')
+
+
 class RaiseFFmpeg(FFmpeg):
 
-    def _clean_statistics(self, **statistics):
-        if 'out_duration' in statistics:
-            raise ValueError('This is the exception.')
-        return super(RaiseFFmpeg, self)._clean_statistics(**statistics)
+    statistics_class = RaiseEncodeStatistics
 
 
 class TestUtils(FilterByTagsMixin, unittest.TestCase):
@@ -174,6 +185,11 @@ class TestUtils(FilterByTagsMixin, unittest.TestCase):
         self.assertEqual(_to_bitrate('231.5kbit/s'), 231500)
         self.assertEqual(_to_bitrate('3302.3kbits/s'), 3302300)
         self.assertEqual(_to_bitrate('1935.9kbits/s'), 1935900)
+
+    def test_to_size(self):
+        self.assertEqual(_to_size('231.5kB'), 237056)
+        self.assertEqual(_to_size('3302.3MB'), 3462712524)
+        self.assertEqual(_to_size('1935.9KB'), 1982361)
 
 
 class TestMedia(FilterByTagsMixin, unittest.TestCase):
@@ -188,6 +204,127 @@ class TestMedia(FilterByTagsMixin, unittest.TestCase):
             self.assertIsNone(media.directory)
             self.assertTrue(media.is_pipe)
             self.assertEqual(media.size, 0)
+
+
+class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
+
+    inputs = [Media('small.mp4')]
+    outputs = [Media('ff_output.mp4')]
+
+    def get_statistics(self, start=False, returncode=None, options=['-acodec', 'copy', '-vcodec', 'copy'], **kwargs):
+        statistics = EncodeStatistics(self.inputs, self.outputs, options, **kwargs)
+        start = start or returncode is not None
+        if start:
+            statistics.start('process')
+        if returncode is not None:
+            statistics.progress('')
+            statistics.end(returncode)
+        return statistics
+
+    def test_get_subclip_duration_and_size(self):
+        eq, subclip = self.assertTupleEqual, self.get_statistics()._get_subclip_duration_and_size
+        duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
+        sub_dur_1 = datetime.timedelta(seconds=3610.2)
+        sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
+        sub_dur_3 = datetime.timedelta(minutes=40, seconds=36.3)
+        sub_dur_4 = datetime.timedelta(0)
+        eq(subclip(duration, 512 * 1024, []), (duration, 512 * 1024))
+        eq(subclip(duration, 512 * 1024, ['-t']), (duration, 512 * 1024))
+        eq(subclip(duration, 512 * 1024, ['-t', '-t']), (duration, 512 * 1024))
+        eq(subclip(duration, 512 * 1024, ['-t', '3610.2']), (sub_dur_1, 348162))
+        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8']), (sub_dur_2, 464428))
+        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '00:50:00.2']), (sub_dur_3, 234953))
+        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '01:30:36.5']), (sub_dur_4, 0))
+        eq(subclip(duration, 512 * 1024, ['-ss', '01:30:53']), (sub_dur_4, 0))
+        eq(subclip(duration, 512 * 1024, ['-t', '02:00:00.0']), (duration, 512 * 1024))
+
+    def test_parse_chunk(self):
+        statistics = self.get_statistics()
+        eq, parse = self.assertDictEqual, statistics._parse_chunk
+        self.assertIsNone(parse('Random stuff'))
+        eq(parse('    frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s  '), {
+            'frame': 2071, 'fps': 0.0, 'q': -1.0, 'size': 34623 * 1024,
+            'time': datetime.timedelta(minutes=1, seconds=25.89), 'bitrate': 3302300
+        })
+
+    def test_should_report_initialization(self):
+        statistics = self.get_statistics()
+        self.assertTrue(statistics._should_report())
+        self.assertEqual(statistics._prev_elapsed_time, datetime.timedelta(0))
+        self.assertEqual(statistics._prev_ratio, 0)
+        self.assertFalse(statistics._should_report())
+
+    def test_should_report_elapsed_time_criteria(self):
+        statistics = self.get_statistics()
+        self.assertTrue(statistics._should_report())
+        statistics.elapsed_time = datetime.timedelta(seconds=3)
+        self.assertFalse(statistics._should_report())
+        statistics.elapsed_time = datetime.timedelta(seconds=6)
+        self.assertTrue(statistics._should_report())
+        self.assertFalse(statistics._should_report())
+
+    def test_should_report_ratio_criteria(self):
+        statistics = self.get_statistics()
+        self.assertTrue(statistics._should_report())
+        statistics.ratio = 0.001
+        self.assertFalse(statistics._should_report())
+        statistics.ratio = 0.02
+        self.assertFalse(statistics._should_report())
+        statistics.elapsed_time = datetime.timedelta(seconds=2)
+        self.assertTrue(statistics._should_report())
+        self.assertFalse(statistics._should_report())
+
+    def test_eta_time(self):
+        statistics = self.get_statistics()
+        statistics.elapsed_time = datetime.timedelta(seconds=60)
+        self.assertIsNone(statistics.eta_time)
+        statistics.ratio = 0.0
+        self.assertIsNone(statistics.eta_time)
+        statistics.ratio = 0.2
+        self.assertEqual(statistics.eta_time, datetime.timedelta(seconds=240))
+        statistics.ratio = 0.5
+        self.assertEqual(statistics.eta_time, datetime.timedelta(seconds=60))
+        statistics.ratio = 1.0
+        self.assertEqual(statistics.eta_time, datetime.timedelta(0))
+
+    def test_compute_ratio(self):
+        statistics = self.get_statistics()
+        statistics.input.duration = datetime.timedelta(seconds=0)
+        statistics.output.duration = None
+        self.assertIsNone(statistics._compute_ratio())
+        statistics.input.duration = datetime.timedelta(seconds=0)
+        statistics.output.duration = datetime.timedelta(0)
+        self.assertIsNone(statistics._compute_ratio())
+        statistics.input.duration = datetime.timedelta(seconds=1)
+        self.assertEqual(statistics._compute_ratio(), 0.0)
+        statistics.input.duration = datetime.timedelta(seconds=60)
+        statistics.output.duration = datetime.timedelta(seconds=30)
+        self.assertEqual(statistics._compute_ratio(), 0.5)
+
+    def test_new_properties(self):
+        statistics = self.get_statistics()
+        self.assertIsInstance(statistics.input.duration, datetime.timedelta)
+        self.assertIsNone(statistics.eta_time)
+        self.assertEqual(statistics.input, statistics.inputs[0])
+        self.assertEqual(statistics.output, statistics.outputs[0])
+        self.assertIsNone(statistics.ratio)
+        self.assertIsNotNone(statistics.input._size)
+
+    def test_started_properties(self):
+        statistics = self.get_statistics(start=True)
+        self.assertEqual(statistics.output.duration, datetime.timedelta(0))
+        self.assertIsNone(statistics.eta_time)
+        self.assertEqual(statistics.ratio, 0.0)
+
+    def test_success_properties(self):
+        self.outputs[0].filename = self.inputs[0].filename
+        statistics = self.get_statistics(returncode=0)
+        self.assertEqual(statistics.output.duration, statistics.input.duration)
+        self.assertEqual(statistics.eta_time, datetime.timedelta(0))
+        self.assertEqual(statistics.ratio, 1.0)
+        self.assertIsNone(statistics.output._size)
 
 
 class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
@@ -207,31 +344,19 @@ class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
         eq(clean(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
         eq(clean([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
 
-    def test_clean_statistics(self):
-        eq, d_eq = self.assertEqual, self.assertDictEqual
-        D = lambda seconds: datetime.timedelta(seconds=seconds)
-        clean = self.ffmpeg._clean_statistics
-        d_eq(clean(None), {})
-        d_eq(clean(None, bitrate='4kbp/s'), {'bitrate': 4000})
-        d_eq(clean(None, eta_time=100), {'eta_time': 100})
-        eq(clean(None, elapsed_time=D(60), ratio=0.0)['eta_time'], None)
-        eq(clean(None, elapsed_time=D(60), ratio=0.2)['eta_time'], D(240))
-        eq(clean(None, elapsed_time=D(60), ratio=0.5)['eta_time'], D(60))
-        eq(clean(None, elapsed_time=D(60), ratio=1.0)['eta_time'], D(0))
-
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_encode(self):
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
         self.assertTrue(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1]['state'], self.ffmpeg.encoding_state_class.SUCCESS)
+        self.assertEqual(results[-1].state, EncodeState.SUCCESS)
 
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
         self.assertFalse(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1]['state'], self.ffmpeg.encoding_state_class.FAILURE)
+        self.assertEqual(results[-1].state, EncodeState.FAILURE)
 
         results = list(self.ffmpeg.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
         self.assertFalse(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1]['state'], self.ffmpeg.encoding_state_class.FAILURE)
+        self.assertEqual(results[-1].state, EncodeState.FAILURE)
 
     def test_get_arguments(self):
         eq = self.assertListEqual
@@ -264,23 +389,6 @@ class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
         process = self.ffmpeg._get_process([STATIC_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
         self.assertListEqual(process.args, [STATIC_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
         process.terminate()
-
-    def test_get_subclip_duration_and_size(self):
-        eq, subclip = self.assertTupleEqual, self.ffmpeg._get_subclip_duration_and_size
-        duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
-        sub_dur_1 = datetime.timedelta(seconds=3610.2)
-        sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
-        sub_dur_3 = datetime.timedelta(minutes=40, seconds=36.3)
-        sub_dur_4 = datetime.timedelta(0)
-        eq(subclip(duration, 512 * 1024, []), (duration, 512 * 1024))
-        eq(subclip(duration, 512 * 1024, ['-t']), (duration, 512 * 1024))
-        eq(subclip(duration, 512 * 1024, ['-t', '-t']), (duration, 512 * 1024))
-        eq(subclip(duration, 512 * 1024, ['-t', '3610.2']), (sub_dur_1, 348162))
-        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8']), (sub_dur_2, 464428))
-        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '00:50:00.2']), (sub_dur_3, 234953))
-        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '01:30:36.5']), (sub_dur_4, 0))
-        eq(subclip(duration, 512 * 1024, ['-ss', '01:30:53']), (sub_dur_4, 0))
-        eq(subclip(duration, 512 * 1024, ['-t', '02:00:00.0']), (duration, 512 * 1024))
 
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_kill_process_handle_missing(self):
