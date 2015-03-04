@@ -35,7 +35,7 @@ classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Framework :: Flask
-License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)
+License :: OSI Approved :: European Union Public License 1.1 (EUPL 1.1)
 Natural Language :: English
 Operating System :: POSIX :: Linux
 Programming Language :: Python
@@ -121,21 +121,24 @@ if len(sys.argv) > 1 and sys.argv[1] in ('develop', 'install', 'test'):
             install_requires += extras_require[extra]
     sys.argv = [arg for arg in old_args if not '--extra' in arg]
 
-setup(name='pytoolbox',
-      version='10.1.0',
-      packages=find_packages(exclude=['tests']),
-      description=description,
-      long_description=open('README.rst', 'r', encoding='utf-8').read(),
-      author='David Fischer',
-      author_email='david.fischer.ch@gmail.com',
-      url='https://github.com/davidfischer-ch/pytoolbox',
-      license='EUPL 1.1',
-      classifiers=filter(None, classifiers.split(os.linesep)),
-      keywords=keywords,
-      extras_require=extras_require,
-      install_requires=install_requires,
-      tests_require=['coverage', 'mock', 'nose'],
-      # Thanks to https://github.com/graingert/django-browserid/commit/46c763f11f76b2f3ba365b164196794a37494f44
-      test_suite='tests.pytoolbox_runtests.main',
-      use_2to3=PY3,
-      use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'])
+setup(
+    name='pytoolbox',
+    version='10.1.0',
+    packages=find_packages(exclude=['tests']),
+    extras_require=extras_require,
+    install_requires=install_requires,
+    tests_require=['coverage', 'mock', 'nose', 'nose-exclude'],
+    test_suite='tests.pytoolbox_runtests.main',
+    use_2to3=PY3,
+    use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
+
+    # Meta-data for upload to PyPI
+    author='David Fischer',
+    author_email='david.fischer.ch@gmail.com',
+    classifiers=filter(None, classifiers.split(os.linesep)),
+    description=description,
+    keywords=keywords,
+    license='EUPL 1.1',
+    long_description=open('README.rst', 'r', encoding='utf-8').read(),
+    url='https://github.com/davidfischer-ch/pytoolbox'
+)
