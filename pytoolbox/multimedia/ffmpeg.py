@@ -552,7 +552,7 @@ class FFmpeg(object):
             yield statistics.start(process)
             while True:
                 chunk = self._get_chunk(process)
-                if statistics.progress(chunk):
+                if statistics.progress(chunk or ''):
                     yield statistics
                 if process_poll:
                     returncode = process.poll()
