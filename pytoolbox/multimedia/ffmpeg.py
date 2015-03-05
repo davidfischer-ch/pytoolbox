@@ -64,31 +64,21 @@ def _to_bitrate(bitrate):
     if match:
         match = match.groupdict()
         return int(float(match['value']) * BITRATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
+    if bitrate == 'N/A':
+        return None
     raise ValueError(bitrate)
 
 
 def _to_framerate(fps):
-    """
-    Return the frame rate as float or None in case of error.
-
-    **Example usage**
-
-    >>> print(_to_framerate({}))
-    None
-    >>> print(_to_framerate(25.0))
-    25.0
-    >>> print(_to_framerate('59000/1000'))
-    59.0
-    """
-    try:
-        if isinstance(fps, numbers.Number):
-            return fps
-        if '/' in fps:
+    if isinstance(fps, numbers.Number):
+        return fps
+    if '/' in fps:
+        try:
             num, denom = fps.split('/')
             return float(num) / float(denom)
-        return float(fps)
-    except:
-        return None
+        except ZeroDivisionError:
+            return None
+    return float(fps)
 
 
 def _to_size(size):
