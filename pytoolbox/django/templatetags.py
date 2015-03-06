@@ -29,10 +29,12 @@ from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.template.defaulttags import include_is_allowed
+from django.templatetags.static import PrefixNode, StaticNode
 from django.utils.html import conditional_escape
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
+from os.path import join
 
 from .. import constants
 from ... import humanize
@@ -42,7 +44,8 @@ from ...private import _parse_kwargs_string
 
 __all__ = (
     'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'naturalbitrate', 'naturalfilesize',
-    'rst_title', 'secs_to_time', 'status_label', 'timedelta', 'verbose_name', 'verbose_name_plural'
+    'rst_title', 'secs_to_time', 'status_label', 'timedelta', 'verbose_name', 'verbose_name_plural',
+    'StaticPathNode', 'static_abspath'
 )
 
 # ====================   =====================   ===============   ===============   =====================
@@ -258,3 +261,32 @@ def verbose_name_plural(instance):
     if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
     return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
+
+
+# TAGS -----------------------------------------------------------------------------------------------------------------
+
+class StaticPathNode(StaticNode):
+
+    @classmethod
+    def handle_simple(cls, path):
+        return join(PrefixNode.handle_simple('STATIC_ROOT'), path)
+
+
+@register.tag('static_abspath')
+def static_abspath(parser, token):
+    """
+    Joins the given path with the STATIC_ROOT setting.
+
+    Usage::
+
+        {% static path [as varname] %}
+
+    Examples::
+
+        {% static "myapp/css/base.css" %}
+        {% static variable_with_path %}
+        {% static "myapp/css/base.css" as admin_base_css %}
+        {% static variable_with_path as varname %}
+
+    """
+    return StaticPathNode.handle_token(parser, token)
