@@ -36,11 +36,11 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from os.path import join
 
-from .. import constants
-from ... import humanize
-from ...datetime import secs_to_time as _secs_to_time
-from ...encoding import to_unicode
-from ...private import _parse_kwargs_string
+from . import constants
+from .. import humanize
+from ..datetime import secs_to_time as _secs_to_time
+from ..encoding import to_unicode
+from ..private import _parse_kwargs_string
 
 __all__ = (
     'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'naturalbitrate', 'naturalfilesize',
