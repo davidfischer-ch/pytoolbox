@@ -102,17 +102,9 @@ def create_site(sender, **kwargs):
     * The application `django-defaultsite <https://github.com/oppian/django-defaultsite>`_
     * Other options discussed `here <https://groups.google.com/forum/#!topic/django-developers/X-ef0C0V8Rk>`_
     """
-    should_update = False
-    try:
-        site = site_app.Site.objects.filter(id__exact=settings.SITE_ID)[0]
-        should_update = site.domain != settings.SITE_DOMAIN or site.name != settings.SITE_NAME
-    except IndexError:
-        should_update = True
-
-    if should_update:
-        site = site_app.Site(id=settings.SITE_ID, domain=settings.SITE_DOMAIN, name=settings.SITE_NAME)
-        logger.info('Updating settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
-        site.save()
+    site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}
+    site = site_app.Site.objects.update_or_create(pk=settings.SITE_ID, defaults=site_fields)[0]
+    logger.info('Updated settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
 
 
 def setup_postgresql_hstore_extension(sender, connection, **kwargs):
