@@ -32,12 +32,17 @@ from .encoding import string_types, to_bytes, to_unicode
 from .filesystem import try_makedirs
 
 __all__ = (
-    'EMPTY_CMD_RETURN', 'quote', 'raw_cmd', 'cmd', 'make_async', 'read_async', 'git_add_submodule', 'git_clone_or_pull',
-    'make', 'rsync', 'screen_kill', 'screen_launch', 'screen_list', 'ssh'
+    'EMPTY_CMD_RETURN', 'Popen', 'quote', 'raw_cmd', 'cmd', 'make_async', 'read_async', 'git_add_submodule',
+    'git_clone_or_pull', 'make', 'rsync', 'screen_kill', 'screen_launch', 'screen_list', 'ssh'
 )
 
 EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode': None}
 
+# import Popen on steroids if available
+try:
+    from psutil import Popen
+except ImportError:
+    from subprocess import Popen
 
 try:
     from shlex import quote
@@ -67,7 +72,7 @@ def raw_cmd(arguments, shell=False, **kwargs):
     * subprocess.args is set to the arguments of the subprocess
     """
     arguments_list = to_args_list(arguments)
-    process = subprocess.Popen(to_args_string(arguments_list) if shell else arguments_list, shell=shell, **kwargs)
+    process = Popen(to_args_string(arguments_list) if shell else arguments_list, shell=shell, **kwargs)
     if not hasattr(process, 'args'):
         process.args = arguments_list
     return process
@@ -131,8 +136,8 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     for trial in range(tries):
         # create the sub-process
         try:
-            process = subprocess.Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
-                                       stderr=None if cli_output else subprocess.PIPE, **kwargs)
+            process = Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
+                            stderr=None if cli_output else subprocess.PIPE, **kwargs)
         except OSError as e:
             # unable to execute the program (e.g. does not exist)
             if log_exception:
