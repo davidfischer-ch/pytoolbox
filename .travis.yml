@@ -8,7 +8,7 @@ python:
   - pypy
 install:
   - travis_retry sudo apt-get update -qq
-  - travis_retry sudo apt-get install -qq screen
+  - travis_retry sudo apt-get install -qq python-lzma screen
   - travis_retry sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
   - travis_retry sudo pip install coveralls
 script:
