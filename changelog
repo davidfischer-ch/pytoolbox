@@ -14,6 +14,7 @@ Compatibility breaks
 Minor compatibilty breaks
 =========================
 
+* Merge django.template tags & filters into 1 file
 * Split FFmpeg class to FFmpeg + FFprobe classes
 
 Features
@@ -42,6 +43,8 @@ Fixes and enhancements
     - Do some analysis before launching ffmpeg subprocess
     - Fix progress if sub-clipping
     - Miscellaneous improvements
+* Module subprocess: Import Popen from psutil if available
+* Refactor function django.signals.create_site
 
 -----------------
 v9.7.2 -> v10.0.0
