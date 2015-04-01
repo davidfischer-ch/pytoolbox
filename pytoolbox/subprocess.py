@@ -32,7 +32,7 @@ from .encoding import string_types, to_bytes, to_unicode
 from .filesystem import try_makedirs
 
 __all__ = (
-    'EMPTY_CMD_RETURN', 'Popen', 'quote', 'raw_cmd', 'cmd', 'make_async', 'read_async', 'git_add_submodule',
+    'EMPTY_CMD_RETURN', 'Popen', 'quote', 'kill', 'make_async', 'read_async', 'raw_cmd', 'cmd', 'git_add_submodule',
     'git_clone_or_pull', 'make', 'rsync', 'screen_kill', 'screen_launch', 'screen_list', 'ssh'
 )
 
@@ -40,14 +40,43 @@ EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode
 
 # import Popen on steroids if available
 try:
-    from psutil import Popen
+    from psutil import NoSuchProcess, Popen
 except ImportError:
     from subprocess import Popen
+    NoSuchProcess = None
 
 try:
     from shlex import quote
 except ImportError:
     from pipes import quote
+
+
+def kill(process):
+    try:
+        process.kill()
+    except OSError as e:
+        if e.errno != errno.ESRCH:
+            raise
+    except Exception as e:
+        if not NoSuchProcess or not isinstance(e, NoSuchProcess):
+            raise
+
+
+# http://stackoverflow.com/a/7730201/190597
+def make_async(fd):
+    """Add the O_NONBLOCK flag to a file descriptor."""
+    fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
+
+
+# http://stackoverflow.com/a/7730201/190597
+def read_async(fd):
+    """Read some data from a file descriptor, ignoring EAGAIN errors."""
+    try:
+        return fd.read()
+    except IOError as e:
+        if e.errno == errno.EAGAIN:
+            return ''
+        raise
 
 
 def to_args_list(args):
@@ -61,6 +90,8 @@ def to_args_string(args):
         return ''
     return args if isinstance(args, string_types) else ' '.join(quote('%s' % a) for a in args)
 
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 def raw_cmd(arguments, shell=False, **kwargs):
     """
@@ -188,23 +219,6 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
             time.sleep(delay)
 
     return result
-
-
-# http://stackoverflow.com/a/7730201/190597
-def make_async(fd):
-    """Add the O_NONBLOCK flag to a file descriptor."""
-    fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
-
-
-# http://stackoverflow.com/a/7730201/190597
-def read_async(fd):
-    """Read some data from a file descriptor, ignoring EAGAIN errors."""
-    try:
-        return fd.read()
-    except IOError as e:
-        if e.errno == errno.EAGAIN:
-            return ''
-        raise
 
 
 # ----------------------------------------------------------------------------------------------------------------------

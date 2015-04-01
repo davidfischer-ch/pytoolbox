@@ -30,7 +30,7 @@ from xml.dom import minidom
 from .. import comparison, filesystem, validation
 from ..datetime import datetime_now, multiply_time, parts_to_time, secs_to_time, str_to_time, time_ratio
 from ..encoding import string_types
-from ..subprocess import raw_cmd, make_async, to_args_list
+from ..subprocess import kill, make_async, raw_cmd, to_args_list
 from ..types import get_slots
 
 __all__ = (
@@ -553,11 +553,7 @@ class FFmpeg(object):
             yield statistics.end(returncode)
         except Exception as exception:
             tb = sys.exc_info()[2]
-            try:
-                process.kill()
-            except OSError as e:
-                if e.errno != errno.ESRCH:
-                    raise
+            kill(process)
             raise exception.with_traceback(tb) if hasattr(exception, 'with_traceback') else exception
 
     def _clean_medias_argument(self, value):
