@@ -27,13 +27,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import platform
 from os.path import basename, dirname, join
 
-__all__ = ('BITS', 'FFMPEG_ARCHIVE', 'FFMPEG_BINARY', 'FFMPEG_URL', 'TEST_ASSETS', 'TESTS_DIRECTORY')
+__all__ = ('BITS', 'FFMPEG_ARCHIVE', 'FFMPEG_DIRECTORY', 'FFMPEG_URL', 'TEST_ASSETS', 'TESTS_DIRECTORY')
 
 BITS = platform.architecture()[0]
 TESTS_DIRECTORY = dirname(__file__)
 FFMPEG_URL = 'http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.5.4-{0}-static.tar.xz'.format(BITS)
 FFMPEG_ARCHIVE = join(TESTS_DIRECTORY, basename(FFMPEG_URL))
-FFMPEG_BINARY = join(FFMPEG_ARCHIVE.replace('.tar.xz', ''), 'ffmpeg')
+FFMPEG_DIRECTORY = FFMPEG_ARCHIVE.replace('.tar.xz', '')
 
 TEST_ASSETS = [
     ['http://techslides.com/demos/sample-videos/small.mp4', join(TESTS_DIRECTORY, 'small.mp4')]

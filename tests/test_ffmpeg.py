@@ -24,8 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, os.path, tempfile, unittest
+import datetime, os, tempfile, unittest
 from codecs import open
+from os.path import isfile, join
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia.ffmpeg import (
     _to_bitrate, _to_framerate, _to_size, AudioStream, EncodeState, EncodeStatistics, FFmpeg, FFprobe, Format, Media,
@@ -38,8 +39,9 @@ MPD_TEST = """<?xml version="1.0"?>
   <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
 """
-STATIC_BINARY = os.path.join(tempfile.gettempdir(), 'ffmpeg')
-WITH_FFMPEG = os.path.isfile(STATIC_BINARY)
+STATIC_FFMPEG_BINARY = join(tempfile.gettempdir(), 'ffmpeg')
+STATIC_FFPROBE_BINARY = join(tempfile.gettempdir(), 'ffprobe')
+WITH_FFMPEG = isfile(STATIC_FFMPEG_BINARY)
 MEDIA_INFOS = {
     'format': {
         'bit_rate': '551193',
@@ -150,10 +152,12 @@ MEDIA_INFOS = {
 
 class MockFFmpeg(FFmpeg):
 
-    executable = STATIC_BINARY
+    executable = STATIC_FFMPEG_BINARY
 
 
 class MockFFprobe(FFprobe):
+
+    executable = STATIC_FFPROBE_BINARY
 
     def get_media_infos(self, filename):
         if filename == 'small.mp4' and not WITH_FFMPEG:
@@ -393,8 +397,8 @@ class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_get_process(self):
         options = ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2']
-        process = self.ffmpeg._get_process([STATIC_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
-        self.assertListEqual(process.args, [STATIC_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        process = self.ffmpeg._get_process([STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        self.assertListEqual(process.args, [STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
         process.terminate()
 
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')

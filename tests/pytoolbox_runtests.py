@@ -26,6 +26,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import shutil, six, sys, tarfile, tempfile
+from os.path import join
 from pytoolbox.exception import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
@@ -49,7 +50,8 @@ def main():
         else:
             with tarfile.open(constants.FFMPEG_ARCHIVE) as f:
                 f.extractall(constants.TESTS_DIRECTORY)
-        shutil.copy(constants.FFMPEG_BINARY, tempfile.gettempdir())
+        for filename in 'ffmpeg', 'ffprobe':
+            shutil.copy(join(constants.FFMPEG_DIRECTORY, filename), tempfile.gettempdir())
     except BadHTTPResponseCodeError:
         print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 
