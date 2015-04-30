@@ -92,6 +92,7 @@ def _to_size(size):
 class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     defaults = {}
+    attr_name_template = '{name}'
 
     def __init__(self, infos):
         for attr in get_slots(self):
@@ -99,17 +100,14 @@ class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     def _set_attribute(self, name, infos):
         """Set attribute `name` value from the `infos` or ``self.defaults`` dictionary."""
-        setattr(self, name, infos.get(name, self.defaults.get(name)))
+        setattr(self, name, infos.get(self.attr_name_template.format(name=name), self.defaults.get(name)))
 
 
 class Codec(BaseInfo):
 
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
-    def __init__(self, infos):
-        for attr in get_slots(self):
-            setattr(self, attr, infos['codec_' + attr])
-
+    attr_name_template = 'codec_{name}'
     clean_time_base = lambda s, v: _to_framerate(v)
 
 
