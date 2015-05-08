@@ -35,8 +35,8 @@ from .. import exceptions
 
 __all__ = (
     'AbsoluteUrlMixin', 'AlwaysUpdateFieldsMixin', 'AutoForceInsertMixin', 'AutoUpdateFieldsMixin',
-    'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin', 'ReloadMixin',
-    'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
+    'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin', 'RelatedModelMixin',
+    'ReloadMixin', 'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
 )
 
 
@@ -147,6 +147,12 @@ class MapUniqueTogetherIntegrityErrorToValidationErrorMixin(object):
                 if fields in self.unique_together_set:
                     raise self.unique_error_message(self.__class__, fields)
             raise
+
+
+class RelatedModelMixin(object):
+
+    def get_related_model(self, field):
+        return self._meta.get_field(field).related_model
 
 
 class ReloadMixin(object):

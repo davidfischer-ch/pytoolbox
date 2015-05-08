@@ -30,4 +30,4 @@ __all__ = ('RelatedModelMixin', )
 class RelatedModelMixin(object):
 
     def get_related_model(self, field):
-        return self.model._meta.get_field(field).rel.to
+        return self.model._meta.get_field(field).related_model
