@@ -56,9 +56,10 @@ def main():
         print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 
     print('Run the tests with nose')
-    # Ignore django module (how to filter by module ?) + ignore ming module if Python > 2.x
-    ignore = ('fields.py|mixins.py|signals.py|storage.py|utils.py|validators.py|widgets.py|pytoolbox_filters.py|'
-              'pytoolbox_tags.py' + ('|session.py|schema.py' if sys.version_info[0] > 2 else ''))
+    # Ignore django module (how to filter by module ?) also ignore ming module if Python > 2.x
+    ignore = 'fields.py|mixins.py|signals.py|storage.py|utils.py|validators.py|widgets.py|templatetags.py'
+    if sys.version_info[0] > 2:
+        ignore += '|session.py|schema.py'
     return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'], ignore=ignore)
 
 if __name__ == '__main__':
