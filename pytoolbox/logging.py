@@ -25,8 +25,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging, sys
+from termcolor import colored
 
-__all__ = ('setup_logging', )
+__all__ = ('setup_logging', 'ColorizeFilter')
 
 
 def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
@@ -89,3 +90,19 @@ def setup_logging(name='', reset=False, filename=None, console=False, level=logg
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(handler)
+
+
+class ColorizeFilter(logging.Filter):
+
+    color_by_level = {
+        logging.DEBUG: 'yellow',
+        logging.ERROR: 'red',
+        logging.INFO: 'white'
+    }
+
+    def filter(self, record):
+        record.raw_msg = record.msg
+        color = self.color_by_level.get(record.levelno)
+        if color:
+            record.msg = colored(record.msg, color)
+        return True

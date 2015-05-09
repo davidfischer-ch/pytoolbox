@@ -72,7 +72,8 @@ install_requires = [
     'pygal',
     'pymongo',
     'pytz',
-    'six'
+    'six',
+    'termcolor'
 ]
 
 extras_require = {
