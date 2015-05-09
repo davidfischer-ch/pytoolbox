@@ -28,9 +28,9 @@ import datetime, os, tempfile, unittest
 from codecs import open
 from os.path import isfile, join
 from pytoolbox.filesystem import try_remove
+from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
-    _to_bitrate, _to_framerate, _to_size, AudioStream, EncodeState, EncodeStatistics, FFmpeg, FFprobe, Format, Media,
-    VideoStream, HEIGHT
+    _to_bitrate, _to_framerate, _to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
 )
 from pytoolbox.unittest import FilterByTagsMixin
 
@@ -150,12 +150,12 @@ MEDIA_INFOS = {
 }
 
 
-class MockFFmpeg(FFmpeg):
+class MockFFmpeg(ffmpeg.FFmpeg):
 
     executable = STATIC_FFMPEG_BINARY
 
 
-class MockFFprobe(FFprobe):
+class MockFFprobe(ffmpeg.FFprobe):
 
     executable = STATIC_FFPROBE_BINARY
 
@@ -165,18 +165,18 @@ class MockFFprobe(FFprobe):
         return super(MockFFprobe, self).get_media_infos(filename)
 
 
-class MockEncodeStatistics(EncodeStatistics):
+class MockEncodeStatistics(ffmpeg.EncodeStatistics):
 
     ffprobe_class = MockFFprobe
 
 
-class RaiseEncodeStatistics(EncodeStatistics):
+class RaiseEncodeStatistics(ffmpeg.EncodeStatistics):
 
     def end(self, returncode):
         raise ValueError('This is the error.')
 
 
-class RaiseFFmpeg(FFmpeg):
+class RaiseFFmpeg(MockFFmpeg):
 
     statistics_class = RaiseEncodeStatistics
 
@@ -224,8 +224,10 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
     inputs = [Media('small.mp4')]
     outputs = [Media('ff_output.mp4')]
 
-    def get_statistics(self, start=False, returncode=None, options=['-acodec', 'copy', '-vcodec', 'copy'], **kwargs):
-        statistics = EncodeStatistics(self.inputs, self.outputs, options, **kwargs)
+    def get_statistics(self, start=False, returncode=None, options=None, **kwargs):
+        if options is None:
+            options = ['-acodec', 'copy', '-vcodec', 'copy']
+        statistics = MockEncodeStatistics(self.inputs, self.outputs, options, **kwargs)
         start = start or returncode is not None
         if start:
             statistics.start('process')
