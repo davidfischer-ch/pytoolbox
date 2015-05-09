@@ -35,7 +35,7 @@ classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Framework :: Flask
-License :: OSI Approved :: European Union Public License 1.1 (EUPL 1.1)
+License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)
 Natural Language :: English
 Operating System :: POSIX :: Linux
 Programming Language :: Python

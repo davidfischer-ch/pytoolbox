@@ -21,14 +21,18 @@ Features
 ========
 
 * Add module django.exceptions
+* Add static_abspath Django template tag
 * Add class django.forms.mixins.EnctypeMixin
 * Add class django.models.mixins.AlwaysUpdateFieldsMixin
 * Add class django.models.mixins.AutoForceInsertMixin
 * Add class django.models.mixins.AutoUpdateFieldsMixin
 * Add class django.models.mixins.MapUniqueTogetherIntegrityErrorToValidationErrorMixin
+* Add class django.models.mixins.RelatedModelMixin
 * Add class django.models.mixins.UpdatePreconditionsMixin
 * Add class django.storage.ExpressTemporaryFileMixin
+* Add class django.test.mixins.FormWizardMixin
 * Add class django.views.mixins.InitialMixin
+* Add class logging.ColorizeFilter
 * Add function collections.flatten_dict
 * Add function datetime.multiply_time
 
@@ -39,9 +43,11 @@ Fixes and enhancements
 * Module console: Write to given stream
 * Module datetime: Make API more consistent
 * Module multimedia.ffmpeg:
-    - Improve handling of media argument
+    - Split FFmpeg class in FFmpeg and FFprobe
+    - Add EncodeState & EncodeStatistics classes
     - Do some analysis before launching ffmpeg subprocess
     - Fix progress if sub-clipping
+    - Improve handling of media argument
     - Miscellaneous improvements
 * Module subprocess: Import Popen from psutil if available
 * Refactor function django.signals.create_site
