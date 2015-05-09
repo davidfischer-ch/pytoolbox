@@ -316,6 +316,7 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
 
     def test_new_properties(self):
         statistics = self.get_statistics()
+        self.assertEqual(statistics.state, statistics.states.NEW)
         self.assertIsInstance(statistics.input.duration, datetime.timedelta)
         self.assertIsNone(statistics.eta_time)
         self.assertEqual(statistics.input, statistics.inputs[0])
@@ -325,6 +326,7 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
 
     def test_started_properties(self):
         statistics = self.get_statistics(start=True)
+        self.assertEqual(statistics.state, statistics.states.STARTED)
         self.assertEqual(statistics.output.duration, datetime.timedelta(0))
         self.assertIsNone(statistics.eta_time)
         self.assertEqual(statistics.ratio, 0.0)
@@ -332,6 +334,7 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
     def test_success_properties(self):
         self.outputs[0].filename = self.inputs[0].filename
         statistics = self.get_statistics(returncode=0)
+        self.assertEqual(statistics.state, statistics.states.SUCCESS)
         self.assertEqual(statistics.output.duration, statistics.input.duration)
         self.assertEqual(statistics.eta_time, datetime.timedelta(0))
         self.assertEqual(statistics.ratio, 1.0)
