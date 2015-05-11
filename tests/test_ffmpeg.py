@@ -159,10 +159,10 @@ class MockFFprobe(ffmpeg.FFprobe):
 
     executable = STATIC_FFPROBE_BINARY
 
-    def get_media_infos(self, filename):
+    def get_media_info(self, filename):
         if filename == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
-        return super(MockFFprobe, self).get_media_infos(filename)
+        return super(MockFFprobe, self).get_media_info(filename)
 
 
 class MockEncodeStatistics(ffmpeg.EncodeStatistics):
@@ -457,10 +457,10 @@ class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
         # A MP4
         self.assertEqual(self.ffprobe.get_media_duration('small.mp4').strftime('%H:%M:%S'), '00:00:05')
         self.assertEqual(
-            self.ffprobe.get_media_duration(self.ffprobe.get_media_infos('small.mp4')).strftime('%H:%M:%S'), '00:00:05'
+            self.ffprobe.get_media_duration(self.ffprobe.get_media_info('small.mp4')).strftime('%H:%M:%S'), '00:00:05'
         )
         self.assertEqual(
-            self.ffprobe.get_media_duration(self.ffprobe.get_media_infos('small.mp4'), as_delta=True).seconds, 5
+            self.ffprobe.get_media_duration(self.ffprobe.get_media_info('small.mp4'), as_delta=True).seconds, 5
         )
 
     def test_get_media_format(self):
@@ -492,7 +492,7 @@ class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
     def test_get_video_framerate(self):
         self.assertIsNone(self.ffprobe.get_video_framerate(3.14159265358979323846))
         self.assertIsNone(self.ffprobe.get_video_framerate({}))
-        self.assertEqual(self.ffprobe.get_video_framerate(self.ffprobe.get_media_infos('small.mp4')), 30.0)
+        self.assertEqual(self.ffprobe.get_video_framerate(self.ffprobe.get_media_info('small.mp4')), 30.0)
         self.assertEqual(self.ffprobe.get_video_framerate('small.mp4'), 30.0)
         self.assertEqual(self.ffprobe.get_video_framerate({'streams': [
             {'codec_type': 'audio'},
@@ -502,7 +502,7 @@ class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
     def test_get_video_resolution(self):
         self.assertIsNone(self.ffprobe.get_video_resolution(3.14159265358979323846))
         self.assertIsNone(self.ffprobe.get_video_resolution({}))
-        self.assertListEqual(self.ffprobe.get_video_resolution(self.ffprobe.get_media_infos('small.mp4')), [560, 320])
+        self.assertListEqual(self.ffprobe.get_video_resolution(self.ffprobe.get_media_info('small.mp4')), [560, 320])
         self.assertListEqual(self.ffprobe.get_video_resolution('small.mp4'), [560, 320])
         self.assertIsNone(self.ffprobe.get_video_resolution('small.mp4', index=1))
         self.assertEqual(self.ffprobe.get_video_resolution('small.mp4')[HEIGHT], 320)

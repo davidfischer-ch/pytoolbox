@@ -175,7 +175,7 @@ class FecReceiver(object):
         self.position = 0      # Actual position (sequence number) in the medias buffer
         # Link media packets to fec packets able to recover it, crosses[mediaseq] = {colseq, rowseq}
         self.crosses = {}
-        # Fec packets + related informations storage, col[sequence] = { fec pkt + infos }
+        # Fec packets + related information storage, col[sequence] = { fec pkt + info }
         self.cols = {}
         self.rows = {}
         self.matrixL = 0  # Detected FEC matrix size (number of columns)

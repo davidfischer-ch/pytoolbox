@@ -201,13 +201,13 @@ def get_environments(environments=None, get_status=False, status_timeout=None):
     environments_dict = yaml.load(open(environments, 'r', encoding='utf-8'))
     environments = {}
     for environment in environments_dict['environments'].iteritems():
-        informations = environment[1]
+        information = environment[1]
         if get_status:
             try:
-                informations['status'] = Environment(name=environment[0]).status(timeout=status_timeout)
+                information['status'] = Environment(name=environment[0]).status(timeout=status_timeout)
             except RuntimeError:
-                informations['status'] = UNKNOWN
-        environments[environment[0]] = informations
+                information['status'] = UNKNOWN
+        environments[environment[0]] = information
     return (environments, environments_dict['default'])
 
 
@@ -282,7 +282,7 @@ class CharmHooks(object):
 
     >>> my_hooks = MyCharmHooks(metadata, config, DEFAULT_OS_ENV, force_disable_juju=True) # doctest: +ELLIPSIS
     [DEBUG] Using juju False, reason: Disabled by user.
-    [DEBUG] Load metadatas from file ...
+    [DEBUG] Load metadata from file ...
     >>>
     >>> my_hooks.trigger('install')
     [HOOK] Execute MyCharmHooks hook install
@@ -490,10 +490,10 @@ class CharmHooks(object):
 
     def load_metadata(self, metadata):
         """
-        Set `metadata` attribute with given metadatas, `metadata` can be:
+        Set `metadata` attribute with given metadata, `metadata` can be:
 
         * The filename of a charm metadata file (e.g. `metadata.yaml`)
-        * A dictionary containing the metadatas.
+        * A dictionary containing the metadata.
 
         **Example usage**
 
@@ -508,12 +508,12 @@ class CharmHooks(object):
         >>> eq_(hooks.metadata, {'ensemble': 'oscied'})
         >>> hooks.config.verbose = True
         >>> hooks.load_metadata(metadata)  # doctest: +ELLIPSIS
-        [DEBUG] Load metadatas from file ...
+        [DEBUG] Load metadata from file ...
         >>> print(hooks.metadata['maintainer'])
         OSCIED Main Developper <david.fischer.ch@gmail.com>
         """
         if isinstance(metadata, string_types):
-            self.debug('Load metadatas from file {0}'.format(metadata))
+            self.debug('Load metadata from file {0}'.format(metadata))
             with open(metadata, 'r', 'utf-8') as f:
                 metadata = yaml.load(f)
         self.metadata = metadata
@@ -924,7 +924,7 @@ class Environment(object):
         if service_dict is None:
             return default
         units_dict = service_dict.get('units', {})
-        return {int(name.split('/')[1]): infos for name, infos in units_dict.iteritems()}
+        return {int(name.split('/')[1]): info for name, info in units_dict.iteritems()}
 
     def get_units_count(self, service, default=None, fail=True, timeout=None):
         service_dict = self.get_service(default=None, fail=fail, timeout=timeout)
