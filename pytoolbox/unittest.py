@@ -24,15 +24,17 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import nose, os, sys, time, unittest
+import functools, io, nose, os, pprint, sys, time, unittest
 from os.path import abspath, dirname
+
+from .multimedia import ffmpeg
 
 if sys.version_info[0] > 2:
     from unittest.mock import Mock
 else:
     from mock import Mock
 
-__all__ = ('Mock', 'mock_cmd', 'runtests', 'AwareTearDownMixin', 'TimingMixin')
+__all__ = ('Mock', 'mock_cmd', 'runtests', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin', 'TimingMixin')
 
 
 def mock_cmd(stdout='', stderr='', returncode=0):
@@ -94,6 +96,83 @@ class FilterByTagsMixin(object):
         if not cls.should_run(cls.get_tags(), cls.get_only_tags(), cls.get_skip_tags()):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
         super(FilterByTagsMixin, cls).setUpClass()
+
+
+class FFmpegMixin(object):
+
+    ffmpeg_class = ffmpeg.FFmpeg
+
+    @classmethod
+    def setUpClass(cls):
+        for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
+            assert stream_class is not None, name
+            assert stream_class.codec_class is not None, name
+        super().setUpClass()
+
+    def setUp(self):
+        super().setUp()
+        self.ffmpeg = self.ffmpeg_class()
+        self.ffprobe = self.ffmpeg.ffprobe_class()
+
+    # Asserts
+
+    def assertAudioCodecEqual(self, filename, index, **codec_attrs):
+        codec = self.ffprobe.get_audio_streams(filename)[index].codec
+        for attr, value in codec_attrs.items():
+            self.assertEqual(getattr(codec, attr), value, msg='Codec attribute {0}'.format(attr))
+
+    def assertAudioStreamEqual(self, first_filename, second_filename, first_index, second_index, same_codec=True):
+        first = self.ffprobe.get_audio_streams(first_filename)[first_index]
+        second = self.ffprobe.get_audio_streams(second_filename)[second_index]
+        if same_codec:
+            self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
+        self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
+
+    def assertEncodeState(self, generator, state):
+        results = list(generator)
+        result = io.StringIO()
+        statistics = results[-1]
+        pprint.pprint({a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
+        self.assertEqual(statistics.state, state, result.getvalue())
+        return results
+
+    def assertEncodeFailure(self, generator):
+        return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
+
+    def assertEncodeSuccess(self, generator):
+        return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
+
+    def assertMediaFormatEqual(self, first_filename, second_filename, same_bitrate=True, same_duration=True,
+                               same_size=True, same_start_time=True):
+        formats = [self.ffprobe.get_media_info(f)['format'] for f in (first_filename, second_filename)]
+        bitrates, durations, sizes, start_times = [], [], [], []
+        for the_format in formats:
+            the_format.pop('filename')
+            the_format.pop('tags', None)
+            durations.append(float(the_format.pop('duration')))
+            bitrates.append(float(the_format.pop('bit_rate', 0)))
+            sizes.append(int(the_format.pop('size')))
+            start_times.append(float(the_format.pop('start_time')))
+        if same_bitrate:
+            self.assertRelativeEqual(*bitrates, msg='Bit rate mistmatch.')
+        if same_duration:
+            self.assertRelativeEqual(*durations, msg='Duration mistmatch.')
+        if same_size:
+            self.assertRelativeEqual(*sizes, msg='Size mistmatch.')
+        if same_start_time:
+            self.assertRelativeEqual(*start_times, msg='Start time mistmatch.')
+        self.assertDictEqual(*formats)
+
+    def assertVideoStreamEqual(self, first_filename, second_filename, first_index, second_index, same_codec=True):
+        first = self.ffprobe.get_video_streams(first_filename)[first_index]
+        second = self.ffprobe.get_video_streams(second_filename)[second_index]
+        if same_codec:
+            self.assertEqual(first.codec, second.codec, msg='Codec mismatch.')
+        self.assertRelativeEqual(first.avg_frame_rate, second.avg_frame_rate, msg='Average frame rate mismatch.')
+        if first.nb_frames:
+            self.assertRelativeEqual(first.nb_frames, second.nb_frames, msg='Number of frames mistmatch.')
+        self.assertEqual(first.height, second.height, msg='Height mismatch.')
+        self.assertEqual(first.width, second.width, msg='Width mismatch.')
 
 
 class TimingMixin(object):
