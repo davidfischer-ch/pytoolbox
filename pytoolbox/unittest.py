@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import functools, io, nose, os, pprint, sys, time, unittest
+import io, nose, os, pprint, sys, time, unittest
 from os.path import abspath, dirname
 
 from .multimedia import ffmpeg
@@ -114,12 +114,23 @@ class FFmpegMixin(object):
         self.ffmpeg = self.ffmpeg_class()
         self.ffprobe = self.ffmpeg.ffprobe_class()
 
-    # Asserts
+    # Codecs Asserts
 
-    def assertAudioCodecEqual(self, filename, index, **codec_attrs):
-        codec = self.ffprobe.get_audio_streams(filename)[index].codec
+    def assertMediaCodecEqual(self, filename, stream_type, index, **codec_attrs):
+        codec = getattr(self.ffprobe, 'get_{0}_streams'.format(stream_type))(filename)[index].codec
         for attr, value in codec_attrs.items():
             self.assertEqual(getattr(codec, attr), value, msg='Codec attribute {0}'.format(attr))
+
+    def assertAudioCodecEqual(self, filename, index, **codec_attrs):
+        self.assertMediaCodecEqual(filename, 'audio', index, **codec_attrs)
+
+    def assertSubtitleCodecEqual(self, filename, index, **codec_attrs):
+        self.assertMediaCodecEqual(filename, 'subtitle', index, **codec_attrs)
+
+    def assertVideoCodecEqual(self, filename, index, **codec_attrs):
+        self.assertMediaCodecEqual(filename, 'video', index, **codec_attrs)
+
+    # Streams Asserts
 
     def assertAudioStreamEqual(self, first_filename, second_filename, first_index, second_index, same_codec=True):
         first = self.ffprobe.get_audio_streams(first_filename)[first_index]
@@ -127,20 +138,6 @@ class FFmpegMixin(object):
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
-
-    def assertEncodeState(self, generator, state):
-        results = list(generator)
-        result = io.StringIO()
-        statistics = results[-1]
-        pprint.pprint({a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
-        self.assertEqual(statistics.state, state, result.getvalue())
-        return results
-
-    def assertEncodeFailure(self, generator):
-        return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
-
-    def assertEncodeSuccess(self, generator):
-        return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
 
     def assertMediaFormatEqual(self, first_filename, second_filename, same_bitrate=True, same_duration=True,
                                same_size=True, same_start_time=True):
@@ -173,6 +170,22 @@ class FFmpegMixin(object):
             self.assertRelativeEqual(first.nb_frames, second.nb_frames, msg='Number of frames mistmatch.')
         self.assertEqual(first.height, second.height, msg='Height mismatch.')
         self.assertEqual(first.width, second.width, msg='Width mismatch.')
+
+    # Encoding Asserts
+
+    def assertEncodeFailure(self, generator):
+        return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
+
+    def assertEncodeSuccess(self, generator):
+        return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
+
+    def assertEncodeState(self, generator, state):
+        results = list(generator)
+        result = io.StringIO()
+        statistics = results[-1]
+        pprint.pprint({a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
+        self.assertEqual(statistics.state, state, result.getvalue())
+        return results
 
 
 class TimingMixin(object):
