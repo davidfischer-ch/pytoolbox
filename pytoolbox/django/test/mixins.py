@@ -26,13 +26,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 from django.contrib.sites.models import Site
+from django.core.management import call_command
 from django.core.urlresolvers import resolve, reverse
 from django.db import connections, DEFAULT_DB_ALIAS
+from django.test import TransactionTestCase
 from django.test.utils import CaptureQueriesContext
 
 from ...encoding import string_types
 
-__all__ = ('ClearSiteCacheMixin', 'FormWizardMixin', 'QueriesMixin', 'UrlMixin', 'RestAPIMixin')
+__all__ = ('ClearSiteCacheMixin', 'FixFlushMixin', 'FormWizardMixin', 'QueriesMixin', 'UrlMixin', 'RestAPIMixin')
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
@@ -65,6 +67,16 @@ class ClearSiteCacheMixin(object):
     def assertNumQueries(self, *args, **kwargs):
         self.clear_site_cache()
         return super(ClearSiteCacheMixin, self).assertNumQueries(*args, **kwargs)
+
+
+class FixFlushMixin(object):
+
+    def _fixture_teardown(self):
+        """Fix TransactionTestCase tear-down by enabling TRUNCATE CASCADE. Issue with Django 1.8a1."""
+        assert isinstance(self, TransactionTestCase)
+        for db_name in self._databases_names(include_mirrors=False):
+            call_command('flush', verbosity=0, interactive=False, database=db_name, reset_sequences=False,
+                         allow_cascade=True, inhibit_post_migrate=self.available_apps is not None)
 
 
 class FormWizardMixin(object):
