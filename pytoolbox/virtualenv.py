@@ -34,6 +34,7 @@ __all__ = ('relocate', )
 
 
 def relocate(source_directory, destination_directory, encoding='utf-8'):
+    """Copy and relocate a Python virtualenv. Update the paths in *.egg-link, *.pth, *.pyc, ..."""
 
     if not exists(destination_directory):
         rsync(source_directory, destination_directory, destination_is_dir=True, makedest=True, recursive=True)
