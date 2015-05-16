@@ -45,7 +45,7 @@ SystemExit: 2
 import argparse, os
 from .encoding import to_bytes
 
-__all__ = ('is_dir', 'is_file', 'FullPaths')
+__all__ = ('is_dir', 'is_file', 'FullPaths', 'Range')
 
 # Credits https://gist.github.com/brantfaircloth/1443543
 
@@ -68,3 +68,20 @@ class FullPaths(argparse.Action):
     """Expand user- and relative-paths."""
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
+
+
+class Range(object):
+
+    def __init__(self, type, min, max):
+        self.type = type
+        self.min = min
+        self.max = max
+
+    def __call__(self, value):
+        try:
+            value = self.type(value)
+        except:
+            raise argparse.ArgumentTypeError('Must be of type {0.type.__name__}'.format(self))
+        if not (self.min <= value <= self.max):
+            raise argparse.ArgumentTypeError('Must be in range [{0.min}, {0.max}]'.format(self))
+        return value
