@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, copy, errno, fnmatch, grp, pwd, os, shutil, tempfile, time, uuid
+import collections, copy, errno, fnmatch, grp, pwd, os, re, shutil, tempfile, time, uuid
 from codecs import open
 from os.path import dirname, exists, expanduser, isfile, join, samefile
 
@@ -37,9 +37,12 @@ __all__ = (
 )
 
 
-def find_recursive(directory, patterns, **kwargs):
+def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
     """
-    Yields filenames matching any of the patterns. May return duplicate filenames (the ones matching multiple patterns).
+    Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions, if necessary.
+
+    If `unix_wildcards` is set to True, then any string pattern will be converted from the unix-style wildcard to the
+    regular expression equivalent using :func:`fnatmch.translate`.
 
     **Example usage**
 
@@ -47,13 +50,21 @@ def find_recursive(directory, patterns, **kwargs):
     /etc/network/interfaces
     >>> filenames = list(find_recursive('/etc/network', ['interfaces', 'inter*aces', '*.jpg']))
     >>> filenames.count('/etc/network/interfaces')
-    2
+    1
+
+    >>> a = set(find_recursive('/etc/network', [re.compile('inter?aces')]))
+    >>> b = set(find_recursive('/etc/network', ['inter?aces'], unix_wildcards=False))
+    >>> a == b
+    True
     """
     if isinstance(patterns, string_types):
         patterns = [patterns]
+    patterns = [
+        p if hasattr(p, 'match') else re.compile(fnmatch.translate(p) if unix_wildcards else p) for p in patterns
+    ]
     for dirpath, dirnames, filenames in os.walk(directory, **kwargs):
-        for pattern in patterns:
-            for filename in fnmatch.filter(filenames, pattern):
+        for filename in filenames:
+            if any(p.match(filename) for p in patterns):
                 yield join(dirpath, filename)
 
 
