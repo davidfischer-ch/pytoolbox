@@ -52,12 +52,12 @@ def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
     >>> filenames.count('/etc/network/interfaces')
     1
 
-    >>> a = set(find_recursive('/etc/network', [re.compile('inter?aces')]))
+    >>> a = set(find_recursive('/etc/network', re.compile('inter?aces')))
     >>> b = set(find_recursive('/etc/network', ['inter?aces'], unix_wildcards=False))
     >>> a == b
     True
     """
-    if isinstance(patterns, string_types):
+    if isinstance(patterns, string_types) or hasattr(patterns, 'match'):
         patterns = [patterns]
     patterns = [
         p if hasattr(p, 'match') else re.compile(fnmatch.translate(p) if unix_wildcards else p) for p in patterns
