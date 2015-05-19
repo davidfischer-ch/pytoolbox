@@ -32,7 +32,7 @@ __all__ = ('StateEnumMetaclass', 'StateEnumMergeMetaclass', 'StateEnum')
 class StateEnumMetaclass(type):
 
     def __init__(self, name, bases, cls_dict):
-        super().__init__(name, bases, cls_dict)
+        super(StateEnumMetaclass, self).__init__(name, bases, cls_dict)
         if hasattr(self, 'TRANSITIONS'):
             self.ALL_STATES = frozenset(self.TRANSITIONS.keys())
             self.FINAL_STATES = frozenset(s for s, t in self.TRANSITIONS.items() if not t)
@@ -58,7 +58,7 @@ class StateEnumMergeMetaclass(StateEnumMetaclass):
         for state in transitions.keys():
             setattr(self, state, state)
         self.TRANSITIONS = transitions
-        super().__init__(name, bases, cls_dict)
+        super(StateEnumMergeMetaclass, self).__init__(name, bases, cls_dict)
 
 
 class StateEnum(object):
