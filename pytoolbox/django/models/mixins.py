@@ -36,7 +36,8 @@ from .. import exceptions
 __all__ = (
     'AbsoluteUrlMixin', 'AlwaysUpdateFieldsMixin', 'AutoForceInsertMixin', 'AutoUpdateFieldsMixin',
     'MapUniqueTogetherMixin', 'MapUniqueTogetherIntegrityErrorToValidationErrorMixin', 'RelatedModelMixin',
-    'ReloadMixin', 'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'ValidateOnSaveMixin'
+    'ReloadMixin', 'SaveInstanceFilesMixin', 'UpdatePreconditionsMixin', 'StateTransitionPreconditionMixin',
+    'ValidateOnSaveMixin'
 )
 
 
@@ -214,6 +215,35 @@ class UpdatePreconditionsMixin(object):
         if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
             raise self.precondition_error_class()
         return updated
+
+
+class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
+
+    check_state = True
+    transition_not_allowed_error_class = exceptions.TransitionNotAllowedError
+
+    def can_transit_to(self, state, fail=False, idempotent=False):
+        if self.state == state and idempotent:
+            return False
+        if state in self.states.TRANSITIONS[self.state]:
+            return True
+        if fail:
+            raise self.transition_not_allowed_error_class(instance=self, state=state)
+        return False
+
+    def pop_preconditions(self, *args, **kwargs):
+        """Add state precondition if state will be saved and state is not enforced by preconditions."""
+        args, kwargs, has_preconditions = \
+            super(StateTransitionPreconditionMixin, self).pop_preconditions(*args, **kwargs)
+        if kwargs.pop('check_state', self.check_state) and 'state' in kwargs.pop('update_fields', ['state']):
+            pre_excludes, pre_filters = self._preconditions
+            if not any(f.startswith('state') for f in itertools.chain(pre_excludes, pre_filters)):
+                states, valid = self.states.get_transit_from(self.state, auto_inverse=True)
+                assert states, (states, valid)
+                key, values = ('state__in', states) if len(states) > 1 else ('state', next(iter(states)))
+                (pre_filters if valid else pre_excludes)[key] = values
+        self.p = self._preconditions
+        return args, kwargs, any(self._preconditions)
 
 
 class ValidateOnSaveMixin(object):
