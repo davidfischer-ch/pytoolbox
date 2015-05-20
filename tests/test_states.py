@@ -57,7 +57,7 @@ class MediaState(six.with_metaclass(states.StateEnumMetaclass, states.StateEnum)
     OTHER = 10
 
 
-class PlayState(six.with_metaclass(states.StateEnumMetaclass, states.StateEnum)):
+class PlayerState(six.with_metaclass(states.StateEnumMetaclass, states.StateEnum)):
 
     NEW = 'NEW'
     STOPPED = 'STOPPED'
@@ -77,7 +77,7 @@ class PlayState(six.with_metaclass(states.StateEnumMetaclass, states.StateEnum))
     }
 
 
-class MergeState(six.with_metaclass(states.StateEnumMergeMetaclass, MediaState, PlayState)):
+class MergeState(six.with_metaclass(states.StateEnumMergeMetaclass, MediaState, PlayerState)):
     """This class is used only for testing: Its not engineered for brewing coffee!"""
     pass
 
