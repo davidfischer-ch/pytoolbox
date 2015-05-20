@@ -61,7 +61,7 @@ class AwareTearDownMixin(object):
         pass  # de bleu, c'est fantastique !
 
     def run(self, result=None):
-        result = super().run(result)
+        result = super(AwareTearDownMixin, self).run(result)
         self.awareTearDown(result)
         return result
 
@@ -107,10 +107,10 @@ class FFmpegMixin(object):
         for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
             assert stream_class is not None, name
             assert stream_class.codec_class is not None, name
-        super().setUpClass()
+        super(FFmpegMixin, cls).setUpClass()
 
     def setUp(self):
-        super().setUp()
+        super(FFmpegMixin, self).setUp()
         self.ffmpeg = self.ffmpeg_class()
         self.ffprobe = self.ffmpeg.ffprobe_class()
 
