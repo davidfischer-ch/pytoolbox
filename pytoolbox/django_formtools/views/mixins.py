@@ -24,30 +24,40 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from django.utils.functional import cached_property
+from ...django import forms
 
-from ..models import utils
-
-__all__ = ('SerializedInstanceForm', )
+__all__ = ('SerializeStepInstanceMixin', )
 
 
-class SerializedInstanceForm(object):
+class SerializeStepInstanceMixin(object):
 
-    def __init__(self, **kwargs):
-        self.app_label = kwargs['app_label']
-        self.model = kwargs['model']
-        self.pk = kwargs['pk']
+    serialized_instance_form_class = forms.SerializedInstanceForm
+    serialized_instances_key = 'serialized-instances'
 
-    @classmethod
-    def serialize(cls, instance):
-        return utils.get_content_type_dict(instance)
-
-    @cached_property
-    def instance(self):
-        return utils.get_instance(self.app_label, self.model, self.pk)
-
-    def is_valid(self):
+    @property
+    def serialized_instances(self):
         try:
-            return bool(self.instance)
-        except:
-            return False
+            return self.storage.extra_data[self.serialized_instances_key]
+        except KeyError:
+            value = self.storage.extra_data[self.serialized_instances_key] = {}
+            return value
+
+    def serialize_step_instance(self, form, step=None):
+        self.serialized_instances[step or self.steps.current] = \
+            self.serialized_instance_form_class.serialize(form.save())
+
+    # WizardView "Standard Methods"
+
+    def get_form(self, step=None, *args, **kwargs):
+        if step is None:
+            step = self.steps.current
+        if step in self.serialized_instances.keys():
+            self.form_list[step] = self.serialized_instance_form_class
+        return super(SerializeStepInstanceMixin, self).get_form(step, *args, **kwargs)
+
+    def get_form_kwargs(self, step):
+        form_kwargs = super(SerializeStepInstanceMixin, self).get_form_kwargs(step)
+        serialized_instance = self.serialized_instances.get(step, None)
+        if serialized_instance:
+            form_kwargs.update(serialized_instance)
+        return form_kwargs
