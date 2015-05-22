@@ -81,6 +81,10 @@ class FixFlushMixin(object):
 
 class FormWizardMixin(object):
 
+    def assertWizardSteps(self, response, **kwargs):
+        for key, value in kwargs.items():
+            self.assertEqual(getattr(response.context['wizard']['steps'], key), value, msg=key)
+
     def post_wizard(self, url, step, data=None, raw_data=None, **kwargs):
         from formtools.wizard.views import normalize_name
         name = normalize_name(resolve(reverse(url)).func.__name__)
