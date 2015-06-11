@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import io, nose, os, pprint, sys, time, unittest
+import io, itertools, nose, os, pprint, sys, time, unittest
 from os.path import abspath, dirname
 
 from .multimedia import ffmpeg
@@ -67,35 +67,31 @@ class AwareTearDownMixin(object):
 
 
 class FilterByTagsMixin(object):
+    """
+    Allow to filter unit-tests by tags, including by default, the `TestCaseName` and `TestCaseName.method_name`.
+    """
 
     tags = ()
     only_tags_variable = 'TEST_ONLY_TAGS'
     skip_tags_variable = 'TEST_SKIP_TAGS'
 
-    @classmethod
-    def get_tags(cls):
-        return cls.tags
+    def get_tags(self):
+        my_id = self.id().split('.')
+        return itertools.chain(self.tags, (my_id[-2], '.'.join(my_id[-2:])))
 
-    @classmethod
-    def get_only_tags(cls):
-        return [t for t in os.environ.get(cls.only_tags_variable, '').split(',') if t]
+    def get_only_tags(self):
+        return (t for t in os.environ.get(self.only_tags_variable, '').split(',') if t)
 
-    @classmethod
-    def get_skip_tags(cls):
-        return [t for t in os.environ.get(cls.skip_tags_variable, '').split(',') if t]
+    def get_skip_tags(self):
+        return (t for t in os.environ.get(self.skip_tags_variable, '').split(',') if t)
 
-    @staticmethod
-    def should_run(tags, only_tags, skip_tags):
-        tags = frozenset(tags or [])
-        only_tags = frozenset(only_tags or [])
-        skip_tags = frozenset(skip_tags or [])
+    def should_run(self, tags, only_tags, skip_tags):
         return not tags & skip_tags and (bool(tags & only_tags) if tags and only_tags else True)
 
-    @classmethod
-    def setUpClass(cls):
-        if not cls.should_run(cls.get_tags(), cls.get_only_tags(), cls.get_skip_tags()):
+    def setUp(self):
+        super(FilterByTagsMixin, self).setUp()
+        if not self.should_run(set(self.get_tags()), set(self.get_only_tags()), set(self.get_skip_tags())):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
-        super(FilterByTagsMixin, cls).setUpClass()
 
 
 class FFmpegMixin(object):
