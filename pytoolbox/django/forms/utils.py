@@ -62,7 +62,7 @@ def update_widget_attributes(widget, updates):
     **Example usage**
 
     >>> from nose.tools import eq_
-    >>> widget = type('', (), {})
+    >>> widget = type(str(''), (), {})
     >>> widget.attrs = {'class': 'mondiale'}
     >>> update_widget_attributes(widget, {'class': '+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
     >>> eq_(widget.attrs, {'class': 'pigeon voyageur'})
