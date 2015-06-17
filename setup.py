@@ -77,10 +77,11 @@ install_requires = [
 ]
 
 extras_require = {
-    'django':    ['django'],
-    'flask':     ['flask'],
-    'mongo':     ['celery'],
-    'smpte2022': ['fastxor']
+    'django':         ['django'],
+    'flask':          ['flask'],
+    'mongo':          ['celery'],
+    'rest_framework': ['djangorestframework>=3'],
+    'smpte2022':      ['fastxor']
 }
 
 # Why not installing following packages for python 3 ?
@@ -99,7 +100,7 @@ if not PY3:
         install_requires.append('hashlib')
     install_requires += [
         'ipaddr',
-        'kitchen',
+        'kitchen'
     ]
 
 description = 'Toolbox for Python scripts'

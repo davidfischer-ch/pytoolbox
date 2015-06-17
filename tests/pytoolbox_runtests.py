@@ -25,8 +25,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import shutil, six, sys, tarfile, tempfile
+import shutil, six, tarfile, tempfile
+from django.conf import settings
 from os.path import join
+from pytoolbox.encoding import PY2
 from pytoolbox.exception import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
@@ -35,6 +37,9 @@ from . import constants
 
 
 def main():
+    print('Configure Django')
+    settings.configure()
+
     print('Download the test assets')
     for url, filename in constants.TEST_ASSETS:
         download_ext(url, filename, force=False)
@@ -56,11 +61,8 @@ def main():
         print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 
     print('Run the tests with nose')
-    # Ignore django module (how to filter by module ?) also ignore ming module if Python > 2.x
-    ignore = 'fields.py|mixins.py|signals.py|storage.py|utils.py|validators.py|widgets.py|templatetags.py'
-    if sys.version_info[0] > 2:
-        ignore += '|session.py|schema.py'
-    return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'], ignore=ignore)
+    return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'],
+                    ignore=None if PY2 else 'session.py|schema.py')  # May ignore ming modules FIXME filter by package
 
 if __name__ == '__main__':
     main()
