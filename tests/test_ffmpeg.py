@@ -30,7 +30,7 @@ from os.path import isfile, join
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
-    _to_bitrate, _to_framerate, _to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
+    to_bitrate, to_framerate, to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
 )
 from pytoolbox.unittest import FilterByTagsMixin
 
@@ -186,21 +186,21 @@ class TestUtils(FilterByTagsMixin, unittest.TestCase):
     tags = ('multimedia', 'ffmpeg')
 
     def test_to_bitrate(self):
-        self.assertEqual(_to_bitrate('231.5kbit/s'), 231500)
-        self.assertEqual(_to_bitrate('3302.3kbits/s'), 3302300)
-        self.assertEqual(_to_bitrate('1935.9kbits/s'), 1935900)
-        self.assertIsNone(_to_bitrate('N/A'))
+        self.assertEqual(to_bitrate('231.5kbit/s'), 231500)
+        self.assertEqual(to_bitrate('3302.3kbits/s'), 3302300)
+        self.assertEqual(to_bitrate('1935.9kbits/s'), 1935900)
+        self.assertIsNone(to_bitrate('N/A'))
 
     def test_to_framerate(self):
-        self.assertEqual(_to_framerate('10.5'), 10.5)
-        self.assertEqual(_to_framerate(25.0), 25.0)
-        self.assertEqual(_to_framerate('59000/1000'), 59.0)
-        self.assertIsNone(_to_framerate('10/0'))
+        self.assertEqual(to_framerate('10.5'), 10.5)
+        self.assertEqual(to_framerate(25.0), 25.0)
+        self.assertEqual(to_framerate('59000/1000'), 59.0)
+        self.assertIsNone(to_framerate('10/0'))
 
     def test_to_size(self):
-        self.assertEqual(_to_size('231.5kB'), 237056)
-        self.assertEqual(_to_size('3302.3MB'), 3462712524)
-        self.assertEqual(_to_size('1935.9KB'), 1982361)
+        self.assertEqual(to_size('231.5kB'), 237056)
+        self.assertEqual(to_size('3302.3MB'), 3462712524)
+        self.assertEqual(to_size('1935.9KB'), 1982361)
 
 
 class TestMedia(FilterByTagsMixin, unittest.TestCase):

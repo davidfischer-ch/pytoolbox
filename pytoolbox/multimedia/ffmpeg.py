@@ -35,8 +35,8 @@ from ..types import get_slots
 
 __all__ = (
     'BITRATE_REGEX', 'BITRATE_COEFFICIENT_FOR_UNIT', 'DURATION_REGEX', 'ENCODING_REGEX', 'PIPE_REGEX', 'WIDTH',
-    'HEIGHT', 'BaseInfo', 'Codec', 'Format', 'Stream', 'AudioStream', 'SubtitleStream', 'VideoStream', 'Media',
-    'FFprobe', 'FFmpeg', 'EncodeState', 'EncodeStatistics'
+    'HEIGHT', 'is_pipe', 'to_bitrate', 'to_framerate', 'to_size', 'BaseInfo', 'Codec', 'Format', 'Stream',
+    'AudioStream', 'SubtitleStream', 'VideoStream', 'Media', 'FFprobe', 'FFmpeg', 'EncodeState', 'EncodeStatistics'
 )
 
 _missing = object()
@@ -55,11 +55,11 @@ SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
 WIDTH, HEIGHT = range(2)
 
 
-def _is_pipe(filename):
+def is_pipe(filename):
     return isinstance(filename, string_types) and PIPE_REGEX.match(filename)
 
 
-def _to_bitrate(bitrate):
+def to_bitrate(bitrate):
     match = BITRATE_REGEX.match(bitrate)
     if match:
         match = match.groupdict()
@@ -69,7 +69,7 @@ def _to_bitrate(bitrate):
     raise ValueError(bitrate)
 
 
-def _to_framerate(fps):
+def to_framerate(fps):
     if isinstance(fps, numbers.Number):
         return fps
     if '/' in fps:
@@ -81,7 +81,7 @@ def _to_framerate(fps):
     return float(fps)
 
 
-def _to_size(size):
+def to_size(size):
     match = SIZE_REGEX.match(size)
     if match:
         match = match.groupdict()
@@ -108,7 +108,7 @@ class Codec(BaseInfo):
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
     attr_name_template = 'codec_{name}'
-    clean_time_base = lambda s, v: _to_framerate(v)
+    clean_time_base = lambda s, v: to_framerate(v)
 
 
 class Format(BaseInfo):
@@ -136,7 +136,7 @@ class Stream(BaseInfo):
             else:
                 self._set_attribute(attr, info)
 
-    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else _to_framerate(v)
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else to_framerate(v)
     clean_index = lambda s, v: None if v is None else int(v)
 
 
@@ -185,7 +185,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     @property
     def is_pipe(self):
-        return _is_pipe(self.filename)
+        return is_pipe(self.filename)
 
     @property
     def size(self):
@@ -256,7 +256,7 @@ class FFprobe(object):
         if isinstance(media, dict):
             return media
         media = self.to_media(media)
-        if not _is_pipe(media.filename):  # Read media information from a PIPE not yet implemented
+        if not is_pipe(media.filename):  # Read media information from a PIPE not yet implemented
             try:
                 return json.loads(subprocess.check_output([self.executable, '-v', 'quiet', '-print_format', 'json',
                                   '-show_format', '-show_streams', media.filename]).decode('utf-8'))
@@ -322,7 +322,7 @@ class FFprobe(object):
         """
         try:
             stream = self.get_video_streams(media)[index]
-            return _to_framerate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
+            return to_framerate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
         except:
             if fail:
                 raise
@@ -489,8 +489,8 @@ class EncodeStatistics(object):
             ffmpeg_statistics['fps'] = float(ffmpeg_statistics['fps'])
             q = ffmpeg_statistics.get('q')
             ffmpeg_statistics['q'] = None if q is None else float(q)
-            ffmpeg_statistics['size'] = _to_size(ffmpeg_statistics['size'])
-            ffmpeg_statistics['bitrate'] = _to_bitrate(ffmpeg_statistics['bitrate'])
+            ffmpeg_statistics['size'] = to_size(ffmpeg_statistics['size'])
+            ffmpeg_statistics['bitrate'] = to_bitrate(ffmpeg_statistics['bitrate'])
             return ffmpeg_statistics
 
     def _should_report(self):
