@@ -24,8 +24,19 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ...v3.views.mixins import (
-    ActionToQuerysetMixin, ActionToSerializerMixin, MethodToQuerysetMixin, MethodToSerializerMixin
-)
+from rest_framework import serializers
 
-__all__ = ('ActionToQuerysetMixin', 'ActionToSerializerMixin', 'MethodToQuerysetMixin', 'MethodToSerializerMixin')
+from ...django.validators import EmptyValidator
+
+__all__ = ('StripCharField', )
+
+
+class StripCharField(serializers.CharField):
+
+    def __init__(self, **kwargs):
+        super(StripCharField, self).__init__(**kwargs)
+        self.validators.append(EmptyValidator(message=self.error_messages['blank']))
+
+    def to_internal_value(self, data):
+        data = super(StripCharField, self).to_internal_value(data)
+        return data.strip() if data else data
