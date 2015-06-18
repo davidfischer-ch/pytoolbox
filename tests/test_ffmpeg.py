@@ -30,7 +30,7 @@ from os.path import isfile, join
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
-    to_bitrate, to_framerate, to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
+    to_bit_rate, to_frame_rate, to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
 )
 from pytoolbox.unittest import FilterByTagsMixin
 
@@ -185,17 +185,17 @@ class TestUtils(FilterByTagsMixin, unittest.TestCase):
 
     tags = ('multimedia', 'ffmpeg')
 
-    def test_to_bitrate(self):
-        self.assertEqual(to_bitrate('231.5kbit/s'), 231500)
-        self.assertEqual(to_bitrate('3302.3kbits/s'), 3302300)
-        self.assertEqual(to_bitrate('1935.9kbits/s'), 1935900)
-        self.assertIsNone(to_bitrate('N/A'))
+    def test_to_bit_rate(self):
+        self.assertEqual(to_bit_rate('231.5kbit/s'), 231500)
+        self.assertEqual(to_bit_rate('3302.3kbits/s'), 3302300)
+        self.assertEqual(to_bit_rate('1935.9kbits/s'), 1935900)
+        self.assertIsNone(to_bit_rate('N/A'))
 
-    def test_to_framerate(self):
-        self.assertEqual(to_framerate('10.5'), 10.5)
-        self.assertEqual(to_framerate(25.0), 25.0)
-        self.assertEqual(to_framerate('59000/1000'), 59.0)
-        self.assertIsNone(to_framerate('10/0'))
+    def test_to_frame_rate(self):
+        self.assertEqual(to_frame_rate('10.5'), 10.5)
+        self.assertEqual(to_frame_rate(25.0), 25.0)
+        self.assertEqual(to_frame_rate('59000/1000'), 59.0)
+        self.assertIsNone(to_frame_rate('10/0'))
 
     def test_to_size(self):
         self.assertEqual(to_size('231.5kB'), 237056)
@@ -258,8 +258,8 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
         eq, parse = self.assertDictEqual, statistics._parse_chunk
         self.assertIsNone(parse('Random stuff'))
         eq(parse('    frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s  '), {
-            'frame': 2071, 'fps': 0.0, 'q': -1.0, 'size': 34623 * 1024,
-            'time': datetime.timedelta(minutes=1, seconds=25.89), 'bitrate': 3302300
+            'frame': 2071, 'frame_rate': 0.0, 'qscale': -1.0, 'size': 34623 * 1024,
+            'time': datetime.timedelta(minutes=1, seconds=25.89), 'bit_rate': 3302300
         })
 
     def test_should_report_initialization(self):
@@ -489,12 +489,12 @@ class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
         self.assertIsInstance(streams[0], VideoStream)
         self.assertEqual(streams[0].avg_frame_rate, 30.0)
 
-    def test_get_video_framerate(self):
-        self.assertIsNone(self.ffprobe.get_video_framerate(3.14159265358979323846))
-        self.assertIsNone(self.ffprobe.get_video_framerate({}))
-        self.assertEqual(self.ffprobe.get_video_framerate(self.ffprobe.get_media_info('small.mp4')), 30.0)
-        self.assertEqual(self.ffprobe.get_video_framerate('small.mp4'), 30.0)
-        self.assertEqual(self.ffprobe.get_video_framerate({'streams': [
+    def test_get_video_frame_rate(self):
+        self.assertIsNone(self.ffprobe.get_video_frame_rate(3.14159265358979323846))
+        self.assertIsNone(self.ffprobe.get_video_frame_rate({}))
+        self.assertEqual(self.ffprobe.get_video_frame_rate(self.ffprobe.get_media_info('small.mp4')), 30.0)
+        self.assertEqual(self.ffprobe.get_video_frame_rate('small.mp4'), 30.0)
+        self.assertEqual(self.ffprobe.get_video_frame_rate({'streams': [
             {'codec_type': 'audio'},
             {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
         ]}), 59.0)

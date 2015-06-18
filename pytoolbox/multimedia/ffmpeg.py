@@ -34,20 +34,20 @@ from ..subprocess import kill, make_async, raw_cmd, to_args_list
 from ..types import get_slots
 
 __all__ = (
-    'BITRATE_REGEX', 'BITRATE_COEFFICIENT_FOR_UNIT', 'DURATION_REGEX', 'ENCODING_REGEX', 'PIPE_REGEX', 'WIDTH',
-    'HEIGHT', 'is_pipe', 'to_bitrate', 'to_framerate', 'to_size', 'BaseInfo', 'Codec', 'Format', 'Stream',
+    'BIT_RATE_REGEX', 'BIT_RATE_COEFFICIENT_FOR_UNIT', 'DURATION_REGEX', 'ENCODING_REGEX', 'PIPE_REGEX', 'WIDTH',
+    'HEIGHT', 'is_pipe', 'to_bit_rate', 'to_frame_rate', 'to_size', 'BaseInfo', 'Codec', 'Format', 'Stream',
     'AudioStream', 'SubtitleStream', 'VideoStream', 'Media', 'FFprobe', 'FFmpeg', 'EncodeState', 'EncodeStatistics'
 )
 
 _missing = object()
 
-BITRATE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
-BITRATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000**2, 'g': 1000**3}
+BIT_RATE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
+BIT_RATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000**2, 'g': 1000**3}
 DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
 ENCODING_REGEX = re.compile(
-    r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<fps>\d+\.?\d*)\s+q=\s*(?P<q>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
-    r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bitrate>\S+)'
+    r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<frame_rate>\d+\.?\d*)\s+q=\s*(?P<qscale>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
+    r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bit_rate>\S+)'
 )
 PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
 SIZE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
@@ -59,26 +59,26 @@ def is_pipe(filename):
     return isinstance(filename, string_types) and PIPE_REGEX.match(filename)
 
 
-def to_bitrate(bitrate):
-    match = BITRATE_REGEX.match(bitrate)
+def to_bit_rate(bit_rate):
+    match = BIT_RATE_REGEX.match(bit_rate)
     if match:
         match = match.groupdict()
-        return int(float(match['value']) * BITRATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
-    if bitrate == 'N/A':
+        return int(float(match['value']) * BIT_RATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
+    if bit_rate == 'N/A':
         return None
-    raise ValueError(bitrate)
+    raise ValueError(bit_rate)
 
 
-def to_framerate(fps):
-    if isinstance(fps, numbers.Number):
-        return fps
-    if '/' in fps:
+def to_frame_rate(frame_rate):
+    if isinstance(frame_rate, numbers.Number):
+        return frame_rate
+    if '/' in frame_rate:
         try:
-            num, denom = fps.split('/')
+            num, denom = frame_rate.split('/')
             return float(num) / float(denom)
         except ZeroDivisionError:
             return None
-    return float(fps)
+    return float(frame_rate)
 
 
 def to_size(size):
@@ -108,7 +108,7 @@ class Codec(BaseInfo):
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
     attr_name_template = 'codec_{name}'
-    clean_time_base = lambda s, v: to_framerate(v)
+    clean_time_base = lambda s, v: to_frame_rate(v)
 
 
 class Format(BaseInfo):
@@ -136,7 +136,7 @@ class Stream(BaseInfo):
             else:
                 self._set_attribute(attr, info)
 
-    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else to_framerate(v)
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = lambda s, v: None if v is None else to_frame_rate(v)
     clean_index = lambda s, v: None if v is None else int(v)
 
 
@@ -315,14 +315,14 @@ class FFprobe(object):
         """
         return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'video', fail=fail)
 
-    def get_video_framerate(self, media, index=0, fail=False):
+    def get_video_frame_rate(self, media, index=0, fail=False):
         """
         Return the frame rate of the video stream at `index` in `media` or None in case of error.
         Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
         """
         try:
             stream = self.get_video_streams(media)[index]
-            return to_framerate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
+            return to_frame_rate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
         except:
             if fail:
                 raise
@@ -383,9 +383,9 @@ class EncodeStatistics(object):
         self.elapsed_time = None
         self.ratio = None
         self.frame = None
-        self.fps = None
+        self.frame_rate = None
         self.qscale = None
-        self.bitrate = None
+        self.bit_rate = None
 
         # Retrieve input media duration and size, handle sub-clipping
         duration = self.ffprobe_class().get_media_duration(self.input, as_delta=True) or self.default_in_duration
@@ -430,10 +430,10 @@ class EncodeStatistics(object):
         if ffmpeg_statistics:
             self.output.duration = ffmpeg_statistics['time']
             self.frame = ffmpeg_statistics['frame']
-            self.fps = ffmpeg_statistics['fps']
-            self.qscale = ffmpeg_statistics['q']
+            self.frame_rate = ffmpeg_statistics['frame_rate']
+            self.qscale = ffmpeg_statistics['qscale']
             self.output.size = ffmpeg_statistics['size']
-            self.bitrate = ffmpeg_statistics['bitrate']
+            self.bit_rate = ffmpeg_statistics['bit_rate']
         self._update_ratio()
         if self._should_report():
             return self
@@ -442,7 +442,7 @@ class EncodeStatistics(object):
         self.state = self.states.FAILURE if returncode else self.states.SUCCESS
         self.returncode = returncode
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
-        self.fps = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
+        self.frame_rate = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
         self.output.duration = self.ffprobe_class().get_media_duration(self.output.filename, as_delta=True)
         self.output.size = None
         self._update_ratio()
@@ -486,11 +486,11 @@ class EncodeStatistics(object):
             except ValueError:
                 return None  # Parsed statistics are broken, do not use them
             ffmpeg_statistics['frame'] = int(ffmpeg_statistics['frame'])
-            ffmpeg_statistics['fps'] = float(ffmpeg_statistics['fps'])
-            q = ffmpeg_statistics.get('q')
-            ffmpeg_statistics['q'] = None if q is None else float(q)
+            ffmpeg_statistics['frame_rate'] = float(ffmpeg_statistics['frame_rate'])
+            qscale = ffmpeg_statistics.get('qscale')
+            ffmpeg_statistics['qscale'] = None if qscale is None else float(qscale)
             ffmpeg_statistics['size'] = to_size(ffmpeg_statistics['size'])
-            ffmpeg_statistics['bitrate'] = to_bitrate(ffmpeg_statistics['bitrate'])
+            ffmpeg_statistics['bit_rate'] = to_bit_rate(ffmpeg_statistics['bit_rate'])
             return ffmpeg_statistics
 
     def _should_report(self):

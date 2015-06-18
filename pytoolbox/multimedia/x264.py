@@ -36,7 +36,7 @@ __all__ = ('ENCODING_REGEX', 'X264')
 # [79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02
 ENCODING_REGEX = re.compile(
     r'\[(?P<percent>\d+\.\d*)%\]\s+(?P<frame>\d+)/(?P<frame_total>\d+)\s+frames,\s+'
-    r'(?P<fps>\d+\.\d*)\s+fps,\s+(?P<bitrate>[^,]+),\s+eta\s+(?P<eta>[\d:]+)'
+    r'(?P<frame_rate>\d+\.\d*)\s+fps,\s+(?P<bit_rate>[^,]+),\s+eta\s+(?P<eta>[\d:]+)'
 )
 
 

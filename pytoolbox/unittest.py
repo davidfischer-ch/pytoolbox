@@ -135,19 +135,19 @@ class FFmpegMixin(object):
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
 
-    def assertMediaFormatEqual(self, first_filename, second_filename, same_bitrate=True, same_duration=True,
+    def assertMediaFormatEqual(self, first_filename, second_filename, same_bit_rate=True, same_duration=True,
                                same_size=True, same_start_time=True):
         formats = [self.ffprobe.get_media_info(f)['format'] for f in (first_filename, second_filename)]
-        bitrates, durations, sizes, start_times = [], [], [], []
+        bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
             the_format.pop('filename')
             the_format.pop('tags', None)
             durations.append(float(the_format.pop('duration')))
-            bitrates.append(float(the_format.pop('bit_rate', 0)))
+            bit_rates.append(float(the_format.pop('bit_rate', 0)))
             sizes.append(int(the_format.pop('size')))
             start_times.append(float(the_format.pop('start_time')))
-        if same_bitrate:
-            self.assertRelativeEqual(*bitrates, msg='Bit rate mistmatch.')
+        if same_bit_rate:
+            self.assertRelativeEqual(*bit_rates, msg='Bit rate mistmatch.')
         if same_duration:
             self.assertRelativeEqual(*durations, msg='Duration mistmatch.')
         if same_size:
