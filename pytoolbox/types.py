@@ -36,6 +36,9 @@ def get_slots(obj):
 
 class MissingType(object):
 
+    def __nonzero__(self):
+        return False
+
     def __repr__(self):
         return 'Missing'
 

@@ -37,3 +37,4 @@ class TestTypes(FilterByTagsMixin, unittest.TestCase):
 
     def test_Missing(self):
         self.assertEqual('{0}'.format(types.Missing), 'Missing')
+        self.assertFalse(bool(types.Missing))
