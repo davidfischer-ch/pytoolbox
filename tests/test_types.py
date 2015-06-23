@@ -26,7 +26,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import unittest
+import copy, unittest
 from pytoolbox import types
 from pytoolbox.unittest import FilterByTagsMixin
 
@@ -38,3 +38,5 @@ class TestTypes(FilterByTagsMixin, unittest.TestCase):
     def test_Missing(self):
         self.assertEqual('{0}'.format(types.Missing), 'Missing')
         self.assertFalse(bool(types.Missing))
+        self.assertIs(types.Missing, copy.copy(types.Missing))
+        self.assertIs(types.Missing, copy.deepcopy(types.Missing))
