@@ -20,24 +20,20 @@
 # If not, see he EUPL licence v1.1 is available in 22 languages:
 #     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
 #
+# Credits: https://gist.github.com/yahyaKacem/8170675
+#
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from itertools import chain
-
-__all__ = ('get_slots', 'Missing')
-
-
-def get_slots(obj):
-    """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
-    return set(chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))
+import unittest
+from pytoolbox import types
+from pytoolbox.unittest import FilterByTagsMixin
 
 
-class MissingType(object):
+class TestTypes(FilterByTagsMixin, unittest.TestCase):
 
-    def __repr__(self):
-        return 'Missing'
+    tags = ('types', )
 
-
-Missing = MissingType()
+    def test_Missing(self):
+        self.assertEqual('{0}'.format(types.Missing), 'Missing')
