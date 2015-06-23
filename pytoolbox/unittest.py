@@ -28,13 +28,17 @@ import io, itertools, nose, os, pprint, sys, time, unittest
 from os.path import abspath, dirname
 
 from .multimedia import ffmpeg
+from .types import Missing
 
 if sys.version_info[0] > 2:
     from unittest.mock import Mock
 else:
     from mock import Mock
 
-__all__ = ('Mock', 'mock_cmd', 'runtests', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin', 'TimingMixin')
+__all__ = (
+    'Mock', 'mock_cmd', 'runtests', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin', 'MissingMixin',
+    'TimingMixin'
+)
 
 
 def mock_cmd(stdout='', stderr='', returncode=0):
@@ -182,6 +186,15 @@ class FFmpegMixin(object):
         pprint.pprint({a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
         self.assertEqual(statistics.state, state, result.getvalue())
         return results
+
+
+class MissingMixin(object):
+
+    def assertIsMissing(self, value, *args, **kwargs):
+        return self.assertIs(value, Missing, *args, **kwargs)
+
+    def assertIsNotMissing(self, value, *args, **kwargs):
+        return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
 class TimingMixin(object):

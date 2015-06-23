@@ -25,7 +25,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
-from pytoolbox.unittest import FilterByTagsMixin
+from pytoolbox.unittest import FilterByTagsMixin, MissingMixin
+from pytoolbox.types import Missing
 
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
@@ -43,3 +44,14 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'c', 'a'}, set()))
         self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'a'}, {'c', 'd'}))
         self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, {'b'}, {'b'}))
+
+
+class TestMissingMixin(MissingMixin, unittest.TestCase):
+
+    tags = ('unittest', )
+
+    def test_assertIsMissing(self):
+        self.assertIsMissing(Missing, 'Something bad happened')
+
+    def test_assertIsNotMissing(self):
+        self.assertIsNotMissing(None, 'Something bad happened')
