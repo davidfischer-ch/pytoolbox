@@ -24,19 +24,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os
-from functools import wraps
+import functools, os
 
 from .console import confirm
 from .subprocess import cmd
 
-__all__ = ('confirm_it', 'disable_iptables', 'root_required')
+__all__ = ('confirm_it', 'disable_iptables', 'root_required', 'run_once')
 
 
 def confirm_it(message, default=False, abort_message='Operation aborted by the user'):
     """Ask for confirmation before calling the decorated function."""
     def _confirm_it(f):
-        @wraps(f)
+        @functools.wraps(f)
         def wrapper(*args, **kwargs):
             if confirm(message, default=default):
                 return f(*args, **kwargs)
@@ -45,37 +44,46 @@ def confirm_it(message, default=False, abort_message='Operation aborted by the u
     return _confirm_it
 
 
-def disable_iptables():
+def disable_iptables(f):
     """
     Stop the iptables service if necessary, execute the decorated function and then reactivate iptables if it was
     previously stopped.
     """
-    def _disable_iptables(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
             try:
-                try:
-                    cmd('sudo service iptables stop', shell=True)
-                    print('Disable iptables')
-                    has_iptables = True
-                except:
-                    has_iptables = False
-                return f(*args, **kwargs)
-            finally:
-                if has_iptables:
-                    print('Enable iptables')
-                    cmd('sudo service iptables start', shell=True)
-        return wrapper
-    return _disable_iptables
+                cmd('sudo service iptables stop', shell=True)
+                print('Disable iptables')
+                has_iptables = True
+            except:
+                has_iptables = False
+            return f(*args, **kwargs)
+        finally:
+            if has_iptables:
+                print('Enable iptables')
+                cmd('sudo service iptables start', shell=True)
+    return wrapper
 
 
 def root_required(error_message='This script must be run as root.'):
     """Raise an exception if the current user is not root."""
     def _root_required(f):
-        @wraps(f)
+        @functools.wraps(f)
         def wrapper(*args, **kwargs):
             if not os.geteuid() == 0:
                 raise RuntimeError(error_message)
             return f(*args, **kwargs)
         return wrapper
     return _root_required
+
+
+def run_once(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        if not wrapper.executed:
+            result = f(*args, **kwargs)
+            wrapper.executed = True
+            return result
+    wrapper.executed = False
+    return wrapper
