@@ -26,7 +26,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import math, re
 
-__all__ = ('DEFAULT_BITRATE_UNITS', 'DEFAULT_FILESIZE_ARGS', 'naturalbitrate', 'naturalfilesize', 'natural_int_key')
+__all__ = (
+    'DEFAULT_BITRATE_UNITS', 'DEFAULT_FILESIZE_ARGS', 'DEFAULT_FREQUENCY_UNITS', 'naturalbitrate', 'naturalfilesize',
+    'naturalfrequency', 'natural_int_key'
+)
 
 DEFAULT_BITRATE_UNITS = ('bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s')
 DEFAULT_FILESIZE_ARGS = {
@@ -34,6 +37,7 @@ DEFAULT_FILESIZE_ARGS = {
     'nist': {'base': 1024, 'units': ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')},
     'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')},
 }
+DEFAULT_FREQUENCY_UNITS = ('Hz', 'kHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz', 'YHz')
 DIGIT_REGEX = re.compile(r'(\d+)')
 
 
@@ -117,6 +121,37 @@ def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', sca
     314 E
     """
     return _naturalnumber(bytes, format=format, scale=scale, **(args[system] if system else args))
+
+
+def naturalfrequency(hz, format='{sign}{value:.3g} {unit}', scale=None, units=DEFAULT_FREQUENCY_UNITS):
+    """
+    Return a human readable representation of a frequency taking `hz` as the frequency in Hz.
+
+    The unit is taken from:
+
+    * The `scale` if not None (0=bit/s, 1=kb/s, 2=Mb/s, ...).
+    * The right scale from `units`.
+
+    **Example usage**
+
+    >>> print(naturalfrequency(-10))
+    -10 Hz
+    >>> print(naturalfrequency(0.233))
+    0.233 Hz
+    >>> print(naturalfrequency(69.5, format='{value:.2g} {unit}'))
+    70 Hz
+    >>> print(naturalfrequency(999.9, format='{value:.0f}{unit}'))
+    1000Hz
+    >>> print(naturalfrequency(1060))
+    1.06 kHz
+    >>> print(naturalfrequency(3210837))
+    3.21 MHz
+    >>> print(naturalfrequency(16262710, units=['Hertz', 'kilo Hertz']))
+    1.63e+04 kilo Hertz
+    >>> print(naturalfrequency(3210837, scale=1, format='{value:.2f} {unit}'))
+    3210.84 kHz
+    """
+    return _naturalnumber(hz, base=1000, format=format, scale=scale, units=units)
 
 
 def natural_int_key(text):
