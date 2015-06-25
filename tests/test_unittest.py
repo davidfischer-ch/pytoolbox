@@ -34,16 +34,19 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
     tags = ('unittest', )
 
     def test_should_run(self):
-        self.assertTrue(FilterByTagsMixin().should_run(set(), set(), set()))
-        self.assertTrue(FilterByTagsMixin().should_run(set(), {'a'}, set()))
-        self.assertTrue(FilterByTagsMixin().should_run(set(), set(), {'b'}))
-        self.assertTrue(FilterByTagsMixin().should_run(set(), {'a'}, {'b'}))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), set()))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'c', 'd'}))
-        self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'c', 'b'}))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'c', 'a'}, set()))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'a'}, {'c', 'd'}))
-        self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, {'b'}, {'b'}))
+        self.assertTrue(FilterByTagsMixin().should_run(set(), set(), set(), set()))
+        self.assertTrue(FilterByTagsMixin().should_run(set(), set(), set(), {'b'}))
+        self.assertFalse(FilterByTagsMixin().should_run(set(), set(), {'a'}, set()))
+        self.assertFalse(FilterByTagsMixin().should_run(set(), set(), {'a'}, {'b'}))
+        self.assertFalse(FilterByTagsMixin().should_run(set(), {'a'}, set(), set()))
+        self.assertTrue(FilterByTagsMixin().should_run(set(), {'a'}, {'a'}, set()))
+        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), set()))
+        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), {'c', 'd'}))
+        self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), {'c', 'b'}))
+        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'c', 'a'}, set()))
+        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'c', 'd'}, {'c', 'a'}, set()))
+        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'a'}, {'c', 'd'}))
+        self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'b'}, {'b'}))
 
 
 class TestMissingMixin(MissingMixin, unittest.TestCase):
