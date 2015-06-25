@@ -37,8 +37,8 @@ else:
     from mock import Mock
 
 __all__ = (
-    'Mock', 'mock_cmd', 'runtests', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin', 'MissingMixin',
-    'TimingMixin'
+    'Mock', 'mock_cmd', 'runtests', 'with_tags', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin',
+    'InspectMixin', 'MissingMixin', 'TimingMixin'
 )
 
 
@@ -60,6 +60,21 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
     return nose.main(argv=nose_options)
 
 
+def with_tags(tags=None, required=None):
+    def _with_tags(f):
+        f.tags = set([tags] if isinstance(tags, string_types) else tags or [])
+        f.required_tags = set([required] if isinstance(required, string_types) else required or [])
+        return f
+    return _with_tags
+
+
+class InspectMixin(object):
+
+    @property
+    def current_test(self):
+        return getattr(self, self.id().split('.')[-1])
+
+
 class AwareTearDownMixin(object):
 
     def awareTearDown(self, result):
@@ -71,7 +86,7 @@ class AwareTearDownMixin(object):
         return result
 
 
-class FilterByTagsMixin(object):
+class FilterByTagsMixin(InspectMixin):
     """
     Allow to filter unit-tests by tags, including by default, the `TestCaseName` and `TestCaseName.method_name`.
     """
@@ -82,10 +97,10 @@ class FilterByTagsMixin(object):
 
     def get_tags(self):
         my_id = self.id().split('.')
-        return itertools.chain(self.tags, (my_id[-2], '.'.join(my_id[-2:])))
+        return itertools.chain(self.tags, getattr(self.current_test, 'tags', ()), (my_id[-2], '.'.join(my_id[-2:])))
 
     def get_required_tags(self):
-        return self.required_tags
+        return itertools.chain(self.required_tags, getattr(self.current_test, 'required_tags', ()))
 
     def get_only_tags(self):
         return (t for t in os.environ.get(self.only_tags_variable, '').split(',') if t)

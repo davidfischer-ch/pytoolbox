@@ -25,7 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
-from pytoolbox.unittest import FilterByTagsMixin, MissingMixin
+from pytoolbox.unittest import with_tags, FilterByTagsMixin, MissingMixin
 from pytoolbox.types import Missing
 
 
@@ -47,6 +47,10 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'c', 'd'}, {'c', 'a'}, set()))
         self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'a'}, {'c', 'd'}))
         self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'b'}, {'b'}))
+
+    @with_tags(required='should-not-run')
+    def test_with_tags_decorator(self):
+        raise RuntimeError('This test should never run.')
 
 
 class TestMissingMixin(MissingMixin, unittest.TestCase):
