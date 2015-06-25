@@ -348,6 +348,7 @@ class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
     tags = ('multimedia', 'ffmpeg')
 
     def setUp(self):
+        super(TestFFmpeg, self).setUp()
         self.ffmpeg = MockFFmpeg()
 
     def test_clean_medias_argument(self):
@@ -419,6 +420,7 @@ class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
     tags = ('multimedia', 'ffmpeg')
 
     def setUp(self):
+        super(TestFFprobe, self).setUp()
         self.ffprobe = MockFFprobe()
 
     def test_get_audio_streams(self):
