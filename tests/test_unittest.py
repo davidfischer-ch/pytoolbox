@@ -53,7 +53,7 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         raise RuntimeError('This test should never run.')
 
 
-class TestMissingMixin(MissingMixin, unittest.TestCase):
+class TestMissingMixin(FilterByTagsMixin, MissingMixin, unittest.TestCase):
 
     tags = ('unittest', )
 
