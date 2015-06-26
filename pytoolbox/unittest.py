@@ -37,7 +37,7 @@ else:
     from mock import Mock
 
 __all__ = (
-    'Mock', 'mock_cmd', 'runtests', 'with_tags', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin',
+    'Mock', 'mock_cmd', 'runtests', 'with_tags', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin', 'InMixin',
     'InspectMixin', 'MissingMixin', 'TimingMixin'
 )
 
@@ -66,6 +66,18 @@ def with_tags(tags=None, required=None):
         f.required_tags = set([required] if isinstance(required, string_types) else required or [])
         return f
     return _with_tags
+
+
+class InMixin(object):
+
+    def assert_in_hook(self, b):
+        return sorted(b)
+
+    def assertIn(self, a, b, msg=None):
+        assert a in b, '{0} not in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
+
+    def assertNotIn(self, a, b, msg=None):
+        assert a in b, '{0} in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
 
 
 class InspectMixin(object):
