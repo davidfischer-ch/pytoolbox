@@ -60,8 +60,9 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):
     **Example usage**
 
     >>> from nose.tools import eq_
-    >>> swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
-    defaultdict(<class 'list'>, {0: ['even'], 1: ['odd', 'fib'], 2: ['even', 'fib'], 3: ['odd', 'fib']})
+    >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
+    >>> eq_({k: sorted(v) for k, v in result.items()},
+    ...     {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
     >>> eq_(swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, method='add')[2], {'even', 'fib'})
     >>> eq_(swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'], {'bad', 'example'})
     """
