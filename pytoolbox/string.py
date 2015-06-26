@@ -26,9 +26,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re
+import os, re
 
-__all__ = ('ALL_CAP_REGEX', 'FIRST_CAP_REGEX', 'camel_to_dash', 'camel_to_snake', 'dash_to_camel', 'snake_to_camel')
+__all__ = (
+    'ALL_CAP_REGEX', 'FIRST_CAP_REGEX', 'camel_to_dash', 'camel_to_snake', 'dash_to_camel', 'snake_to_camel', 'to_lines'
+)
 
 ALL_CAP_REGEX = re.compile(r'([a-z0-9])([A-Z])')
 FIRST_CAP_REGEX = re.compile(r'(.)([A-Z][a-z]+)')
@@ -75,3 +77,13 @@ def _to_camel(string, separator):
     else:
         camel_case_string = components[0]
     return preffix + camel_case_string + suffix
+
+
+def to_lines(items, limit=80, start='\t', line='{0} '):
+    lines = [start]
+    for item in items:
+        item_str = line.format(item)
+        if len(lines[-1]) + len(item_str) > limit:
+            lines.append(start)
+        lines[-1] += item_str
+    return os.linesep.join(lines)
