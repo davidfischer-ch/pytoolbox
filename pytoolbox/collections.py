@@ -25,9 +25,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections, math
-from .datetime import total_seconds
 
-__all__ = ('flatten_dict', 'pygal_deque', 'window', 'EventsTable')
+from .datetime import total_seconds
+from .encoding import string_types
+
+__all__ = ('flatten_dict', 'swap_dict_of_values', 'pygal_deque', 'window', 'EventsTable')
 
 
 def flatten_dict(the_dict, key_template='{0}.{1}'):
@@ -47,6 +49,28 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
         else:
             return [(key, value)]
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
+
+
+def swap_dict_of_values(the_dict, type=set, method=set.add):
+    """
+    Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
+
+    This algorithm expect that the values are a container with objects, not a single object.
+
+    **Example usage**
+
+    >>> from nose.tools import eq_
+    >>> swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
+    defaultdict(<class 'list'>, {0: ['even'], 1: ['odd', 'fib'], 2: ['even', 'fib'], 3: ['odd', 'fib']})
+    >>> eq_(swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, method='add')[2], {'even', 'fib'})
+    >>> eq_(swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'], {'bad', 'example'})
+    """
+    method = getattr(type, method) if isinstance(method, string_types) else method
+    reversed_dict = collections.defaultdict(type)
+    for key, values in the_dict.items():
+        for value in values:
+            method(reversed_dict[value], key)
+    return reversed_dict
 
 
 class pygal_deque(collections.deque):
