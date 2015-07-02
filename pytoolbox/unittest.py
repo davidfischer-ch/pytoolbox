@@ -131,10 +131,10 @@ class FilterByTagsMixin(InspectMixin):
         return True
 
     def setUp(self):
-        super(FilterByTagsMixin, self).setUp()
         if not self.should_run(set(self.get_tags()), set(self.get_required_tags()), set(self.get_only_tags()),
                                set(self.get_skip_tags())):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
+        super(FilterByTagsMixin, self).setUp()
 
 
 class FFmpegMixin(object):
