@@ -78,7 +78,7 @@ class InMixin(object):
         assert a in b, '{0} not in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
 
     def assertNotIn(self, a, b, msg=None):
-        assert a in b, '{0} in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
+        assert a not in b, '{0} in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
 
 
 class InspectMixin(object):
