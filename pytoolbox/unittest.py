@@ -39,7 +39,7 @@ else:
 
 __all__ = (
     'asserts', 'Mock', 'mock_cmd', 'runtests', 'with_tags', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin',
-    'InMixin', 'InspectMixin', 'MissingMixin', 'TimingMixin'
+    'InMixin', 'InspectMixin', 'MissingMixin', 'SnakeCaseMixin', 'TimingMixin'
 )
 
 
@@ -237,6 +237,13 @@ class MissingMixin(object):
         return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
+class SnakeCaseMixin(object):
+
+    def __getattr__(self, name):
+        if name.lower() == name:
+            return getattr(self, snake_to_camel('assert_{0}'.format(name)))
+
+
 class TimingMixin(object):
 
     timing_logger = None
@@ -251,11 +258,10 @@ class TimingMixin(object):
             self.timing_logger.info('{0}: {1:.3f}'.format(self.id(), time.time() - self.start_time))
 
 
-class Asserts(InMixin, MissingMixin, unittest.TestCase):
+class Asserts(InMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):
 
-    def __getattr__(self, name):
-        if name.lower() == name:
-            return getattr(self, snake_to_camel('assert_{0}'.format(name)))
+    def runTest(self, *args, **kwargs):
+        pass
 
 
 asserts = Asserts()
