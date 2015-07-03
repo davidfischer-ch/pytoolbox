@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import io, itertools, nose, os, pprint, sys, time, unittest
 from os.path import abspath, dirname
 
-from .encoding import string_types
+from .encoding import binary_type, string_types
 from .multimedia import ffmpeg
 from .string import snake_to_camel
 from .types import Missing
@@ -72,7 +72,7 @@ def with_tags(tags=None, required=None):
 class InMixin(object):
 
     def assert_in_hook(self, b):
-        return sorted(b)
+        return b if isinstance(b, (string_types, binary_type)) else sorted(b)
 
     def assertIn(self, a, b, msg=None):
         assert a in b, '{0} not in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
