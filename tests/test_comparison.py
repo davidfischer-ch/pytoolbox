@@ -24,9 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import unittest
 from pytoolbox.comparison import SlotsEqualityMixin
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
 class Point2D(SlotsEqualityMixin):
@@ -54,7 +54,7 @@ class Point3D(SlotsEqualityMixin):
         self.name = name
 
 
-class TestSlotsEqualityMixin(FilterByTagsMixin, unittest.TestCase):
+class TestSlotsEqualityMixin(base.TestCase):
 
     tags = ('comparison', )
 
@@ -62,19 +62,19 @@ class TestSlotsEqualityMixin(FilterByTagsMixin, unittest.TestCase):
         p1 = Point2D(10, -3, 'dot')
         p2 = Point2D(10, -3, 'dot')
         p3 = Point2D(10, -4, 'dot')
-        self.assertEqual(p1, p2)
-        self.assertNotEqual(p1, p3)
+        self.equal(p1, p2)
+        self.not_equal(p1, p3)
 
     def test_equality_inheritance(self):
         p1 = Point2D(10, -3, 'dot')
         p2 = Point2Dv2(10, -3, 'dot')
         p3 = Point2Dv2(10, -4, 'dot')
-        self.assertEqual(p1, p2)
-        self.assertNotEqual(p1, p3)
+        self.equal(p1, p2)
+        self.not_equal(p1, p3)
 
     def test_equality_different_class(self):
         p1 = Point2D(10, -3, 'dot')
         p2 = Point3D(10, -3, 5, 'dot')
         p3 = Point3D(10, -4, 2, 'dot')
-        self.assertNotEqual(p1, p2)
-        self.assertNotEqual(p1, p3)
+        self.not_equal(p1, p2)
+        self.not_equal(p1, p3)

@@ -24,12 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import unittest
 from pytoolbox.collections import pygal_deque
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
-class TestCollections(FilterByTagsMixin, unittest.TestCase):
+class TestCollections(base.TestCase):
 
     tags = ('collections', )
 
@@ -37,33 +37,33 @@ class TestCollections(FilterByTagsMixin, unittest.TestCase):
         p = pygal_deque(maxlen=4)
 
         p.append(5)
-        self.assertListEqual(p.list(fill=False), [5])
+        self.list_equal(p.list(fill=False), [5])
         p.append(5)
         p.append(5)
-        self.assertListEqual(p.list(fill=False), [5, None, 5])
+        self.list_equal(p.list(fill=False), [5, None, 5])
         p.append(5)
-        self.assertListEqual(p.list(fill=False), [5, None, None, 5])
+        self.list_equal(p.list(fill=False), [5, None, None, 5])
         p.append(5)
-        self.assertListEqual(p.list(fill=False), [5, None, None, 5])
+        self.list_equal(p.list(fill=False), [5, None, None, 5])
         p.append(None)
-        self.assertListEqual(p.list(fill=False), [5, None, None, 5])
+        self.list_equal(p.list(fill=False), [5, None, None, 5])
         p.append(None)
-        self.assertListEqual(p.list(fill=False), [5, None, None, 5])
+        self.list_equal(p.list(fill=False), [5, None, None, 5])
         p.append(5)
-        self.assertListEqual(p.list(fill=False), [5, None, None, 5])
-        self.assertListEqual(p.list(fill=True), [5, 5, 5, 5])
+        self.list_equal(p.list(fill=False), [5, None, None, 5])
+        self.list_equal(p.list(fill=True), [5, 5, 5, 5])
         p.append(1)
-        self.assertListEqual(p.list(fill=False), [5, None, 5, 1])
+        self.list_equal(p.list(fill=False), [5, None, 5, 1])
         p.append(None)
-        self.assertListEqual(p.list(fill=False), [5, 5, 1, 1])
+        self.list_equal(p.list(fill=False), [5, 5, 1, 1])
         p.append(None)
-        self.assertListEqual(p.list(fill=False), [5, 1, None, 1])
-        self.assertListEqual(p.list(fill=True), [5, 1, 1, 1])
+        self.list_equal(p.list(fill=False), [5, 1, None, 1])
+        self.list_equal(p.list(fill=True), [5, 1, 1, 1])
         p.append(None)
-        self.assertListEqual(p.list(fill=False), [1, None, None, 1])
+        self.list_equal(p.list(fill=False), [1, None, None, 1])
         p.append(2)
         p.append(3)
-        self.assertListEqual(p.list(fill=False), [1, 1, 2, 3])
+        self.list_equal(p.list(fill=False), [1, 1, 2, 3])
         p.append(None)
         p.append(2)
-        self.assertListEqual(p.list(fill=False), [2, 3, 3, 2])
+        self.list_equal(p.list(fill=False), [2, 3, 3, 2])

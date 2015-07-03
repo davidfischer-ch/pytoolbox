@@ -32,7 +32,8 @@ from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
     to_bit_rate, to_frame_rate, to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
 )
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 MPD_TEST = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
@@ -181,43 +182,43 @@ class RaiseFFmpeg(MockFFmpeg):
     statistics_class = RaiseEncodeStatistics
 
 
-class TestUtils(FilterByTagsMixin, unittest.TestCase):
+class TestUtils(base.TestCase):
 
     tags = ('multimedia', 'ffmpeg')
 
     def test_to_bit_rate(self):
-        self.assertEqual(to_bit_rate('231.5kbit/s'), 231500)
-        self.assertEqual(to_bit_rate('3302.3kbits/s'), 3302300)
-        self.assertEqual(to_bit_rate('1935.9kbits/s'), 1935900)
-        self.assertIsNone(to_bit_rate('N/A'))
+        self.equal(to_bit_rate('231.5kbit/s'), 231500)
+        self.equal(to_bit_rate('3302.3kbits/s'), 3302300)
+        self.equal(to_bit_rate('1935.9kbits/s'), 1935900)
+        self.is_none(to_bit_rate('N/A'))
 
     def test_to_frame_rate(self):
-        self.assertEqual(to_frame_rate('10.5'), 10.5)
-        self.assertEqual(to_frame_rate(25.0), 25.0)
-        self.assertEqual(to_frame_rate('59000/1000'), 59.0)
-        self.assertIsNone(to_frame_rate('10/0'))
+        self.equal(to_frame_rate('10.5'), 10.5)
+        self.equal(to_frame_rate(25.0), 25.0)
+        self.equal(to_frame_rate('59000/1000'), 59.0)
+        self.is_none(to_frame_rate('10/0'))
 
     def test_to_size(self):
-        self.assertEqual(to_size('231.5kB'), 237056)
-        self.assertEqual(to_size('3302.3MB'), 3462712524)
-        self.assertEqual(to_size('1935.9KB'), 1982361)
+        self.equal(to_size('231.5kB'), 237056)
+        self.equal(to_size('3302.3MB'), 3462712524)
+        self.equal(to_size('1935.9KB'), 1982361)
 
 
-class TestMedia(FilterByTagsMixin, unittest.TestCase):
+class TestMedia(base.TestCase):
 
     tags = ('multimedia', 'ffmpeg')
 
     def test_pipe(self):
-        self.assertFalse(Media(None).is_pipe)
-        self.assertFalse(Media('test-file.mp4').is_pipe)
+        self.false(Media(None).is_pipe)
+        self.false(Media('test-file.mp4').is_pipe)
         for filename in '-', 'pipe:3':
             media = Media(filename)
-            self.assertIsNone(media.directory)
-            self.assertTrue(media.is_pipe)
-            self.assertEqual(media.size, 0)
+            self.is_none(media.directory)
+            self.true(media.is_pipe)
+            self.equal(media.size, 0)
 
 
-class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
+class TestEncodeStatistics(base.TestCase):
 
     tags = ('multimedia', 'ffmpeg')
 
@@ -237,7 +238,7 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
         return statistics
 
     def test_get_subclip_duration_and_size(self):
-        eq, subclip = self.assertTupleEqual, self.get_statistics()._get_subclip_duration_and_size
+        eq, subclip = self.tuple_equal, self.get_statistics()._get_subclip_duration_and_size
         duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
         sub_dur_1 = datetime.timedelta(seconds=3610.2)
         sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
@@ -254,96 +255,95 @@ class TestEncodeStatistics(FilterByTagsMixin, unittest.TestCase):
         eq(subclip(duration, 512 * 1024, ['-t', '02:00:00.0']), (duration, 512 * 1024))
 
     def test_parse_chunk(self):
-        statistics = self.get_statistics()
-        eq, parse = self.assertDictEqual, statistics._parse_chunk
-        self.assertIsNone(parse('Random stuff'))
-        eq(parse('    frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s  '), {
+        p = self.get_statistics()._parse_chunk
+        self.is_none(p('Random stuff'))
+        self.dict_equal(p('    frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s  '), {
             'frame': 2071, 'frame_rate': 0.0, 'qscale': -1.0, 'size': 34623 * 1024,
             'time': datetime.timedelta(minutes=1, seconds=25.89), 'bit_rate': 3302300
         })
 
     def test_should_report_initialization(self):
         statistics = self.get_statistics()
-        self.assertTrue(statistics._should_report())
-        self.assertEqual(statistics._prev_elapsed_time, datetime.timedelta(0))
-        self.assertEqual(statistics._prev_ratio, 0)
-        self.assertFalse(statistics._should_report())
+        self.true(statistics._should_report())
+        self.equal(statistics._prev_elapsed_time, datetime.timedelta(0))
+        self.equal(statistics._prev_ratio, 0)
+        self.false(statistics._should_report())
 
     def test_should_report_elapsed_time_criteria(self):
         statistics = self.get_statistics()
-        self.assertTrue(statistics._should_report())
+        self.true(statistics._should_report())
         statistics.elapsed_time = datetime.timedelta(seconds=3)
-        self.assertFalse(statistics._should_report())
+        self.false(statistics._should_report())
         statistics.elapsed_time = datetime.timedelta(seconds=6)
-        self.assertTrue(statistics._should_report())
-        self.assertFalse(statistics._should_report())
+        self.true(statistics._should_report())
+        self.false(statistics._should_report())
 
     def test_should_report_ratio_criteria(self):
         statistics = self.get_statistics()
-        self.assertTrue(statistics._should_report())
+        self.true(statistics._should_report())
         statistics.ratio = 0.001
-        self.assertFalse(statistics._should_report())
+        self.false(statistics._should_report())
         statistics.ratio = 0.02
-        self.assertFalse(statistics._should_report())
+        self.false(statistics._should_report())
         statistics.elapsed_time = datetime.timedelta(seconds=2)
-        self.assertTrue(statistics._should_report())
-        self.assertFalse(statistics._should_report())
+        self.true(statistics._should_report())
+        self.false(statistics._should_report())
 
     def test_eta_time(self):
         statistics = self.get_statistics()
         statistics.elapsed_time = datetime.timedelta(seconds=60)
-        self.assertIsNone(statistics.eta_time)
+        self.is_none(statistics.eta_time)
         statistics.ratio = 0.0
-        self.assertIsNone(statistics.eta_time)
+        self.is_none(statistics.eta_time)
         statistics.ratio = 0.2
-        self.assertEqual(statistics.eta_time, datetime.timedelta(seconds=240))
+        self.equal(statistics.eta_time, datetime.timedelta(seconds=240))
         statistics.ratio = 0.5
-        self.assertEqual(statistics.eta_time, datetime.timedelta(seconds=60))
+        self.equal(statistics.eta_time, datetime.timedelta(seconds=60))
         statistics.ratio = 1.0
-        self.assertEqual(statistics.eta_time, datetime.timedelta(0))
+        self.equal(statistics.eta_time, datetime.timedelta(0))
 
     def test_compute_ratio(self):
         statistics = self.get_statistics()
         statistics.input.duration = datetime.timedelta(seconds=0)
         statistics.output.duration = None
-        self.assertIsNone(statistics._compute_ratio())
+        self.is_none(statistics._compute_ratio())
         statistics.input.duration = datetime.timedelta(seconds=0)
         statistics.output.duration = datetime.timedelta(0)
-        self.assertIsNone(statistics._compute_ratio())
+        self.is_none(statistics._compute_ratio())
         statistics.input.duration = datetime.timedelta(seconds=1)
-        self.assertEqual(statistics._compute_ratio(), 0.0)
+        self.equal(statistics._compute_ratio(), 0.0)
         statistics.input.duration = datetime.timedelta(seconds=60)
         statistics.output.duration = datetime.timedelta(seconds=30)
-        self.assertEqual(statistics._compute_ratio(), 0.5)
+        self.equal(statistics._compute_ratio(), 0.5)
 
     def test_new_properties(self):
         statistics = self.get_statistics()
-        self.assertEqual(statistics.state, statistics.states.NEW)
-        self.assertIsInstance(statistics.input.duration, datetime.timedelta)
-        self.assertIsNone(statistics.eta_time)
-        self.assertEqual(statistics.input, statistics.inputs[0])
-        self.assertEqual(statistics.output, statistics.outputs[0])
-        self.assertIsNone(statistics.ratio)
-        self.assertIsNotNone(statistics.input._size)
+        self.equal(statistics.state, statistics.states.NEW)
+        self.is_instance(statistics.input.duration, datetime.timedelta)
+        self.is_none(statistics.eta_time)
+        self.equal(statistics.input, statistics.inputs[0])
+        self.equal(statistics.output, statistics.outputs[0])
+        self.is_none(statistics.ratio)
+        self.is_not_none(statistics.input._size)
 
     def test_started_properties(self):
         statistics = self.get_statistics(start=True)
-        self.assertEqual(statistics.state, statistics.states.STARTED)
-        self.assertEqual(statistics.output.duration, datetime.timedelta(0))
-        self.assertIsNone(statistics.eta_time)
-        self.assertEqual(statistics.ratio, 0.0)
+        self.equal(statistics.state, statistics.states.STARTED)
+        self.equal(statistics.output.duration, datetime.timedelta(0))
+        self.is_none(statistics.eta_time)
+        self.equal(statistics.ratio, 0.0)
 
     def test_success_properties(self):
         self.outputs[0].filename = self.inputs[0].filename
         statistics = self.get_statistics(returncode=0)
-        self.assertEqual(statistics.state, statistics.states.SUCCESS)
-        self.assertEqual(statistics.output.duration, statistics.input.duration)
-        self.assertEqual(statistics.eta_time, datetime.timedelta(0))
-        self.assertEqual(statistics.ratio, 1.0)
-        self.assertIsNone(statistics.output._size)
+        self.equal(statistics.state, statistics.states.SUCCESS)
+        self.equal(statistics.output.duration, statistics.input.duration)
+        self.equal(statistics.eta_time, datetime.timedelta(0))
+        self.equal(statistics.ratio, 1.0)
+        self.is_none(statistics.output._size)
 
 
-class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
+class TestFFmpeg(base.TestCase):
 
     tags = ('multimedia', 'ffmpeg')
 
@@ -352,31 +352,29 @@ class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
         self.ffmpeg = MockFFmpeg()
 
     def test_clean_medias_argument(self):
-        eq = self.assertListEqual
         clean = self.ffmpeg._clean_medias_argument
-        eq(clean(None), [])
-        eq(clean([]), [])
-        eq(clean('a.mp4'), [Media('a.mp4')])
-        eq(clean(['a.mp4', 'b.mp3']), [Media('a.mp4'), Media('b.mp3')])
-        eq(clean(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
-        eq(clean([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
+        self.list_equal(clean(None), [])
+        self.list_equal(clean([]), [])
+        self.list_equal(clean('a.mp4'), [Media('a.mp4')])
+        self.list_equal(clean(['a.mp4', 'b.mp3']), [Media('a.mp4'), Media('b.mp3')])
+        self.list_equal(clean(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
+        self.list_equal(clean([Media('a', ['-f', 'mp4']), Media('b.mp3')]), [Media('a', ['-f', 'mp4']), Media('b.mp3')])
 
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_encode(self):
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.assertTrue(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1].state, EncodeState.SUCCESS)
+        self.true(try_remove('ff_output.mp4'))
+        self.equal(results[-1].state, EncodeState.SUCCESS)
 
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
-        self.assertFalse(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1].state, EncodeState.FAILURE)
+        self.false(try_remove('ff_output.mp4'))
+        self.equal(results[-1].state, EncodeState.FAILURE)
 
         results = list(self.ffmpeg.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.assertFalse(try_remove('ff_output.mp4'))
-        self.assertEqual(results[-1].state, EncodeState.FAILURE)
+        self.false(try_remove('ff_output.mp4'))
+        self.equal(results[-1].state, EncodeState.FAILURE)
 
     def test_get_arguments(self):
-        eq = self.assertListEqual
         get = self.ffmpeg._get_arguments
         self.ffmpeg.executable = 'ffmpeg'
 
@@ -384,38 +382,40 @@ class TestFFmpeg(FilterByTagsMixin, unittest.TestCase):
         options_string = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
 
         args, inputs, outputs, options = get('input.mp4', 'output.mkv', options_string)
-        eq(inputs, [Media('input.mp4')])
-        eq(outputs, [Media('output.mkv')])
-        eq(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
-        eq(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        self.list_equal(inputs, [Media('input.mp4')])
+        self.list_equal(outputs, [Media('output.mkv')])
+        self.list_equal(options, ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'])
+        self.list_equal(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
 
         args, _, outputs, options = get('input.mp4', None, options_string)
-        eq(outputs, [])
-        eq(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options)
+        self.list_equal(outputs, [])
+        self.list_equal(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options)
 
         # Using instances of Media (the newest API, greater flexibility)
         args, inputs, outputs, options = get(Media('in', '-f mp4'), Media('out.mkv', '-acodec copy -vcodec copy'))
-        eq(inputs, [Media('in', ['-f', 'mp4'])])
-        eq(outputs, [Media('out.mkv', ['-acodec', 'copy', '-vcodec', 'copy'])])
-        eq(options, [])
-        eq(args, ['ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'])
+        self.list_equal(inputs, [Media('in', ['-f', 'mp4'])])
+        self.list_equal(outputs, [Media('out.mkv', ['-acodec', 'copy', '-vcodec', 'copy'])])
+        self.list_equal(options, [])
+        self.list_equal(args, [
+            'ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'
+        ])
 
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_get_process(self):
         options = ['-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2']
         process = self.ffmpeg._get_process([STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
-        self.assertListEqual(process.args, [STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        self.list_equal(process.args, [STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
         process.terminate()
 
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_kill_process_handle_missing(self):
         encoder = RaiseFFmpeg()
-        with self.assertRaises(ValueError):
+        with self.raises(ValueError):
             list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
-        self.assertTrue(try_remove('ff_output.mp4'))
+        self.true(try_remove('ff_output.mp4'))
 
 
-class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
+class TestFFprobe(base.TestCase):
 
     tags = ('multimedia', 'ffmpeg')
 
@@ -426,89 +426,85 @@ class TestFFprobe(FilterByTagsMixin, unittest.TestCase):
     def test_get_audio_streams(self):
         self.ffprobe.stream_classes['audio'] = None
         streams = self.ffprobe.get_audio_streams('small.mp4')
-        self.assertIsInstance(streams[0], dict)
-        self.assertEqual(streams[0]['avg_frame_rate'], '0/0')
-        self.assertEqual(streams[0]['channels'], 1)
-        self.assertEqual(streams[0]['codec_time_base'], '1/48000')
+        self.is_instance(streams[0], dict)
+        self.equal(streams[0]['avg_frame_rate'], '0/0')
+        self.equal(streams[0]['channels'], 1)
+        self.equal(streams[0]['codec_time_base'], '1/48000')
 
         self.ffprobe.stream_classes['audio'] = AudioStream
         streams = self.ffprobe.get_audio_streams('small.mp4')
-        self.assertIsInstance(streams[0], AudioStream)
-        self.assertIsNone(streams[0].avg_frame_rate)
-        self.assertEqual(streams[0].channels, 1)
-        self.assertEqual(streams[0].codec.time_base, 1 / 48000)
+        self.is_instance(streams[0], AudioStream)
+        self.is_none(streams[0].avg_frame_rate)
+        self.equal(streams[0].channels, 1)
+        self.equal(streams[0].codec.time_base, 1 / 48000)
 
     def test_get_media_duration(self):
         # Bad file format
         with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
             f.write('Hey, I am not a MPD nor a média')
-        self.assertIsNone(self.ffprobe.get_media_duration('/tmp/test.txt'))
+        self.is_none(self.ffprobe.get_media_duration('/tmp/test.txt'))
         os.remove('/tmp/test.txt')
 
         # Some random bad things
-        self.assertIsNone(self.ffprobe.get_media_duration({}))
+        self.is_none(self.ffprobe.get_media_duration({}))
 
         # A MPEG-DASH MPD
         with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
             f.write(MPD_TEST)
-        self.assertEqual(self.ffprobe.get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'), '00:06:07.830000')
-        self.assertEqual(self.ffprobe.get_media_duration('/tmp/test.mpd', as_delta=True),
-                         datetime.timedelta(0, 367, 830000))
+        self.equal(self.ffprobe.get_media_duration('/tmp/test.mpd').strftime('%H:%M:%S.%f'), '00:06:07.830000')
+        self.equal(self.ffprobe.get_media_duration('/tmp/test.mpd', as_delta=True), datetime.timedelta(0, 367, 830000))
         os.remove('/tmp/test.mpd')
 
         # A MP4
-        self.assertEqual(self.ffprobe.get_media_duration('small.mp4').strftime('%H:%M:%S'), '00:00:05')
-        self.assertEqual(
-            self.ffprobe.get_media_duration(self.ffprobe.get_media_info('small.mp4')).strftime('%H:%M:%S'), '00:00:05'
-        )
-        self.assertEqual(
-            self.ffprobe.get_media_duration(self.ffprobe.get_media_info('small.mp4'), as_delta=True).seconds, 5
-        )
+        self.equal(self.ffprobe.get_media_duration('small.mp4').strftime('%H:%M:%S'), '00:00:05')
+        self.equal(self.ffprobe.get_media_duration(self.ffprobe.get_media_info('small.mp4')).strftime('%H:%M:%S'),
+                   '00:00:05')
+        self.equal(self.ffprobe.get_media_duration(self.ffprobe.get_media_info('small.mp4'), as_delta=True).seconds, 5)
 
     def test_get_media_format(self):
         self.ffprobe.format_class = None
         media_format = self.ffprobe.get_media_format('small.mp4', fail=True)
-        self.assertIsInstance(media_format, dict)
-        self.assertEqual(media_format['bit_rate'], '551193')
-        self.assertEqual(media_format['format_long_name'], 'QuickTime / MOV')
-        self.assertEqual(media_format['probe_score'], 100)
+        self.is_instance(media_format, dict)
+        self.equal(media_format['bit_rate'], '551193')
+        self.equal(media_format['format_long_name'], 'QuickTime / MOV')
+        self.equal(media_format['probe_score'], 100)
 
         self.ffprobe.format_class = Format
         media_format = self.ffprobe.get_media_format('small.mp4', fail=True)
-        self.assertIsInstance(media_format, Format)
-        self.assertEqual(media_format.bit_rate, 551193)
-        self.assertEqual(media_format.format_long_name, 'QuickTime / MOV')
-        self.assertEqual(media_format.probe_score, 100)
+        self.is_instance(media_format, Format)
+        self.equal(media_format.bit_rate, 551193)
+        self.equal(media_format.format_long_name, 'QuickTime / MOV')
+        self.equal(media_format.probe_score, 100)
 
     def test_get_video_streams(self):
         self.ffprobe.stream_classes['video'] = None
         streams = self.ffprobe.get_video_streams('small.mp4')
-        self.assertIsInstance(streams[0], dict)
-        self.assertEqual(streams[0]['avg_frame_rate'], '30/1')
+        self.is_instance(streams[0], dict)
+        self.equal(streams[0]['avg_frame_rate'], '30/1')
 
         self.ffprobe.stream_classes['video'] = VideoStream
         streams = self.ffprobe.get_video_streams('small.mp4')
-        self.assertIsInstance(streams[0], VideoStream)
-        self.assertEqual(streams[0].avg_frame_rate, 30.0)
+        self.is_instance(streams[0], VideoStream)
+        self.equal(streams[0].avg_frame_rate, 30.0)
 
     def test_get_video_frame_rate(self):
-        self.assertIsNone(self.ffprobe.get_video_frame_rate(3.14159265358979323846))
-        self.assertIsNone(self.ffprobe.get_video_frame_rate({}))
-        self.assertEqual(self.ffprobe.get_video_frame_rate(self.ffprobe.get_media_info('small.mp4')), 30.0)
-        self.assertEqual(self.ffprobe.get_video_frame_rate('small.mp4'), 30.0)
-        self.assertEqual(self.ffprobe.get_video_frame_rate({'streams': [
+        self.is_none(self.ffprobe.get_video_frame_rate(3.14159265358979323846))
+        self.is_none(self.ffprobe.get_video_frame_rate({}))
+        self.equal(self.ffprobe.get_video_frame_rate(self.ffprobe.get_media_info('small.mp4')), 30.0)
+        self.equal(self.ffprobe.get_video_frame_rate('small.mp4'), 30.0)
+        self.equal(self.ffprobe.get_video_frame_rate({'streams': [
             {'codec_type': 'audio'},
             {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
         ]}), 59.0)
 
     def test_get_video_resolution(self):
-        self.assertIsNone(self.ffprobe.get_video_resolution(3.14159265358979323846))
-        self.assertIsNone(self.ffprobe.get_video_resolution({}))
-        self.assertListEqual(self.ffprobe.get_video_resolution(self.ffprobe.get_media_info('small.mp4')), [560, 320])
-        self.assertListEqual(self.ffprobe.get_video_resolution('small.mp4'), [560, 320])
-        self.assertIsNone(self.ffprobe.get_video_resolution('small.mp4', index=1))
-        self.assertEqual(self.ffprobe.get_video_resolution('small.mp4')[HEIGHT], 320)
-        self.assertListEqual(self.ffprobe.get_video_resolution({'streams': [
+        self.is_none(self.ffprobe.get_video_resolution(3.14159265358979323846))
+        self.is_none(self.ffprobe.get_video_resolution({}))
+        self.list_equal(self.ffprobe.get_video_resolution(self.ffprobe.get_media_info('small.mp4')), [560, 320])
+        self.list_equal(self.ffprobe.get_video_resolution('small.mp4'), [560, 320])
+        self.is_none(self.ffprobe.get_video_resolution('small.mp4', index=1))
+        self.equal(self.ffprobe.get_video_resolution('small.mp4')[HEIGHT], 320)
+        self.list_equal(self.ffprobe.get_video_resolution({'streams': [
             {'codec_type': 'audio'},
             {'codec_type': 'video', 'width': '1920', 'height': '1080'}
         ]}), [1920, 1080])

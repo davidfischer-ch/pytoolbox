@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys, unittest
 from mock import call, Mock
-from pytoolbox.unittest import FilterByTagsMixin, mock_cmd
+from pytoolbox.unittest import mock_cmd
+
+from . import base
 
 DEFAULT = {'charms_path': '.', 'config': 'config.yaml'}
 
@@ -43,7 +45,7 @@ TEST_UNITS_LAMP_4 = {0: {}, 1: {}, 2: {}, 3: {}}
 TEST_UNITS_LAMP_5 = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
 
 
-class TestEnvironment(FilterByTagsMixin, unittest.TestCase):
+class TestEnvironment(base.TestCase):
 
     tags = ('juju', )
 
@@ -65,23 +67,23 @@ class TestEnvironment(FilterByTagsMixin, unittest.TestCase):
         environment.get_units = Mock(return_value=None)
         environment.get_unit = Mock(return_value=None)
         environment.__dict__.update(DEFAULT)
-        self.assertDictEqual(environment.ensure_num_units('mysql', 'my_mysql', num_units=2), {'deploy_units': None})
-        self.assertDictEqual(environment.ensure_num_units('lamp',  None,        num_units=4), {'deploy_units': None})
-        with self.assertRaises(ValueError):
+        self.dict_equal(environment.ensure_num_units('mysql', 'my_mysql', num_units=2), {'deploy_units': None})
+        self.dict_equal(environment.ensure_num_units('lamp',  None,        num_units=4), {'deploy_units': None})
+        with self.raises(ValueError):
             environment.ensure_num_units(None, 'salut')
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_2)
-        self.assertDictEqual(environment.ensure_num_units('mysql', 'my_mysql', num_units=5), {'add_units': None})
+        self.dict_equal(environment.ensure_num_units('mysql', 'my_mysql', num_units=5), {'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
-        self.assertDictEqual(environment.ensure_num_units(None, 'lamp', num_units=5), {'add_units': None})
+        self.dict_equal(environment.ensure_num_units(None, 'lamp', num_units=5), {'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_5)
         environment.get_unit = Mock(return_value={})
         environment.ensure_num_units('mysql', 'my_mysql', num_units=1, units_number_to_keep=[1])
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_5)
         print(environment.ensure_num_units('mysql', 'my_mysql', num_units=None))
         [call_args[1].pop('env') for call_args in cmd.call_args_list]
-        eq = self.assertEqual
+        eq = self.equal
         a = cmd.call_args_list
-        self.assertEqual(len(a), 9)
+        self.equal(len(a), 9)
         eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, '.', 'local:raring/mysql', 'my_mysql'], fail=False, log=None))
         eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, '.', 'local:raring/lamp',  'lamp'],     fail=False, log=None))
         eq(a[2], call(ADD_UNIT + [N, 3] + ['my_mysql'], fail=False, log=None))

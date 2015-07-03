@@ -24,12 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import unittest
 from pytoolbox import decorators
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
-class TestDecorators(FilterByTagsMixin, unittest.TestCase):
+class TestDecorators(base.TestCase):
 
     tags = ('decorators', )
 
@@ -43,10 +43,10 @@ class TestDecorators(FilterByTagsMixin, unittest.TestCase):
         def decrement(counter):
             return counter - 1
 
-        self.assertEqual(increment(0), 1)
-        self.assertIsNone(increment(0))
-        self.assertEqual(decrement(1), 0)
-        self.assertIsNone(decrement(0))
+        self.equal(increment(0), 1)
+        self.is_none(increment(0))
+        self.equal(decrement(1), 0)
+        self.is_none(decrement(0))
         increment.executed = False
-        self.assertEqual(increment(5.5), 6.5)
-        self.assertIsNone(increment(5.5))
+        self.equal(increment(5.5), 6.5)
+        self.is_none(increment(5.5))

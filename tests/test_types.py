@@ -26,17 +26,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import copy, unittest
+import copy
 from pytoolbox import types
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
-class TestTypes(FilterByTagsMixin, unittest.TestCase):
+class TestTypes(base.TestCase):
 
     tags = ('types', )
 
     def test_Missing(self):
-        self.assertEqual('{0}'.format(types.Missing), 'Missing')
-        self.assertFalse(bool(types.Missing))
-        self.assertIs(types.Missing, copy.copy(types.Missing))
-        self.assertIs(types.Missing, copy.deepcopy(types.Missing))
+        self.equal('{0}'.format(types.Missing), 'Missing')
+        self.false(bool(types.Missing))
+        self.is_missing(copy.copy(types.Missing))
+        self.is_missing(copy.deepcopy(types.Missing))

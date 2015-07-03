@@ -24,30 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from pytoolbox import exception
+import unittest
+from pytoolbox.unittest import FilterByTagsMixin, MissingMixin, SnakeCaseMixin
 
-from . import base
+__all__ = ('TestCase', )
 
 
-class TestException(base.TestCase):
-
-    tags = ('exception', )
-
-    def test_message_mixin_to_string(self):
-        ex = exception.MessageMixin(ten=10, dict={}, string='chaîne de caractères')
-        ex.message = 'Ten equals {ten} an empty dict {dict} a string is a {string}'
-        self.equal('%s' % ex, 'Ten equals 10 an empty dict {} a string is a chaîne de caractères')
-
-    def test_message_mixin_to_string_includes_class_attributes(self):
-
-        class NewError(exception.MessageMixin):
-            message = 'The attribute from {my_attr}'
-            my_attr = 'class'
-
-        self.equal('%s' % NewError(), 'The attribute from class')
-        self.equal('%s' % NewError(my_attr='instance'), 'The attribute from instance')
-
-    def test_message_mixin_to_string_missing_key(self):
-        ex = exception.MessageMixin('Ten equals {ten} an empty dict {dict} a string is a {string}', ten=10, dict={})
-        with self.raises(KeyError):
-            '%s' % ex
+class TestCase(FilterByTagsMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):
+    pass

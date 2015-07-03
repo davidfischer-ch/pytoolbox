@@ -24,21 +24,22 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import argparse, unittest
+import argparse
 from pytoolbox.argparse import is_dir, is_file
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
-class TestArgparse(FilterByTagsMixin, unittest.TestCase):
+class TestArgparse(base.TestCase):
 
     tags = ('argparse', )
 
     def test_is_dir(self):
-        self.assertEqual(is_dir('/home'), '/home')
-        with self.assertRaises(argparse.ArgumentTypeError):
+        self.equal(is_dir('/home'), '/home')
+        with self.raises(argparse.ArgumentTypeError):
             is_dir('sjdsajkd')
 
     def test_is_file(self):
-        self.assertEqual(is_file('/etc/hosts'), '/etc/hosts')
-        with self.assertRaises(argparse.ArgumentTypeError):
+        self.equal(is_file('/etc/hosts'), '/etc/hosts')
+        with self.raises(argparse.ArgumentTypeError):
             is_file('wdjiwdji')

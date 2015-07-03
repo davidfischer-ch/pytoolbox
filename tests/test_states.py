@@ -24,9 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import six, unittest
+import six
 from pytoolbox import states
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
 class MediaState(six.with_metaclass(states.StateEnumMetaclass, states.StateEnum)):
@@ -82,63 +83,63 @@ class MergeState(six.with_metaclass(states.StateEnumMergeMetaclass, MediaState, 
     pass
 
 
-class TestStateEnumWithMetaclass(FilterByTagsMixin, unittest.TestCase):
+class TestStateEnumWithMetaclass(base.TestCase):
 
     tags = ('states', )
 
     def test_get(self):
-        self.assertEqual(MediaState.get('new'), MediaState.NEW)
-        self.assertIsNone(MediaState.get('New'))
-        self.assertEqual(MediaState.get('all'), MediaState.ALL_STATES)
-        self.assertIsNone(MediaState.get('other'))
+        self.equal(MediaState.get('new'), MediaState.NEW)
+        self.is_none(MediaState.get('New'))
+        self.equal(MediaState.get('all'), MediaState.ALL_STATES)
+        self.is_none(MediaState.get('other'))
 
     def test_get_transit_from(self):
-        self.assertEqual(MediaState.get_transit_from(MediaState.NEW), frozenset([MediaState.NEW]))
-        self.assertEqual(MediaState.get_transit_from(MediaState.ANALYZING), frozenset([MediaState.QUEUED_ANALYZE]))
-        self.assertEqual(MediaState.get_transit_from(MediaState.DELETED, auto_inverse=True), (
+        self.equal(MediaState.get_transit_from(MediaState.NEW), frozenset([MediaState.NEW]))
+        self.equal(MediaState.get_transit_from(MediaState.ANALYZING), frozenset([MediaState.QUEUED_ANALYZE]))
+        self.equal(MediaState.get_transit_from(MediaState.DELETED, auto_inverse=True), (
             frozenset([MediaState.NEW, MediaState.REJECTED, MediaState.DELETED]), False
         ))
-        self.assertEqual(MediaState.get_transit_from(MediaState.REPAIRING, auto_inverse=True), (
+        self.equal(MediaState.get_transit_from(MediaState.REPAIRING, auto_inverse=True), (
             frozenset([MediaState.ANALYZING]), True
         ))
 
     def test_ALL_STATES(self):
-        self.assertEqual(MediaState.ALL_STATES, frozenset([
+        self.equal(MediaState.ALL_STATES, frozenset([
             MediaState.NEW, MediaState.QUEUED_ANALYZE, MediaState.ANALYZING, MediaState.REPAIRING, MediaState.REJECTED,
             MediaState.READY, MediaState.DELETED
         ]))
 
     def test_FINAL_STATES(self):
-        self.assertEqual(MediaState.FINAL_STATES, frozenset([MediaState.DELETED, MediaState.REJECTED]))
+        self.equal(MediaState.FINAL_STATES, frozenset([MediaState.DELETED, MediaState.REJECTED]))
 
 
-class TestStateEnumMergeWithMetaclass(FilterByTagsMixin, unittest.TestCase):
+class TestStateEnumMergeWithMetaclass(base.TestCase):
 
     tags = ('states', )
 
     def test_get(self):
-        self.assertEqual(MergeState.get('stopped'), MergeState.STOPPED)
-        self.assertIsNone(MergeState.get('stopPed'))
-        self.assertEqual(MergeState.get('all'), MergeState.ALL_STATES)
-        self.assertIsNone(MergeState.get('other'))
+        self.equal(MergeState.get('stopped'), MergeState.STOPPED)
+        self.is_none(MergeState.get('stopPed'))
+        self.equal(MergeState.get('all'), MergeState.ALL_STATES)
+        self.is_none(MergeState.get('other'))
 
     def test_get_transit_from(self):
-        self.assertEqual(MergeState.get_transit_from(MergeState.NEW), frozenset([MergeState.NEW]))
-        self.assertEqual(MergeState.get_transit_from(MergeState.PLAYING), frozenset([MergeState.STOPPED]))
-        self.assertEqual(MergeState.get_transit_from(MergeState.DELETED, auto_inverse=True), (
+        self.equal(MergeState.get_transit_from(MergeState.NEW), frozenset([MergeState.NEW]))
+        self.equal(MergeState.get_transit_from(MergeState.PLAYING), frozenset([MergeState.STOPPED]))
+        self.equal(MergeState.get_transit_from(MergeState.DELETED, auto_inverse=True), (
             frozenset([MergeState.NEW, MergeState.REJECTED, MergeState.DELETED]), False
         ))
-        self.assertEqual(MergeState.get_transit_from(MergeState.STOPPED, auto_inverse=True), (
+        self.equal(MergeState.get_transit_from(MergeState.STOPPED, auto_inverse=True), (
             frozenset([MergeState.NEW, MergeState.PLAYING]), True
         ))
 
     def test_ALL_STATES(self):
-        self.assertEqual(MergeState.ALL_STATES, frozenset([
+        self.equal(MergeState.ALL_STATES, frozenset([
             MergeState.NEW, MergeState.QUEUED_ANALYZE, MergeState.ANALYZING, MergeState.REPAIRING, MergeState.REJECTED,
             MergeState.READY, MergeState.DELETED, MergeState.STOPPED, MergeState.PLAYING
         ]))
 
     def test_FINAL_STATES(self):
-        self.assertEqual(MergeState.FINAL_STATES, frozenset([
+        self.equal(MergeState.FINAL_STATES, frozenset([
             MergeState.DELETED, MergeState.REJECTED
         ]))

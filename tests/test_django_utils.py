@@ -24,12 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import unittest
 from pytoolbox.django.utils import collections
-from pytoolbox.unittest import FilterByTagsMixin
+
+from . import base
 
 
-class TestDjangoUtils(FilterByTagsMixin, unittest.TestCase):
+class TestDjangoUtils(base.TestCase):
 
     tags = ('django', 'utils')
 
@@ -45,7 +45,7 @@ class TestDjangoUtils(FilterByTagsMixin, unittest.TestCase):
                 model = Media
 
         numbers = collections.FieldsToValuesLookupDict('numbers', {'MediaForm.name': 1, 'Media.url': 2, 'url': 3})
-        self.assertEqual(numbers[(File, 'url')], 3)
-        self.assertEqual(numbers[(Media, 'url')], 2)
-        self.assertEqual(numbers[(MediaForm, 'url')], 2)
-        self.assertEqual(numbers[(MediaForm, 'name')], 1)
+        self.equal(numbers[(File, 'url')], 3)
+        self.equal(numbers[(Media, 'url')], 2)
+        self.equal(numbers[(MediaForm, 'url')], 2)
+        self.equal(numbers[(MediaForm, 'name')], 1)

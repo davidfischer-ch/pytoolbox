@@ -24,14 +24,15 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import six, unittest
+import six
 from pytoolbox.unittest import Mock
 from pytoolbox.subprocess import to_args_list, to_args_string, cmd, screen_launch, screen_list, screen_kill
-from pytoolbox.unittest import FilterByTagsMixin
 from pytoolbox.validation import validate_list
 
+from . import base
 
-class TestSubprocess(FilterByTagsMixin, unittest.TestCase):
+
+class TestSubprocess(base.TestCase):
 
     tags = ('subprocess', )
 
@@ -39,46 +40,44 @@ class TestSubprocess(FilterByTagsMixin, unittest.TestCase):
         self.test_screen()
 
     def test_to_args_list(self):
-        self.assertListEqual(to_args_list(None), [])
-        self.assertListEqual(to_args_list(''), [])
-        self.assertListEqual(to_args_list([]), [])
-        self.assertListEqual(to_args_list('tail -f "~/some file"'), ['tail', '-f', '~/some file'])
-        self.assertListEqual(to_args_list([10, None, 'string "salut"']), ['10', 'None', 'string "salut"'])
+        self.list_equal(to_args_list(None), [])
+        self.list_equal(to_args_list(''), [])
+        self.list_equal(to_args_list([]), [])
+        self.list_equal(to_args_list('tail -f "~/some file"'), ['tail', '-f', '~/some file'])
+        self.list_equal(to_args_list([10, None, 'string "salut"']), ['10', 'None', 'string "salut"'])
 
     def test_to_args_string(self):
-        self.assertEqual(to_args_string(None), '')
-        self.assertEqual(to_args_string(''), '')
-        self.assertEqual(to_args_string([]), '')
-        self.assertEqual(to_args_string('tail -f "~/some file"'), 'tail -f "~/some file"')
-        self.assertEqual(to_args_string([10, None, 'string "salut"']), '10 None \'string "salut"\'')
+        self.equal(to_args_string(None), '')
+        self.equal(to_args_string(''), '')
+        self.equal(to_args_string([]), '')
+        self.equal(to_args_string('tail -f "~/some file"'), 'tail -f "~/some file"')
+        self.equal(to_args_string([10, None, 'string "salut"']), '10 None \'string "salut"\'')
 
     def test_cmd(self):
         log = Mock()
         cmd(['echo', 'it seem to work'], log=log)
-        self.assertEqual(cmd('cat missing_file', fail=False, log=log)['returncode'], 1)
+        self.equal(cmd('cat missing_file', fail=False, log=log)['returncode'], 1)
         validate_list(log.call_args_list, [
             r"call\(u*'Execute echo it seem to work'\)",
             r"call\(u*'Execute cat missing_file'\)",
             r"call\(u*'Attempt 1 out of 1: Failed'\)"
         ])
-        self.assertNotEqual(cmd('my.funny.missing.script.sh', fail=False)['stderr'], '')
+        self.not_equal(cmd('my.funny.missing.script.sh', fail=False)['stderr'], '')
         result = cmd('cat {0}'.format(__file__))
         # There are at least 30 lines in this source file !
-        self.assertGreater(len(result['stdout'].splitlines()), 30)
+        self.greater(len(result['stdout'].splitlines()), 30)
 
     def test_cmd_missing_binary(self):
-        self.assertEqual(cmd('hfuejnvwqkdivengz', fail=False)['returncode'], 2)
+        self.equal(cmd('hfuejnvwqkdivengz', fail=False)['returncode'], 2)
 
     def test_retry_first_try(self):
         log = Mock()
         cmd('ls', log=log, tries=5, delay_min=1, delay_max=1)
-        validate_list(log.call_args_list, [
-            r"call\(u*'Execute ls'\)"
-        ])
+        validate_list(log.call_args_list, [r"call\(u*'Execute ls'\)"])
 
     def test_retry_missing_binary_no_retry(self):
         log = Mock()
-        with self.assertRaises(OSError):
+        with self.raises(OSError):
             cmd('hfuejnvwqkdivengz', log=log, tries=5)
         validate_list(log.call_args_list, [
             r"call\(u*'Execute hfuejnvwqkdivengz'\)",
@@ -102,16 +101,16 @@ class TestSubprocess(FilterByTagsMixin, unittest.TestCase):
             # Launch some screens
             screen_kill('my_1st_screen', fail=False)
             screen_kill('my_2nd_screen', fail=False)
-            self.assertEqual(len(screen_launch('my_1st_screen', 'top', fail=False)['stderr']), 0)
-            self.assertEqual(len(screen_launch('my_2nd_screen', 'top', fail=False)['stderr']), 0)
-            self.assertEqual(len(screen_launch('my_2nd_screen', 'top', fail=False)['stderr']), 0)
+            self.equal(len(screen_launch('my_1st_screen', 'top', fail=False)['stderr']), 0)
+            self.equal(len(screen_launch('my_2nd_screen', 'top', fail=False)['stderr']), 0)
+            self.equal(len(screen_launch('my_2nd_screen', 'top', fail=False)['stderr']), 0)
             # List the launched screen sessions
             screens = screen_list(name='my_1st_screen')
-            self.assertGreaterEqual(len(screens), 1)
-            self.assertTrue(screens[0].endswith('my_1st_screen'))
+            self.greater_equal(len(screens), 1)
+            self.true(screens[0].endswith('my_1st_screen'))
             screens = screen_list(name='my_2nd_screen')
-            self.assertGreaterEqual(len(screens), 1)
-            self.assertTrue(screens[0].endswith('my_2nd_screen'))
+            self.greater_equal(len(screens), 1)
+            self.true(screens[0].endswith('my_2nd_screen'))
         finally:
             # Cleanup
             log = Mock()

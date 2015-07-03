@@ -24,54 +24,55 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import unittest
-from pytoolbox.unittest import asserts, with_tags, FilterByTagsMixin, MissingMixin
+from pytoolbox.unittest import asserts, with_tags, FilterByTagsMixin
 from pytoolbox.types import Missing
 
+from . import base
 
-class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
+
+class TestFilterByTagsMixin(base.TestCase):
 
     tags = ('unittest', )
 
     def test_should_run(self):
-        self.assertTrue(FilterByTagsMixin().should_run(set(), set(), set(), set()))
-        self.assertTrue(FilterByTagsMixin().should_run(set(), set(), set(), {'b'}))
-        self.assertFalse(FilterByTagsMixin().should_run(set(), set(), {'a'}, set()))
-        self.assertFalse(FilterByTagsMixin().should_run(set(), set(), {'a'}, {'b'}))
-        self.assertFalse(FilterByTagsMixin().should_run(set(), {'a'}, set(), set()))
-        self.assertTrue(FilterByTagsMixin().should_run(set(), {'a'}, {'a'}, set()))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), set()))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), {'c', 'd'}))
-        self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), {'c', 'b'}))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'c', 'a'}, set()))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, {'c', 'd'}, {'c', 'a'}, set()))
-        self.assertTrue(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'a'}, {'c', 'd'}))
-        self.assertFalse(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'b'}, {'b'}))
+        self.true(FilterByTagsMixin().should_run(set(), set(), set(), set()))
+        self.true(FilterByTagsMixin().should_run(set(), set(), set(), {'b'}))
+        self.false(FilterByTagsMixin().should_run(set(), set(), {'a'}, set()))
+        self.false(FilterByTagsMixin().should_run(set(), set(), {'a'}, {'b'}))
+        self.false(FilterByTagsMixin().should_run(set(), {'a'}, set(), set()))
+        self.true(FilterByTagsMixin().should_run(set(), {'a'}, {'a'}, set()))
+        self.true(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), set()))
+        self.true(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), {'c', 'd'}))
+        self.false(FilterByTagsMixin().should_run({'a', 'b'}, set(), set(), {'c', 'b'}))
+        self.true(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'c', 'a'}, set()))
+        self.true(FilterByTagsMixin().should_run({'a', 'b'}, {'c', 'd'}, {'c', 'a'}, set()))
+        self.true(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'a'}, {'c', 'd'}))
+        self.false(FilterByTagsMixin().should_run({'a', 'b'}, set(), {'b'}, {'b'}))
 
     @with_tags(required='should-not-run')
     def test_with_tags_decorator(self):
         raise RuntimeError('This test should never run.')
 
 
-class TestMissingMixin(FilterByTagsMixin, MissingMixin, unittest.TestCase):
+class TestMissingMixin(base.TestCase):
 
     tags = ('unittest', )
 
-    def test_assertIsMissing(self):
-        self.assertIsMissing(Missing, 'Something bad happened')
+    def test_is_missing(self):
+        self.is_missing(Missing, 'Something bad happened')
 
-    def test_assertIsNotMissing(self):
-        self.assertIsNotMissing(None, 'Something bad happened')
+    def test_is_not_missing(self):
+        self.is_not_missing(None, 'Something bad happened')
 
 
-class TestSnakeCaseMixin(FilterByTagsMixin, unittest.TestCase):
+class TestSnakeCaseMixin(base.TestCase):
 
     tags = ('unittest', )
 
     def test_getattr(self):
         asserts.equal(10, 10)
-        with self.assertRaises(AssertionError):
+        with self.raises(AssertionError):
             asserts.equal(10, 2)
         asserts.dict_equal({}, {})
-        with self.assertRaises(AssertionError):
+        with self.raises(AssertionError):
             asserts.dict_equal({}, {'a': 'b'})
