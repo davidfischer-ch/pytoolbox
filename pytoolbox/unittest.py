@@ -241,7 +241,8 @@ class SnakeCaseMixin(object):
 
     def __getattr__(self, name):
         if name.lower() == name:
-            return getattr(self, snake_to_camel('assert_{0}'.format(name)))
+            return getattr(self, snake_to_camel(name if name.startswith('assert_') else 'assert_{0}'.format(name)))
+        raise AttributeError
 
 
 class TimingMixin(object):
