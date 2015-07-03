@@ -37,8 +37,8 @@ else:
     from mock import Mock
 
 __all__ = (
-    'Mock', 'mock_cmd', 'runtests', 'with_tags', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin', 'InMixin',
-    'InspectMixin', 'MissingMixin', 'TimingMixin'
+    'asserts', 'Mock', 'mock_cmd', 'runtests', 'with_tags', 'AwareTearDownMixin', 'FilterByTagsMixin', 'FFmpegMixin',
+    'InMixin', 'InspectMixin', 'MissingMixin', 'TimingMixin'
 )
 
 
@@ -248,3 +248,10 @@ class TimingMixin(object):
         super(TimingMixin, self).tearDown()
         if self.timing_logger:
             self.timing_logger.info('{0}: {1:.3f}'.format(self.id(), time.time() - self.start_time))
+
+
+class Asserts(InMixin, MissingMixin, unittest.TestCase):
+    pass
+
+
+asserts = Asserts()

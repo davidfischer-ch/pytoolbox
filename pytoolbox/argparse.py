@@ -64,10 +64,18 @@ def is_file(path):
     raise argparse.ArgumentTypeError(to_bytes('{0} is not a file'.format(path)))
 
 
+def multiple(f):
+    """"Return a list with the result of f(value) for value in values."""
+    def _multiple(values):
+        return [f(v) for v in values] if isinstance(values, (list, tuple)) else f(values)
+    return _multiple
+
+
 class FullPaths(argparse.Action):
-    """Expand user- and relative-paths."""
+    """Expand user/relative paths."""
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
+        fullpath = lambda p: os.path.abspath(os.path.expanduser(p))
+        setattr(namespace, self.dest, fullpath(values) if isinstance(values, str) else [fullpath(v) for v in values])
 
 
 class Range(object):
