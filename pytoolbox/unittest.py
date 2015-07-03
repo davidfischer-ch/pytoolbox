@@ -29,6 +29,7 @@ from os.path import abspath, dirname
 
 from .encoding import string_types
 from .multimedia import ffmpeg
+from .string import snake_to_camel
 from .types import Missing
 
 if sys.version_info[0] > 2:
@@ -251,7 +252,10 @@ class TimingMixin(object):
 
 
 class Asserts(InMixin, MissingMixin, unittest.TestCase):
-    pass
+
+    def __getattr__(self, name):
+        if name.lower() == name:
+            return getattr(self, snake_to_camel('assert_{0}'.format(name)))
 
 
 asserts = Asserts()

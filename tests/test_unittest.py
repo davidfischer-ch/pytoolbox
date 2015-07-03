@@ -25,8 +25,21 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
-from pytoolbox.unittest import with_tags, FilterByTagsMixin, MissingMixin
+from pytoolbox.unittest import asserts, with_tags, FilterByTagsMixin, MissingMixin
 from pytoolbox.types import Missing
+
+
+class TestAsserts(FilterByTagsMixin, unittest.TestCase):
+
+    tags = ('unittest', )
+
+    def test_getattr(self):
+        asserts.equal(10, 10)
+        with self.assertRaises(AssertionError):
+            asserts.equal(10, 2)
+        asserts.dict_equal({}, {})
+        with self.assertRaises(AssertionError):
+            asserts.dict_equal({}, {'a': 'b'})
 
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
