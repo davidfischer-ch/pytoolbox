@@ -57,8 +57,8 @@ Operating System :: Unix
 """
 
 keywords = [
-    'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'rtp', 'smpte 2022-1', 'screen',
-    'subprocess'
+    'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'rtp', 'selenium',
+    'smpte 2022-1', 'screen', 'subprocess'
 ]
 
 install_requires = [
@@ -81,6 +81,7 @@ extras_require = {
     'flask':          ['flask'],
     'mongo':          ['celery'],
     'rest_framework': ['djangorestframework>=3'],
+    'selenium':       ['selenium'],
     'smpte2022':      ['fastxor']
 }
 
