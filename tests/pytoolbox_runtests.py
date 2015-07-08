@@ -48,7 +48,11 @@ def main():
     try:
         download_ext(constants.FFMPEG_URL, constants.FFMPEG_ARCHIVE, force=False)
         if six.PY2:
-            import contextlib, lzma
+            import contextlib
+            try:
+                import lzma
+            except ImportError:
+                from backports import lzma
             with contextlib.closing(lzma.LZMAFile(constants.FFMPEG_ARCHIVE)) as xz:
                 with tarfile.open(fileobj=xz) as f:
                     f.extractall(constants.TESTS_DIRECTORY)

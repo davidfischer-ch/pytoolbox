@@ -30,7 +30,10 @@ from selenium.webdriver import Firefox
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import ui
 from selenium.webdriver.support.select import Select
-from urllib.parse import urljoin
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 from . import module
 

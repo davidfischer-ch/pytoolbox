@@ -71,18 +71,23 @@ install_requires = [
     'pycallgraph',
     'pygal',
     'pymongo',
+    'python-magic',
     'pytz',
     'six',
     'termcolor'
 ]
 
 extras_require = {
-    'django':         ['django'],
-    'flask':          ['flask'],
-    'mongo':          ['celery'],
-    'rest_framework': ['djangorestframework>=3'],
-    'selenium':       ['selenium'],
-    'smpte2022':      ['fastxor']
+    'atlassian':        ['jira'],
+    'django':           ['django'],
+    'django_filter':    ['django-filter'],
+    'django_formtools': ['dango-formtools'],
+    'flask':            ['flask'],
+    'mongo':            ['celery'],
+    'rest_framework':   ['djangorestframework>=3'],
+    'selenium':         ['selenium'],
+    'smpte2022':        ['fastxor'],
+    'voluptuous':       ['voluptuous']
 }
 
 # Why not installing following packages for python 3 ?
@@ -100,6 +105,7 @@ if not PY3:
     except ImportError:
         install_requires.append('hashlib')
     install_requires += [
+        'backports.lzma',
         'ipaddr',
         'kitchen'
     ]

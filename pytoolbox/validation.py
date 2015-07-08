@@ -24,9 +24,16 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, httplib, inspect, os, re, socket, sys, uuid
+try:
+    from http.client import HTTPConnection
+except ImportError:
+    from httplib import HTTPConnection
+import errno, inspect, os, re, socket, sys, uuid
 from bson.objectid import InvalidId, ObjectId
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from . import module
 from .encoding import text_type, to_bytes
@@ -263,7 +270,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     if not url.netloc or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
         return False
     if check_404:
-        conn = httplib.HTTPConnection(url.netloc, url.port or default_port, timeout=timeout)
+        conn = HTTPConnection(url.netloc, url.port or default_port, timeout=timeout)
         try:
             conn.request('HEAD', url.path)
             response = conn.getresponse()
