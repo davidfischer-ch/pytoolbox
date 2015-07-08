@@ -25,7 +25,7 @@ Afraid of red status ? Please click on the link, sometimes this is not my fault 
 
 Remarks:
 
-* Current build fail on Travis CI because it runs on old Ubuntu VM with old release of ffmpeg.
+* Current build fail on Travis CI with 'module' has no attribute 'pytoolbox_runtests'. On my PCs it works!
 * Current method of running tests reports a bad coverage, in fact, coverage is approx 65%.
 
 This module is a Toolbox for Python scripts.
