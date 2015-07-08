@@ -31,6 +31,7 @@ from codecs import open
 from . import module
 from .encoding import string_types, text_type, to_bytes
 from .filesystem import try_makedirs
+from .types import get_slots
 
 _all = module.All(globals())
 
@@ -416,5 +417,21 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     if inspect_constructor:
         the_dict = {arg: the_dict.get(arg, None) for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'}
     return cls(**the_dict)
+
+
+class SlotsToDictMixin(object):
+
+    extra_slots = None
+
+    def to_dict(self, extra_slots=True):
+        self_dict = {}
+        slots = set(s for s in get_slots(self) if s[0] != '_')
+        if extra_slots:
+            slots.update(self.__class__.extra_slots or [])
+        for attribute in slots:
+            value = getattr(self, attribute)
+            if value is not None:
+                self_dict[attribute] = value
+        return self_dict
 
 __all__ = _all.diff(globals())
