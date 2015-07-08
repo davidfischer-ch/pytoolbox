@@ -32,6 +32,7 @@ from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
 from .. import exceptions
+from ... import module
 
 _all = module.All(globals())
 
