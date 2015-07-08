@@ -81,7 +81,7 @@ extras_require = {
     'atlassian':        ['jira'],
     'django':           ['django'],
     'django_filter':    ['django-filter'],
-    'django_formtools': ['dango-formtools'],
+    'django_formtools': ['django-formtools'],
     'flask':            ['flask'],
     'mongo':            ['celery'],
     'rest_framework':   ['djangorestframework>=3'],
