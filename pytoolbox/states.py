@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import collections, inspect
 
-__all__ = ('StateEnumMetaclass', 'StateEnumMergeMetaclass', 'StateEnum')
+from . import module
+
+_all = module.All(globals())
 
 
 class StateEnumMetaclass(type):
@@ -88,3 +90,5 @@ class StateEnum(object):
             return valid
         not_valid = cls.ALL_STATES - valid
         return (not_valid, False) if len(valid) > len(not_valid) else (valid, True)
+
+__all__ = _all.diff(globals())

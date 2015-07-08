@@ -27,9 +27,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six, sys
 from codecs import open
 
-__all__ = (
-    'PY2', 'binary_type', 'string_types', 'text_type', 'to_bytes', 'to_unicode', 'configure_unicode', 'csv_reader'
-)
+from . import module
+
+_all = module.All(globals())
 
 PY2 = six.PY2
 binary_type = six.binary_type
@@ -81,3 +81,5 @@ def csv_reader(filename, delimiter=';', quotechar='"', encoding='utf-8'):
     #for row in reader:
     #    yield [cell for cell in row]
         #yield [text_type(cell, 'utf-8').encode('utf-8') for cell in row]
+
+__all__ = _all.diff(globals())

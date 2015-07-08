@@ -26,10 +26,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import collections, math
 
+from . import module
 from .datetime import total_seconds
 from .encoding import string_types
 
-__all__ = ('flatten_dict', 'swap_dict_of_values', 'pygal_deque', 'window', 'EventsTable')
+_all = module.All(globals())
 
 
 def flatten_dict(the_dict, key_template='{0}.{1}'):
@@ -216,3 +217,5 @@ class EventsTable(object):
         # 150 = 3600 / 24
         d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
         return math.ceil(d - (total_seconds(time) % d))
+
+__all__ = _all.diff(globals())

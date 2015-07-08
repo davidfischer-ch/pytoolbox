@@ -28,13 +28,11 @@ import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archiv
 import threading, time
 from os.path import exists, join, isdir, normpath
 
+from . import module
 from .encoding import string_types, to_bytes, to_unicode
 from .filesystem import try_makedirs
 
-__all__ = (
-    'EMPTY_CMD_RETURN', 'Popen', 'quote', 'kill', 'make_async', 'read_async', 'raw_cmd', 'cmd', 'git_add_submodule',
-    'git_clone_or_pull', 'make', 'rsync', 'screen_kill', 'screen_launch', 'screen_list', 'ssh'
-)
+_all = module.All(globals())
 
 EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode': None}
 
@@ -324,3 +322,5 @@ def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):
     if remote_cmd is not None:
         command += ['-n', remote_cmd]
     return cmd(filter(None, command), fail=fail, log=log, **kwargs)
+
+__all__ = _all.diff(globals())

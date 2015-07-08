@@ -25,8 +25,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ..constants import DEFFERED_REGEX
+from ... import module
 
-__all__ = ('FieldsToValuesLookupDict', )
+_all = module.All(globals())
 
 
 class FieldsToValuesLookupDict(object):
@@ -93,3 +94,5 @@ class FieldsToValuesLookupDict(object):
 
     def __setitem__(self, key, value):
         self.translations[key] = value
+
+__all__ = _all.diff(globals())

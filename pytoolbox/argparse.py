@@ -43,9 +43,11 @@ SystemExit: 2
 """
 
 import argparse, os
+
+from . import module
 from .encoding import to_bytes
 
-__all__ = ('is_dir', 'is_file', 'FullPaths', 'Range')
+_all = module.All(globals())
 
 # Credits https://gist.github.com/brantfaircloth/1443543
 
@@ -93,3 +95,5 @@ class Range(object):
         if not (self.min <= value <= self.max):
             raise argparse.ArgumentTypeError('Must be in range [{0.min}, {0.max}]'.format(self))
         return value
+
+__all__ = _all.diff(globals())

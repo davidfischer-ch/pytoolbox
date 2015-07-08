@@ -28,9 +28,10 @@ import struct
 from fastxor import fast_xor_inplace
 
 from ..rtp import RtpPacket
+from ... import module
 from ...encoding import to_bytes
 
-__all__ = ('FecPacket', )
+_all = module.All(globals())
 
 
 class FecPacket(object):
@@ -710,3 +711,5 @@ length recovery       = {0.length_recovery}
 payload recovery size = {0.payload_size}
 missing               = {0.missing}""".format(self, FecPacket.ALGORITHM_NAMES[self.algorithm],
                                               FecPacket.DIRECTION_NAMES[self.direction]))
+
+__all__ = _all.diff(globals())

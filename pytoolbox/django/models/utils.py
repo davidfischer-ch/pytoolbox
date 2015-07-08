@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.contrib.contenttypes import models as ct_models
 
-__all__ = ('get_base_model', 'get_content_type_dict', 'get_instance')
+from ... import module
+
+_all = module.All(globals())
 
 
 def get_base_model(cls_or_instance):
@@ -42,3 +44,5 @@ def get_content_type_dict(instance):
 def get_instance(app_label, model, pk):
     """Return an instance given its app_label, model name and private key."""
     return ct_models.ContentType.objects.get(app_label=app_label, model=model).get_object_for_this_type(pk=pk)
+
+__all__ = _all.diff(globals())

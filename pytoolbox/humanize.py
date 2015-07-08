@@ -26,10 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import math, re
 
-__all__ = (
-    'DEFAULT_BITRATE_UNITS', 'DEFAULT_FILESIZE_ARGS', 'DEFAULT_FREQUENCY_UNITS', 'naturalbitrate', 'naturalfilesize',
-    'naturalfrequency', 'natural_int_key'
-)
+from . import module
+
+_all = module.All(globals())
 
 DEFAULT_BITRATE_UNITS = ('bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s')
 DEFAULT_FILESIZE_ARGS = {
@@ -168,3 +167,5 @@ def natural_int_key(text):
     >>> eq_(result, ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12'])
     """
     return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
+
+__all__ = _all.diff(globals())

@@ -27,7 +27,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from django.forms import widgets
 from django.utils.html import mark_safe
 
-__all__ = ('CalendarDateInput', 'ClockTimeInput')
+from ... import module
+
+_all = module.All(globals())
 
 
 class CalendarDateInput(widgets.DateInput):
@@ -42,3 +44,5 @@ class ClockTimeInput(widgets.TimeInput):
         html = super(ClockTimeInput, self).render(*args, **kwargs)
         return mark_safe('<div class="input-append bootstrap-timepicker">{0}'
                          '<span class="add-on"><i class="icon-time"></i></span></div>'.format(html))
+
+__all__ = _all.diff(globals())

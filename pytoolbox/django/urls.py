@@ -24,10 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from .. import module
 from ..regex import UUID_REGEX
 
-__all__ = ('INT_PK', 'UUID_PK')
-
+_all = module.All(globals())
 
 INT_PK = r'(?P<pk>\d+)'
 UUID_PK = r'(?P<pk>%s)' % UUID_REGEX
+
+__all__ = _all.diff(globals())

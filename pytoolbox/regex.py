@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import re
 
-__all__ = ('TIME_REGEX_PARTS', 'UUID_REGEX', 'embed_in_regex', 'findall_partial')
+from . import module
+
+_all = module.All(globals())
 
 TIME_REGEX_PARTS = ['[0-2]', '[0-9]', ':', '[0-5]', '[0-9]', ':', '[0-5]', '[0-9]']
 UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -66,3 +68,5 @@ def findall_partial(string, regex_parts):
         match = re.search(''.join(regex), string)
         if match:
             yield string, regex_parts, index
+
+__all__ = _all.diff(globals())

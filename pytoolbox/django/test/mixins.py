@@ -32,9 +32,10 @@ from django.db import connections, DEFAULT_DB_ALIAS
 from django.test import TransactionTestCase
 from django.test.utils import CaptureQueriesContext
 
+from ... import module
 from ...encoding import string_types
 
-__all__ = ('ClearSiteCacheMixin', 'FixFlushMixin', 'FormWizardMixin', 'QueriesMixin', 'UrlMixin', 'RestAPIMixin')
+_all = module.All(globals())
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
@@ -140,3 +141,5 @@ class RestAPIMixin(UrlMixin):
 
     def put(self, url, data, status=200, **kwargs):
         return self._call('put', url, data, status, **kwargs)
+
+__all__ = _all.diff(globals())

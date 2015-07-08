@@ -37,16 +37,12 @@ from django.utils.translation import ugettext as _
 from os.path import join
 
 from . import constants
-from .. import humanize
+from .. import humanize, module
 from ..datetime import secs_to_time as _secs_to_time
 from ..encoding import to_unicode
 from ..private import _parse_kwargs_string
 
-__all__ = (
-    'register', 'NUMERIC_TEST', 'LABEL_TO_CLASS', 'getattribute', 'inline', 'naturalbitrate', 'naturalfilesize',
-    'rst_title', 'secs_to_time', 'status_label', 'timedelta', 'verbose_name', 'verbose_name_plural',
-    'StaticPathNode', 'static_abspath'
-)
+_all = module.All(globals())
 
 # ====================   =====================   ===============   ===============   =====================
 # description            decorator               arguments         input             output
@@ -290,3 +286,5 @@ def static_abspath(parser, token):
 
     """
     return StaticPathNode.handle_token(parser, token)
+
+__all__ = _all.diff(globals())

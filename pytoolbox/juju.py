@@ -28,12 +28,14 @@ import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from codecs import open
 from os.path import abspath, expanduser, join
 
+from . import module
 from .console import confirm
 from .encoding import string_types, text_type, to_bytes, to_unicode
 from .filesystem import from_template, try_remove, try_symlink
 from .exception import TimeoutError
 from .subprocess import cmd
 
+_all = module.All(globals())
 
 CONFIG_FILENAME = 'config.yaml'
 METADATA_FILENAME = 'metadata.yaml'
@@ -1088,3 +1090,5 @@ class SimulatedUnits(object):
             unit.tick()
             if unit.state == STOPPED:
                 del self.units[number]
+
+__all__ = _all.diff(globals())

@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os, sys
 
-__all__ = ('confirm', 'choice', 'print_error', 'progress_bar')
+from . import module
+
+_all = module.All(globals())
 
 
 def confirm(question=None, default=False, stream=sys.stdout):
@@ -140,3 +142,5 @@ def progress_bar(start_time, current, total, size=50, done='=', todo=' ', templa
         progress = int(size * current / total)
         stream.write(template.format(done=done * progress, todo=todo * (size - progress)))
         stream.flush()
+
+__all__ = _all.diff(globals())

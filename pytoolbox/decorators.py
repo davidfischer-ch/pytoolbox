@@ -26,10 +26,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import functools, os
 
+from . import module
 from .console import confirm
 from .subprocess import cmd
 
-__all__ = ('confirm_it', 'disable_iptables', 'root_required', 'run_once')
+_all = module.All(globals())
 
 
 def confirm_it(message, default=False, abort_message='Operation aborted by the user'):
@@ -87,3 +88,5 @@ def run_once(f):
             return result
     wrapper.executed = False
     return wrapper
+
+__all__ = _all.diff(globals())

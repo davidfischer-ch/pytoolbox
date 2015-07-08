@@ -24,7 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__all__ = ('RaiseOnUnhandledFieldClassMixin', )
+from ... import module
+
+_all = module.All(globals())
 
 
 class RaiseOnUnhandledFieldClassMixin(object):
@@ -39,3 +41,5 @@ class RaiseOnUnhandledFieldClassMixin(object):
             raise NotImplementedError("Unable to find a suitable filter for field '{1}' of class {0.__class__}".format(
                                       f, name, lookup_type))
         return value
+
+__all__ = _all.diff(globals())

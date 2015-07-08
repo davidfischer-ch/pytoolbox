@@ -24,9 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from . import module
 from .types import get_slots
 
-__all__ = ('SlotsEqualityMixin', )
+_all = module.All(globals())
 
 
 class SlotsEqualityMixin(object):
@@ -37,3 +38,5 @@ class SlotsEqualityMixin(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+__all__ = _all.diff(globals())

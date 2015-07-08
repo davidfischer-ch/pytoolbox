@@ -27,11 +27,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime, re, shlex
 
 from .ffmpeg import FFmpeg
+from .. import module
 from ..datetime import total_seconds
 from ..encoding import string_types
 
-__all__ = ('ENCODING_REGEX', 'X264')
-
+_all = module.All(globals())
 
 # [79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02
 ENCODING_REGEX = re.compile(
@@ -62,3 +62,5 @@ class X264(FFmpeg):
     def _clean_statistics(self, stats, **statistics):
         statistics.setdefault('eta_time', datetime.timedelta(seconds=total_seconds(stats['eta'])))
         return statistics
+
+__all__ = _all.diff(globals())

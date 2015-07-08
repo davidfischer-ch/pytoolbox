@@ -27,7 +27,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import tempfile
 from django.conf import settings
 
-__all__ = ('CeleryInMemoryMixin', 'FastPasswordHasherMixin', 'TemporarySendfileRootMixin')
+from .... import module
+
+_all = module.All(globals())
 
 
 class CeleryInMemoryMixin(object):
@@ -51,3 +53,5 @@ class TemporarySendfileRootMixin(object):
     def setup_test_environment(self):
         super(TemporarySendfileRootMixin, self).setup_test_environment()
         settings.SENDFILE_ROOT = tempfile.mkdtemp()
+
+__all__ = _all.diff(globals())

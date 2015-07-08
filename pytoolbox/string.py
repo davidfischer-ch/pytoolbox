@@ -28,9 +28,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os, re
 
-__all__ = (
-    'ALL_CAP_REGEX', 'FIRST_CAP_REGEX', 'camel_to_dash', 'camel_to_snake', 'dash_to_camel', 'snake_to_camel', 'to_lines'
-)
+from . import module
+
+_all = module.All(globals())
 
 ALL_CAP_REGEX = re.compile(r'([a-z0-9])([A-Z])')
 FIRST_CAP_REGEX = re.compile(r'(.)([A-Z][a-z]+)')
@@ -87,3 +87,5 @@ def to_lines(items, limit=80, start='\t', line='{0} '):
             lines.append(start)
         lines[-1] += item_str
     return os.linesep.join(lines)
+
+__all__ = _all.diff(globals())

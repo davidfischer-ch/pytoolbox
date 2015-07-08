@@ -27,7 +27,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging, time
 from django.core.files.storage import FileSystemStorage
 
-__all__ = ('OverwriteMixin', 'OverwriteFileSystemStorage')
+from .. import module
+
+_all = module.All(globals())
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +61,5 @@ class OverwriteMixin(object):
 
 class OverwriteFileSystemStorage(OverwriteMixin, FileSystemStorage):
     """A file-system based storage that let overwrite files with the same name."""
+
+__all__ = _all.diff(globals())

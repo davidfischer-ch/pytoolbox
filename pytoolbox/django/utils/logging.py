@@ -24,7 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__all__ = ('log_to_console', )
+from ... import module
+
+_all = module.All(globals())
 
 
 def log_to_console(settings):
@@ -72,3 +74,5 @@ def log_to_console(settings):
     """
     for logger in settings.LOGGING['loggers']:
         settings.LOGGING['loggers'][logger]['handlers'] = ['console']
+
+__all__ = _all.diff(globals())

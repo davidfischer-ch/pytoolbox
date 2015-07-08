@@ -20,37 +20,35 @@
 # If not, see he EUPL licence v1.1 is available in 22 languages:
 #     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
 #
+# Credits: https://gist.github.com/yahyaKacem/8170675
+#
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from django.utils.functional import cached_property
+from pytoolbox import module
+from pytoolbox.unittest import asserts
 
-from ..models import utils
-from ... import module
-
-_all = module.All(globals())
-
-
-class SerializedInstanceForm(object):
-
-    def __init__(self, **kwargs):
-        self.app_label = kwargs['app_label']
-        self.model = kwargs['model']
-        self.pk = kwargs['pk']
-
-    @classmethod
-    def serialize(cls, instance):
-        return utils.get_content_type_dict(instance)
-
-    @cached_property
-    def instance(self):
-        return utils.get_instance(self.app_label, self.model, self.pk)
-
-    def is_valid(self):
-        try:
-            return bool(self.instance)
-        except:
-            return False
+not_included_variable = 0
 
 _all = module.All(globals())
+
+from pytoolbox import types, validation as _validation
+
+public_variable = 0
+_private_variable = 0
+
+
+def public_function():
+    pass
+
+
+class PublicClass(types.MissingType):
+    pass
+
+
+class _PrivateClass(_validation.CleanAttributesMixin):
+    pass
+
+
+asserts.equal(_all.diff(globals()), {'public_variable', 'public_function', 'PublicClass', 'types'})

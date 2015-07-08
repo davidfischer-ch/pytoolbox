@@ -27,10 +27,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import uuid
 from ming.schema import FancySchemaItem, String, Invalid
 
+from .. import module
 from ..encoding import text_type, to_unicode
 from ..validation import valid_filename, valid_email, valid_secret, valid_uuid
 
-__all__ = ('Filename', 'Email', 'OneOf', 'Secret', 'UniqueId', 'Uri')
+_all = module.All(globals())
 
 
 class Filename(String):
@@ -111,3 +112,5 @@ class Uri(String):
         if False:  # FIXME TODO
             raise Invalid('{0} is not a valid URI'.format(value), value, None)
         return value
+
+__all__ = _all.diff(globals())

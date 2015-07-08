@@ -27,10 +27,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import itertools
 from os.path import exists, join
 
+from . import module
 from .filesystem import find_recursive
 from .subprocess import rsync
 
-__all__ = ('relocate', )
+_all = module.All(globals())
 
 
 def relocate(source_directory, destination_directory, encoding='utf-8'):
@@ -52,3 +53,5 @@ def relocate(source_directory, destination_directory, encoding='utf-8'):
             f.seek(0)
             f.write(content)
             f.truncate()
+
+__all__ = _all.diff(globals())

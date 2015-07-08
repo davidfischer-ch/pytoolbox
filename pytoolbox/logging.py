@@ -27,7 +27,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging, sys
 from termcolor import colored
 
-__all__ = ('setup_logging', 'ColorizeFilter')
+from . import module
+
+_all = module.All(globals())
 
 
 def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
@@ -106,3 +108,5 @@ class ColorizeFilter(logging.Filter):
         if color:
             record.msg = colored(record.msg, color)
         return True
+
+__all__ = _all.diff(globals())

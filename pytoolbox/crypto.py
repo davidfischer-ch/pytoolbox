@@ -27,10 +27,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import collections, hashlib
 from os.path import getsize
 
+from . import module
 from .encoding import string_types
 from .filesystem import get_bytes
 
-__all__ = ('checksum', 'githash', 'guess_algorithm', 'new')
+_all = module.All(globals())
 
 
 def new(algorithm=hashlib.sha256):
@@ -141,3 +142,5 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
     if unique:
         return possible_algorithms.pop() if len(possible_algorithms) == 1 else None
     return possible_algorithms
+
+__all__ = _all.diff(globals())

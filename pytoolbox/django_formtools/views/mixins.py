@@ -24,9 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from ... import module
 from ...django import forms
 
-__all__ = ('SerializeStepInstanceMixin', )
+_all = module.All(globals())
 
 
 class SerializeStepInstanceMixin(object):
@@ -61,3 +62,5 @@ class SerializeStepInstanceMixin(object):
         if serialized_instance:
             form_kwargs.update(serialized_instance)
         return form_kwargs
+
+__all__ = _all.diff(globals())

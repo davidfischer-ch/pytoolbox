@@ -32,7 +32,9 @@ from selenium.webdriver.support import ui
 from selenium.webdriver.support.select import Select
 from urllib.parse import urljoin
 
-__all__ = ('LiveClient', )
+from . import module
+
+_all = module.All(globals())
 
 SPECIALIZE_ELEMENT_MAP = {'select': Select}
 
@@ -100,3 +102,5 @@ class LiveClient(object):
 
     def wait_for_css(self, css_selector='', prefix=True, timeout=5):
         return ui.WebDriverWait(self.web_driver, timeout).until(lambda driver: self.find_css(css_selector, prefix))
+
+__all__ = _all.diff(globals())

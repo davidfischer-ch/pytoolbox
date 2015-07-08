@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from datetime import datetime
 
-__all__ = ('Metadata', )
+from .. import module
+
+_all = module.All(globals())
 
 
 class Metadata(object):
@@ -61,3 +63,5 @@ class Metadata(object):
     def get_int(self, key):
         value = self.get(key)
         return int(value) if value else None
+
+__all__ = _all.diff(globals())

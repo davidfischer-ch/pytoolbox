@@ -26,8 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from .base import FecPacket
 from ..rtp import RtpPacket
+from ... import module
 
-__all__ = ('FecGenerator', )
+_all = module.All(globals())
 
 
 class FecGenerator(object):
@@ -272,3 +273,5 @@ Row    sequence number       = {5}
 Media  sequence number       = {6}
 Medias buffer (seq. numbers) = {7}""".format(self._L, self._D, self._invalid, self._total, self._col_sequence,
                                              self._row_sequence, self._media_sequence, medias))
+
+__all__ = _all.diff(globals())

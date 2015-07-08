@@ -24,10 +24,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__all__ = ('RelatedModelMixin', )
+from .... import module
+
+_all = module.All(globals())
 
 
 class RelatedModelMixin(object):
 
     def get_related_model(self, field):
         return self.model._meta.get_field(field).related_model
+
+__all__ = _all.diff(globals())

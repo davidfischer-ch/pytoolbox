@@ -66,13 +66,12 @@ from django.db.models import fields
 from django.contrib.sites import models as site_app
 from django.db.models.fields.files import FileField
 
+from .. import module
 from ..encoding import PY2, string_types
 
-logger = logging.getLogger(__name__)
+_all = module.All(globals())
 
-__all__ = (
-    'clean_files_delete_handler', 'create_site', 'setup_postgresql_hstore_extension', 'strip_strings_and_validate_model'
-)
+logger = logging.getLogger(__name__)
 
 
 def clean_files_delete_handler(instance, signal, **kwargs):
@@ -127,3 +126,5 @@ def strip_strings_and_validate_model(sender, instance, raw, **kwargs):
                 if isinstance(field_value, string_types):
                     setattr(instance, field.name, field_value.strip())
         instance.full_clean()
+
+__all__ = _all.diff(globals())

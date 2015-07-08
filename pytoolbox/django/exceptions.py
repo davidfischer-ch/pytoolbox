@@ -26,7 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.db import DatabaseError
 
-__all__ = ('DatabaseUpdatePreconditionsError', 'TransitionNotAllowedError')
+from .. import module
+
+_all = module.All(globals())
 
 
 class DatabaseUpdatePreconditionsError(DatabaseError):
@@ -35,3 +37,5 @@ class DatabaseUpdatePreconditionsError(DatabaseError):
 
 class TransitionNotAllowedError(Exception):
     pass
+
+__all__ = _all.diff(globals())

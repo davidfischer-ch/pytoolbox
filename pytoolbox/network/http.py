@@ -27,11 +27,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, requests, time, urllib2, urlparse
 from codecs import open
 
+from .. import module
 from ..crypto import checksum, new
 from ..encoding import to_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
 
-__all__ = ('download', 'download_ext', 'get_request_data')
+_all = module.All(globals())
 
 
 def download(url, filename):
@@ -224,3 +225,5 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=['
     if not data and not optional:
         raise ValueError(to_bytes('Unable to retrieve any data from the request.'))
     return data or {}
+
+__all__ = _all.diff(globals())
