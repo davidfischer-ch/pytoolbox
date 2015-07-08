@@ -24,7 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import io, itertools, nose, os, pprint, sys, time, unittest
+import io, itertools, nose, os, pprint, time, unittest
+from mock import Mock
 from os.path import abspath, dirname
 
 from . import module
@@ -32,11 +33,6 @@ from .encoding import binary_type, string_types
 from .multimedia import ffmpeg
 from .string import snake_to_camel
 from .types import Missing
-
-if sys.version_info[0] > 2:
-    from unittest.mock import Mock
-else:
-    from mock import Mock
 
 _all = module.All(globals())
 
