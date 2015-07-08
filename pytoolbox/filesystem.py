@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, copy, errno, fnmatch, grp, pwd, os, re, shutil, tempfile, time, uuid
+import collections, copy, errno, fnmatch, grp, magic, pwd, os, re, shutil, tempfile, time, uuid
 from codecs import open
 from os.path import dirname, exists, expanduser, isfile, join, samefile
 
@@ -64,6 +64,13 @@ def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
         for filename in filenames:
             if any(p.match(filename) for p in patterns):
                 yield join(dirpath, filename)
+
+
+def file_mime(path, mime=True):
+    try:
+        return magic.from_file(path, mime=mime).decode('utf-8')
+    except OSError:
+        return None
 
 
 def first_that_exist(*paths):
