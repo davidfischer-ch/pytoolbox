@@ -36,16 +36,16 @@ from . import module
 
 _all = module.All(globals())
 
-SPECIALIZE_ELEMENT_MAP = {'select': Select}
+SPECIALIZE_ELEMENT_MAP = {'select': Select, 'default': lambda e: e}
 
 
 def specialize_elements(f, specialize_map=SPECIALIZE_ELEMENT_MAP):
     @functools.wraps(f)
     def _specialize_elements(*args, **kwargs):
-        elements = f(*args, **kwargs)
+        elements, default = f(*args, **kwargs), specialize_map['default']
         if isinstance(elements, list):
-            return [specialize_map.get(getattr(e, 'tag_name', None), lambda e: e)(e) for e in elements]
-        return specialize_map.get(getattr(elements, 'tag_name', None), lambda e: e)(elements)
+            return [specialize_map.get(getattr(e, 'tag_name', 'default'), default)(e) for e in elements]
+        return specialize_map.get(getattr(elements, 'tag_name', 'default'), default)(elements)
     return _specialize_elements
 
 
