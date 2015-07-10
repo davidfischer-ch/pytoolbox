@@ -87,11 +87,9 @@ class LiveClient(object):
         if fail:
             raise exceptions.NoSuchElementException(css_selector)
 
-    @specialize_elements
     def find_id(self, element_id, prefix=True, fail=True):
         return self.find_css('#{0}'.format(element_id), prefix)
 
-    @specialize_elements
     def find_name(self, element_name, prefix=True, fail=True):
         return self.find_css('[name="{0}"]'.format(element_name), prefix)
 
