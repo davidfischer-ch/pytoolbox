@@ -25,16 +25,23 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import functools
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import Firefox
 from selenium.webdriver.remote.command import Command
-from selenium.webdriver.support import ui
-from selenium.webdriver.support.select import Select
+from selenium.webdriver.support import select, ui
 from urlparse import urljoin
 
 from . import module
 
 _all = module.All(globals())
+
+from selenium.common import exceptions  # Make exceptions module available through pytoolbox.selenium.exceptions
+
+
+class Select(select.Select):
+    """A Select with the attributes of the WebElement."""
+
+    def __getattr__(self, name):
+        return getattr(self._el, name)
 
 SPECIALIZE_ELEMENT_MAP = {'select': Select, 'default': lambda e: e}
 
