@@ -108,7 +108,13 @@ class LiveClient(object):
     def submit(self):
         return self.find_css('form button.btn-primary[type="submit"]').click()
 
-    def wait_for_css(self, css_selector='', prefix=True, timeout=5):
-        return ui.WebDriverWait(self.web_driver, timeout).until(lambda driver: self.find_css(css_selector, prefix))
+    def wait_for_css(self, css_selector='', inverse=False, prefix=True, timeout=5, fail=True):
+        try:
+            return ui.WebDriverWait(self.web_driver, timeout).until(
+                lambda driver: bool(self.find_css(css_selector, prefix)) ^ inverse
+            )
+        except exceptions.TimeoutException:
+            if fail:
+                raise
 
 __all__ = _all.diff(globals())
