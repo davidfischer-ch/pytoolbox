@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, errno, json, math, numbers, os, re, select, subprocess, sys, time
+import datetime, errno, itertools, json, math, numbers, os, re, select, subprocess, sys, time
 from xml.dom import minidom
 
 from .. import comparison, filesystem, module, validation
@@ -212,6 +212,10 @@ class FFprobe(object):
 
     def __init__(self, executable=None):
         self.executable = executable or self.executable
+
+    def __call__(self, *arguments):
+        """Call FFprobe with given arguments and return the output (unicode string)."""
+        return subprocess.check_output(itertools.chain([self.executable], arguments)).decode('utf-8')
 
     def get_media_duration(self, media, as_delta=False, options=None):
         """
@@ -515,6 +519,10 @@ class FFmpeg(object):
         self.encode_poll_delay = encode_poll_delay
         self.encoding = encoding
         self.ffprobe = self.ffprobe_class()
+
+    def __call__(self, *arguments):
+        """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
+        return raw_cmd(itertools.chain([self.executable], arguments), stderr=subprocess.PIPE, universal_newlines=True)
 
     def encode(self, inputs, outputs, options=None, create_directories=True, process_poll=True, process_kwargs=None,
                statistics_kwargs=None):
