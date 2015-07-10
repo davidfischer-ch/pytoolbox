@@ -27,6 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from datetime import datetime
 
 from .. import module
+from ..encoding import string_types
 
 _all = module.All(globals())
 
@@ -45,13 +46,16 @@ class Metadata(object):
         value = self._m.get(key, default=None)
         return str(value) if value else None
 
-    def get_date(self, key='Exif.Photo.DateTimeOriginal', fail=True):
-        value = self.get(key)
-        try:
-            return datetime.strptime(value.replace(': ', ':0'), '%Y:%m:%d %H:%M:%S') if value else None
-        except ValueError:
-            if fail and value != '0000:00:00 00:00:00':
-                raise
+    def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
+        for key in ([keys] if isinstance(keys, string_types) else keys):
+            value = self.get(key)
+            try:
+                date = datetime.strptime(value.replace(': ', ':0'), '%Y:%m:%d %H:%M:%S') if value else None
+            except ValueError:
+                if fail and value != '0000:00:00 00:00:00':
+                    raise
+            if date:
+                return date
 
     def get_float(self, key):
         value = self.get(key)
