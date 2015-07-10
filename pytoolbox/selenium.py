@@ -77,21 +77,22 @@ class LiveClient(object):
         self._css_prefix = value
 
     @specialize_elements
-    def find_css(self, css_selector, prefix=True):
+    def find_css(self, css_selector, prefix=True, fail=True):
         """Shortcut to find elements by CSS. Returns either a list or singleton."""
         if prefix and self.css_prefix:
             css_selector = '{0.css_prefix} {1}'.format(self, css_selector)
         elements = self.web_driver.find_elements_by_css_selector(css_selector)
-        if not elements:
-            raise NoSuchElementException(css_selector)
-        return elements[0] if len(elements) == 1 else elements
+        if elements:
+            return elements[0] if len(elements) == 1 else elements
+        if fail:
+            raise exceptions.NoSuchElementException(css_selector)
 
     @specialize_elements
-    def find_id(self, element_id, prefix=True):
+    def find_id(self, element_id, prefix=True, fail=True):
         return self.find_css('#{0}'.format(element_id), prefix)
 
     @specialize_elements
-    def find_name(self, element_name, prefix=True):
+    def find_name(self, element_name, prefix=True, fail=True):
         return self.find_css('[name="{0}"]'.format(element_name), prefix)
 
     def get(self, url, data=None):
