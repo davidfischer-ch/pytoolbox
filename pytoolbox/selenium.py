@@ -117,4 +117,11 @@ class LiveClient(object):
             if fail:
                 raise
 
+    def wait_for_id(self, element_id, inverse=False, prefix=True, timeout=5, fail=True):
+        return self.wait_for_css('#{0}'.format(element_id), inverse, prefix, timeout, fail)
+
+    def wait_for_name(self, element_name, inverse=False, prefix=True, timeout=5, fail=True):
+        return self.wait_for_css('[name="{0}"]'.format(element_name), inverse, prefix, timeout, fail)
+
+
 __all__ = _all.diff(globals())
