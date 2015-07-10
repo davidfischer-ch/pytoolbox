@@ -122,4 +122,37 @@ class LiveClient(object):
         return self.wait_for_css('[name="{0}"]'.format(element_name), inverse, prefix, timeout, fail)
 
 
+class LiveTestCaseMixin(object):
+
+    live_client_class = LiveClient
+
+    def setUp(self):
+        """Call super's setUp and instantiate a live test client, only once."""
+        super(LiveTestCaseMixin, self).setUp()
+        if not hasattr(self.__class__, 'client'):
+            self.__class__.client = self.live_client_class(self.live_server_url)
+        self.client = self.__class__.client
+
+    @classmethod
+    def tearDownClass(cls):
+        """Quit the live-test client and call super's tearDownClass."""
+        cls.client.quit()
+        super(LiveTestCaseMixin, cls).tearDownClass()
+
+    # Asserts
+
+    def assertElementIsDisabled(self, name, *args, **kwargs):
+        self.assertFalse(self.client.find_name(name).is_enabled(), *args, **kwargs)
+
+    def assertElementIsEnabled(self, name, *args, **kwargs):
+        self.assertTrue(self.client.find_name(name).is_enabled(), *args, **kwargs)
+
+    def assertElementValue(self, name, value, *args, **kwargs):
+        self.assertEqual(self.client.find_name(name).get_attribute('value'), value, *args, **kwargs)
+
+    def assertSelectOptions(self, name, texts, *args, **kwargs):
+        self.assertListEqual(sorted(o.text for o in self.client.find_name(name).all_selected_options),
+                             sorted([texts] if isinstance(texts, str) else texts), *args, **kwargs)
+
+
 __all__ = _all.diff(globals())
