@@ -49,13 +49,12 @@ class Metadata(object):
     def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
         for key in ([keys] if isinstance(keys, string_types) else keys):
             value = self.get(key)
-            try:
-                date = datetime.strptime(value.replace(': ', ':0'), '%Y:%m:%d %H:%M:%S') if value else None
-            except ValueError:
-                if fail and value != '0000:00:00 00:00:00':
-                    raise
-            if date:
-                return date
+            if value:
+                try:
+                    return datetime.strptime(value.replace(': ', ':0'), '%Y:%m:%d %H:%M:%S')
+                except ValueError:
+                    if fail and value != '0000:00:00 00:00:00':
+                        raise
 
     def get_float(self, key):
         value = self.get(key)
