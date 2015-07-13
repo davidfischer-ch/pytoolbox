@@ -148,7 +148,8 @@ class LiveTestCaseMixin(object):
         self.assertTrue(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
     def assertElementValue(self, name, value, *args, **kwargs):
-        self.assertEqual(self.client.find_name(name).get_attribute('value'), value, *args, **kwargs)
+        operator = kwargs.pop('operator', lambda x: x)
+        self.assertEqual(operator(self.client.find_name(name).get_attribute('value')), value, *args, **kwargs)
 
     def assertSelectOptions(self, name, texts, *args, **kwargs):
         self.assertListEqual(sorted(o.text for o in self.client.find_name(name).all_selected_options),
