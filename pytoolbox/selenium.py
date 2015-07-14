@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import functools
 from selenium.webdriver import Firefox
+from selenium.webdriver.common import keys
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import select, ui
 from urlparse import urljoin
@@ -34,7 +35,9 @@ from . import module
 
 _all = module.All(globals())
 
-from selenium.common import exceptions  # Make exceptions module available through pytoolbox.selenium.exceptions
+# Integrate some utility modules and classes
+from selenium.common import exceptions
+Keys = keys.Keys
 
 
 class Select(select.Select):
