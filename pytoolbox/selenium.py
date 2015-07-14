@@ -106,16 +106,18 @@ class LiveClient(object):
     def quit(self):
         return self.web_driver.quit()
 
-    def set_element(self, name, value):
+    def set_element(self, name, value, clear=True):
         """Set the properties of an element. Works with both WebElement and Select."""
         element = self.find_name(name)
         if isinstance(value, bool):
             # FIXME this is designed to work bootstrapSwitch and not regular check-boxes
             value = Keys.RIGHT if value else Keys.LEFT
-        for name in 'select_by_value', 'send_keys':
-            method = getattr(element, name, None)
-            if method:
-                return method(value)
+        if isinstance(element, Select):
+            return element.select_by_value(value)
+        else:
+            if clear:
+                element.clear()
+            return element.send_keys(value)
         raise NotImplementedError
 
     def submit(self):
