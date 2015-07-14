@@ -106,6 +106,18 @@ class LiveClient(object):
     def quit(self):
         return self.web_driver.quit()
 
+    def set_element(self, name, value):
+        """Set the properties of an element. Works with both WebElement and Select."""
+        element = self.find_name(name)
+        if isinstance(value, bool):
+            # FIXME this is designed to work bootstrapSwitch and not regular check-boxes
+            value = Keys.RIGHT if value else Keys.LEFT
+        for name in 'select_by_value', 'send_keys':
+            method = getattr(element, name, None)
+            if method:
+                return method(value)
+        raise NotImplementedError
+
     def submit(self):
         return self.find_css('form button.btn-primary[type="submit"]').click()
 
@@ -144,11 +156,24 @@ class LiveTestCaseMixin(object):
 
     # Asserts
 
+    def assertElementEqual(self, name, value, enabled=True):
+        """Check the properties of an element. Works with both WebElement and Select."""
+        self.assertElementIsEnabled(name) if enabled else self.assertElementIsDisabled(name)
+        if isinstance(value, bool):
+            # FIXME this is designed to work bootstrapSwitch and not regular check-boxes
+            value = 'on' if value else 'off'
+        element = self.client.find_name(name)
+        method = self.assertSelectOptions if isinstance(element, Select) else self.assertElementValue
+        method(name, value)
+
     def assertElementIsDisabled(self, name, *args, **kwargs):
         self.assertFalse(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
     def assertElementIsEnabled(self, name, *args, **kwargs):
         self.assertTrue(self.client.find_name(name).is_enabled(), *args, **kwargs)
+
+    def assertElementIsReadOnly(self, name):
+        self.assertIsNotNone(self.client.find_name(name).get_attribute('readonly'))
 
     def assertElementValue(self, name, value, *args, **kwargs):
         operator = kwargs.pop('operator', lambda x: x)
