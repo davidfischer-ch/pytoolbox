@@ -106,12 +106,16 @@ class LiveClient(object):
     def quit(self):
         return self.web_driver.quit()
 
-    def set_element(self, name, value, clear=True):
+    def set_element(self, name, value, clear=None):
         """Set the properties of an element. Works with both WebElement and Select."""
         element = self.find_name(name)
         if isinstance(value, bool):
+            if clear:
+                raise ValueError('You cannot clear a boolean element.')
             # FIXME this is designed to work bootstrapSwitch and not regular check-boxes
             value = Keys.RIGHT if value else Keys.LEFT
+        elif clear is None:
+            clear = True
         if isinstance(element, Select):
             return element.select_by_value(value)
         else:
