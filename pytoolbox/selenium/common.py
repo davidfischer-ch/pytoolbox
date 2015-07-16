@@ -25,6 +25,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from . import exceptions
+from .. import module
+
+_all = module.All(globals())
 
 
 class FindMixin(object):
@@ -46,3 +49,5 @@ class FindMixin(object):
 
     def find_xpath(self, xpath, fail=True):
         return self.clean_elements(self.find_elements_by_xpath(xpath), xpath, fail)
+
+__all__ = _all.diff(globals())
