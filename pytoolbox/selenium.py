@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import functools
+import functools, numbers
 from selenium.webdriver import Firefox
 from selenium.webdriver.common import keys
 from selenium.webdriver.remote.command import Command
@@ -112,6 +112,8 @@ class LiveClient(object):
         if isinstance(value, bool):
             # FIXME this is designed to work bootstrapSwitch and not regular check-boxes
             value = Keys.RIGHT if value else Keys.LEFT
+        elif isinstance(value, numbers.Number):
+            value = str(value)
         if clear is None:
             clear = element.is_displayed()
         if isinstance(element, Select):
@@ -166,6 +168,8 @@ class LiveTestCaseMixin(object):
         if isinstance(value, bool):
             # FIXME this is designed to work bootstrapSwitch and not regular check-boxes
             value = 'on' if value else 'off'
+        elif isinstance(value, numbers.Number):
+            value = str(value)
         element = self.client.find_name(name)
         method = self.assertSelectOptions if isinstance(element, Select) else self.assertElementValue
         method(name, value)
