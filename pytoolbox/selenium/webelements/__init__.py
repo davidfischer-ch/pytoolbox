@@ -26,3 +26,4 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from .base import *
 from .bootstrap_slider import *
+from .bootstrap_switch import *
