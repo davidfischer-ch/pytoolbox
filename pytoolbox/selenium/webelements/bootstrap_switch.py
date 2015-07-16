@@ -38,7 +38,7 @@ class BootsrapSwitch(base.WebElement):
         return {'on': True, 'off': False, True: True, False: False}[value]
 
     def send_keys(self, *value):
-        return super().send_keys(*[self.clean_key(v) for v in value])
+        return super().send_keys(*[self._clean_key(v) for v in value])
 
     def _clean_key(self, value):
         return {True: Keys.RIGHT, False: Keys.LEFT}.get(value, value)
