@@ -34,14 +34,12 @@ _all = module.All(globals())
 class BootsrapSwitch(base.WebElement):
 
     component = 'bootstrapSwitch'
+    key_map = {True: Keys.RIGHT, False: Keys.LEFT}
 
     def clean_value(self, value):
         return {'on': True, 'off': False, True: True, False: False}[value]
 
     def send_keys(self, *value):
-        return super().send_keys(*[self._clean_key(v) for v in value])
-
-    def _clean_key(self, value):
-        return {True: Keys.RIGHT, False: Keys.LEFT}.get(value, value)
+        return super().send_keys(*[self.key_map(v, v) for v in value])
 
 __all__ = _all.diff(globals())
