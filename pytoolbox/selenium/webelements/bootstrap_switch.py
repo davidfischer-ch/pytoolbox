@@ -24,7 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import base, Keys
+from . import base
+from .. import Keys
 from ... import module
 
 _all = module.All(globals())
