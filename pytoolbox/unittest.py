@@ -99,8 +99,11 @@ class FilterByTagsMixin(InspectMixin):
     """
 
     tags = required_tags = ()
+    extra_tags_variable = 'TEST_EXTRA_TAGS'
     only_tags_variable = 'TEST_ONLY_TAGS'
     skip_tags_variable = 'TEST_SKIP_TAGS'
+
+    # Part of the object
 
     def get_tags(self):
         my_id = self.id().split('.')
@@ -109,25 +112,29 @@ class FilterByTagsMixin(InspectMixin):
     def get_required_tags(self):
         return itertools.chain(self.required_tags, getattr(self.current_test, 'required_tags', ()))
 
+    def get_extra_tags(self):
+        return (t for t in os.environ.get(self.extra_tags_variable, '').split(',') if t)
+
     def get_only_tags(self):
         return (t for t in os.environ.get(self.only_tags_variable, '').split(',') if t)
 
     def get_skip_tags(self):
         return (t for t in os.environ.get(self.skip_tags_variable, '').split(',') if t)
 
-    def should_run(self, tags, required_tags, only_tags, skip_tags):
+    def should_run(self, tags, required_tags, extra_tags, only_tags, skip_tags):
         all_tags = tags.union(required_tags)
         if all_tags & skip_tags:
             return False
-        if only_tags and not all_tags & only_tags:
+        only_with_extra_tags = only_tags.union(extra_tags)
+        if only_tags and not all_tags & only_with_extra_tags:
             return False
-        if required_tags and not required_tags & only_tags:
+        if required_tags and not required_tags & only_with_extra_tags:
             return False
         return True
 
     def setUp(self):
-        if not self.should_run(set(self.get_tags()), set(self.get_required_tags()), set(self.get_only_tags()),
-                               set(self.get_skip_tags())):
+        if not self.should_run(set(self.get_tags()), set(self.get_required_tags()), set(self.get_extra_tags()),
+                               set(self.get_only_tags()), set(self.get_skip_tags())):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
         super(FilterByTagsMixin, self).setUp()
 
