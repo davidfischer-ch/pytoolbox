@@ -30,7 +30,7 @@ from ... import module
 _all = module.All(globals())
 
 
-class BootsrapSliderMixin(object):
+class BootstrapSliderMixin(object):
 
     component = 'bootstrapSlider'
 

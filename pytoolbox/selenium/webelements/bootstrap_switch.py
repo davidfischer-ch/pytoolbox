@@ -30,7 +30,7 @@ from ... import module
 _all = module.All(globals())
 
 
-class BootsrapSwitchMixin(object):
+class BootstrapSwitchMixin(object):
 
     component = 'bootstrapSwitch'
     key_map = {True: Keys.RIGHT, False: Keys.LEFT}
