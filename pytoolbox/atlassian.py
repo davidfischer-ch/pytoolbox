@@ -66,8 +66,15 @@ class JiraProject(object):
     def versions(self):
         return self.jira.project_versions(self.project)
 
+    def get_field(self, name, fail=True):
+        try:
+            return next(f for f in self.fields if f['name'] == name)
+        except StopIteration:
+            if fail:
+                raise
+
     def get_field_value(self, issue, name, default=None):
-        field_id = next(f for f in self.fields if f['name'] == name)['id']
+        field_id = self.get_field(name)['id']
         field_value = getattr(issue.fields, field_id) or default
         return getattr(field_value, 'value', field_value)
 
