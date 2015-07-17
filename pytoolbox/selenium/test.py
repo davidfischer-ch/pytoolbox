@@ -44,7 +44,8 @@ class LiveTestCaseMixin(object):
     @classmethod
     def tearDownClass(cls):
         """Quit the live-test client and call super's tearDownClass."""
-        cls.client.quit()
+        if hasattr(cls, 'client'):
+            cls.client.quit()
         super(LiveTestCaseMixin, cls).tearDownClass()
 
     # Asserts
