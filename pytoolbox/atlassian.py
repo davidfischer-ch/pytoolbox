@@ -37,7 +37,7 @@ class JiraProject(object):
         self.project = project
         self.server = server
         self.auth = auth
-        self.feature_type
+        self.feature_type = feature_type
         self._fields = self._jira = None
 
     @property
