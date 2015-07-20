@@ -215,7 +215,10 @@ class FFprobe(object):
 
     def __call__(self, *arguments):
         """Call FFprobe with given arguments and return the output (unicode string)."""
-        return subprocess.check_output(itertools.chain([self.executable], arguments)).decode('utf-8')
+        process = raw_cmd(itertools.chain([self.executable], arguments), stdout=subprocess.PIPE,
+                          stderr=subprocess.DEVNULL, universal_newlines=True)
+        process.wait()
+        return process.stdout.read().decode('utf-8')
 
     def get_media_duration(self, media, as_delta=False, options=None):
         """
