@@ -125,10 +125,9 @@ class FilterByTagsMixin(InspectMixin):
         all_tags = tags.union(required_tags)
         if all_tags & skip_tags:
             return False
-        only_with_extra_tags = only_tags.union(extra_tags)
-        if only_tags and not all_tags & only_with_extra_tags:
+        if only_tags and not all_tags & only_tags:
             return False
-        if required_tags and not required_tags & only_with_extra_tags:
+        if required_tags and not required_tags & only_tags.union(extra_tags):
             return False
         return True
 
