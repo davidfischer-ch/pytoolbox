@@ -218,7 +218,7 @@ class FFprobe(object):
         process = raw_cmd(itertools.chain([self.executable], arguments), stdout=subprocess.PIPE,
                           stderr=subprocess.DEVNULL, universal_newlines=True)
         process.wait()
-        return process.stdout.read().decode('utf-8')
+        return process.stdout.read()
 
     def get_media_duration(self, media, as_delta=False, options=None):
         """
