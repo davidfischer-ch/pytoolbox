@@ -54,14 +54,14 @@ class LiveClient(common.FindMixin):
         assert not value or not self._css_prefix, self._css_prefix
         self._css_prefix = value
 
-    def find_css(self, css_selector, prefix=True, fail=True):
+    def find_css(self, css_selector, prefix=True, force_list=False, fail=True):
         """Shortcut to find elements by CSS. Returns either a list or singleton."""
         if prefix and self.css_prefix:
             css_selector = '{0.css_prefix} {1}'.format(self, css_selector)
-        return self.web_driver.find_css(css_selector, fail)
+        return self.web_driver.find_css(css_selector, force_list=force_list, fail=fail)
 
-    def find_xpath(self, xpath, fail=True):
-        return self.web_driver.find_xpath(xpath, fail)
+    def find_xpath(self, xpath, force_list=False, fail=True):
+        return self.web_driver.find_xpath(xpath, force_list=force_list, fail=fail)
 
     def get(self, url, data=None):
         assert data is None
