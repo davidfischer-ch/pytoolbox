@@ -27,11 +27,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import itertools, re
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
-from django.db import DatabaseError, models
+from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
-from . import utils
 from .. import exceptions
 from ... import module
 
@@ -113,26 +112,6 @@ class AutoUpdateFieldsMixin(object):
         returned = super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
         self._setted_fields = set()
         return returned
-
-
-class BaseModelMultipleMixin(object):
-
-    def get_context_object_name(self, instance_list):
-        """Get the name of the item to be used in the context."""
-        if self.context_object_name:
-            return self.context_object_name
-        elif hasattr(instance_list, 'model'):
-            return '{0}_list'.format(utils.get_base_model(instance_list.model)._meta.model_name)
-
-
-class BaseModelSingleMixin(object):
-
-    def get_context_object_name(self, instance):
-        """Get the name to use for the instance."""
-        if self.context_object_name:
-            return self.context_object_name
-        elif isinstance(instance, models.Model):
-            return utils.get_base_model(instance)._meta.model_name
 
 
 class MapUniqueTogetherMixin(object):
