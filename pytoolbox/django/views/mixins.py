@@ -26,9 +26,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.http import HttpResponseRedirect
 from django.views.generic.edit import DeleteView
 
+from ..models import utils
 from ... import module
 
 _all = module.All(globals())
@@ -56,6 +58,26 @@ class AddRequestToFormKwargsMixin(object):
         kwargs = super(AddRequestToFormKwargsMixin, self).get_form_kwargs(*args, **kwargs)
         kwargs.update({'request': self.request})
         return kwargs
+
+
+class BaseModelMultipleMixin(object):
+
+    def get_context_object_name(self, instance_list):
+        """Get the name of the item to be used in the context."""
+        if self.context_object_name:
+            return self.context_object_name
+        elif hasattr(instance_list, 'model'):
+            return '{0}_list'.format(utils.get_base_model(instance_list.model)._meta.model_name)
+
+
+class BaseModelSingleMixin(object):
+
+    def get_context_object_name(self, instance):
+        """Get the name to use for the instance."""
+        if self.context_object_name:
+            return self.context_object_name
+        elif isinstance(instance, models.Model):
+            return utils.get_base_model(instance)._meta.model_name
 
 
 class CancellableDeleteView(DeleteView):
