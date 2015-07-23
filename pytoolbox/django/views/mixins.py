@@ -52,8 +52,8 @@ def only_published(queryset, request):
 class AddRequestToFormKwargsMixin(object):
     """Add the view request to the keywords arguments for instantiating the form."""
 
-    def get_form_kwargs(self):
-        kwargs = super(AddRequestToFormKwargsMixin, self).get_form_kwargs()
+    def get_form_kwargs(self, *args, **kwargs):
+        kwargs = super(AddRequestToFormKwargsMixin, self).get_form_kwargs(*args, **kwargs)
         kwargs.update({'request': self.request})
         return kwargs
 
