@@ -24,13 +24,15 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, requests, time, urllib2, urlparse
+import functools, os, requests, sys, time, urllib2, urlparse
 from codecs import open
+from os.path import dirname, exists
 
-from .. import module
+from .. import console, module
 from ..crypto import checksum, new
 from ..encoding import to_bytes
 from ..exception import BadHTTPResponseCodeError, CorruptedFileError
+from ..filesystem import try_makedirs, try_remove
 
 _all = module.All(globals())
 
@@ -133,6 +135,31 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     if expected_hash is not None and file_hash != expected_hash:
         raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
     return exists, downloaded, file_hash
+
+
+def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=console.progress_bar,
+                       progress_stream=sys.stdout, progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'):
+    """
+    Download resources, showing a progress bar by default.
+
+    Each element should be a dict with the url, filename and name keys.
+    Any extra item is passed to :func:`download_ext` as extra keyword arguments.
+    """
+    for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
+        kwargs = resource.copy()
+        url, filename, name = kwargs.pop('url'), kwargs.pop('filename'), kwargs.pop('name')
+        callback = functools.partial(progress_callback, stream=progress_stream, template=progress_template.format(
+            counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)
+        ))
+        if not exists(filename):
+            try_makedirs(dirname(filename))
+            try:
+                download_ext(url, filename, chunk_size=chunk_size, force=False, progress_callback=callback, **kwargs)
+            except:
+                try_remove(filename)
+                raise
+        callback(0, 1, 1)
+        progress_stream.write(os.linesep)
 
 
 def get_request_data(request, accepted_keys=None, required_keys=None, sources=['query', 'form', 'json'],
