@@ -44,11 +44,12 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
     """Run tests and report coverage with nose and coverage."""
     from .encoding import configure_unicode
     configure_unicode()
-    extra_options = extra_options or []
-    cover_packages = ['--cover-package={0}'.format(package) for package in cover_packages]
-    nose_options = filter(None, [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'] +
-                          cover_packages + ['--cover-html', '-vv', '-w', os.path.dirname(test_file)] + packages +
-                          extra_options)
+    nose_options = filter(None, itertools.chain(
+        [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'],
+        ['--cover-package={0}'.format(package) for package in cover_packages],
+        ['--cover-html', '-vv', '-w', os.path.dirname(test_file)],
+        packages, extra_options or []
+    ))
     if ignore:
         nose_options += ['-I', ignore]
     os.chdir(os.path.abspath(os.path.dirname(test_file)))
