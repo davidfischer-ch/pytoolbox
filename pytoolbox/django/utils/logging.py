@@ -35,8 +35,8 @@ def log_to_console(settings):
 
     **Example usage**
 
-    >>> from collections import namedtuple
-    >>> settings = namedtuple('settings', ['DEBUG', 'LOGGING'])
+    >>> import collections
+    >>> settings = collections.namedtuple('settings', ['DEBUG', 'LOGGING'])
     >>> settings.DEBUG = True
     >>> settings.LOGGING = {
     ...     'version': 1,
@@ -52,7 +52,7 @@ def log_to_console(settings):
     ...         }
     ...     }
     ... }
-    >>> expected_settings = namedtuple('settings', ['DEBUG', 'LOGGING'])
+    >>> expected_settings = collections.namedtuple('settings', ['DEBUG', 'LOGGING'])
     >>> expected_settings.DEBUG = True
     >>> expected_settings.LOGGING = {
     ...     'version': 1,
