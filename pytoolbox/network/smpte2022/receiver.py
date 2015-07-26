@@ -24,8 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os
-from collections import defaultdict
+import collections, os
 
 from .base import FecPacket
 from ..ip import IPSocket
@@ -201,8 +200,8 @@ class FecReceiver(object):
         self.max_cross = 0     # Largest amount of stored elements in the crosses buffer
         self.max_col = 0       # Largest amount of stored elements in the columns buffer
         self.max_row = 0       # Largest amount of stored elements in the rows buffer
-        self.lostogram = defaultdict(int)  # Statistics about lost medias
-        self.lostogram_counter = 0         # Incremented while there are lost media packets
+        self.lostogram = collections.defaultdict(int)  # Statistics about lost medias
+        self.lostogram_counter = 0                     # Incremented while there are lost media packets
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

@@ -24,8 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, hashlib
-from os.path import getsize
+import collections, hashlib, os
 
 from . import module
 from .encoding import string_types
@@ -95,7 +94,7 @@ def githash(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=No
     """
     s = hashlib.sha1()
     if is_filename:
-        s.update(('blob %d\0' % getsize(filename_or_data)).encode('utf-8'))
+        s.update(('blob %d\0' % os.path.getsize(filename_or_data)).encode('utf-8'))
         for data_bytes in get_bytes(filename_or_data, encoding, is_filename, chunk_size):
             s.update(data_bytes)
     else:

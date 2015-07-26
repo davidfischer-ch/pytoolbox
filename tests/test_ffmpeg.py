@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime, os, tempfile, unittest
 from codecs import open
-from os.path import isfile, join
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
@@ -40,9 +39,9 @@ MPD_TEST = """<?xml version="1.0"?>
   <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
 """
-STATIC_FFMPEG_BINARY = join(tempfile.gettempdir(), 'ffmpeg')
-STATIC_FFPROBE_BINARY = join(tempfile.gettempdir(), 'ffprobe')
-WITH_FFMPEG = isfile(STATIC_FFMPEG_BINARY)
+STATIC_FFMPEG_BINARY = os.path.join(tempfile.gettempdir(), 'ffmpeg')
+STATIC_FFPROBE_BINARY = os.path.join(tempfile.gettempdir(), 'ffprobe')
+WITH_FFMPEG = os.path.isfile(STATIC_FFMPEG_BINARY)
 MEDIA_INFOS = {
     'format': {
         'bit_rate': '551193',

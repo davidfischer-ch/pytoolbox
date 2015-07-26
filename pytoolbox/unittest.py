@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import io, itertools, nose, os, pprint, time, unittest
 from mock import Mock
-from os.path import abspath, dirname
 
 from . import module
 from .encoding import binary_type, string_types
@@ -48,10 +47,11 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
     extra_options = extra_options or []
     cover_packages = ['--cover-package={0}'.format(package) for package in cover_packages]
     nose_options = filter(None, [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'] +
-                          cover_packages + ['--cover-html', '-vv', '-w', dirname(test_file)] + packages + extra_options)
+                          cover_packages + ['--cover-html', '-vv', '-w', os.path.dirname(test_file)] + packages +
+                          extra_options)
     if ignore:
         nose_options += ['-I', ignore]
-    os.chdir(abspath(dirname(test_file)))
+    os.chdir(os.path.abspath(os.path.dirname(test_file)))
     return nose.main(argv=nose_options)
 
 

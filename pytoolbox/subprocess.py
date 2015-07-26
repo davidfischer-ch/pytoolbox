@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess
 import threading, time
-from os.path import exists, join, isdir, normpath
 
 from . import module
 from .encoding import string_types, to_bytes, to_unicode
@@ -223,13 +222,13 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
 
 def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
     if url is not None:
-        config = open(join(directory, '.git', 'config')).read()
+        config = open(os.path.join(directory, '.git', 'config')).read()
         url = re.search(r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
 
 
 def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=None, **kwargs):
-    if exists(directory):
+    if os.path.exists(directory):
         if reset:
             cmd(['git', 'reset', '--hard'], cwd=directory, fail=fail, log=log, **kwargs)
         cmd(['git', 'pull'], cwd=directory, fail=fail, log=log, **kwargs)
@@ -267,12 +266,12 @@ def make(archive, path=None, with_cmake=False, configure_options='', install=Tru
 def rsync(source, destination, source_is_dir=False, destination_is_dir=False, makedest=False, archive=True,
           delete=False, exclude_vcs=False, progress=False, recursive=False, simulate=False, excludes=None,
           includes=None, rsync_path=None, size_only=False, extra=None, extra_args=None, fail=True, log=None, **kwargs):
-    if makedest and not exists(destination):
+    if makedest and not os.path.exists(destination):
         # FIXME if dest = remote -> ssh to make dest else make dest
         if extra is None or 'ssh' not in extra:
             os.makedirs(destination)
-    source = normpath(source) + (os.sep if isdir(source) or source_is_dir else '')
-    destination = normpath(destination) + (os.sep if isdir(destination) or destination_is_dir else '')
+    source = os.path.normpath(source) + (os.sep if os.path.isdir(source) or source_is_dir else '')
+    destination = os.path.normpath(destination) + (os.sep if os.path.isdir(destination) or destination_is_dir else '')
     command = ['rsync',
                '-a' if archive else None,
                '--delete' if delete else None,

@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import functools, os, requests, sys, time, urllib2, urlparse
 from codecs import open
-from os.path import dirname, exists
 
 from .. import console, module
 from ..crypto import checksum, new
@@ -151,8 +150,8 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
         callback = functools.partial(progress_callback, stream=progress_stream, template=progress_template.format(
             counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)
         ))
-        if not exists(filename):
-            try_makedirs(dirname(filename))
+        if not os.path.exists(filename):
+            try_makedirs(os.path.dirname(filename))
             try:
                 download_ext(url, filename, chunk_size=chunk_size, force=False, progress_callback=callback, **kwargs)
             except:

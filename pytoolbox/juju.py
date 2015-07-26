@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from codecs import open
-from os.path import abspath, expanduser, join
 
 from . import module
 from .console import confirm
@@ -40,7 +39,7 @@ _all = module.All(globals())
 CONFIG_FILENAME = 'config.yaml'
 METADATA_FILENAME = 'metadata.yaml'
 
-DEFAULT_ENVIRONMENTS_FILE = abspath(expanduser('~/.juju/environments.yaml'))
+DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser('~/.juju/environments.yaml'))
 DEFAULT_OS_ENV = {
     'APT_LISTCHANGES_FRONTEND': 'none',
     'CHARM_DIR': '/var/lib/juju/units/oscied-storage-0/charm',
@@ -104,8 +103,8 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     if isinstance(options, list):
         the_command += options
     env = os.environ.copy()
-    env['HOME'] = expanduser('~/')
-    env['JUJU_HOME'] = expanduser('~/.juju')
+    env['HOME'] = os.path.expanduser('~/')
+    env['JUJU_HOME'] = os.path.expanduser('~/.juju')
     if is_destroy:
         # FIXME Automate yes answer to destroy-environment
         c_string = ' '.join([to_unicode(arg) for arg in the_command])
@@ -222,7 +221,7 @@ def get_environments_count(environments=None):
 # Units ----------------------------------------------------------------------------------------------------------------
 
 def get_unit_path(service, number, *args):
-    return join('/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
+    return os.path.join('/var/lib/juju/agents/unit-{0}-{1}/charm'.format(service, number), *args)
 
 # Helpers --------------------------------------------------------------------------------------------------------------
 
@@ -274,11 +273,11 @@ class CharmHooks(object):
     ...         self.info('stop services')
     ...
 
-    >>> from os.path import dirname
-    >>> here = abspath(expanduser(dirname(__file__)))
-    >>> here = join(here, '../../..' if 'build/lib' in here else '..', 'tests')
-    >>> metadata = join(here, 'metadata.yaml')
-    >>> config = join(here, 'config.yaml')
+    >>> import os
+    >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+    >>> here = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests')
+    >>> metadata = os.path.join(here, 'metadata.yaml')
+    >>> config = os.path.join(here, 'config.yaml')
 
     Trigger some hooks:
 
@@ -462,9 +461,9 @@ class CharmHooks(object):
 
         **Example usage**
 
-        >>> from os.path import dirname
-        >>> here = abspath(expanduser(dirname(__file__)))
-        >>> config = join(here, '../../..' if 'build/lib' in here else '..', 'tests/config.yaml')
+        >>> import os
+        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+        >>> config = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests/config.yaml')
         >>>
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hasattr(hooks.config, 'pingu') or hasattr(hooks.config, 'rabbit_password')
@@ -499,10 +498,10 @@ class CharmHooks(object):
 
         **Example usage**
 
+        >>> import os
         >>> from nose.tools import eq_
-        >>> from os.path import dirname
-        >>> here = abspath(expanduser(dirname(__file__)))
-        >>> metadata = join(here, '../../..' if 'build/lib' in here else '..', 'tests/metadata.yaml')
+        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
+        >>> metadata = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests/metadata.yaml')
 
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.metadata
@@ -600,9 +599,9 @@ class Environment(object):
 
     def symlink_local_charms(self, default_path='default'):
         """Symlink charms default directory to directory of current release."""
-        release_symlink = abspath(join(self.charms_path, self.release))
+        release_symlink = os.path.abspath(os.path.join(self.charms_path, self.release))
         try_remove(release_symlink)
-        try_symlink(abspath(join(self.charms_path, default_path)), release_symlink)
+        try_symlink(os.path.abspath(os.path.join(self.charms_path, default_path)), release_symlink)
 
     def sync_tools(self, all_tools=True):
         """Copy tools from the official bucket into a local environment."""

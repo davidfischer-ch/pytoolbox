@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import collections, copy, errno, fnmatch, grp, magic, pwd, os, re, shutil, tempfile, time, uuid
 from codecs import open
-from os.path import dirname, exists, expanduser, isfile, join, samefile
 
 from . import module
 from .datetime import datetime_now
@@ -63,7 +62,7 @@ def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
     for dirpath, dirnames, filenames in os.walk(directory, **kwargs):
         for filename in filenames:
             if any(p.match(filename) for p in patterns):
-                yield join(dirpath, filename)
+                yield os.path.join(dirpath, filename)
 
 
 def file_mime(path, mime=True):
@@ -87,7 +86,7 @@ def first_that_exist(*paths):
     None
     """
     for path in paths:
-        if exists(path):
+        if os.path.exists(path):
             return path
     return None
 
@@ -156,12 +155,12 @@ def get_size(path):
     If given `path` is a directory (or symlink to a directory), then returned value is computed by summing the size of
     all files, and that recursively.
     """
-    if isfile(path):
+    if os.path.isfile(path):
         return os.stat(path).st_size
     size = 0
     for dirpath, dirnames, filenames in os.walk(path):
         for filename in filenames:
-            size += os.stat(join(dirpath, filename)).st_size
+            size += os.stat(os.path.join(dirpath, filename)).st_size
     return size
 
 
@@ -186,11 +185,11 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
         for src_root, dirnames, filenames in os.walk(source_path):
             for filename in filenames:
                 dst_root = src_root.replace(source_path, destination_path)
-                src_path = join(src_root, filename)
-                dst_path = join(dst_root, filename)
+                src_path = os.path.join(src_root, filename)
+                dst_path = os.path.join(dst_root, filename)
 
                 # Initialize block-based copy
-                try_makedirs(dirname(dst_path))
+                try_makedirs(os.path.dirname(dst_path))
                 block_size = 1024 * 1024
                 src_file = open(src_path, 'rb')
                 dst_file = open(dst_path, 'wb')
@@ -274,7 +273,7 @@ def try_remove(path, recursive=False):
     False
 
     >>> for file_name in ('try_remove/a', 'try_remove/b/c', 'try_remove/d/e/f'):
-    ...     _ = try_makedirs(dirname(file_name))
+    ...     _ = try_makedirs(os.path.dirname(file_name))
     ...     open(file_name, 'w', encoding='utf-8').write('salut les pépés')
     >>> try_remove('try_remove/d/e', recursive=True)
     True
@@ -312,7 +311,7 @@ def try_symlink(source, link_name):
     >>> a = try_remove('/tmp/does_not_exist')
     >>> a = try_remove('/tmp/does_not_exist_2')
     >>> a = try_remove('/tmp/link_etc')
-    >>> a = try_remove(expanduser('~/broken_link'))
+    >>> a = try_remove(os.path.expanduser('~/broken_link'))
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
@@ -342,22 +341,22 @@ def try_symlink(source, link_name):
     >>> assert_raises(OSError, try_symlink, '~/does_not_exist_2', '~/broken_link')
     >>> assert_raises(OSError, try_symlink, '/home', '~/broken_link')
     >>> os.remove('/tmp/link_etc')
-    >>> os.remove(expanduser('~/broken_link'))
+    >>> os.remove(os.path.expanduser('~/broken_link'))
     """
     try:
-        source = expanduser(source)
-        link_name = expanduser(link_name)
+        source = os.path.expanduser(source)
+        link_name = os.path.expanduser(link_name)
         os.symlink(source, link_name)
         return True
     except OSError as e1:
         # File exists
         if e1.errno == errno.EEXIST:
             try:
-                if samefile(source, link_name):
+                if os.path.samefile(source, link_name):
                     return False
             except OSError as e2:
                 # Handle broken symlink that point to same target
-                target = expanduser(os.readlink(link_name))
+                target = os.path.expanduser(os.readlink(link_name))
                 if e2.errno == errno.ENOENT:
                     if target == source:
                         return False
@@ -375,7 +374,7 @@ def chown(path, user=None, group=None, recursive=False):
         for dirpath, dirnames, filenames in os.walk(path):
             os.chown(dirpath, uid, gid)
             for filename in filenames:
-                os.chown(join(dirpath, filename), uid, gid)
+                os.chown(os.path.join(dirpath, filename), uid, gid)
     else:
         os.chown(path, uid, gid)
 
@@ -388,13 +387,12 @@ class TempStorage(object):
 
     As a context manager:
 
+    >>> import os
     >>> from nose.tools import eq_
-    >>> from os.path import isdir
-
     >>> with TempStorage() as tmp:
     ...     directory = tmp.create_tmp_directory()
-    ...     eq_(isdir(directory), True)
-    >>> eq_(isdir(directory), False)
+    ...     eq_(os.path.isdir(directory), True)
+    >>> eq_(os.path.isdir(directory), False)
     """
     def __init__(self, root=None):
         self.root = root or tempfile.gettempdir()
@@ -411,15 +409,14 @@ class TempStorage(object):
         """
         **Example usage**
 
+        >>> import os
         >>> from nose.tools import eq_
-        >>> from os.path import isdir
         >>> tmp = TempStorage()
-
         >>> directory = tmp.create_tmp_directory()
-        >>> eq_(isdir(directory), True)
+        >>> eq_(os.path.isdir(directory), True)
         >>> tmp.remove_all()
         """
-        directory = join(self.root, path.format(uuid=uuid.uuid4().hex))
+        directory = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex))
         self._path_to_key[directory] = key
         self._paths_by_key[key].add(directory)
         try_makedirs(directory)
@@ -431,19 +428,20 @@ class TempStorage(object):
         """
         **Example usage**
 
+        >>> import os
         >>> from nose.tools import eq_
-        >>> from os.path import isfile
         >>> tmp = TempStorage()
         >>> filename = tmp.create_tmp_file(encoding=None, return_file=False)
-        >>> eq_(isfile(filename), True)
+        >>> eq_(os.path.isfile(filename), True)
         >>> with tmp.create_tmp_file(extension='txt') as f:
-        ...     eq_(isfile(f.name), True)
+        ...     eq_(os.path.isfile(f.name), True)
         ...     f.write('Je suis une théière')
         ...     filename = f.name
         >>> eq_(open(filename, encoding='utf-8').read(), 'Je suis une théière')
         >>> tmp.remove_all()
         """
-        filename = join(self.root, path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
+        filename = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex) +
+                                ('.%s' % extension if extension else ''))
         mode = 'w' if encoding else 'wb'
         self._path_to_key[filename] = key
         self._paths_by_key[key].add(filename)
@@ -458,7 +456,6 @@ class TempStorage(object):
 
         >>> from nose.tools import assert_raises
         >>> tmp = TempStorage()
-
         >>> directory = tmp.create_tmp_directory()
         >>> tmp.remove_by_path(directory)
         >>> with assert_raises(KeyError):
@@ -475,17 +472,16 @@ class TempStorage(object):
         """
         **Example usage**
 
+        >>> import os
         >>> from nose.tools import eq_
-        >>> from os.path import isdir
         >>> tmp = TempStorage()
-
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_by_key(10)
-        >>> eq_(isdir(d1), True)
-        >>> eq_(isdir(d2), False)
+        >>> eq_(os.path.isdir(d1), True)
+        >>> eq_(os.path.isdir(d2), False)
         >>> tmp.remove_by_key()
-        >>> eq_(isdir(d1), False)
+        >>> eq_(os.path.isdir(d1), False)
         """
         paths = self._paths_by_key[key]
         for path in copy.copy(paths):
@@ -498,15 +494,14 @@ class TempStorage(object):
         """
         **Example usage**
 
+        >>> import os
         >>> from nose.tools import eq_
-        >>> from os.path import isdir
         >>> tmp = TempStorage()
-
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_all()
-        >>> eq_(isdir(d1), False)
-        >>> eq_(isdir(d2), False)
+        >>> eq_(os.path.isdir(d1), False)
+        >>> eq_(os.path.isdir(d2), False)
         >>> tmp.remove_all()
         """
         for key in self._paths_by_key.copy().keys():

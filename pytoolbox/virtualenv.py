@@ -24,8 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import itertools
-from os.path import exists, join
+import itertools, os
 
 from . import module
 from .filesystem import find_recursive
@@ -37,7 +36,7 @@ _all = module.All(globals())
 def relocate(source_directory, destination_directory, encoding='utf-8'):
     """Copy and relocate a Python virtualenv. Update the paths in *.egg-link, *.pth, *.pyc, ..."""
 
-    if not exists(destination_directory):
+    if not os.path.exists(destination_directory):
         rsync(source_directory, destination_directory, destination_is_dir=True, makedest=True, recursive=True)
 
     b_source_directory = source_directory.encode(encoding)
@@ -45,8 +44,8 @@ def relocate(source_directory, destination_directory, encoding='utf-8'):
 
     for filename in itertools.chain.from_iterable([
         find_recursive(destination_directory, ['*.egg-link', '*.pth', '*.pyc', 'RECORD']),
-        find_recursive(join(destination_directory, 'bin'), '*'),
-        find_recursive(join(destination_directory, 'src'), '*.so')
+        find_recursive(os.path.join(destination_directory, 'bin'), '*'),
+        find_recursive(os.path.join(destination_directory, 'src'), '*.so')
     ]):
         with open(filename, 'r+b') as f:
             content = f.read().replace(b_source_directory, b_destination_directory)

@@ -25,9 +25,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import shutil, six, tarfile, tempfile
+import os, shutil, six, tarfile, tempfile
 from django.conf import settings
-from os.path import join
 from pytoolbox.encoding import PY2
 from pytoolbox.exception import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
@@ -60,7 +59,7 @@ def main():
             with tarfile.open(constants.FFMPEG_ARCHIVE) as f:
                 f.extractall(constants.TESTS_DIRECTORY)
         for filename in 'ffmpeg', 'ffprobe':
-            shutil.copy(join(constants.FFMPEG_DIRECTORY, filename), tempfile.gettempdir())
+            shutil.copy(os.path.join(constants.FFMPEG_DIRECTORY, filename), tempfile.gettempdir())
     except BadHTTPResponseCodeError:
         print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 
