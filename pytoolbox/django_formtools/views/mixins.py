@@ -30,6 +30,37 @@ from ...django import forms
 _all = module.All(globals())
 
 
+class DataTableViewCompositionMixin(object):
+    """Compose the wizard with some tables views."""
+
+    table_view_classes = {}
+
+    def get(self, request, *args, **kwargs):
+        """Retrieve the table view and delegate AJAX to the table view."""
+        if self.request.is_ajax():
+            view = self.get_table_view()
+            if view:
+                return view.get_ajax(request, *args, **kwargs)
+        return super(DataTableViewCompositionMixin, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Update the context with the context returned by the table view."""
+        context = super(DataTableViewCompositionMixin, self).get_context_data(**kwargs)
+        view = self.get_table_view()
+        if view:
+            context.update(view.get_context_data())
+        return context
+
+    def get_table_view(self):
+        """Return an instance of the datatable-view for current step, defaults to None."""
+        view_class = self.table_view_classes.get(self.steps.current)
+        if view_class:
+            view = view_class()
+            view.object_list = None
+            view.request = self.request
+            return view
+
+
 class SerializeStepInstanceMixin(object):
 
     serialized_instance_form_class = forms.SerializedInstanceForm
