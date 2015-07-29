@@ -51,7 +51,8 @@ class Metadata(object):
             value = self.get(key)
             if value:
                 try:
-                    return datetime.strptime(value.replace(': ', ':0'), '%Y:%m:%d %H:%M:%S')
+                    # Fix weird hour format (2015:06:28 24:05:00 = 28th Jun 2015 at midnight and 5 minutes)
+                    return datetime.strptime(value.replace(': ', ':0').replace(' 24:', ' 00:'), '%Y:%m:%d %H:%M:%S')
                 except ValueError:
                     if fail and value != '0000:00:00 00:00:00':
                         raise
