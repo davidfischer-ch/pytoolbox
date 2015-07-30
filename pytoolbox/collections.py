@@ -39,10 +39,11 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
-    >>> eq_(flatten_dict({'a': 'b', 'c': 'd'}), {'a': 'b', 'c': 'd'})
-    >>> eq_(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}), {'a.b.c': ['d', 'e'], 'a.f': 'g'})
-    >>> eq_(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}'), {'c-b-a': ['d', 'e'], 'f-a': 'g'})
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.dict_equal(flatten_dict({'a': 'b', 'c': 'd'}), {'a': 'b', 'c': 'd'})
+    >>> asserts.dict_equal(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}), {'a.b.c': ['d', 'e'], 'a.f': 'g'})
+    >>> asserts.dict_equal(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}'),
+    ...                    {'c-b-a': ['d', 'e'], 'f-a': 'g'})
     """
     def expand_item(key, value):
         if isinstance(value, dict):
@@ -50,6 +51,22 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
         else:
             return [(key, value)]
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
+
+
+def merge_dicts(*dicts):
+    """
+    Return a dictionary from multiple dictionaries.
+    Warning: This operation is not commutative.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.dict_equal(merge_dicts({'a': 1, 'b': 2}, {'b': 3, 'c': 4}, {'c': 5}), {'a': 1, 'b': 3, 'c': 5})
+    >>> asserts.dict_equal(merge_dicts({'c': 5}, {'b': 3, 'c': 4}, {'a': 1, 'b': 2}), {'a': 1, 'b': 2, 'c': 4})
+    """
+    merged_dict = {}
+    set(merged_dict.update(d) for d in dicts)
+    return merged_dict
 
 
 def swap_dict_of_values(the_dict, type=set, method=set.add):
