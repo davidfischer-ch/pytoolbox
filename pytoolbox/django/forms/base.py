@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.utils.functional import cached_property
 
-from ..models import utils
+from ..models import utils as _utils
 from ... import module
 
 _all = module.All(globals())
@@ -41,11 +41,11 @@ class SerializedInstanceForm(object):
 
     @classmethod
     def serialize(cls, instance):
-        return utils.get_content_type_dict(instance)
+        return _utils.get_content_type_dict(instance)
 
     @cached_property
     def instance(self):
-        return utils.get_instance(self.app_label, self.model, self.pk)
+        return _utils.get_instance(self.app_label, self.model, self.pk)
 
     def is_valid(self):
         try:
