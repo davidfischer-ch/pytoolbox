@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from copy import copy
+from django.contrib import messages
 from django.forms.util import ErrorList
 
 from ... import module
@@ -43,6 +44,21 @@ def conditional_required(form, required_dict, data=None, cleanup=False):
         if required is False and cleanup:
             data[name] = None
     return data
+
+
+def get_instance(form, field_name, request, msg=None):
+    """
+    Return the instance if the form is valid, or try to get it from database.
+    Return None if not found and add an error message if set.
+    """
+    if form.is_valid():
+        return form.cleaned_data[field_name]
+    model = form.fields[field_name].model
+    try:
+        return model.objects.get(pk=form.data[form.add_prefix(field_name)])
+    except (KeyError, model.DoesNotExist):
+        if msg:
+            messages.error(request, msg)
 
 
 def set_disabled(form, field_name, value=False):
