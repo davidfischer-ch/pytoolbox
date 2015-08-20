@@ -32,6 +32,16 @@ from ... import module
 _all = module.All(globals())
 
 
+class ConvertEmailToTextMixin(object):
+    """Set email inputs as text to avoid the i18n issue (http://html5doctor.com/html5-forms-input-types#input-email)."""
+
+    def __init__(self, *args, **kwargs):
+        super(ConvertEmailToTextMixin, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if getattr(field.widget, 'input_type', None) == 'email':
+                field.widget.input_type = 'text'
+
+
 class EnctypeMixin(object):
 
     @property
