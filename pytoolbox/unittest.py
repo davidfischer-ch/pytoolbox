@@ -123,12 +123,12 @@ class FilterByTagsMixin(InspectMixin):
         return (t for t in os.environ.get(self.skip_tags_variable, '').split(',') if t)
 
     def should_run(self, tags, required_tags, extra_tags, only_tags, skip_tags):
-        all_tags = tags.union(required_tags)
+        all_tags = tags | required_tags
         if all_tags & skip_tags:
             return False
         if only_tags and not all_tags & only_tags:
             return False
-        if required_tags and not required_tags & only_tags.union(extra_tags):
+        if required_tags and not required_tags & (only_tags | extra_tags):
             return False
         return True
 
