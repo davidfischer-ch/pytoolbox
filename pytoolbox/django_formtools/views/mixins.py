@@ -30,6 +30,16 @@ from ...django import forms
 _all = module.All(globals())
 
 
+class CrispyFormsMixin(object):
+
+    def get_context_data(self, form, **kwargs):
+        """Add the management form to the form for working with crispy forms."""
+        context = super().get_context_data(form=form, **kwargs)
+        context['wizard']['form'].helper.layout.append(forms.helpers.HTML(context['wizard']['management_form']))
+        context['form'] = context['wizard']['form']
+        return context
+
+
 class DataTableViewCompositionMixin(object):
     """Compose the wizard with some tables views."""
 
