@@ -24,9 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import itertools
+import collections, itertools
 
 from . import module
+from .encoding import binary_type, string_types
 
 _all = module.All(globals())
 
@@ -34,6 +35,21 @@ _all = module.All(globals())
 def get_slots(obj):
     """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
     return set(itertools.chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))
+
+
+def isiterable(obj):
+    """
+    Return ``True`` if the object is an iterable, but ``False`` for :class:`str` or :class:`bytes`.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> for obj in 'text', b'binary', u'unicode', 42:
+    ...     asserts.false(isiterable(obj), obj)
+    >>> for obj in [], (), set(), {}.iteritems():
+    ...     asserts.true(isiterable(obj), obj)
+    """
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, (binary_type, string_types))
 
 
 class MissingType(object):
