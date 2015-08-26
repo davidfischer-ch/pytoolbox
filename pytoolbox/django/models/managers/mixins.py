@@ -29,7 +29,19 @@ from .... import module
 _all = module.All(globals())
 
 
+class CreateModelMethodMixin(object):
+
+    def create(self, *args, **kwargs):
+        if hasattr(self.model, 'create'):
+            return self.model.create(*args, **kwargs)
+        return super(CreateModelMethodMixin, self).create(*args, **kwargs)
+    create.alters_data = True
+
+
 class RelatedModelMixin(object):
+
+    def get_related_manager(self, field):
+        return self.get_related_model(field)._default_manager
 
     def get_related_model(self, field):
         return self.model._meta.get_field(field).related_model
