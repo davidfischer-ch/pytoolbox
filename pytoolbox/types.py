@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, itertools
+import collections.abc, itertools
 
 from . import module
 from .encoding import binary_type, string_types
