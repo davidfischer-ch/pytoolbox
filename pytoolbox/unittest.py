@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import io, itertools, nose, os, pprint, time, unittest
+import functools, inspect, io, itertools, nose, os, pprint, time, unittest
 from mock import Mock
 
 from . import module
@@ -82,6 +82,10 @@ class InspectMixin(object):
     def current_test(self):
         return getattr(self, self.id().split('.')[-1])
 
+    @classmethod
+    def get_test_methods(cls):
+        return ((n, m) for n, m in inspect.getmembers(cls, inspect.isfunction) if n.startswith('test_'))
+
 
 class AwareTearDownMixin(object):
 
@@ -100,29 +104,13 @@ class FilterByTagsMixin(InspectMixin):
     """
 
     tags = required_tags = ()
+    fast_class_skip_enabled = False
     extra_tags_variable = 'TEST_EXTRA_TAGS'
     only_tags_variable = 'TEST_ONLY_TAGS'
     skip_tags_variable = 'TEST_SKIP_TAGS'
 
-    # Part of the object
-
-    def get_tags(self):
-        my_id = self.id().split('.')
-        return itertools.chain(self.tags, getattr(self.current_test, 'tags', ()), (my_id[-2], '.'.join(my_id[-2:])))
-
-    def get_required_tags(self):
-        return itertools.chain(self.required_tags, getattr(self.current_test, 'required_tags', ()))
-
-    def get_extra_tags(self):
-        return (t for t in os.environ.get(self.extra_tags_variable, '').split(',') if t)
-
-    def get_only_tags(self):
-        return (t for t in os.environ.get(self.only_tags_variable, '').split(',') if t)
-
-    def get_skip_tags(self):
-        return (t for t in os.environ.get(self.skip_tags_variable, '').split(',') if t)
-
-    def should_run(self, tags, required_tags, extra_tags, only_tags, skip_tags):
+    @staticmethod
+    def should_run(tags, required_tags, extra_tags, only_tags, skip_tags):
         all_tags = tags | required_tags
         if all_tags & skip_tags:
             return False
@@ -132,10 +120,44 @@ class FilterByTagsMixin(InspectMixin):
             return False
         return True
 
+    @classmethod
+    def setUpClass(cls):
+        if cls.fast_class_skip_enabled:
+            cls.fast_class_skip()
+        super(FilterByTagsMixin, cls).setUpClass()
+
+    @classmethod
+    def fast_class_skip(cls):
+        r = functools.partial(cls.should_run, extra_tags=cls.get_extra_tags(), only_tags=cls.get_only_tags(),
+                              skip_tags=cls.get_skip_tags())
+        if not any(r(cls.get_tags(m), cls.get_required_tags(m)) for n, m in cls.get_test_methods()):
+            raise unittest.SkipTest('Test skipped by FilterByTagsMixin.fast_class_skip')
+
+    @classmethod
+    def get_extra_tags(cls):
+        return set(t for t in os.environ.get(cls.extra_tags_variable, '').split(',') if t)
+
+    @classmethod
+    def get_only_tags(cls):
+        return set(t for t in os.environ.get(cls.only_tags_variable, '').split(',') if t)
+
+    @classmethod
+    def get_skip_tags(cls):
+        return set(t for t in os.environ.get(cls.skip_tags_variable, '').split(',') if t)
+
+    @classmethod
+    def get_tags(cls, current_test):
+        my_id = (cls.__name__, current_test.__name__)
+        return set(itertools.chain(cls.tags, getattr(current_test, 'tags', ()), (my_id[0], '.'.join(my_id))))
+
+    @classmethod
+    def get_required_tags(cls, current_test):
+        return set(itertools.chain(cls.required_tags, getattr(current_test, 'required_tags', ())))
+
     def setUp(self):
-        if not self.should_run(set(self.get_tags()), set(self.get_required_tags()), set(self.get_extra_tags()),
-                               set(self.get_only_tags()), set(self.get_skip_tags())):
-            raise unittest.SkipTest('Test skipped by FilterByTagsMixin')
+        if not self.should_run(self.get_tags(self.current_test), self.get_required_tags(self.current_test),
+                               self.get_extra_tags(), self.get_only_tags(), self.get_skip_tags()):
+            raise unittest.SkipTest('Test skipped by FilterByTagsMixin.setUp')
         super(FilterByTagsMixin, self).setUp()
 
 
