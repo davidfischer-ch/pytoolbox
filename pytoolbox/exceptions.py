@@ -49,18 +49,20 @@ class MessageMixin(Exception):
 
 
 class BadHTTPResponseCodeError(MessageMixin, Exception):
-    """An error raised an unexpected HTTP response code."""
     message = 'Download request {url} code {r_code} expected {code}.'
 
 
 class CorruptedFileError(MessageMixin, Exception):
-    """An error raised when a file is corrupted."""
-    message = 'Downloaded file {filename} is corrupted checksum {file_hash} expected {expected_hash}.'
+    message = 'File {filename} is corrupted checksum {file_hash} expected {expected_hash}.'
 
 
 class ForbiddenError(Exception):
     """A forbidden error."""
     pass
+
+
+class MultipleSignalHandlersError(MessageMixin, Exception):
+    message = """Signal {signum} already handled by {handlers}."""
 
 
 class TimeoutError(Exception):
