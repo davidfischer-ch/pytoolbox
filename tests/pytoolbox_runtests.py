@@ -28,7 +28,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, shutil, six, tarfile, tempfile
 from django.conf import settings
 from pytoolbox.encoding import PY2
-from pytoolbox.exception import BadHTTPResponseCodeError
+from pytoolbox.exceptions import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
 

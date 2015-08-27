@@ -30,7 +30,7 @@ from codecs import open
 from .. import console, module
 from ..crypto import checksum, new
 from ..encoding import to_bytes
-from ..exception import BadHTTPResponseCodeError, CorruptedFileError
+from ..exceptions import BadHTTPResponseCodeError, CorruptedFileError
 from ..filesystem import try_makedirs, try_remove
 
 _all = module.All(globals())

@@ -31,7 +31,7 @@ from . import module
 from .console import confirm
 from .encoding import string_types, text_type, to_bytes, to_unicode
 from .filesystem import from_template, try_remove, try_symlink
-from .exception import TimeoutError
+from .exceptions import TimeoutError
 from .subprocess import cmd
 
 _all = module.All(globals())
