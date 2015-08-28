@@ -443,6 +443,7 @@ class TestFFprobe(base.TestCase):
         self.equal(streams[0].channels, 1)
         self.equal(streams[0].codec.time_base, 1 / 48000)
 
+    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_get_media_duration(self):
         # Bad file format
         with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
@@ -484,7 +485,7 @@ class TestFFprobe(base.TestCase):
     def test_get_media_info_errors_handling(self):
         self.ffprobe.executable = str(uuid.uuid4())
         with self.assertRaises(OSError):
-            self.ffprobe.get_media_info('small.mp4', fail=False)
+            self.ffprobe.get_media_info('another.mp4', fail=False)
 
     def test_get_video_streams(self):
         self.ffprobe.stream_classes['video'] = None
