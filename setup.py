@@ -137,7 +137,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     extras_require=extras_require,
     install_requires=install_requires,
-    tests_require=['coverage', 'mock', 'nose', 'nose-exclude'],
+    tests_require=['coverage==3.7.1', 'mock', 'nose', 'nose-exclude'],
     test_suite='tests.pytoolbox_runtests.main',
     use_2to3=PY3,
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
