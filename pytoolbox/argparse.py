@@ -44,7 +44,7 @@ SystemExit: 2
 
 import argparse, os
 
-from . import module
+from . import itertools, module
 from .encoding import to_bytes
 
 _all = module.All(globals())
@@ -77,7 +77,7 @@ class FullPaths(argparse.Action):
     """Expand user/relative paths."""
     def __call__(self, parser, namespace, values, option_string=None):
         fullpath = lambda p: os.path.abspath(os.path.expanduser(p))
-        setattr(namespace, self.dest, fullpath(values) if isinstance(values, str) else [fullpath(v) for v in values])
+        setattr(namespace, self.dest, itertools.extract_single(list(fullpath(v) for v in itertools.chain(values))))
 
 
 class Range(object):

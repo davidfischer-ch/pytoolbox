@@ -53,6 +53,12 @@ def isiterable(obj, blacklist=(binary_type, string_types)):
     return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, blacklist)
 
 
+class DummyObject(object):
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+
 class MissingType(object):
 
     def __copy__(self):
