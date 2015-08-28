@@ -161,7 +161,7 @@ class StaticFFprobe(ffmpeg.FFprobe):
     executable = STATIC_FFPROBE_BINARY
 
     def get_media_info(self, filename, *args, **kwargs):
-        if filename == 'small.mp4' and not WITH_FFMPEG:
+        if os.path.basename(filename) == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
         return super(StaticFFprobe, self).get_media_info(filename, *args, **kwargs)
 
