@@ -137,7 +137,7 @@ if len(sys.argv) > 1 and sys.argv[1] in ('develop', 'install', 'test'):
 
 setup(
     name='pytoolbox',
-    version='10.2.0',
+    version='10.3.0',
     packages=find_packages(exclude=['tests']),
     extras_require=extras_require,
     install_requires=install_requires,
