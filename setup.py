@@ -28,7 +28,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, sys
 from codecs import open
 from setuptools import setup, find_packages
-from tests import pytoolbox_runtests  # noqa - Check if import succeed to avoid setup() ciphered stack-trace
+try:
+    from tests import pytoolbox_runtests  # noqa - Check if import succeed to avoid setup() ciphered stack-trace
+except Exception as e:
+    sys.stderr.write('WARNING importing pytoolbox_runtests raised the following error: {0}{1.linesep}'.format(e, os))
 
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 
