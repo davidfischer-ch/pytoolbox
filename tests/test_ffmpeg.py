@@ -160,10 +160,13 @@ class StaticFFprobe(ffmpeg.FFprobe):
 
     executable = STATIC_FFPROBE_BINARY
 
-    def get_media_info(self, filename, *args, **kwargs):
-        if os.path.basename(filename) == 'small.mp4' and not WITH_FFMPEG:
+    def get_media_info(self, media, *args, **kwargs):
+        if isinstance(media, dict):
+            return media
+        media = self.to_media(media)
+        if os.path.basename(media.filename) == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
-        return super(StaticFFprobe, self).get_media_info(filename, *args, **kwargs)
+        return super(StaticFFprobe, self).get_media_info(media, *args, **kwargs)
 
 
 class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
