@@ -3,6 +3,57 @@ changelog
 =========
 
 ------------------
+v10.2.0 -> v10.3.0
+------------------
+
+Compatibility breaks
+====================
+
+* Remove module rest_framework.v2
+* Refactor (optimize) unittest.FilterByTagsMixin
+
+Minor compatibilty breaks
+=========================
+
+* Rename module exception to exceptions
+* Rename module rest_framework.v3 to rest_framework
+* Rename some attributes of multimedia.ffmpeg classes
+
+Features
+========
+
+* Add many modules:
+    - atlassian
+    - itertools
+    - module (yes!)
+    - selenium
+    - signals
+    - states
+    - string
+    - voluptuous
+* Add functions:
+* Add class argparse.Range
+* Add function argparse.multiple
+* Add function collections.{merge_dicts, swap_dict_of_values}
+* Add decorator decorators.run_once
+* Add modules and mixins in django* module
+* Add value encoding.binary_type
+* Add function humanize.naturalfrequency
+* Add function types.isiterable
+* Add classes types.{DummyObject,MissingType}
+* Add object types.Missing instance of MissingType
+* Add mixins unittest.{InMixin,InspectMixin}
+* Add class unittest.Asserts
+* Add object unittest.asserts
+
+Fixes and enhancements
+======================
+
+* Countless fixes and enhancements
+* Follow os.path import best practices
+* Make multimedia.ffmpeg private functions public
+
+------------------
 v10.0.0 -> v10.2.0
 ------------------
 
