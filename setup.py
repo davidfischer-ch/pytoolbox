@@ -28,6 +28,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, sys
 from codecs import open
 from setuptools import setup, find_packages
+from tests import pytoolbox_runtests  # noqa - Check if import succeed to avoid setup() ciphered stack-trace
 
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
 
