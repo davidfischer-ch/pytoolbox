@@ -71,6 +71,18 @@ class TestFilterByTagsMixin(base.TestCase):
             tags = {'c'}
             fast_class_skip_enabled = True
 
+            @classmethod
+            def get_only_tags(cls):
+                return cls.only_tags
+
+            @classmethod
+            def get_extra_tags(cls):
+                return cls.extra_tags
+
+            @classmethod
+            def get_skip_tags(cls):
+                return cls.skip_tags
+
             @with_tags('m')
             def test_1(self):
                 pass
@@ -82,9 +94,9 @@ class TestFilterByTagsMixin(base.TestCase):
         def test(counter, skip, extra_tags=None, only_tags=None, skip_tags=None):
             skipped = False
             try:
-                TestCaseWithTags.get_extra_tags = lambda: extra_tags or set()
-                TestCaseWithTags.get_only_tags = lambda: only_tags or set()
-                TestCaseWithTags.get_skip_tags = lambda: skip_tags or set()
+                TestCaseWithTags.extra_tags = extra_tags or set()
+                TestCaseWithTags.only_tags = only_tags or set()
+                TestCaseWithTags.skip_tags = skip_tags or set()
                 TestCaseWithTags.fast_class_skip()
             except unittest.SkipTest:
                 skipped = True

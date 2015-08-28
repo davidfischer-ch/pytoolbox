@@ -84,7 +84,7 @@ class InspectMixin(object):
 
     @classmethod
     def get_test_methods(cls):
-        return ((n, m) for n, m in inspect.getmembers(cls, inspect.isfunction) if n.startswith('test_'))
+        return ((n, m) for n, m in inspect.getmembers(cls) if n.startswith('test_') and hasattr(m, '__call__'))
 
 
 class AwareTearDownMixin(object):

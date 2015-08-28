@@ -27,7 +27,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os, shutil, six, tarfile, tempfile
 from django.conf import settings
-from pytoolbox.encoding import PY2
 from pytoolbox.exceptions import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
@@ -65,7 +64,7 @@ def main():
 
     print('Run the tests with nose')
     return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'],
-                    ignore=None if PY2 else 'session.py|schema.py')  # May ignore ming modules FIXME filter by package
+                    ignore='session.py|schema.py')  # Ignore ming FIXME filter by package
 
 if __name__ == '__main__':
     main()

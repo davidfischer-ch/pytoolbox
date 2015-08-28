@@ -24,7 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections.abc, itertools
+try:
+    from collections import abc
+except ImportError:
+    import collections as abc
+import itertools
 
 from . import module
 from .encoding import binary_type, string_types
@@ -50,7 +54,7 @@ def isiterable(obj, blacklist=(binary_type, string_types)):
     ...     asserts.true(isiterable(obj), obj)
     ...     asserts.false(isiterable({}, dict))
     """
-    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, blacklist)
+    return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
 
 
 class DummyObject(object):
