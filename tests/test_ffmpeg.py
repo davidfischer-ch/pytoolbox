@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, os, tempfile, unittest
+import datetime, os, tempfile, unittest, uuid
 from codecs import open
 from pytoolbox.filesystem import try_remove
 from pytoolbox.multimedia import ffmpeg
@@ -160,10 +160,10 @@ class StaticFFprobe(ffmpeg.FFprobe):
 
     executable = STATIC_FFPROBE_BINARY
 
-    def get_media_info(self, filename):
+    def get_media_info(self, filename, *args, **kwargs):
         if filename == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
-        return super(StaticFFprobe, self).get_media_info(filename)
+        return super(StaticFFprobe, self).get_media_info(filename, *args, **kwargs)
 
 
 class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
@@ -477,6 +477,11 @@ class TestFFprobe(base.TestCase):
         self.equal(media_format.bit_rate, 551193)
         self.equal(media_format.format_long_name, 'QuickTime / MOV')
         self.equal(media_format.probe_score, 100)
+
+    def test_get_media_info_errors_handling(self):
+        self.ffprobe.executable = str(uuid.uuid4())
+        with self.assertRaises(OSError):
+            self.ffprobe.get_media_info('small.mp4', fail=False)
 
     def test_get_video_streams(self):
         self.ffprobe.stream_classes['video'] = None

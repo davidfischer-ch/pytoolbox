@@ -220,7 +220,7 @@ class FFprobe(object):
         process.wait()
         return process.stdout.read()
 
-    def get_media_duration(self, media, as_delta=False, options=None):
+    def get_media_duration(self, media, as_delta=False, options=None, fail=False):
         """
         Returns the duration of a media as an instance of time or None in case of error.
 
@@ -238,7 +238,7 @@ class FFprobe(object):
                     microseconds, seconds = int(1000000 * microseconds), int(seconds)
                     return parts_to_time(hours, minutes, seconds, microseconds, as_delta=as_delta)
         else:
-            info = self.get_media_info(media)
+            info = self.get_media_info(media, fail)
             try:
                 duration = secs_to_time(float(info['format']['duration']), as_delta=as_delta) if info else None
             except KeyError:
@@ -248,7 +248,7 @@ class FFprobe(object):
                              duration >= datetime.time(0, 0, 1)):
                 return duration
 
-    def get_media_info(self, media):
+    def get_media_info(self, media, fail=False):
         """
         Return a Python dictionary containing information about the media or None in case of error.
         Set `media` to an instance of `self.media_class` or a filename.
@@ -261,15 +261,20 @@ class FFprobe(object):
             try:
                 return json.loads(subprocess.check_output([self.executable, '-v', 'quiet', '-print_format', 'json',
                                   '-show_format', '-show_streams', media.filename]).decode('utf-8'))
+            except OSError as e:
+                # Executable does not exist
+                if fail or e.errno == errno.ENOENT:
+                    raise
             except:
-                pass
+                if fail:
+                    raise
 
     def get_media_format(self, media, fail=False):
         """
         Return information about the container (and file) or None in case of error.
         Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
         """
-        info = self.get_media_info(media)
+        info = self.get_media_info(media, fail)
         try:
             cls, the_format = self.format_class, info['format']
             return cls(the_format) if cls and not isinstance(the_format, cls) else the_format
@@ -282,7 +287,7 @@ class FFprobe(object):
         Return a list with the media streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
         """
-        info = self.get_media_info(media)
+        info = self.get_media_info(media, fail)
         try:
             raw_streams = (s for s in info['streams'] if condition(s))
         except:
@@ -593,9 +598,8 @@ class FFmpeg(object):
             chunk = process.stderr.read()
             return chunk if chunk is None or isinstance(chunk, string_types) else chunk.decode(self.encoding)
         except IOError as e:
-            if e.errno == errno.EAGAIN:
-                return None
-            raise
+            if e.errno != errno.EAGAIN:
+                raise
 
     def _get_process(self, arguments, **process_kwargs):
         """Return an encoding process with stderr made asynchronous."""
