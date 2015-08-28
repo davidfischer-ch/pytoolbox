@@ -37,9 +37,9 @@ def get_slots(obj):
     return set(itertools.chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))
 
 
-def isiterable(obj):
+def isiterable(obj, blacklist=(binary_type, string_types)):
     """
-    Return ``True`` if the object is an iterable, but ``False`` for :class:`str` or :class:`bytes`.
+    Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 
     **Example usage**
 
@@ -48,8 +48,9 @@ def isiterable(obj):
     ...     asserts.false(isiterable(obj), obj)
     >>> for obj in [], (), set(), {}.iteritems():
     ...     asserts.true(isiterable(obj), obj)
+    ...     asserts.false(isiterable({}, dict))
     """
-    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, (binary_type, string_types))
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, blacklist)
 
 
 class MissingType(object):
