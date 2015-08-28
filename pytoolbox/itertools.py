@@ -32,11 +32,11 @@ from .types import isiterable
 _all = module.All(globals())
 
 
-def chain(*args, **kwargs):
+def chain(*objects, **kwargs):
     """
-    Chain the arguments, handle non iterable arguments gracefully.
+    Chain the objects, handle non iterable objects gracefully.
 
-    * Set `callback` to a function checking if the argument is iterable, defaults to :func:`isiterable`.
+    * Set `callback` to a function checking if the object is iterable, defaults to :func:`isiterable`.
 
     **Example usage**
 
@@ -50,6 +50,21 @@ def chain(*args, **kwargs):
     callback = kwargs.pop('callback', isiterable)
     if kwargs:
         raise TypeError('Invalid arguments for {0} {1}'.format(chain, kwargs.iterkeys()))
-    return itertools.chain.from_iterable(a if callback(a) else [a] for a in args)
+    return itertools.chain.from_iterable(o if callback(o) else [o] for o in objects)
+
+
+def extract_single(objects):
+    """
+    Return the object from objects if there is only one object, else return objects unmodified.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.equal(extract_single({6}), 6)
+    >>> asserts.list_equal(extract_single([10, 2]), [10, 2])
+    >>> asserts.equal(extract_single([7]), 7)
+    >>> asserts.equal(extract_single('!'), '!')
+    """
+    return next(iter(objects)) if len(objects) == 1 else objects
 
 __all__ = _all.diff(globals())
