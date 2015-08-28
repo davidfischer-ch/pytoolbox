@@ -29,7 +29,8 @@ import os, sys
 from codecs import open
 from setuptools import setup, find_packages
 try:
-    from tests import pytoolbox_runtests  # noqa - Check if import succeed to avoid setup() ciphered stack-trace
+    # Check if import succeed and print the exception because setup() ciphered stack-trace is not useful
+    from tests import pytoolbox_runtests
 except Exception as e:
     sys.stderr.write('WARNING importing pytoolbox_runtests raised the following error: {0}{1.linesep}'.format(e, os))
 
