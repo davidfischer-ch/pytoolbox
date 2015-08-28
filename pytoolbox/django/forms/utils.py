@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from copy import copy
 from django.contrib import messages
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 
 from ... import module
 from ...encoding import to_bytes
