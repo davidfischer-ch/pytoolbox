@@ -42,6 +42,7 @@ MPD_TEST = """<?xml version="1.0"?>
 STATIC_FFMPEG_BINARY = os.path.join(tempfile.gettempdir(), 'ffmpeg')
 STATIC_FFPROBE_BINARY = os.path.join(tempfile.gettempdir(), 'ffprobe')
 WITH_FFMPEG = os.path.isfile(STATIC_FFMPEG_BINARY)
+WITH_FFPROBE = os.path.isfile(STATIC_FFPROBE_BINARY)
 MEDIA_INFOS = {
     'format': {
         'bit_rate': '551193',
@@ -150,24 +151,24 @@ MEDIA_INFOS = {
 }
 
 
-class MockFFmpeg(ffmpeg.FFmpeg):
+class StaticFFmpeg(ffmpeg.FFmpeg):
 
     executable = STATIC_FFMPEG_BINARY
 
 
-class MockFFprobe(ffmpeg.FFprobe):
+class StaticFFprobe(ffmpeg.FFprobe):
 
     executable = STATIC_FFPROBE_BINARY
 
     def get_media_info(self, filename):
         if filename == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
-        return super(MockFFprobe, self).get_media_info(filename)
+        return super(StaticFFprobe, self).get_media_info(filename)
 
 
-class MockEncodeStatistics(ffmpeg.EncodeStatistics):
+class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
 
-    ffprobe_class = MockFFprobe
+    ffprobe_class = StaticFFprobe
 
 
 class RaiseEncodeStatistics(ffmpeg.EncodeStatistics):
@@ -176,7 +177,7 @@ class RaiseEncodeStatistics(ffmpeg.EncodeStatistics):
         raise ValueError('This is the error.')
 
 
-class RaiseFFmpeg(MockFFmpeg):
+class RaiseFFmpeg(StaticFFmpeg):
 
     statistics_class = RaiseEncodeStatistics
 
@@ -227,7 +228,7 @@ class TestEncodeStatistics(base.TestCase):
     def get_statistics(self, start=False, returncode=None, options=None, **kwargs):
         if options is None:
             options = ['-acodec', 'copy', '-vcodec', 'copy']
-        statistics = MockEncodeStatistics(self.inputs, self.outputs, options, **kwargs)
+        statistics = StaticEncodeStatistics(self.inputs, self.outputs, options, **kwargs)
         start = start or returncode is not None
         if start:
             statistics.start('process')
@@ -325,6 +326,7 @@ class TestEncodeStatistics(base.TestCase):
         self.is_none(statistics.ratio)
         self.is_not_none(statistics.input._size)
 
+    @unittest.skipIf(not WITH_FFPROBE, 'Static FFprobe binary not available')
     def test_started_properties(self):
         statistics = self.get_statistics(start=True)
         self.equal(statistics.state, statistics.states.STARTED)
@@ -332,6 +334,7 @@ class TestEncodeStatistics(base.TestCase):
         self.is_none(statistics.eta_time)
         self.equal(statistics.ratio, 0.0)
 
+    @unittest.skipIf(not WITH_FFPROBE, 'Static FFprobe binary not available')
     def test_success_properties(self):
         self.outputs[0].filename = self.inputs[0].filename
         statistics = self.get_statistics(returncode=0)
@@ -348,7 +351,7 @@ class TestFFmpeg(base.TestCase):
 
     def setUp(self):
         super(TestFFmpeg, self).setUp()
-        self.ffmpeg = MockFFmpeg()
+        self.ffmpeg = StaticFFmpeg()
 
     def test_clean_medias_argument(self):
         clean = self.ffmpeg._clean_medias_argument
@@ -420,7 +423,7 @@ class TestFFprobe(base.TestCase):
 
     def setUp(self):
         super(TestFFprobe, self).setUp()
-        self.ffprobe = MockFFprobe()
+        self.ffprobe = StaticFFprobe()
 
     def test_get_audio_streams(self):
         self.ffprobe.stream_classes['audio'] = None
