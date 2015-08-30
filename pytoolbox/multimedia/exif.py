@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 class Tag(object):
 
     type_to_hook = {
+        datetime: 'get_tag_string',  # data property will convert to a date-time
         Fraction: 'get_exif_tag_rational',
         int: 'get_tag_long',
         list: 'get_tag_multiple',
@@ -48,14 +49,17 @@ class Tag(object):
         'Ascii': str,
         'Byte': bytes,
         'Comment': str,
+        'Date': datetime,
+        'LangAlt': str,
         'Long': int,
+        'Rational': Fraction,
+        'SRational': Fraction,
         'SLong': int,
         'Short': int,
         'SShort': int,
         'String': str,
-        'Rational': Fraction,
-        'SRational': Fraction,
         'Undefined': bytes,
+        'XmpBag': list,
         'XmpSeq': list,
         'XmpText': str
     }
