@@ -29,6 +29,7 @@ from datetime import datetime
 from fractions import Fraction
 
 from .. import decorators, module
+from ..datetime import str_to_datetime
 from ..encoding import string_types
 
 _all = module.All(globals())
@@ -59,15 +60,6 @@ class Tag(object):
         'XmpText': str
     }
 
-    @staticmethod
-    def to_date(date_string, fail=True):
-        try:
-            # Fix weird hour format (2015:06:28 24:05:00 = 28th Jun 2015 at midnight and 5 minutes)
-            return datetime.strptime(date_string.replace(': ', ':0').replace(' 24:', ' 00:'), '%Y:%m:%d %H:%M:%S')
-        except ValueError:
-            if fail and date_string != '0000:00:00 00:00:00':
-                raise
-
     def __init__(self, metadata, key):
         """Metadata should be an instance of :class:`GExiv2.Metadata`."""
         self.metadata = metadata
@@ -84,7 +76,7 @@ class Tag(object):
                 data = type_hook(self.key)
             except UnicodeDecodeError as e:
                 return e
-            return (self.to_date(data, fail=False) or data) if isinstance(data, string_types) and ':' in data else data
+            return (str_to_datetime(data, fail=False) or data) if isinstance(data, string_types) and ':' in data else data
         return self.data_bytes
 
     @property

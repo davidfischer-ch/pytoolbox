@@ -82,9 +82,10 @@ def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
     return date_time.strftime(format) + (' UTC' if append_utc else '')
 
 
-def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S'):
+def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):
     """
     Return the date string converted into an instance of datetime.
+    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5 minutes.
 
     **Example usage**
 
@@ -95,7 +96,11 @@ def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S'):
         ...
     ValueError: time data 'this is not a date' does not match format '%Y-%m-%d %H:%M:%S'
     """
-    return datetime.datetime.strptime(date, format)
+    try:
+        return datetime.datetime.strptime(date.replace(': ', ':0').replace(' 24:', ' 00:'), '%Y:%m:%d %H:%M:%S')
+    except ValueError:
+        if fail and date != '0000:00:00 00:00:00':
+            raise
 
 
 def multiply_time(value, factor, as_delta=False):
