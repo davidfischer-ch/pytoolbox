@@ -39,8 +39,9 @@ class Tag(object):
 
     type_to_hook = {
         Fraction: 'get_exif_tag_rational',
-        str: 'get_tag_string',
-        int: 'get_tag_long'
+        int: 'get_tag_long',
+        list: 'get_tag_multiple',
+        str: 'get_tag_string'
     }
     type_to_python = {
         'Ascii': str,
@@ -53,7 +54,9 @@ class Tag(object):
         'String': str,
         'Rational': Fraction,
         'SRational': Fraction,
-        'Undefined': bytes
+        'Undefined': bytes,
+        'XmpSeq': list,
+        'XmpText': str
     }
 
     @staticmethod
