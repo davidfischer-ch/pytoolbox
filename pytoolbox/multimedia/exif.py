@@ -78,10 +78,10 @@ class Tag(object):
 
     @property
     def data(self):
-        method = self.type_to_hook.get(self.type)
-        if method:
+        type_hook = self.get_type_hook()
+        if type_hook:
             try:
-                data = getattr(self.metadata, method)(self.key)
+                data = type_hook(self.key)
             except UnicodeDecodeError as e:
                 return e
             return (self.to_date(data, fail=False) or data) if isinstance(data, string_types) and ':' in data else data
@@ -106,6 +106,10 @@ class Tag(object):
     @decorators.cached_property
     def type(self):
         return self.type_to_python[self.metadata.get_tag_type(self.key)]
+
+    def get_type_hook(self):
+        name = self.type_to_hook.get(self.type)
+        return getattr(self.metadata, name) if name else None
 
 
 class Metadata(object):
