@@ -24,15 +24,98 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import logging
 from datetime import datetime
+from fractions import Fraction
 
-from .. import module
+from .. import decorators, module, types
 from ..encoding import string_types
 
 _all = module.All(globals())
+logger = logging.getLogger(__name__)
+
+
+class DecodeErrorType(types.MissingType):
+
+    def __repr__(self):
+        return 'DecodeError'
+
+DecodeError = DecodeErrorType()
+
+
+class Tag(object):
+
+    type_to_hook = {
+        Fraction: 'get_exif_tag_rational',
+        str: 'get_tag_string',
+        int: 'get_tag_long'
+    }
+    type_to_python = {
+        'Ascii': str,
+        'Byte': bytes,
+        'Comment': str,
+        'Long': int,
+        'SLong': int,
+        'Short': int,
+        'SShort': int,
+        'String': str,
+        'Rational': Fraction,
+        'SRational': Fraction,
+        'Undefined': bytes
+    }
+
+    @staticmethod
+    def to_date(date_string, fail=True):
+        try:
+            # Fix weird hour format (2015:06:28 24:05:00 = 28th Jun 2015 at midnight and 5 minutes)
+            return datetime.strptime(date_string.replace(': ', ':0').replace(' 24:', ' 00:'), '%Y:%m:%d %H:%M:%S')
+        except ValueError:
+            if fail and date_string != '0000:00:00 00:00:00':
+                raise
+
+    def __init__(self, metadata, key):
+        """Metadata should be an instance of :class:`GExiv2.Metadata`."""
+        self.metadata = metadata
+        self.key = key
+
+    def __repr__(self):
+        return '<{0.__class__} {0.key}: {1}>'.format(self, str(self.data)[:20])
+
+    @property
+    def data(self):
+        method = self.type_to_hook.get(self.type)
+        if method:
+            try:
+                data = getattr(self.metadata, method)(self.key)
+            except UnicodeDecodeError:
+                return DecodeError
+            return (self.to_date(data, fail=False) or data) if isinstance(data, string_types) and ':' in data else data
+        return self.data_bytes
+
+    @property
+    def data_bytes(self):
+        return self.metadata.get_tag_raw(self.key).get_data()
+
+    @decorators.cached_property
+    def description(self):
+        return self.metadata.get_tag_description(self.key)
+
+    @decorators.cached_property
+    def label(self):
+        return self.metadata.get_tag_label(self.key)
+
+    @property
+    def size(self):
+        return self.metadata.get_tag_raw(self.key).get_size()
+
+    @decorators.cached_property
+    def type(self):
+        return self.type_to_python[self.metadata.get_tag_type(self.key)]
 
 
 class Metadata(object):
+
+    tag_class = Tag
 
     def __init__(self, path):
         from gi.repository import GExiv2
@@ -40,32 +123,24 @@ class Metadata(object):
         self._m.open_path(path)
 
     def __getitem__(self, key):
-        return self._m[key]
+        return self.tag_class(self._m, key)
+
+    @property
+    def exposure_time(self):
+        return self._m.get_exposure_time()
+
+    @property
+    def tags(self):
+        get = self.get
+        return {k: get(k) for k in self._m.get_tags()}
 
     def get(self, key):
-        value = self._m.get(key, default=None)
-        return str(value) if value else None
+        return self.tag_class(self._m, key)
 
     def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
         for key in ([keys] if isinstance(keys, string_types) else keys):
-            value = self.get(key)
-            if value:
-                try:
-                    # Fix weird hour format (2015:06:28 24:05:00 = 28th Jun 2015 at midnight and 5 minutes)
-                    return datetime.strptime(value.replace(': ', ':0').replace(' 24:', ' 00:'), '%Y:%m:%d %H:%M:%S')
-                except ValueError:
-                    if fail and value != '0000:00:00 00:00:00':
-                        raise
-
-    def get_float(self, key):
-        value = self.get(key)
-        if not value:
-            return None
-        num, denom = value.split('/')
-        return float(num) / float(denom)
-
-    def get_int(self, key):
-        value = self.get(key)
-        return int(value) if value else None
+            date = self.get(key).data_date(fail=fail)
+            if date:
+                return date
 
 __all__ = _all.diff(globals())
