@@ -24,12 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import logging
-from datetime import datetime
+import datetime, logging
 from fractions import Fraction
 
 from .. import decorators, module
-from ..datetime import str_to_datetime
+from ..datetime import str_to_datetime, str_to_time
 from ..encoding import string_types
 
 _all = module.All(globals())
@@ -38,8 +37,10 @@ logger = logging.getLogger(__name__)
 
 class Tag(object):
 
+    date_formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d']
     type_to_hook = {
-        datetime: 'get_tag_string',  # data property will convert to a date-time
+        datetime.datetime: 'get_tag_string',  # clean method will convert to a date-time
+        datetime.time: 'get_tag_string',  # clean method will convert to a time
         Fraction: 'get_exif_tag_rational',
         int: 'get_tag_long',
         list: 'get_tag_multiple',
@@ -49,7 +50,7 @@ class Tag(object):
         'Ascii': str,
         'Byte': bytes,
         'Comment': str,
-        'Date': datetime,
+        'Date': datetime.datetime,
         'LangAlt': str,
         'Long': int,
         'Rational': Fraction,
@@ -58,6 +59,7 @@ class Tag(object):
         'Short': int,
         'SShort': int,
         'String': str,
+        'Time': datetime.time,
         'Undefined': bytes,
         'XmpBag': list,
         'XmpSeq': list,
@@ -77,10 +79,9 @@ class Tag(object):
         type_hook = self.get_type_hook()
         if type_hook:
             try:
-                data = type_hook(self.key)
+                return self.clean(type_hook(self.key))
             except UnicodeDecodeError as e:
                 return e
-            return (str_to_datetime(data, fail=False) or data) if isinstance(data, string_types) and ':' in data else data
         return self.data_bytes
 
     @property
@@ -102,7 +103,24 @@ class Tag(object):
 
     @decorators.cached_property
     def type(self):
-        return self.type_to_python[self.metadata.get_tag_type(self.key)]
+        tag_type = self.metadata.get_tag_type(self.key)
+        try:
+            return self.type_to_python[tag_type]
+        except KeyError:
+            if tag_type:
+                raise KeyError('Unknow tag type {0}'.format(tag_type))
+        return bytes
+
+    def clean(self, data):
+        if self.type == datetime.time:
+            return str_to_time(data)
+        elif self.type == datetime.datetime or isinstance(data, string_types):
+            for date_format in self.date_formats:
+                date = str_to_datetime(data, date_format, fail=False)
+                if date:
+                    return date
+        assert not data or isinstance(data, self.type), '{0.key} {0.type} {1} {2}'.format(self, data, type(data))
+        return data
 
     def get_type_hook(self):
         name = self.type_to_hook.get(self.type)
