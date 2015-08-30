@@ -81,7 +81,8 @@ class Tag(object):
 
     @property
     def data_bytes(self):
-        return self.metadata.get_tag_raw(self.key).get_data()
+        tag_raw = self.metadata.get_tag_raw(self.key)
+        return tag_raw.get_data() if tag_raw else None
 
     @decorators.cached_property
     def description(self):
