@@ -28,19 +28,11 @@ import logging
 from datetime import datetime
 from fractions import Fraction
 
-from .. import decorators, module, types
+from .. import decorators, module
 from ..encoding import string_types
 
 _all = module.All(globals())
 logger = logging.getLogger(__name__)
-
-
-class DecodeErrorType(types.MissingType):
-
-    def __repr__(self):
-        return 'DecodeError'
-
-DecodeError = DecodeErrorType()
 
 
 class Tag(object):
@@ -87,8 +79,8 @@ class Tag(object):
         if method:
             try:
                 data = getattr(self.metadata, method)(self.key)
-            except UnicodeDecodeError:
-                return DecodeError
+            except UnicodeDecodeError as e:
+                return e
             return (self.to_date(data, fail=False) or data) if isinstance(data, string_types) and ':' in data else data
         return self.data_bytes
 
