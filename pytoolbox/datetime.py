@@ -97,7 +97,7 @@ def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):
     ValueError: time data 'this is not a date' does not match format '%Y-%m-%d %H:%M:%S'
     """
     try:
-        return datetime.datetime.strptime(date.replace(': ', ':0').replace(' 24:', ' 00:'), '%Y:%m:%d %H:%M:%S')
+        return datetime.datetime.strptime(date.replace(': ', ':0').replace(' 24:', ' 00:'), format)
     except ValueError:
         if fail and date != '0000:00:00 00:00:00':
             raise
