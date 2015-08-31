@@ -122,6 +122,6 @@ class Tag(object):
 
     def get_type_hook(self):
         name = self.type_to_hook.get(self.type)
-        return getattr(self.metadata, name) if name else None
+        return getattr(self.metadata.exiv2, name) if name else None
 
 __all__ = _all.diff(globals())
