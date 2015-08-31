@@ -37,23 +37,23 @@ class Metadata(object):
 
     def __init__(self, path):
         from gi.repository import GExiv2
-        self._m = GExiv2.Metadata()
-        self._m.open_path(path)
+        self.exiv2 = GExiv2.Metadata()
+        self.exiv2.open_path(path)
 
     def __getitem__(self, key):
-        return self.tag_class(self._m, key)
+        return self.tag_class(self, key)
 
     @property
     def exposure_time(self):
-        return self._m.get_exposure_time()
+        return self.exiv2.get_exposure_time()
 
     @property
     def tags(self):
         get = self.get
-        return {k: get(k) for k in self._m.get_tags()}
+        return {k: get(k) for k in self.exiv2.get_tags()}
 
     def get(self, key):
-        return self.tag_class(self._m, key)
+        return self.tag_class(self, key)
 
     def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
         for key in ([keys] if isinstance(keys, string_types) else keys):

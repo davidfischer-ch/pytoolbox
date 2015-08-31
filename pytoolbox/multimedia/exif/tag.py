@@ -66,7 +66,6 @@ class Tag(object):
     }
 
     def __init__(self, metadata, key):
-        """Metadata should be an instance of :class:`GExiv2.Metadata`."""
         self.metadata = metadata
         self.key = key
 
@@ -85,24 +84,24 @@ class Tag(object):
 
     @property
     def data_bytes(self):
-        tag_raw = self.metadata.get_tag_raw(self.key)
+        tag_raw = self.metadata.exiv2.get_tag_raw(self.key)
         return tag_raw.get_data() if tag_raw else None
 
     @decorators.cached_property
     def description(self):
-        return self.metadata.get_tag_description(self.key)
+        return self.metadata.exiv2.get_tag_description(self.key)
 
     @decorators.cached_property
     def label(self):
-        return self.metadata.get_tag_label(self.key)
+        return self.metadata.exiv2.get_tag_label(self.key)
 
     @property
     def size(self):
-        return self.metadata.get_tag_raw(self.key).get_size()
+        return self.metadata.exiv2.get_tag_raw(self.key).get_size()
 
     @decorators.cached_property
     def type(self):
-        tag_type = self.metadata.get_tag_type(self.key)
+        tag_type = self.metadata.exiv2.get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
         except KeyError:
