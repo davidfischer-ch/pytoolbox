@@ -36,6 +36,17 @@ _all = module.All(globals())
 
 class Tag(object):
 
+    brand_from_group = {
+        'CanonCs': 'Canon',
+        'CanonCf': 'Canon',
+        'Nikon3': 'Nikon',
+        'NikonLd2': 'Nikon',
+        'NikonLd3': 'Nikon',
+        'Olympus2': 'Olympus',
+        'Sony1': 'Sony'
+    }
+    brands = frozenset(['Apple', 'Canon', 'Fujifilm', 'Nikon', 'Olympus', 'Sigma', 'Sony'])
+    brands_blacklist = frozenset(['aux', 'crs', 'Photo'])
     date_formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d']
     type_to_hook = {
         datetime.datetime: 'get_tag_string',  # clean method will convert to a date-time
@@ -70,7 +81,7 @@ class Tag(object):
         self.key = key
 
     def __repr__(self):
-        return '<{0.__class__} {0.key}: {1}>'.format(self, str(self.data)[:20])
+        return '<{0.__class__.__name__} {0.key}: {1}>'.format(self, str(self.data)[:20])
 
     @property
     def data(self):
@@ -91,9 +102,20 @@ class Tag(object):
     def description(self):
         return self.metadata.exiv2.get_tag_description(self.key)
 
+    @property
+    def brand(self):
+        brand = self.brand_from_group.get(self.group, self.group)
+        if brand and brand not in self.brands_blacklist:
+            assert brand in self.brands, 'Brand {1} not in {0.brands}'.format(self, brand)
+            return brand
+
+    @property
+    def group(self):
+        return self.key.split('.')[-2]
+
     @decorators.cached_property
     def label(self):
-        return self.metadata.exiv2.get_tag_label(self.key)
+        return self.metadata.exiv2.get_tag_label(self.key) or self.key.split('.')[-1]
 
     @property
     def size(self):

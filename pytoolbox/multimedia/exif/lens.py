@@ -24,40 +24,50 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import camera, lens, photo, tag
-from ... import module
-from ...encoding import string_types
+from ... import decorators, module
 
 _all = module.All(globals())
 
 
-class Metadata(object):
+class Lens(object):
 
-    tag_class = tag.Tag
+    def __init__(self, metadata):
+        self.metadata = metadata
 
-    def __init__(self, path):
-        from gi.repository import GExiv2
-        self.exiv2 = GExiv2.Metadata()
-        self.exiv2.open_path(path)
-        self.camera = camera.Camera(self)
-        self.lens = lens.Lens(self)
-        self.photo = photo.Photo(self)
+    def __bool__(self):
+        return bool(self.model)
 
-    def __getitem__(self, key):
-        return self.tag_class(self, key)
+    def __eq__(self, other):
+        try:
+            return self.brand == other.brand and self.model == other.model
+        except AttributeError:
+            return NotImplemented
+
+    def __hash__(self):
+        return hash(repr(self))
+
+    def __repr__(self):
+        return '<{0.__class__.__name__} {0.brand} {0.model}>'.format(self)
 
     @property
+    def brand(self):
+        brands = set(t.brand for t in self.tags.values() if t.brand)
+        if brands:
+            assert len(brands) == 1, brands
+            return next(iter(brands))
+
+    @property
+    def model(self):
+        try:
+            return next(t.data for t in self.tags.values() if 'model' in t.label.lower())
+        except StopIteration:
+            return None
+
+    @decorators.cached_property
     def tags(self):
-        get = self.get
-        return {k: get(k) for k in self.exiv2.get_tags()}
+        return {k: t for k, t in self.metadata.tags.items() if 'lens' in t.label.lower()}
 
-    def get(self, key):
-        return self.tag_class(self, key)
-
-    def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
-        for key in ([keys] if isinstance(keys, string_types) else keys):
-            date = self.get(key).data_date(fail=fail)
-            if date:
-                return date
+    def refresh(self):
+        self.__dict__.pop('tags', None)
 
 __all__ = _all.diff(globals())
