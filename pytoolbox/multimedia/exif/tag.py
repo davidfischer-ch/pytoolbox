@@ -24,15 +24,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime, logging
+import datetime
 from fractions import Fraction
 
-from .. import decorators, module
-from ..datetime import str_to_datetime, str_to_time
-from ..encoding import string_types
+from ... import decorators, module
+from ...datetime import str_to_datetime, str_to_time
+from ...encoding import string_types
 
 _all = module.All(globals())
-logger = logging.getLogger(__name__)
 
 
 class Tag(object):
@@ -125,36 +124,5 @@ class Tag(object):
     def get_type_hook(self):
         name = self.type_to_hook.get(self.type)
         return getattr(self.metadata, name) if name else None
-
-
-class Metadata(object):
-
-    tag_class = Tag
-
-    def __init__(self, path):
-        from gi.repository import GExiv2
-        self._m = GExiv2.Metadata()
-        self._m.open_path(path)
-
-    def __getitem__(self, key):
-        return self.tag_class(self._m, key)
-
-    @property
-    def exposure_time(self):
-        return self._m.get_exposure_time()
-
-    @property
-    def tags(self):
-        get = self.get
-        return {k: get(k) for k in self._m.get_tags()}
-
-    def get(self, key):
-        return self.tag_class(self._m, key)
-
-    def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
-        for key in ([keys] if isinstance(keys, string_types) else keys):
-            date = self.get(key).data_date(fail=fail)
-            if date:
-                return date
 
 __all__ = _all.diff(globals())

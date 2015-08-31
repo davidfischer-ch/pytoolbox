@@ -1,0 +1,188 @@
+# -*- encoding: utf-8 -*-
+
+#**********************************************************************************************************************#
+#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
+#
+#  Main Developer : David Fischer (david.fischer.ch@gmail.com)
+#  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
+#
+#**********************************************************************************************************************#
+#
+# This file is part of David Fischer's pytoolbox Project.
+#
+# This project is free software: you can redistribute it and/or modify it under the terms of the EUPL v. 1.1 as provided
+# by the European Commission. This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the European Union Public License for more details.
+#
+# You should have received a copy of the EUPL General Public License along with this project.
+# If not, see he EUPL licence v1.1 is available in 22 languages:
+#     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
+#
+# Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import datetime, errno, itertools, json, math, os, re, subprocess
+from xml.dom import minidom
+
+from . import miscellaneous, utils
+from ... import module
+from ...datetime import parts_to_time, secs_to_time
+from ...encoding import string_types
+from ...subprocess import raw_cmd
+
+_all = module.All(globals())
+
+DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+
+
+class FFprobe(object):
+
+    executable = 'ffprobe'
+    duration_regex = DURATION_REGEX
+    format_class = None
+    media_class = miscellaneous.Media
+    stream_classes = {'audio': None, 'subtitle': None, 'video': None}
+
+    def __init__(self, executable=None):
+        self.executable = executable or self.executable
+
+    def __call__(self, *arguments):
+        """Call FFprobe with given arguments and return the output (unicode string)."""
+        process = raw_cmd(itertools.chain([self.executable], arguments), stdout=subprocess.PIPE,
+                          stderr=subprocess.DEVNULL, universal_newlines=True)
+        process.wait()
+        return process.stdout.read()
+
+    def get_media_duration(self, media, as_delta=False, options=None, fail=False):
+        """
+        Returns the duration of a media as an instance of time or None in case of error.
+
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        If `media` is the path to a MPEG-DASH MPD, then duration will be parser from value of key
+        *mediaPresentationDuration*.
+        """
+        if isinstance(media, string_types) and os.path.splitext(media)[1] == '.mpd':
+            mpd = minidom.parse(media)
+            if mpd.firstChild.nodeName == 'MPD':
+                match = self.duration_regex.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
+                if match is not None:
+                    hours, minutes = int(match.group('hours')), int(match.group('minutes'))
+                    microseconds, seconds = math.modf(float(match.group('seconds')))
+                    microseconds, seconds = int(1000000 * microseconds), int(seconds)
+                    return parts_to_time(hours, minutes, seconds, microseconds, as_delta=as_delta)
+        else:
+            info = self.get_media_info(media, fail)
+            try:
+                duration = secs_to_time(float(info['format']['duration']), as_delta=as_delta) if info else None
+            except KeyError:
+                return None
+            # ffmpeg may return this so strange value, 00:00:00.04, let it being None
+            if duration and (duration >= datetime.timedelta(seconds=1) if as_delta else
+                             duration >= datetime.time(0, 0, 1)):
+                return duration
+
+    def get_media_info(self, media, fail=False):
+        """
+        Return a Python dictionary containing information about the media or None in case of error.
+        Set `media` to an instance of `self.media_class` or a filename.
+        If `media` is a Python dictionary, then it is returned.
+        """
+        if isinstance(media, dict):
+            return media
+        media = self.to_media(media)
+        if not utils.is_pipe(media.filename):  # Read media information from a PIPE not yet implemented
+            try:
+                return json.loads(subprocess.check_output([self.executable, '-v', 'quiet', '-print_format', 'json',
+                                  '-show_format', '-show_streams', media.filename]).decode('utf-8'))
+            except OSError as e:
+                # Executable does not exist
+                if fail or e.errno == errno.ENOENT:
+                    raise
+            except:
+                if fail:
+                    raise
+
+    def get_media_format(self, media, fail=False):
+        """
+        Return information about the container (and file) or None in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        info = self.get_media_info(media, fail)
+        try:
+            cls, the_format = self.format_class, info['format']
+            return cls(the_format) if cls and not isinstance(the_format, cls) else the_format
+        except:
+            if fail:
+                raise
+
+    def get_media_streams(self, media, condition=lambda stream: True, fail=False):
+        """
+        Return a list with the media streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        info = self.get_media_info(media, fail)
+        try:
+            raw_streams = (s for s in info['streams'] if condition(s))
+        except:
+            if fail:
+                raise
+            return []
+        streams = []
+        for stream in raw_streams:
+            stream_class = self.stream_classes[stream['codec_type']]
+            streams.append(stream_class(stream) if stream_class and not isinstance(stream, stream_class) else stream)
+        return streams
+
+    def get_audio_streams(self, media, fail=False):
+        """
+        Return a list with the audio streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
+
+    def get_subtitle_streams(self, media, fail=False):
+        """
+        Return a list with the subtitle streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
+
+    def get_video_streams(self, media, fail=False):
+        """
+        Return a list with the video streams of `media` or [] in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'video', fail=fail)
+
+    def get_video_frame_rate(self, media, index=0, fail=False):
+        """
+        Return the frame rate of the video stream at `index` in `media` or None in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        try:
+            stream = self.get_video_streams(media)[index]
+            return utils.to_frame_rate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
+        except:
+            if fail:
+                raise
+
+    def get_video_resolution(self, media, index=0, fail=False):
+        """
+        Return [width, height] of the video stream at `index` in `media` or None in case of error.
+        Set `media` to an instance of `self.media_class`, a filename or the output of `get_media_info()`.
+        """
+        try:
+            stream = self.get_video_streams(media)[index]
+            is_dict = isinstance(stream, dict)
+            return [int(stream['width']), int(stream['height'])] if is_dict else [stream.width, stream.height]
+        except:
+            if fail:
+                raise
+
+    def to_media(self, media):
+        return media if isinstance(media, self.media_class) else self.media_class(media)
+
+__all__ = _all.diff(globals())
