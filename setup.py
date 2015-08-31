@@ -101,9 +101,7 @@ extras_require = {
 # * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
 # * sudo pip-3.3 install ming    -> File "/tmp/pip_build_root/ming/setup.py", line 5, SyntaxError: invalid syntax
 
-PY3 = sys.version_info[0] > 2
-
-if not PY3:
+if sys.version_info[0] < 3:
     extras_require['ming'] = ['ming']
     try:
         import hashlib
@@ -143,7 +141,7 @@ setup(
     install_requires=install_requires,
     tests_require=['coverage==3.7.1', 'mock', 'nose', 'nose-exclude'],
     test_suite='tests.pytoolbox_runtests.main',
-    use_2to3=PY3,
+    use_2to3=True,
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
 
     # Meta-data for upload to PyPI
