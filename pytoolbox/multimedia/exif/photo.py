@@ -24,6 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import inspect
+
 from ... import module
 
 _all = module.All(globals())
@@ -31,11 +33,47 @@ _all = module.All(globals())
 
 class Photo(object):
 
+    @staticmethod
+    def clean_number(number):
+        return number if number and number > 0 else None
+
     def __init__(self, metadata):
         self.metadata = metadata
 
     @property
+    def aperture(self):
+        return self.clean_number(self.metadata.exiv2.get_fnumber())
+
+    @property
+    def date(self):
+        return self.metadata.get_date()
+
+    @property
     def exposure_time(self):
-        return self.metadata.exiv2.get_exposure_time()
+        return self.metadata.exiv2.get_exposure_time() or None
+
+    @property
+    def focal_length(self):
+        return self.clean_number(self.metadata.exiv2.get_focal_length())
+
+    @property
+    def height(self):
+        return self.metadata.exiv2.get_pixel_height() or None
+
+    @property
+    def iso(self):
+        return self.metadata.exiv2.get_iso_speed() or None
+
+    @property
+    def orientation(self):
+        orientation = self.metadata.exiv2.get_orientation()
+        return orientation.value_nick if orientation else None
+
+    @property
+    def width(self):
+        return self.metadata.exiv2.get_pixel_width() or None
+
+    def properties(self):
+        return ((n, getattr(self, n)) for n, p in inspect.getmembers(self.__class__, lambda m: isinstance(m, property)))
 
 __all__ = _all.diff(globals())
