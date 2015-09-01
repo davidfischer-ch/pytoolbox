@@ -24,6 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import datetime
+
 from . import camera, lens, photo, tag
 from ... import module
 from ...encoding import string_types
@@ -57,8 +59,8 @@ class Metadata(object):
 
     def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
         for key in ([keys] if isinstance(keys, string_types) else keys):
-            date = self.get(key).data_date(fail=fail)
-            if date:
+            date = self.get(key).data
+            if isinstance(date, datetime.datetime):
                 return date
 
 __all__ = _all.diff(globals())
