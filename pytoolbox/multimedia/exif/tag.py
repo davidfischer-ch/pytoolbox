@@ -132,6 +132,8 @@ class Tag(object):
         return bytes
 
     def clean(self, data):
+        if isinstance(data, string_types):
+            data = data.strip()
         if self.type == datetime.time:
             return str_to_time(data)
         elif self.type == datetime.datetime or isinstance(data, string_types):
