@@ -41,16 +41,16 @@ class Photo(object):
         self.metadata = metadata
 
     @property
-    def aperture(self):
-        return self.clean_number(self.metadata.exiv2.get_fnumber())
-
-    @property
     def date(self):
         return self.metadata.get_date()
 
     @property
     def exposure_time(self):
         return self.metadata.exiv2.get_exposure_time() or None
+
+    @property
+    def fnumber(self):
+        return self.clean_number(self.metadata.exiv2.get_fnumber())
 
     @property
     def focal_length(self):
