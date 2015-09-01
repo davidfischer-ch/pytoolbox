@@ -37,6 +37,7 @@ class Metadata(object):
 
     def __init__(self, path):
         from gi.repository import GExiv2
+        self.path = path
         self.exiv2 = GExiv2.Metadata()
         self.exiv2.open_path(path)
         self.camera = camera.Camera(self)
