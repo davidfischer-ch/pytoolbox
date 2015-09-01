@@ -24,30 +24,48 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import brand, equipement
-from ... import decorators, module
+import abc
+
+from ... import module
 
 _all = module.All(globals())
 
 
-class Camera(equipement.Equipement):
+class Equipement(object):
 
-    brand_class = brand.Brand
+    __metaclass__ = abc.ABCMeta
 
-    @property
-    def brand(self):
-        return self.brand_class(self.metadata.tags['Exif.Image.Make'].data)
+    def __init__(self, metadata):
+        self.metadata = metadata
 
-    @property
-    def model(self):
+    def __bool__(self):
+        return bool(self.model)
+
+    def __eq__(self, other):
         try:
-            model = self.metadata.tags['Exif.Image.Model']
-        except KeyError:
-            return None
-        return model.data
+            return self.brand == other.brand and self.model == other.model
+        except AttributeError:
+            return NotImplemented
 
-    @decorators.cached_property
+    def __hash__(self):
+        return hash(repr(self))
+
+    def __repr__(self):
+        return '<{0.__class__.__name__} {0.brand} {0.model}>'.format(self)
+
+    @abc.abstractproperty
+    def brand(self):
+        pass
+
+    @abc.abstractproperty
+    def model(self):
+        pass
+
+    @abc.abstractproperty
     def tags(self):
-        return {k: t for k, t in self.metadata.tags.items() if 'camera' in t.label.lower()}
+        pass
+
+    def refresh(self):
+        self.__dict__.pop('tags', None)
 
 __all__ = _all.diff(globals())

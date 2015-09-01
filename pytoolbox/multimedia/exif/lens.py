@@ -24,30 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from . import equipement
 from ... import decorators, module
 
 _all = module.All(globals())
 
 
-class Lens(object):
-
-    def __init__(self, metadata):
-        self.metadata = metadata
-
-    def __bool__(self):
-        return bool(self.model)
-
-    def __eq__(self, other):
-        try:
-            return self.brand == other.brand and self.model == other.model
-        except AttributeError:
-            return NotImplemented
-
-    def __hash__(self):
-        return hash(repr(self))
-
-    def __repr__(self):
-        return '<{0.__class__.__name__} {0.brand} {0.model}>'.format(self)
+class Lens(equipement.Equipement):
 
     @property
     def brand(self):
@@ -66,8 +49,5 @@ class Lens(object):
     @decorators.cached_property
     def tags(self):
         return {k: t for k, t in self.metadata.tags.items() if 'lens' in t.label.lower()}
-
-    def refresh(self):
-        self.__dict__.pop('tags', None)
 
 __all__ = _all.diff(globals())

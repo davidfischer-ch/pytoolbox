@@ -24,30 +24,41 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import brand, equipement
-from ... import decorators, module
+from ... import collections, module
 
 _all = module.All(globals())
 
 
-class Camera(equipement.Equipement):
+class Brand(object):
 
-    brand_class = brand.Brand
+    brands = frozenset([
+        'Apple', 'Asus', 'Canon', 'Fujifilm', 'HP', 'HTC', 'GoPro', 'Kodak', 'LGE', 'Nikon', 'Olympus', 'Pentax',
+        'Samsung', 'Sigma', 'Sony', 'Sony Ericsson'
+    ])
+    clean_map = collections.merge_dicts({b.lower(): b for b in brands}, {
+        # maps the group of Exif.Group.Label
+        'canoncs': 'Canon',
+        'canoncf': 'Canon',
+        'nikon3': 'Nikon',
+        'nikonld2': 'Nikon',
+        'nikonld3': 'Nikon',
+        'olympus2': 'Olympus',
+        'sony1': 'Sony',
+        # maps the value of Exif.Image.Make
+        'eastman kodak company': 'Kodak',
+        'nikon corporation': 'Nikon',
+        'olympus imaging corp.': 'Olympus',
+        'samsung techwin': 'Samsung',
+        'semc': 'Sony Ericsson'
+    })
 
-    @property
-    def brand(self):
-        return self.brand_class(self.metadata.tags['Exif.Image.Make'].data)
+    def __new__(cls, brand):
+        return cls.clean(brand)
 
-    @property
-    def model(self):
-        try:
-            model = self.metadata.tags['Exif.Image.Model']
-        except KeyError:
-            return None
-        return model.data
-
-    @decorators.cached_property
-    def tags(self):
-        return {k: t for k, t in self.metadata.tags.items() if 'camera' in t.label.lower()}
+    @classmethod
+    def clean(cls, brand):
+        brand = cls.clean_map.get(brand.lower(), brand)
+        assert brand in cls.brands, 'Brand {1} not in {0.brands}'.format(cls, brand)
+        return brand
 
 __all__ = _all.diff(globals())

@@ -27,6 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime
 from fractions import Fraction
 
+from . import brand
 from ... import decorators, module
 from ...datetime import str_to_datetime, str_to_time
 from ...encoding import string_types
@@ -36,18 +37,9 @@ _all = module.All(globals())
 
 class Tag(object):
 
-    brand_from_group = {
-        'CanonCs': 'Canon',
-        'CanonCf': 'Canon',
-        'Nikon3': 'Nikon',
-        'NikonLd2': 'Nikon',
-        'NikonLd3': 'Nikon',
-        'Olympus2': 'Olympus',
-        'Sony1': 'Sony'
-    }
-    brands = frozenset(['Apple', 'Canon', 'Fujifilm', 'Nikon', 'Olympus', 'Sigma', 'Sony'])
-    brands_blacklist = frozenset(['aux', 'crs', 'Photo'])
+    brand_class = brand.Brand
     date_formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d']
+    group_to_brand_blacklist = frozenset(['aux', 'crs', 'Image', 'Photo'])
     type_to_hook = {
         datetime.datetime: 'get_tag_string',  # clean method will convert to a date-time
         datetime.time: 'get_tag_string',  # clean method will convert to a time
@@ -104,10 +96,8 @@ class Tag(object):
 
     @property
     def brand(self):
-        brand = self.brand_from_group.get(self.group, self.group)
-        if brand and brand not in self.brands_blacklist:
-            assert brand in self.brands, 'Brand {1} not in {0.brands}'.format(self, brand)
-            return brand
+        if self.group not in self.group_to_brand_blacklist:
+            return self.brand_class(self.group)
 
     @property
     def group(self):
