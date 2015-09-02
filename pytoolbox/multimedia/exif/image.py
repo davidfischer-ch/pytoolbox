@@ -27,12 +27,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 try:
     from ...enum import OrderedEnum
 
-    class ExposureMode(OrderedEnum):
-        AUTO = 0
-        MANUAL = 1
-        BRACKET = 2
+    class Orientation(OrderedEnum):
+        NORMAL = 1
+        HOR_FLIP = 2
+        ROT_180_CCW = 3
+        VERT_FLIP = 4
+        HOR_FLIP_ROT_270_CW = 5
+        ROT_90_CW = 6
+        HOR_FLIP_ROT_90_CW = 7
+        ROT_270_CW = 8
 except ImportError:
-    ExposureMode = {0: 'auto', 1: 'manual', 2: 'bracket'}.get
+    Orientation = lambda x: range(1, 9)[x-1]
 
 from . import tag
 from ... import module
@@ -40,38 +45,30 @@ from ... import module
 _all = module.All(globals())
 
 
-class Photo(tag.TagSet):
+class Image(tag.TagSet):
 
     @property
-    def date(self):
-        return self.metadata.get_date()
+    def copyright(self):
+        return self.metadata['Iptc.Application2.Copyright'].data
 
     @property
-    def exposure_mode(self):
-        return ExposureMode(self.metadata['Exif.Photo.ExposureMode'].data)
+    def description(self):
+        return self.metadata['Exif.Image.ImageDescription'].data
 
     @property
-    def exposure_time(self):
-        return self.metadata.exiv2.get_exposure_time() or None
+    def height(self):
+        return self.clean_number(self.metadata.exiv2.get_pixel_height())
 
     @property
-    def fnumber(self):
-        return self.clean_number(self.metadata['Exif.Photo.FNumber'].data)
+    def orientation(self):
+        data = self.metadata['Exif.Image.Orientation'].data
+        try:
+            return Orientation(data)
+        except:
+            return None
 
     @property
-    def focal_length(self):
-        return self.clean_number(self.metadata['Exif.Photo.FocalLength'].data)
-
-    @property
-    def iso_speed(self):
-        return self.clean_number(self.metadata['Exif.Photo.ISOSpeed'].data)
-
-    @property
-    def sensing_method(self):
-        return self.metadata['Exif.Photo.SensingMethod'].data
-
-    @property
-    def white_balance(self):
-        return self.metadata['Exif.Photo.WhiteBalance'].data
+    def width(self):
+        return self.clean_number(self.metadata.exiv2.get_pixel_width())
 
 __all__ = _all.diff(globals())

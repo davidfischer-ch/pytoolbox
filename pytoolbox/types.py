@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import inspect
 try:
     from collections import abc
 except ImportError:
@@ -34,6 +35,10 @@ from . import module
 from .encoding import binary_type, string_types
 
 _all = module.All(globals())
+
+
+def get_properties(obj):
+    return ((n, getattr(obj, n)) for n, p in inspect.getmembers(obj.__class__, lambda m: isinstance(m, property)))
 
 
 def get_slots(obj):

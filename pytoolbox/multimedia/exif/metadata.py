@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime
 
-from . import camera, lens, photo, tag
+from . import camera, image, lens, photo, tag
 from ... import module
 from ...encoding import string_types
 
@@ -43,6 +43,7 @@ class Metadata(object):
         self.exiv2 = GExiv2.Metadata()
         self.exiv2.open_path(path)
         self.camera = camera.Camera(self)
+        self.image = image.Image(self)
         self.lens = lens.Lens(self)
         self.photo = photo.Photo(self)
 

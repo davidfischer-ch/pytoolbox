@@ -138,4 +138,14 @@ class Tag(object):
         name = self.type_to_hook.get(self.type)
         return getattr(self.metadata.exiv2, name) if name else None
 
+
+class TagSet(object):
+
+    @staticmethod
+    def clean_number(number):
+        return number if number and number > 0 else None
+
+    def __init__(self, metadata):
+        self.metadata = metadata
+
 __all__ = _all.diff(globals())
