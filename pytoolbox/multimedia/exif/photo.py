@@ -85,19 +85,19 @@ class Photo(object):
 
     @property
     def fnumber(self):
-        return self.clean_number(self.metadata['Exif.Image.FNumber'].data)
+        return self.clean_number(self.metadata['Exif.Photo.FNumber'].data)
 
     @property
     def focal_length(self):
-        return self.clean_number(self.metadata['Exif.Image.FocalLength'].data)
+        return self.clean_number(self.metadata['Exif.Photo.FocalLength'].data)
 
     @property
     def height(self):
-        return self.metadata.exiv2.get_pixel_height() or None
+        return self.clean_number(self.metadata.exiv2.get_pixel_height())
 
     @property
     def iso(self):
-        return self.metadata['Exif.Photo.ISOSpeed'].data or None
+        return self.clean_number(self.metadata['Exif.Photo.ISOSpeed'].data)
 
     @property
     def orientation(self):
@@ -117,7 +117,7 @@ class Photo(object):
 
     @property
     def width(self):
-        return self.metadata.exiv2.get_pixel_width() or None
+        return self.clean_number(self.metadata.exiv2.get_pixel_width())
 
     def properties(self):
         return ((n, getattr(self, n)) for n, p in inspect.getmembers(self.__class__, lambda m: isinstance(m, property)))
