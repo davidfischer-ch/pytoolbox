@@ -32,6 +32,8 @@ _all = module.All(globals())
 
 
 class Photo(object):
+    # FIXME split into more classes to categorize?
+    # Example: optical settings vs image file properties
 
     @staticmethod
     def clean_number(number):
@@ -41,8 +43,20 @@ class Photo(object):
         self.metadata = metadata
 
     @property
+    def comment(self):
+        return self.metadata.exiv2.get_comment() or None
+
+    @property
+    def copyright(self):
+        return self.metadata['Iptc.Application2.Copyright']
+
+    @property
     def date(self):
         return self.metadata.get_date()
+
+    @property
+    def exposure_auto(self):
+        raise NotImplementedError
 
     @property
     def exposure_time(self):
@@ -68,6 +82,14 @@ class Photo(object):
     def orientation(self):
         orientation = self.metadata.exiv2.get_orientation()
         return orientation.value_nick if orientation else None
+
+    @property
+    def sensing_method(self):
+        return self.metadata['Exif.Photo.SensingMethod']
+
+    @property
+    def white_balance(self):
+        return self.metadata['Exif.Photo.WhiteBalance']
 
     @property
     def width(self):
