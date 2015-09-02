@@ -94,11 +94,11 @@ class Photo(object):
 
     @property
     def sensing_method(self):
-        return self.metadata['Exif.Photo.SensingMethod']
+        return self.metadata['Exif.Photo.SensingMethod'].data
 
     @property
     def white_balance(self):
-        return self.metadata['Exif.Photo.WhiteBalance']
+        return self.metadata['Exif.Photo.WhiteBalance'].data
 
     @property
     def width(self):
