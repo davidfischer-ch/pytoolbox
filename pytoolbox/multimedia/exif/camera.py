@@ -36,12 +36,12 @@ class Camera(equipement.Equipement):
 
     @property
     def brand(self):
-        return self.brand_class(self.metadata.tags['Exif.Image.Make'].data)
+        return self.brand_class(self.metadata['Exif.Image.Make'].data)
 
     @property
     def model(self):
         try:
-            model = self.metadata.tags['Exif.Image.Model']
+            model = self.metadata['Exif.Image.Model']
         except KeyError:
             return None
         return model.data
