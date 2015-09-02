@@ -40,11 +40,7 @@ class Camera(equipement.Equipement):
 
     @property
     def model(self):
-        try:
-            model = self.metadata['Exif.Image.Model']
-        except KeyError:
-            return None
-        return model.data
+        return self.metadata['Exif.Image.Model'].data
 
     @decorators.cached_property
     def tags(self):

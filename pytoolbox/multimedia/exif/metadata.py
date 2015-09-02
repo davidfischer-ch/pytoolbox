@@ -47,19 +47,16 @@ class Metadata(object):
         self.photo = photo.Photo(self)
 
     def __getitem__(self, key):
+        # FIXME make it more strict and re-implement less strict self.get(key)
         return self.tag_class(self, key)
 
     @property
     def tags(self):
-        get = self.get
-        return {k: get(k) for k in self.exiv2.get_tags()}
-
-    def get(self, key):
-        return self.tag_class(self, key)
+        return {k: self[k] for k in self.exiv2.get_tags()}
 
     def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
         for key in ([keys] if isinstance(keys, string_types) else keys):
-            date = self.get(key).data
+            date = self[key].data
             if isinstance(date, datetime.datetime):
                 return date
 
