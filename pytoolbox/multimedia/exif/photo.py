@@ -64,16 +64,16 @@ class Photo(object):
         self.metadata = metadata
 
     @property
-    def comment(self):
-        return self.metadata.exiv2.get_comment() or None
-
-    @property
     def copyright(self):
         return self.metadata['Iptc.Application2.Copyright'].data
 
     @property
     def date(self):
         return self.metadata.get_date()
+
+    @property
+    def description(self):
+        return self.metadata['Exif.Image.ImageDescription'].data
 
     @property
     def exposure_mode(self):
@@ -85,11 +85,11 @@ class Photo(object):
 
     @property
     def fnumber(self):
-        return self.clean_number(self.metadata.exiv2.get_fnumber())
+        return self.clean_number(self.metadata['Exif.Image.FNumber'].data)
 
     @property
     def focal_length(self):
-        return self.clean_number(self.metadata.exiv2.get_focal_length())
+        return self.clean_number(self.metadata['Exif.Image.FocalLength'].data)
 
     @property
     def height(self):
@@ -97,7 +97,7 @@ class Photo(object):
 
     @property
     def iso(self):
-        return self.metadata.exiv2.get_iso_speed() or None
+        return self.metadata['Exif.Photo.ISOSpeed'].data or None
 
     @property
     def orientation(self):
@@ -105,7 +105,7 @@ class Photo(object):
         try:
             return Orientation(data)
         except:
-            pass
+            return None
 
     @property
     def sensing_method(self):
