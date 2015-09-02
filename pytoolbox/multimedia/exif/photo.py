@@ -25,6 +25,15 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import inspect
+try:
+    from ... import enum
+
+    class ExposureMode(enum.OrderedEnum):
+        AUTO = 0
+        MANUAL = 1
+        BRACKET = 2
+except ImportError:
+    ExposureMode = {0: 'auto', 1: 'manual', 2: 'bracket'}.get
 
 from ... import module
 
@@ -48,15 +57,15 @@ class Photo(object):
 
     @property
     def copyright(self):
-        return self.metadata['Iptc.Application2.Copyright']
+        return self.metadata['Iptc.Application2.Copyright'].data
 
     @property
     def date(self):
         return self.metadata.get_date()
 
     @property
-    def exposure_auto(self):
-        raise NotImplementedError
+    def exposure_mode(self):
+        return ExposureMode(self.metadata['Exif.Photo.ExposureMode'].data)
 
     @property
     def exposure_time(self):
