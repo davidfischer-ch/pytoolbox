@@ -45,4 +45,12 @@ def get_instance(app_label, model, pk):
     """Return an instance given its app_label, model name and private key."""
     return ct_models.ContentType.objects.get(app_label=app_label, model=model).get_object_for_this_type(pk=pk)
 
+
+def try_get_field(instance, field_name):
+    try:
+        return getattr(instance, field_name)
+    except Exception as e:
+        if e.__class__.__name__ != 'RelatedObjectDoesNotExist':
+            raise
+
 __all__ = _all.diff(globals())
