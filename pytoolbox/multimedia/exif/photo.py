@@ -26,9 +26,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import inspect
 try:
-    from ... import enum
+    from ...enum import OrderedEnum
 
-    class ExposureMode(enum.OrderedEnum):
+    class ExposureMode(OrderedEnum):
         AUTO = 0
         MANUAL = 1
         BRACKET = 2
