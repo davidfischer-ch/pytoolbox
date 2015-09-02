@@ -52,7 +52,7 @@ class Photo(tag.TagSet):
 
     @property
     def exposure_time(self):
-        return self.metadata.exiv2.get_exposure_time() or None
+        return self.metadata['Exif.Photo.ExposureTime'].data
 
     @property
     def fnumber(self):
@@ -64,7 +64,7 @@ class Photo(tag.TagSet):
 
     @property
     def iso_speed(self):
-        return self.clean_number(self.metadata['Exif.Photo.ISOSpeed'].data)
+        return self.clean_number(self.metadata['Exif.Photo.ISOSpeedRatings'].data)
 
     @property
     def sensing_method(self):
