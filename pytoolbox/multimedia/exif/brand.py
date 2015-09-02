@@ -57,8 +57,10 @@ class Brand(object):
 
     @classmethod
     def clean(cls, brand):
-        brand = cls.clean_map.get(brand.lower(), brand)
-        assert brand in cls.brands, 'Brand {1} not in {0.brands}'.format(cls, brand)
-        return brand
+        brand = brand.strip() if brand else brand
+        if brand:
+            brand = cls.clean_map.get(brand.lower(), brand)
+            assert brand in cls.brands, 'Brand {1} not in {0.brands}'.format(cls, brand)
+            return brand
 
 __all__ = _all.diff(globals())
