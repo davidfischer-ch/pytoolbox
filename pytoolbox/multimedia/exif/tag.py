@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime
+import datetime, re
 from fractions import Fraction
 
 from . import brand
@@ -38,7 +38,8 @@ _all = module.All(globals())
 class Tag(object):
 
     brand_class = brand.Brand
-    date_formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d']
+    date_formats = ['%Y%m%d %H%M%S', '%Y%m%d']
+    date_clean_regex = re.compile(r'[:-]')
     group_to_brand_blacklist = frozenset(['aux', 'crs', 'Image', 'Photo'])
     type_to_hook = {
         datetime.datetime: 'get_tag_string',  # clean method will convert to a date-time
@@ -127,8 +128,9 @@ class Tag(object):
         if self.type == datetime.time:
             return str_to_time(data)
         elif self.type == datetime.datetime or isinstance(data, string_types):
+            cleaned_data = self.date_clean_regex.sub('', data)
             for date_format in self.date_formats:
-                date = str_to_datetime(data, date_format, fail=False)
+                date = str_to_datetime(cleaned_data, date_format, fail=False)
                 if date:
                     return date
         assert not data or isinstance(data, self.type), '{0.key} {0.type} {1} {2}'.format(self, data, type(data))
