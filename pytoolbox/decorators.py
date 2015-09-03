@@ -54,6 +54,44 @@ class cached_property(object):
         return res
 
 
+class hybridmethod(object):
+    """
+    Decorator that allows a method to be both used as a class method and an instance method.
+
+    Credits: http://stackoverflow.com/questions/18078744/python-hybrid-between-regular-method-and-classmethod#18078819
+
+    **Example usage**
+
+    >>> class Hybrid(object):
+    ...     value = 10
+    ...
+    ...     def __init__(self):
+    ...         self.value = 20
+    ...
+    ...     @hybridmethod
+    ...     def get_value(receiver):
+    ...         return receiver.value
+    >>> Hybrid.get_value()
+    10
+    >>> Hybrid().get_value()
+    20
+    """
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, obj, cls):
+        context = obj if obj is not None else cls
+
+        @functools.wraps(self.func)
+        def hybrid(*args, **kwargs):
+            return self.func(context, *args, **kwargs)
+
+        # optional, mimic methods some more
+        hybrid.__func__ = hybrid.im_func = self.func
+        hybrid.__self__ = hybrid.im_self = context
+        return hybrid
+
+
 def confirm_it(message, default=False, abort_message='Operation aborted by the user'):
     """Ask for confirmation before calling the decorated function."""
     def _confirm_it(f):
