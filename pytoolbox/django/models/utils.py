@@ -35,6 +35,14 @@ def get_base_model(cls_or_instance):
     return cls_or_instance._meta.proxy_for_model or cls_or_instance._meta.model
 
 
+def get_related_manager(cls_or_instance, field):
+    return get_related_model(cls_or_instance, field)._default_manager
+
+
+def get_related_model(cls_or_instance, field):
+    return cls_or_instance._meta.get_field(field).related_model
+
+
 def get_content_type_dict(instance):
     """Return a dictionary with the serialized content type and private key of given instance."""
     content_type = ct_models.ContentType.objects.get_for_model(instance.__class__)

@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from .. import utils
 from .... import module
 
 _all = module.All(globals())
@@ -41,9 +42,9 @@ class CreateModelMethodMixin(object):
 class RelatedModelMixin(object):
 
     def get_related_manager(self, field):
-        return self.get_related_model(field)._default_manager
+        return utils.get_related_manager(self.model, field)
 
     def get_related_model(self, field):
-        return self.model._meta.get_field(field).related_model
+        return utils.get_related_model(self.model, field)
 
 __all__ = _all.diff(globals())

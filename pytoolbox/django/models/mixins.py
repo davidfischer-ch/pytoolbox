@@ -31,6 +31,7 @@ from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
+from . import utils
 from .. import exceptions
 from ... import module
 
@@ -148,8 +149,11 @@ class MapUniqueTogetherIntegrityErrorToValidationErrorMixin(object):
 
 class RelatedModelMixin(object):
 
+    def get_related_manager(self, field):
+        return utils.get_related_manager(self, field)
+
     def get_related_model(self, field):
-        return self._meta.get_field(field).related_model
+        return utils.get_related_model(self, field)
 
 
 class ReloadMixin(object):
