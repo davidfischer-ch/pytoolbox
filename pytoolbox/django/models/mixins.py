@@ -54,7 +54,6 @@ class AlwaysUpdateFieldsMixin(object):
     Ensure fields listed in the attribute ``self.always_update_fields`` are always updated by ``self.save()``.
     Makes the usage of ``self.save(update_fields=...)`` cleaner.
     """
-
     def save(self, *args, **kwargs):
         update_fields = kwargs.get('update_fields')
         if update_fields:
@@ -88,7 +87,6 @@ class AutoUpdateFieldsMixin(object):
     Set `default_force_update` to True to raise a :class:`DatabaseError` if the UPDATE did not affect any rows. The
     default avoids this exception but the instance is not protected from saving all rows in database instead of 0!
     """
-
     auto_fields = ()
     default_force_update = False
 
@@ -151,7 +149,6 @@ class PublicMetaMixin(object):
     """
     Make `_meta` public in templates through a class method called `meta`.
     """
-
     @classmethod
     def meta(cls):
         return cls._meta
