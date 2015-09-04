@@ -3,6 +3,44 @@ changelog
 =========
 
 ------------------
+v10.3.0 -> v10.4.0
+------------------
+
+Features
+========
+
+* Add module django.models.metaclass
+* Add module django.views.utils
+* Add module enum
+* Add modules in multimedia.exif:
+    - brand
+    - camera
+    - equipement
+    - image
+    - lens
+    - photo
+    - tag
+* Add module rest_framework.metadata.mixins
+* Add mixin django.models.mixins.PublicMetaMixin
+* Add decorator decorators.cached_property
+* Add decorator decorators.hybridmethod
+* Add functions in django.models.utils:
+    - get_related_manager
+    - get_related_model
+    - try_get_field
+* Add function types.get_properties
+
+Fixes and enhancements
+======================
+
+* Handle 24h+ hour format in datetime.str_to_datetime
+* Module django.forms.utils imports from django.forms.utils module
+* Fix ReloadMixin popping update_fields!
+* Refactor class multimedia.exif.metadata.Metadata (use newest classes)
+* Split module multimedia.ffmpeg
+* Fix ffmpeg mock class
+
+------------------
 v10.2.0 -> v10.3.0
 ------------------
 
@@ -12,7 +50,7 @@ Compatibility breaks
 * Remove module rest_framework.v2
 * Refactor (optimize) unittest.FilterByTagsMixin
 
-Minor compatibilty breaks
+Minor compatibility breaks
 =========================
 
 * Rename module exception to exceptions
@@ -62,7 +100,7 @@ Compatibility breaks
 
 * Add EncodeStatistics and refactor FFmpeg.encode()
 
-Minor compatibilty breaks
+Minor compatibility breaks
 =========================
 
 * Merge django.template tags & filters into 1 file
