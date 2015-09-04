@@ -24,13 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import equipement
+from . import equipment
 from ... import decorators, module
 
 _all = module.All(globals())
 
 
-class Lens(equipement.Equipement):
+class Lens(equipment.Equipement):
 
     @property
     def brand(self):
