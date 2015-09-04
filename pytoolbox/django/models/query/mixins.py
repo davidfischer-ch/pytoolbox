@@ -27,6 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import functools
 from django.db import transaction
 
+from .. import utils
 from .... import module
 from ....encoding import string_types
 
@@ -53,6 +54,24 @@ class AtomicGetRestoreOrCreateMixin(object):
     def get_restore_or_create(self, *args, **kwargs):
         with transaction.atomic(savepoint=self.savepoint):
             return super(AtomicGetRestoreOrCreateMixin, self).get_restore_or_create(*args, **kwargs)
+
+
+class CreateModelMethodMixin(object):
+
+    def create(self, *args, **kwargs):
+        if hasattr(self.model, 'create'):
+            return self.model.create(*args, **kwargs)
+        return super(CreateModelMethodMixin, self).create(*args, **kwargs)
+    create.alters_data = True
+
+
+class RelatedModelMixin(object):
+
+    def get_related_manager(self, field):
+        return utils.get_related_manager(self.model, field)
+
+    def get_related_model(self, field):
+        return utils.get_related_model(self.model, field)
 
 
 class StateMixin(object):

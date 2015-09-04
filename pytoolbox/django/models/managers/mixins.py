@@ -24,27 +24,15 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .. import utils
+from .. query.mixins import mixins as query_mixins
 from .... import module
 
 _all = module.All(globals())
 
-
-class CreateModelMethodMixin(object):
-
-    def create(self, *args, **kwargs):
-        if hasattr(self.model, 'create'):
-            return self.model.create(*args, **kwargs)
-        return super(CreateModelMethodMixin, self).create(*args, **kwargs)
-    create.alters_data = True
-
-
-class RelatedModelMixin(object):
-
-    def get_related_manager(self, field):
-        return utils.get_related_manager(self.model, field)
-
-    def get_related_model(self, field):
-        return utils.get_related_model(self.model, field)
+AtomicGetUpdateOrCreateMixin = query_mixins.AtomicGetUpdateOrCreateMixin
+AtomicGetRestoreOrCreateMixin = query_mixins.AtomicGetRestoreOrCreateMixin
+CreateModelMethodMixin = query_mixins.CreateModelMethodMixin
+RelatedModelMixin = query_mixins.RelatedModelMixin
+StateMixin = query_mixins.StateMixin
 
 __all__ = _all.diff(globals())
