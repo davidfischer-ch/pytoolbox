@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .. query.mixins import mixins as query_mixins
+from ..query import mixins as query_mixins
 from .... import module
 
 _all = module.All(globals())
