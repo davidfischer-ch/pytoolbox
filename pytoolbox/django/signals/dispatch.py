@@ -46,6 +46,6 @@ class InstanceSignal(_dispatch.Signal):
     def send_robust(self, sender=None, **named):
         return super(InstanceSignal, self).send(_utils.get_base_model(sender or named['instance']), **named)
 
-post_state_change = InstanceSignal(providing_args=['previous_state', 'result', 'args', 'kwargs'])
+post_state_change = InstanceSignal(providing_args=['previous_state', 'args', 'kwargs'])
 
 __all__ = _all.diff(globals())

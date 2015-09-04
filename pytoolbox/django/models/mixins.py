@@ -61,14 +61,14 @@ class AlwaysUpdateFieldsMixin(object):
             update_fields = set(update_fields)
             update_fields.update(self.always_update_fields)
             kwargs['update_fields'] = update_fields
-        return super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
+        super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
 
 
 class AutoForceInsertMixin(object):
 
     def save(self, *args, **kwargs):
         kwargs.setdefault('force_insert', self._state.adding)
-        return super(AutoForceInsertMixin, self).save(*args, **kwargs)
+        super(AutoForceInsertMixin, self).save(*args, **kwargs)
 
 
 class AutoUpdateFieldsMixin(object):
@@ -137,7 +137,7 @@ class MapUniqueTogetherIntegrityErrorToValidationErrorMixin(object):
 
     def save(self, *args, **kwargs):
         try:
-            return super(MapUniqueTogetherIntegrityErrorToValidationErrorMixin, self).save(*args, **kwargs)
+            super(MapUniqueTogetherIntegrityErrorToValidationErrorMixin, self).save(*args, **kwargs)
         except IntegrityError as e:
             match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
             if match:
@@ -212,7 +212,7 @@ class UpdatePreconditionsMixin(object):
     def save(self, *args, **kwargs):
         args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
         try:
-            return super(UpdatePreconditionsMixin, self).save(*args, **kwargs)
+            super(UpdatePreconditionsMixin, self).save(*args, **kwargs)
         except DatabaseError as e:
             if has_preconditions and 'did not affect' in '{0}'.format(e):
                 raise self.precondition_error_class()
@@ -233,16 +233,14 @@ class StateTransitionEventsMixin(object):
         super(StateTransitionEventsMixin, self).__init__(*args, **kwargs)
         self.previous_state = self.state
 
-    def on_post_state_change(self, result, args, kwargs):
-        signals.post_state_change.send(instance=self, previous_state=self.previous_state, result=result, args=args,
-                                       kwargs=kwargs)
+    def on_post_state_change(self, args, kwargs):
+        signals.post_state_change.send(instance=self, previous_state=self.previous_state, args=args, kwargs=kwargs)
 
     def save(self, *args, **kwargs):
-        result = super(StateTransitionEventsMixin, self).save(*args, **kwargs)
+        super(StateTransitionEventsMixin, self).save(*args, **kwargs)
         if 'state' in kwargs.get('update_fields', ['state']) and self.previous_state != self.state:
-            self.on_post_state_change(result, args, kwargs)
+            self.on_post_state_change(args, kwargs)
             self.previous_state = self.state
-        return result
 
 
 class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
