@@ -245,7 +245,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         """Add state precondition if state will be saved and state is not enforced by preconditions."""
         args, kwargs, has_preconditions = \
             super(StateTransitionPreconditionMixin, self).pop_preconditions(*args, **kwargs)
-        if kwargs.pop('check_state', self.check_state) and 'state' in kwargs.pop('update_fields', ['state']):
+        if kwargs.pop('check_state', self.check_state) and 'state' in kwargs.get('update_fields', ['state']):
             pre_excludes, pre_filters = self._preconditions
             if not any(f.startswith('state') for f in itertools.chain(pre_excludes, pre_filters)):
                 states, valid = self.states.get_transit_from(self.state, auto_inverse=True)
