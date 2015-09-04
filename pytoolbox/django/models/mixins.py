@@ -232,13 +232,13 @@ class StateTransitionEventsMixin(object):
         super(StateTransitionEventsMixin, self).__init__(*args, **kwargs)
         self.previous_state = self.state
 
-    def on_post_state_change(self, args, kwargs):
-        signals.post_state_change.send(instance=self, previous_state=self.previous_state, args=args, kwargs=kwargs)
+    def on_post_state_transition(self, args, kwargs):
+        signals.post_state_transition.send(instance=self, previous_state=self.previous_state, args=args, kwargs=kwargs)
 
     def save(self, *args, **kwargs):
         super(StateTransitionEventsMixin, self).save(*args, **kwargs)
-        if 'state' in kwargs.get('update_fields', ['state']) and self.previous_state != self.state:
-            self.on_post_state_change(args, kwargs)
+        if 'state' in kwargs.get('update_fields', ['state']):
+            self.on_post_state_transition(args, kwargs)
             self.previous_state = self.state
 
 
