@@ -247,14 +247,19 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
     check_state = True
     transition_not_allowed_error_class = exceptions.TransitionNotAllowedError
 
-    def can_transit_to(self, state, fail=False, idempotent=False):
-        if self.state == state and idempotent:
-            return False
+    def can_transit_to(self, state, fail=False, noop_skip=False):
+        """
+        Helper that return the following:
+
+        * True if transition to `state` is allowed.
+        * False if `fail` is set to False or `noop_skip` is set to True and state is unchanged.
+        * Else raise a transition not allowed error.
+        """
         if state in self.states.TRANSITIONS[self.state]:
             return True
-        if fail:
-            raise self.transition_not_allowed_error_class(instance=self, state=state)
-        return False
+        if not fail or noop_skip and self.state == state:
+            return False
+        raise self.transition_not_allowed_error_class(instance=self, state=state)
 
     def pop_preconditions(self, *args, **kwargs):
         """Add state precondition if state will be saved and state is not enforced by preconditions."""
