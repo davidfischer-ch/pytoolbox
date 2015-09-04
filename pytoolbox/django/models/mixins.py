@@ -171,7 +171,7 @@ class RelatedModelMixin(object):
 class ReloadMixin(object):
 
     def reload(self):
-        return self.__class__.objects.get(pk=self.pk)
+        return self._meta.model._default_manager.get(pk=self.pk)
 
 
 class SaveInstanceFilesMixin(object):
