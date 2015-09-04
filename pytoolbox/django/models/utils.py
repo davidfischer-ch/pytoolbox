@@ -40,6 +40,8 @@ def get_related_manager(cls_or_instance, field):
 
 
 def get_related_model(cls_or_instance, field):
+    if field == 'pk':
+        field = cls_or_instance._meta.pk.attname.rstrip('_id')
     return cls_or_instance._meta.get_field(field).related_model
 
 
