@@ -32,7 +32,7 @@ from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
 from . import utils
-from .. import exceptions
+from .. import exceptions, signals
 from ... import module
 
 _all = module.All(globals())
@@ -225,6 +225,24 @@ class UpdatePreconditionsMixin(object):
         if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
             raise self.precondition_error_class()
         return updated
+
+
+class StateTransitionEventsMixin(object):
+
+    def __init__(self, *args, **kwargs):
+        super(StateTransitionEventsMixin, self).__init__(*args, **kwargs)
+        self.previous_state = self.state
+
+    def on_post_state_change(self, result, args, kwargs):
+        signals.post_state_change.send(instance=self, previous_state=self.previous_state, result=result, args=args,
+                                       kwargs=kwargs)
+
+    def save(self, *args, **kwargs):
+        result = super(StateTransitionEventsMixin, self).save(*args, **kwargs)
+        if 'state' in kwargs.get('update_fields', ['state']) and self.previous_state != self.state:
+            self.on_post_state_change(result, args, kwargs)
+            self.previous_state = self.state
+        return result
 
 
 class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):

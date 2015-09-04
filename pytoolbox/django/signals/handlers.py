@@ -66,8 +66,8 @@ from django.db.models import fields
 from django.contrib.sites import models as site_app
 from django.db.models.fields.files import FileField
 
-from .. import module
-from ..encoding import PY2, string_types
+from ... import module
+from ...encoding import PY2, string_types
 
 _all = module.All(globals())
 
