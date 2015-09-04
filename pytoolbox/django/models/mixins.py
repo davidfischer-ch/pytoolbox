@@ -147,6 +147,16 @@ class MapUniqueTogetherIntegrityErrorToValidationErrorMixin(object):
             raise
 
 
+class PublicMetaMixin(object):
+    """
+    Make `_meta` public in templates through a class method called `meta`.
+    """
+
+    @classmethod
+    def meta(cls):
+        return cls._meta
+
+
 class RelatedModelMixin(object):
 
     def get_related_manager(self, field):
