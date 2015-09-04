@@ -159,11 +159,13 @@ class PublicMetaMixin(object):
 
 class RelatedModelMixin(object):
 
-    def get_related_manager(self, field):
-        return utils.get_related_manager(self, field)
+    @classmethod
+    def get_related_manager(cls, field):
+        return utils.get_related_manager(cls, field)
 
-    def get_related_model(self, field):
-        return utils.get_related_model(self, field)
+    @classmethod
+    def get_related_model(cls, field):
+        return utils.get_related_model(cls, field)
 
 
 class ReloadMixin(object):
