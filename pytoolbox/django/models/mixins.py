@@ -81,14 +81,13 @@ class AutoRemovePKFromUpdateFieldsMixin(object):
     """
     def __init__(self, *args, **kwargs):
         super(AutoRemovePKFromUpdateFieldsMixin, self).__init__(*args, **kwargs)
-        self._pk_field_name = next(f.attname for f in self._meta.fields if f.primary_key)
         self.previous_pk = self.pk
 
     def save(self, **kwargs):
         update_fields = kwargs.get('update_fields')
-        if update_fields and self._pk_field_name in update_fields:
+        if update_fields and self._meta.pk.attname in update_fields:
             if self.pk == self.previous_pk:
-                kwargs['update_fields'] = set(f for f in update_fields if f != self._pk_field_name)
+                kwargs['update_fields'] = set(f for f in update_fields if f != self._meta.pk.attname)
             else:
                 # This is probably the model duplication pattern
                 for argument in 'force_insert', 'force_update', 'update_fields':
