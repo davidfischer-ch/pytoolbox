@@ -84,10 +84,6 @@ class AutoRemovePKFromUpdateFieldsMixin(object):
         self._pk_field_name = next(f.attname for f in self._meta.fields if f.primary_key)
         self.previous_pk = self.pk
 
-    @classmethod
-    def get_pk_field(cls):
-        return next(f for f in cls._meta.fields if f.primary_key)
-
     def save(self, **kwargs):
         if self._pk_field_name in kwargs.get('update_fields', []):
             if self.pk == self.previous_pk:
