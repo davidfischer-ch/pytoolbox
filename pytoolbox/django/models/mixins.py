@@ -70,6 +70,36 @@ class AutoForceInsertMixin(object):
         super(AutoForceInsertMixin, self).save(*args, **kwargs)
 
 
+class AutoRemovePKFromUpdateFieldsMixin(object):
+    """
+    If the primary key is set but unchanged, then remove the primary key from the list of fields to update. This fix
+    an issue when saving, ``ValueError: The following fields do not exist in this model or are m2m fields: id.``. This
+    check is probably implemented by Django developers to protect from unintentional data overwrite.
+
+    If the primary key is set to a new value, then the intention of the developer is probably to duplicate the model by
+    saving it with a new primary key. So the mix-in let Django save with its own default options for save.
+    """
+    def __init__(self, *args, **kwargs):
+        super(AutoRemovePKFromUpdateFieldsMixin, self).__init__(*args, **kwargs)
+        self._pk_field_name = next(f.attname for f in self._meta.fields if f.primary_key)
+        self.previous_pk = self.pk
+
+    @classmethod
+    def get_pk_field(cls):
+        return next(f for f in cls._meta.fields if f.primary_key)
+
+    def save(self, **kwargs):
+        if self._pk_field_name in kwargs.get('update_fields', []):
+            if self.pk == self.previous_pk:
+                kwargs['update_fields'].remove(self._pk_field_name)
+            else:
+                # This is probably the model duplication pattern
+                for argument in 'force_insert', 'force_update', 'update_fields':
+                    kwargs.pop(argument, None)
+        super(AutoRemovePKFromUpdateFieldsMixin, self).save(**kwargs)
+        self.previous_pk = self.pk
+
+
 class AutoUpdateFieldsMixin(object):
     """
     Keep track of what fields were set in order to make UPDATE queries lighter.
@@ -84,6 +114,9 @@ class AutoUpdateFieldsMixin(object):
     * Store old fields values - you cannot know if the fields are really modified or not.
     * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
     * Detect fields with `auto_*_now=True` - you have to set `auto_fields` to those fields names.
+
+    Finally, the mix-in will not filter the primary key from the list of fields to update. For that purpose, simply
+    append AutoRemovePKFromUpdateFieldsMixin to the bases for your model, anywhere after this and you are safe to go!
     """
     auto_fields = ()
     default_force_update = False
