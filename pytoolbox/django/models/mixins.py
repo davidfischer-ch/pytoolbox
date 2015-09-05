@@ -78,14 +78,12 @@ class AutoUpdateFieldsMixin(object):
     * Foreign keys and the mutable types are correctly handled.
     * Models with a primary key preset to a value before being saved in database are correctly handled.
     * The return value of the overloaded methods is not swallowed but returned.
+    * You can specify the value for `force_update` if it is `None` with `default_force_update`.
 
     However this low-memory footprint mix-in also comes with some limitations, it does not:
     * Store old fields values - you cannot know if the fields are really modified or not.
     * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
     * Detect fields with `auto_*_now=True` - you have to set `auto_fields` to those fields names.
-
-    Set `default_force_update` to True to raise a :class:`DatabaseError` if the UPDATE did not affect any rows. The
-    default avoids this exception but the instance is not protected from saving all rows in database instead of 0!
     """
     auto_fields = ()
     default_force_update = False
@@ -93,7 +91,7 @@ class AutoUpdateFieldsMixin(object):
     def __init__(self, *args, **kwargs):
         super(AutoUpdateFieldsMixin, self).__init__(*args, **kwargs)
         self._setted_fields = set()
-        self._fields_names = set(f.attname for f in self._meta.fields)
+        self._fields_names = frozenset(f.attname for f in self._meta.fields)
 
     def __setattr__(self, name, value):
         # Check the instance is both initialized and already stored in DB
@@ -106,8 +104,10 @@ class AutoUpdateFieldsMixin(object):
 
     def save(self, *args, **kwargs):
         if not self._state.adding and not kwargs.get('force_insert'):
-            kwargs.setdefault('force_update', self.default_force_update)
-            kwargs.setdefault('update_fields', set(itertools.chain(self._setted_fields, self.get_auto_fields())))
+            if kwargs.get('force_update') is None:
+                kwargs['force_update'] = self.default_force_update
+            if kwargs.get('update_fields') is None:
+                kwargs['update_fields'] = set(itertools.chain(self._setted_fields, self.get_auto_fields()))
         returned = super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
         self._setted_fields = set()
         return returned
