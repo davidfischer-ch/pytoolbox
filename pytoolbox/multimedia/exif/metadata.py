@@ -51,6 +51,9 @@ class Metadata(object):
         # FIXME make it more strict and re-implement less strict self.get(key)
         return self.tag_class(self, key)
 
+    def __setitem__(self, key, value):
+        self.exiv2[key] = value
+
     @property
     def tags(self):
         return {k: self[k] for k in self.exiv2.get_tags()}
@@ -60,5 +63,8 @@ class Metadata(object):
             date = self[key].data
             if isinstance(date, datetime.datetime):
                 return date
+
+    def save_file(self):
+        return self.exiv2.save_file()
 
 __all__ = _all.diff(globals())
