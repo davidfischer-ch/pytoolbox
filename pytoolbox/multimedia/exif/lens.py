@@ -40,7 +40,7 @@ class Lens(equipment.Equipement):
             return next(iter(brands))
 
     @property
-    def model(self):
+    def _model(self):
         try:
             return next(t.data for t in self.tags.values() if 'model' in t.label.lower())
         except StopIteration:

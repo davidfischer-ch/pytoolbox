@@ -39,7 +39,7 @@ class Camera(equipment.Equipement):
         return self.brand_class(self.metadata['Exif.Image.Make'].data)
 
     @property
-    def model(self):
+    def _model(self):
         return self.metadata['Exif.Image.Model'].data
 
     @decorators.cached_property

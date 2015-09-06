@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import abc
+import abc, re
 
 from ... import module
 
@@ -57,8 +57,14 @@ class Equipement(object):
     def brand(self):
         pass
 
-    @abc.abstractproperty
+    @property
     def model(self):
+        if self.brand and self._model:
+            return re.sub('{0.brand}\s+'.format(self), '', self._model, 1, re.IGNORECASE)
+        return self._model
+
+    @abc.abstractproperty
+    def _model(self):
         pass
 
     @abc.abstractproperty
