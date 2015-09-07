@@ -22,6 +22,33 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
+"""
+Module with mix-ins for your Django models.
+
+Recommended sub-classing order:
+
+- MapUniqueTogetherMixin
+- MapUniqueTogetherIntegrityErrorToValidationErrorMixin
+- ValidateOnSaveMixin
+- AutoForceInsertMixin
+- CallFieldsPreSaveMixin
+- AutoUpdateFieldsMixin
+- AlwaysUpdateFieldsMixin
+- AutoRemovePKFromUpdateFieldsMixin
+- UpdatePreconditionsMixin
+- StateTransitionPreconditionMixin
+- StateTransitionEventsMixin
+
+Order for these does not matter:
+
+- AbsoluteUrlMixin
+- MapUniqueTogetherMixin
+- PublicMetaMixin
+- RelatedModelMixin
+- ReloadMixin
+- SaveInstanceFilesMixin
+"""
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import itertools, re
@@ -57,8 +84,8 @@ class AlwaysUpdateFieldsMixin(object):
     """
     def save(self, *args, **kwargs):
         update_fields = kwargs.get('update_fields')
-        if update_fields:
-            update_fields = set(update_fields)
+        if kwargs.get('force_update') or update_fields:
+            update_fields = set(update_fields or [])
             update_fields.update(self.always_update_fields)
             kwargs['update_fields'] = update_fields
         super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
@@ -67,7 +94,8 @@ class AlwaysUpdateFieldsMixin(object):
 class AutoForceInsertMixin(object):
 
     def save(self, *args, **kwargs):
-        kwargs.setdefault('force_insert', self._state.adding)
+        if kwargs.get('force_insert') is None:
+            kwargs['force_insert'] = self._state.adding
         super(AutoForceInsertMixin, self).save(*args, **kwargs)
 
 
@@ -104,18 +132,14 @@ class AutoUpdateFieldsMixin(object):
     This mix-in comes with the following features:
     * Foreign keys and the mutable types are correctly handled.
     * Models with a primary key preset to a value before being saved in database are correctly handled.
-    * The return value of the overloaded methods is not swallowed but returned.
     * You can specify the value for `force_update` if it is `None` with `default_force_update`.
 
     However this low-memory footprint mix-in also comes with some limitations, it does not:
     * Store old fields values - you cannot know if the fields are really modified or not.
     * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
-    * Detect fields with `auto_*_now=True` - you have to set `auto_fields` to those fields names.
-
-    Finally, the mix-in will not filter the primary key from the list of fields to update. For that purpose, simply
-    append AutoRemovePKFromUpdateFieldsMixin to the bases for your model, anywhere after this and you are safe to go!
+    * Detect fields updated by the field's pre_save - CallFieldsPreSaveMixin before this mix-in.
+    * Filter the primary key from the list of fields to update - AutoRemovePKFromUpdateFieldsMixin after this mix-in.
     """
-    auto_fields = ()
     default_force_update = False
 
     def __init__(self, *args, **kwargs):
@@ -129,18 +153,27 @@ class AutoUpdateFieldsMixin(object):
             self._setted_fields.add(name)
         return super(AutoUpdateFieldsMixin, self).__setattr__(name, value)
 
-    def get_auto_fields(self):
-        return self.auto_fields
-
     def save(self, *args, **kwargs):
         if not self._state.adding and not kwargs.get('force_insert'):
             if kwargs.get('force_update') is None:
                 kwargs['force_update'] = self.default_force_update
             if kwargs.get('update_fields') is None:
-                kwargs['update_fields'] = set(itertools.chain(self._setted_fields, self.get_auto_fields()))
-        returned = super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
+                kwargs['update_fields'] = set(self._setted_fields)
+        super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
         self._setted_fields = set()
-        return returned
+
+
+class CallFieldsPreSaveMixin(object):
+    """
+    If you wanna be sure the fields pre_save method are called, now you can!
+
+    For more information see: https://code.djangoproject.com/ticket/25363
+    """
+    def save(self, *args, **kwargs):
+        non_pk_fields = (f for f in self._meta.local_concrete_fields if not f.primary_key)
+        for field in non_pk_fields:
+            field.pre_save(self, self._state.adding)
+        super(CallFieldsPreSaveMixin, self).save(*args, **kwargs)
 
 
 class MapUniqueTogetherMixin(object):
@@ -311,8 +344,6 @@ class ValidateOnSaveMixin(object):
     validate_on_save = True
 
     def save(self, *args, **kwargs):
-        # FIXME throws a ValidationError if using get_or_create() to instantiate model!
-        #if not kwargs.get('force_insert', False):
         if kwargs.pop('validate', self.validate_on_save):
             self.full_clean()
         super(ValidateOnSaveMixin, self).save(*args, **kwargs)
