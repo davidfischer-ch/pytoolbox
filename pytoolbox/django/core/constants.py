@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import re
 
-from .. import module
+from ... import module
 
 _all = module.All(globals())
 

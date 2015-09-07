@@ -24,13 +24,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import copy
+import copy, re
 from django.core import validators
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import ugettext_lazy as _
 
-from .. import module
+from ... import module
 
 _all = module.All(globals())
 
@@ -89,5 +89,9 @@ class KeysValidator(object):
 
     def __ne__(self, other):
         return not self == other
+
+
+class MD5ChecksumValidator(validators.RegexValidator):
+    regex = re.compile(r'[0-9a-f]{32}')
 
 __all__ = _all.diff(globals())

@@ -35,7 +35,7 @@ from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
-from . import constants
+from .core import constants
 from .. import humanize, module
 from ..datetime import secs_to_time as _secs_to_time
 from ..encoding import to_unicode

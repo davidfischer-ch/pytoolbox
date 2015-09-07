@@ -24,10 +24,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ... import validators
-from .... import module
+from ...core import validators
+from .... import collections, module
 
 _all = module.All(globals())
+
+
+class DefaultsMixin(object):
+
+    default_kwargs = {}
+
+    def __init__(self, **kwargs):
+        super(DefaultsMixin, self).__init__(**collections.merge_dicts(self.default_kwargs, kwargs))
 
 
 class StripMixin(object):
