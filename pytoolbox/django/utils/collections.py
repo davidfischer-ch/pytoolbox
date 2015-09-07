@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..constants import DEFFERED_REGEX
+from ..core.constants import DEFFERED_REGEX
 from ... import module
 
 _all = module.All(globals())
