@@ -30,12 +30,15 @@ from .... import collections, module
 _all = module.All(globals())
 
 
-class DefaultsMixin(object):
+class OptionsMixin(object):
 
-    default_kwargs = {}
+    default_options = {}
+    override_options = {}
 
     def __init__(self, **kwargs):
-        super(DefaultsMixin, self).__init__(**collections.merge_dicts(self.default_kwargs, kwargs))
+        super(OptionsMixin, self).__init__(**collections.merge_dicts(
+            self.default_options, kwargs, self.override_options
+        ))
 
 
 class StripMixin(object):

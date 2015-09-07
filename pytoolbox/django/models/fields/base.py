@@ -72,28 +72,28 @@ class ExtraChoicesField(StripCharField):
 
 # Date and time
 
-class CreatedAtField(mixins.DefaultsMixin, models.DateTimeField):
+class CreatedAtField(mixins.OptionsMixin, models.DateTimeField):
 
-    default_kwargs = {'default': now, 'editable': False, 'verbose_name': _('Created at')}
+    default_options = {'default': now, 'editable': False, 'verbose_name': _('Created at')}
 
 
-class UpdatedAtField(models.DateTimeField):
+class UpdatedAtField(mixins.OptionsMixin, models.DateTimeField):
 
-    default_kwargs = {'auto_now': True, 'editable': False, 'verbose_name': _('Updated at')}
+    default_options = {'auto_now': True, 'editable': False, 'verbose_name': _('Updated at')}
 
 
 # Miscellaneous
 
-class CreatedByField(mixins.DefaultsMixin, models.ForeignKey):
+class CreatedByField(mixins.OptionsMixin, models.ForeignKey):
 
-    default_kwargs = {'to': settings.AUTH_USER_MODEL, 'editable': False}
+    default_options = {'to': settings.AUTH_USER_MODEL, 'editable': False}
 
 
-class MD5ChecksumField(mixins.DefaultsMixin, StripCharField):
+class MD5ChecksumField(mixins.OptionsMixin, StripCharField):
 
-    default_validators = [validators.MD5ChecksumValidator()]
     default_error_messages = {'invalid': _('Enter a valid MD5 checksum')}
-    default_kwargs = {'max_length': 32}
+    default_options = {'max_length': 32}
+    default_validators = [validators.MD5ChecksumValidator()]
 
 
 class MoneyField(models.DecimalField):
