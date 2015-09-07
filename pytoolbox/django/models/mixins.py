@@ -29,12 +29,12 @@ Recommended sub-classing order:
 
 - MapUniqueTogetherMixin
 - MapUniqueTogetherIntegrityErrorToValidationErrorMixin
-- ValidateOnSaveMixin
 - AutoForceInsertMixin
 - CallFieldsPreSaveMixin
 - AutoUpdateFieldsMixin
 - AlwaysUpdateFieldsMixin
 - AutoRemovePKFromUpdateFieldsMixin
+- ValidateOnSaveMixin (will defeat the detection method of AutoUpdateFieldsMixin if placed before it)
 - UpdatePreconditionsMixin
 - StateTransitionPreconditionMixin
 - StateTransitionEventsMixin
