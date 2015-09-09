@@ -41,7 +41,6 @@ Recommended sub-classing order:
 
 Order for these does not matter:
 
-- AbsoluteUrlMixin
 - MapUniqueTogetherMixin
 - PublicMetaMixin
 - RelatedModelMixin
@@ -64,17 +63,6 @@ from ..core import exceptions
 from ... import module
 
 _all = module.All(globals())
-
-
-class AbsoluteUrlMixin(object):
-    """
-    Implement get_absolute_url based on the convention that the views URLs are based on the lower-case model's name.
-    """
-    # https://docs.djangoproject.com/en/dev/topics/class-based-views/generic-editing/
-    def get_absolute_url(self, suffix=None):
-        return reverse('{0}_{1}'.format(self.__class__.__name__.lower(),
-                       suffix or ('update' if self.pk else 'create')),
-                       kwargs={'pk': self.pk} if self.pk else None)
 
 
 class AlwaysUpdateFieldsMixin(object):
