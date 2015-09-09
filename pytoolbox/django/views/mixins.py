@@ -24,10 +24,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import os
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.views.generic.edit import DeleteView
 
 from ..models import utils
@@ -147,6 +149,28 @@ class PublishedMixin(object):
 
     def get_queryset(self):
         return only_published(super(PublishedMixin, self).get_queryset(), self.request)
+
+
+class RedirectMixin(object):
+    """Redirect to a page."""
+
+    redirect_view = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.redirect_view:
+            return redirect(self.redirect_view)
+        return super(RedirectMixin, self).dispatch(request, *args, **kwargs)
+
+
+class TemplateResponseMixin(object):
+
+    default_template_directory = 'default'
+
+    def get_template_names(self):
+        return [self.template_name] if self.template_name else [
+            os.path.join(self.template_directory, self.action + '.html'),
+            os.path.join(self.default_template_directory, self.action + '.html')
+        ]
 
 
 class ValidationErrorsMixin(object):
