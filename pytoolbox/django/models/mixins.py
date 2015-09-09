@@ -52,7 +52,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import itertools, re
 from django.core.exceptions import NON_FIELD_ERRORS
-from django.core.urlresolvers import reverse
 from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
