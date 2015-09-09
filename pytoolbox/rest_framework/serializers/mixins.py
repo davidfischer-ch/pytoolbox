@@ -29,8 +29,15 @@ from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
 
 from ... import module
+from ...django.models import utils
 
 _all = module.All(globals())
+
+
+class BaseModelMixin(object):
+
+    def build_url_field(self, field_name, model_class):
+        return super(BaseModelMixin, self).build_url_field(field_name, utils.get_base_model(model_class))
 
 
 class FromPrivateKeyMixin(object):
