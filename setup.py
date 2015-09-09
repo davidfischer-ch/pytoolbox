@@ -89,7 +89,7 @@ extras_require = {
     'django_formtools': ['django-formtools'],
     'flask':            ['flask'],
     'mongo':            ['celery'],
-    'rest_framework':   ['djangorestframework>=3'],
+    'rest_framework':   ['django-oauth-toolkit', 'djangorestframework>=3'],
     'selenium':         ['selenium'],
     'smpte2022':        ['fastxor'],
     'voluptuous':       ['voluptuous']
