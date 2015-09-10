@@ -9,8 +9,10 @@
 #
 #**********************************************************************************************************************#
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 """
-Decorators for the models of a Django application.
+Decorators for enhancing your models.
 """
 
 from django.core.urlresolvers import reverse
