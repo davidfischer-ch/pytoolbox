@@ -27,8 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import functools, os, requests, sys, time, urllib2, urlparse
 from codecs import open
 
-from .. import console, module
-from ..crypto import checksum, new
+from .. import console, crypto, module
 from ..encoding import to_bytes
 from ..exceptions import BadHTTPResponseCodeError, CorruptedFileError
 from ..filesystem import try_makedirs, try_remove
@@ -42,14 +41,13 @@ def download(url, filename):
         f.write(urllib2.urlopen(url).read())
 
 
-def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_method=None, hash_algorithm=None,
+def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_algorithm=None,
                  expected_hash=None, progress_callback=None, **kwargs):
     """
     Read the content of given `url` and save it as a file `filename`, extended version.
 
     * Set `code` to expected response code.
     * Set `force` to False to avoid downloading the file if it already exists.
-    * Set `hash_method` to a callable with the signature ``hash_method(filename, is_filename=True, chunk_size=102400)``.
     * Set `hash_algorithm` to a string or a method from the :mod:`hashlib`.
     * Set `expected_hash` to the expected hash value, warning: this will force computing the hash of the file.
     * Set `kwargs` to any extra argument accepted by ``requests.get()``.
@@ -60,19 +58,14 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
 
     **Example usage**
 
-    >>> from nose.tools import assert_raises as ar_
-    >>> from pytoolbox.crypto import githash
+    >>> import hashlib
+    >>> from pytoolbox.unittest import asserts
     >>> url = 'http://techslides.com/demos/sample-videos/small.mp4'
 
     >>> download_ext(url, 'small.mp4')
     (True, True, None)
     >>> download_ext(url, 'small.mp4', force=False)
     (True, False, None)
-    >>> download_ext(url, 'small.mp4', force=False, hash_method=githash)
-    (True, False, '1fc478842f51e7519866f474a02ad605235bc6a6')
-
-    >>> download_ext(url, 'small.mp4', hash_method=githash, expected_hash='1fc478842f51e7519866f474a02ad605235bc6a6')
-    (True, True, '1fc478842f51e7519866f474a02ad605235bc6a6')
 
     >>> download_ext(url, 'small.mp4', force=False, hash_algorithm='md5',
     ...              expected_hash='a3ac7ddabb263c2d00b73e8177d15c8d')
@@ -88,16 +81,14 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
     (383631, 383631)
     (True, True, None)
 
-    >>> ar_(CorruptedFileError, download_ext, url, 'small.mp4', hash_method=githash,
-    ...     expected_hash='2ad605235bc6a6842f51e7519866f1fc478474a0')
+    >>> asserts.raises(CorruptedFileError, download_ext, url, 'small.mp4', hash_algorithm=hashlib.md5,
+    ...                expected_hash='efac5df252145c2d07b73e8177d15c8d')
 
     >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
     (False, False, None)
 
-    >>> ar_(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
+    >>> asserts.raises(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
-    if hash_method is not None and hash_algorithm is not None:
-        raise ValueError('You can set hash_method or hash_algorithm, not both.')
     exists, downloaded = os.path.exists(filename), False
     file_hash = None
     if force or not exists:
@@ -109,8 +100,8 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
             with open(filename, 'wb') as f:
                 if chunk_size:
                     # May compute hash on chunks
-                    if hash_algorithm is not None:
-                        file_hash = new(hash_algorithm)
+                    if hash_algorithm:
+                        file_hash = crypto.new(hash_algorithm)
                     start_time = time.time()
                     # chunked download (may report progress as a progress bar)
                     position, length = 0, None if length is None else int(length)
@@ -118,7 +109,7 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
                         if file_hash:
                             file_hash.update(data)
                         f.write(data)
-                        if progress_callback is not None:
+                        if progress_callback:
                             position += len(data)
                             progress_callback(start_time, position, length)
                 else:
@@ -126,12 +117,9 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_me
             downloaded = True
     if file_hash:  # was computed during the download
         file_hash = file_hash.hexdigest()
-    else:  # is not yet computed for any valid reason
-        if hash_method is not None:
-            file_hash = hash_method(filename, is_filename=True, chunk_size=chunk_size)
-        elif hash_algorithm is not None:
-            file_hash = checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
-    if expected_hash is not None and file_hash != expected_hash:
+    elif hash_algorithm:  # is not yet computed for any valid reason
+        file_hash = crypto.checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
+    if expected_hash and file_hash != expected_hash:
         raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
     return exists, downloaded, file_hash
 
@@ -141,7 +129,7 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
     """
     Download resources, showing a progress bar by default.
 
-    Each element should be a dict with the url, filename and name keys.
+    Each element should be a `dict` with the url, filename and name keys.
     Any extra item is passed to :func:`download_ext` as extra keyword arguments.
     """
     for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
