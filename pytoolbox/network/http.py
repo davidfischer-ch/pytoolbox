@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, requests, sys, time, urllib2, urlparse
+import functools, os, requests, sys, time, urllib2, urlparse
 from codecs import open
 
 from .. import console, crypto, module
@@ -41,7 +41,49 @@ def download(url, filename):
         f.write(urllib2.urlopen(url).read())
 
 
-# FIXME replace progress_callback by more "functional" yield
+def iter_download_core(url, code=200, chunk_size=102400, **kwargs):
+    response = requests.get(url, stream=bool(chunk_size), **kwargs)
+    length = response.headers.get('content-length')
+    if response.status_code != code:
+        raise BadHTTPResponseCodeError(url=url, code=code, r_code=response.status_code)
+    if response.status_code == 200:
+        if chunk_size:
+            position, length = 0, None if length is None else int(length)
+            for chunk in response.iter_content(chunk_size):
+                position += len(chunk)
+                yield position, length, chunk
+        else:
+            chunk = response.content
+            yield len(chunk), len(chunk), chunk
+
+
+def iter_download_to_file(url, filename, code=200, chunk_size=102400, force=True, hash_algorithm=None,
+                          expected_hash=None, **kwargs):
+    position, length, chunk, downloaded, file_hash = 0, 0, None, False, None
+    if force or not os.path.exists(filename):
+        file = None
+        try:
+            for position, length, chunk in iter_download_core(url, code, chunk_size, **kwargs):
+                downloaded = True
+                if hash_algorithm:
+                    file_hash = file_hash or crypto.new(hash_algorithm)
+                    file_hash.update(chunk)
+                yield position, length, chunk, downloaded, file_hash.hexdigest() if file_hash else None
+                file = file or open(filename, 'wb')
+                file.write(chunk)
+        finally:
+            if file:
+                file.close()
+        if file_hash:
+            file_hash = file_hash.hexdigest()
+    elif hash_algorithm:
+        file_hash = crypto.checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
+    if expected_hash and file_hash != expected_hash:
+        raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
+    if not downloaded:
+        yield position, length, chunk, downloaded, file_hash
+
+
 def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_algorithm=None,
                  expected_hash=None, progress_callback=None, **kwargs):
     """
@@ -90,42 +132,12 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_al
 
     >>> asserts.raises(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
-    file_hash = None
-    exists, downloaded, start_time = os.path.exists(filename), False, time.time()
-    if force or not exists:
-        response = requests.get(url, stream=bool(chunk_size), **kwargs)
-        length = response.headers.get('content-length')
-        if response.status_code != code:
-            raise BadHTTPResponseCodeError(url=url, code=code, r_code=response.status_code)
-        if response.status_code == 200:
-            downloaded = True
-            if hash_algorithm:
-                file_hash = crypto.new(hash_algorithm)
-
-            def _progress(position, length, chunk):
-                if file_hash:
-                    file_hash.update(chunk)
-                f.write(chunk)
-                if progress_callback:
-                    progress_callback(start_time, position, length, chunk)
-
-            with open(filename, 'wb') as f:
-                if chunk_size:
-                    # chunked download (may report progress as a progress bar)
-                    position, length = 0, None if length is None else int(length)
-                    for chunk in response.iter_content(chunk_size):
-                        position += len(chunk)
-                        _progress(position, length, chunk)
-                else:
-                    content = response.content
-                    _progress(len(content), len(content), content)
-
-            if file_hash:
-                file_hash = file_hash.hexdigest()
-    elif hash_algorithm:
-        file_hash = crypto.checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
-    if expected_hash and file_hash != expected_hash:
-        raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
+    exists, start_time = os.path.exists(filename), time.time()
+    for position, length, chunk, downloaded, file_hash in iter_download_to_file(
+        url, filename, code, chunk_size, force, hash_algorithm, expected_hash
+    ):
+        if progress_callback:
+            progress_callback(start_time, position, length, chunk)
     return exists, downloaded, file_hash
 
 
@@ -135,24 +147,22 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
     Download resources, showing a progress bar by default.
 
     Each element should be a `dict` with the url, filename and name keys.
-    Any extra item is passed to :func:`download_ext` as extra keyword arguments.
+    Any extra item is passed to :func:`iter_download_to_file` as extra keyword arguments.
     """
-    def callback(start_time, position, length, chunk):
-        return progress_callback(
-            start_time, position, length, stream=progress_stream, template=progress_template.format(
-                counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)
-            ))
     for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
-        kwargs = resource.copy()
+        kwargs, start_time = resource.copy(), time.time()
         url, filename, name = kwargs.pop('url'), kwargs.pop('filename'), kwargs.pop('name')
+        callback = functools.partial(progress_callback, stream=progress_stream, template=progress_template.format(
+                                     counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)))
         if not os.path.exists(filename):
             try_makedirs(os.path.dirname(filename))
             try:
-                download_ext(url, filename, chunk_size=chunk_size, force=False, progress_callback=callback, **kwargs)
+                for returned in iter_download_to_file(url, filename, chunk_size=chunk_size, force=False, **kwargs):
+                    callback(start_time, returned[0], returned[1])
             except:
                 try_remove(filename)
                 raise
-        callback(0, 'd', 1)
+        callback(start_time, 1, 1)
         progress_stream.write(os.linesep)
 
 
