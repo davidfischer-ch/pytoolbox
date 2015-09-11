@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import functools, os
+import functools, os, warnings
 
 from . import module
 from .console import confirm
@@ -52,6 +52,19 @@ class cached_property(object):
             return self
         res = instance.__dict__[self.name] = self.func(instance)
         return res
+
+
+def deprecated(func):
+    """
+    Decorator that can be used to mark functions as deprecated. It will result in a warning being emitted when the
+    function is used. Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
+    """
+    @functools.wraps(func)
+    def _deprecated(*args, **kwargs):
+        warnings.warn_explicit('Call to deprecated function {0.__name__}.'.format(func), category=DeprecationWarning,
+                               filename=func.func_code.co_filename, lineno=func.func_code.co_firstlineno + 1)
+        return func(*args, **kwargs)
+    return _deprecated
 
 
 class hybridmethod(object):
