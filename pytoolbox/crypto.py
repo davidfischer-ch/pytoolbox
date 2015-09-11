@@ -67,6 +67,8 @@ def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=ha
     return hasher.hexdigest()
 
 
+# FIXME implement githash class with interface: https://hg.python.org/cpython/file/3.4/Lib/hashlib.py
+# FIXME add length optional argument to implement chunk'ed update()
 def githash(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=None):
     """
     Return the blob of some data.
