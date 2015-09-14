@@ -24,10 +24,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import itertools
+import itertools, time
 
 from . import module
-from .types import isiterable
+from .datetime import total_seconds
+from .types import isiterable, Missing
 
 _all = module.All(globals())
 
@@ -66,5 +67,31 @@ def extract_single(objects):
     >>> asserts.equal(extract_single('!'), '!')
     """
     return next(iter(objects)) if len(objects) == 1 else objects
+
+
+def throttle(objects, min_delay):
+    """
+    Consume and skips some objects to yield them at defined `min_delay`. First and last objects are always returned.
+
+    **Example usage**
+
+    >>> import datetime
+    >>> from pytoolbox.unittest import asserts
+    >>> def slow_range(*args):
+    ...     for i in range(*args):
+    ...         time.sleep(0.5)
+    ...         yield i
+    >>> asserts.list_equal(list(throttle(range(10), datetime.timedelta(minutes=1))), [0, 9])
+    >>> asserts.list_equal(list(throttle(slow_range(3), '00:00:00.2')), [0, 1, 2])
+    """
+    previous_time, current_object = None, Missing
+    for obj in objects:
+        current_object = obj
+        if not previous_time or time.time() - previous_time >= total_seconds(min_delay):
+            previous_time = time.time()
+            current_object = Missing
+            yield obj
+    if current_object is not Missing:
+        yield current_object
 
 __all__ = _all.diff(globals())
