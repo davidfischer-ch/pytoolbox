@@ -24,11 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import itertools, time
+import itertools
 
-from . import module
-from .datetime import total_seconds
-from .types import isiterable, Missing
+from . import module, throttles
+from .types import isiterable
 
 _all = module.All(globals())
 
@@ -72,6 +71,7 @@ def extract_single(objects):
 def throttle(objects, min_delay):
     """
     Consume and skips some objects to yield them at defined `min_delay`. First and last objects are always returned.
+    This function is a shortcut for ``throttles.TimeThrottle(min_delay).throttle_iterable(objects)``.
 
     **Example usage**
 
@@ -84,14 +84,6 @@ def throttle(objects, min_delay):
     >>> asserts.list_equal(list(throttle(range(10), datetime.timedelta(minutes=1))), [0, 9])
     >>> asserts.list_equal(list(throttle(slow_range(3), '00:00:00.2')), [0, 1, 2])
     """
-    previous_time, current_object = None, Missing
-    for obj in objects:
-        current_object = obj
-        if not previous_time or time.time() - previous_time >= total_seconds(min_delay):
-            previous_time = time.time()
-            current_object = Missing
-            yield obj
-    if current_object is not Missing:
-        yield current_object
+    return throttles.TimeThrottle(min_delay).throttle_iterable(objects)
 
 __all__ = _all.diff(globals())
