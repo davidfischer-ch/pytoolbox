@@ -75,7 +75,7 @@ def throttle(objects, min_delay):
 
     **Example usage**
 
-    >>> import datetime
+    >>> import datetime, time
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
     ...     for i in range(*args):
