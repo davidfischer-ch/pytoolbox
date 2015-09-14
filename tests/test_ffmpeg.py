@@ -265,33 +265,6 @@ class TestEncodeStatistics(base.TestCase):
             'time': datetime.timedelta(minutes=1, seconds=25.89), 'bit_rate': 3302300
         })
 
-    def test_should_report_initialization(self):
-        statistics = self.get_statistics()
-        self.true(statistics._should_report())
-        self.equal(statistics._prev_elapsed_time, datetime.timedelta(0))
-        self.equal(statistics._prev_ratio, 0)
-        self.false(statistics._should_report())
-
-    def test_should_report_elapsed_time_criteria(self):
-        statistics = self.get_statistics()
-        self.true(statistics._should_report())
-        statistics.elapsed_time = datetime.timedelta(seconds=3)
-        self.false(statistics._should_report())
-        statistics.elapsed_time = datetime.timedelta(seconds=6)
-        self.true(statistics._should_report())
-        self.false(statistics._should_report())
-
-    def test_should_report_ratio_criteria(self):
-        statistics = self.get_statistics()
-        self.true(statistics._should_report())
-        statistics.ratio = 0.001
-        self.false(statistics._should_report())
-        statistics.ratio = 0.02
-        self.false(statistics._should_report())
-        statistics.elapsed_time = datetime.timedelta(seconds=2)
-        self.true(statistics._should_report())
-        self.false(statistics._should_report())
-
     def test_eta_time(self):
         statistics = self.get_statistics()
         statistics.elapsed_time = datetime.timedelta(seconds=60)

@@ -57,16 +57,12 @@ class EncodeStatistics(object):
     ffprobe_class = ffprobe.FFprobe
     states = EncodeState
 
-    def __init__(self, inputs, outputs, options, in_base_index=0, out_base_index=0, ratio_delta=0.01, time_delta=1,
-                 max_time_delta=5):
+    def __init__(self, inputs, outputs, options, in_base_index=0, out_base_index=0):
         self.inputs = inputs
         self.outputs = outputs
         self.options = options
         self.in_base_index = in_base_index
         self.out_base_index = out_base_index
-        self.ratio_delta = ratio_delta
-        self.time_delta = datetime.timedelta(seconds=time_delta)
-        self.max_time_delta = datetime.timedelta(seconds=max_time_delta)
 
         self.process = None
         self.process_output = ''
@@ -130,8 +126,7 @@ class EncodeStatistics(object):
             self.output.size = ffmpeg_statistics['size']
             self.bit_rate = ffmpeg_statistics['bit_rate']
         self._update_ratio()
-        if self._should_report():
-            return self
+        return self
 
     def end(self, returncode):
         self.state = self.states.FAILURE if returncode else self.states.SUCCESS
@@ -187,17 +182,5 @@ class EncodeStatistics(object):
             ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
             ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
             return ffmpeg_statistics
-
-    def _should_report(self):
-        elapsed_time, ratio = self.elapsed_time or datetime.timedelta(0), self.ratio or 0
-        if not hasattr(self, '_prev_elapsed_time') or not hasattr(self, '_prev_ratio'):
-            self._prev_elapsed_time, self._prev_ratio = elapsed_time, ratio
-            return True
-        delta_time = (elapsed_time - self._prev_elapsed_time) if elapsed_time else datetime.timedelta(0)
-        delta_ratio = (ratio - self._prev_ratio) if ratio else 0
-        if (delta_ratio > self.ratio_delta and delta_time > self.time_delta) or delta_time > self.max_time_delta:
-            self._prev_elapsed_time, self._prev_ratio = elapsed_time, ratio
-            return True
-        return False
 
 __all__ = _all.diff(globals())
