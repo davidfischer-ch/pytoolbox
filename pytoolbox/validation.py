@@ -105,9 +105,9 @@ if sys.version_info[0] > 2:
             super().__setattr__(name, value)
 
 
-def valid_filename(filename):
+def valid_filename(path):
     """
-    Returns True if `filename` is a valid filename.
+    Returns True if `path` is a valid file name.
 
     **Example usage**
 
@@ -117,7 +117,7 @@ def valid_filename(filename):
     True
     """
     try:
-        return True if re.match(r'[^\.]+\.[^\.]+', filename) else False
+        return True if re.match(r'[^\.]+\.[^\.]+', path) else False
     except:
         return False
 

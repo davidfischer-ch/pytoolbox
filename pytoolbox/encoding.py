@@ -70,9 +70,9 @@ else:
         pass
 
 
-def csv_reader(filename, delimiter=';', quotechar='"', encoding='utf-8'):
+def csv_reader(path, delimiter=';', quotechar='"', encoding='utf-8'):
     """Yield the content of a CSV file."""
-    with open(filename, 'r', encoding) as f:
+    with open(path, 'r', encoding) as f:
         for line in f.readlines():
             line = line.strip()
             yield [cell for cell in line.split(delimiter)]

@@ -42,12 +42,12 @@ def relocate(source_directory, destination_directory, encoding='utf-8'):
     b_source_directory = source_directory.encode(encoding)
     b_destination_directory = destination_directory.encode(encoding)
 
-    for filename in itertools.chain.from_iterable([
+    for path in itertools.chain.from_iterable([
         find_recursive(destination_directory, ['*.egg-link', '*.pth', '*.pyc', 'RECORD']),
         find_recursive(os.path.join(destination_directory, 'bin'), '*'),
         find_recursive(os.path.join(destination_directory, 'src'), '*.so')
     ]):
-        with open(filename, 'r+b') as f:
+        with open(path, 'r+b') as f:
             content = f.read().replace(b_source_directory, b_destination_directory)
             f.seek(0)
             f.write(content)

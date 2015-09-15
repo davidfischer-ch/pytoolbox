@@ -122,7 +122,7 @@ def load_unit_config(config, log=None):
 
     The parameter `config` can be:
 
-    * The filename of a charm configuration file (e.g. `config.yaml`).
+    * The path of a charm configuration file (e.g. `config.yaml`).
     * A dictionary containing already loaded options names as keys and options values as values.
     """
     if isinstance(config, string_types):
@@ -141,8 +141,8 @@ def load_unit_config(config, log=None):
     return config
 
 
-def save_unit_config(filename, service, config, log=None):
-    with open(filename, 'w', encoding='utf-8') as f:
+def save_unit_config(path, service, config, log=None):
+    with open(path, 'w', encoding='utf-8') as f:
         for option, value in config.iteritems():
             if isinstance(value, bool):
                 config[option] = 'True' if value else 'False'
@@ -493,7 +493,7 @@ class CharmHooks(object):
         """
         Set `metadata` attribute with given metadata, `metadata` can be:
 
-        * The filename of a charm metadata file (e.g. `metadata.yaml`)
+        * The path of a charm metadata file (e.g. `metadata.yaml`)
         * A dictionary containing the metadata.
 
         **Example usage**

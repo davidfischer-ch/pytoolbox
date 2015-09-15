@@ -164,7 +164,7 @@ class StaticFFprobe(ffmpeg.FFprobe):
         if isinstance(media, dict):
             return media
         media = self.to_media(media)
-        if os.path.basename(media.filename) == 'small.mp4' and not WITH_FFMPEG:
+        if os.path.basename(media.path) == 'small.mp4' and not WITH_FFMPEG:
             return MEDIA_INFOS
         return super(StaticFFprobe, self).get_media_info(media, *args, **kwargs)
 
@@ -214,8 +214,8 @@ class TestMedia(base.TestCase):
     def test_pipe(self):
         self.false(Media(None).is_pipe)
         self.false(Media('test-file.mp4').is_pipe)
-        for filename in '-', 'pipe:3':
-            media = Media(filename)
+        for path in '-', 'pipe:3':
+            media = Media(path)
             self.is_none(media.directory)
             self.true(media.is_pipe)
             self.equal(media.size, 0)
@@ -312,7 +312,7 @@ class TestEncodeStatistics(base.TestCase):
 
     @unittest.skipIf(not WITH_FFPROBE, 'Static FFprobe binary not available')
     def test_success_properties(self):
-        self.outputs[0].filename = self.inputs[0].filename
+        self.outputs[0].path = self.inputs[0].path
         statistics = self.get_statistics(returncode=0)
         self.equal(statistics.state, statistics.states.SUCCESS)
         self.equal(statistics.output.duration, statistics.input.duration)

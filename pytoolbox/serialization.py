@@ -38,10 +38,10 @@ _all = module.All(globals())
 
 # Data -> File ---------------------------------------------------------------------------------------------------------
 
-def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, backup=False, makedirs=False):
+def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=False, makedirs=False):
     """
     Write some data to a file, can be safe (tmp file -> rename), may create a backup before any write operation.
-    Return the name of the backup filename or None.
+    Return the name of the backup path or None.
 
     **Example usage**
 
@@ -75,24 +75,24 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
     >>> eq_(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
     """
     if makedirs:
-        try_makedirs(os.path.dirname(filename))
+        try_makedirs(os.path.dirname(path))
     if backup:
-        backup_filename = '{0}.bkp'.format(filename)
+        backup_path = '{0}.bkp'.format(path)
         try:
-            shutil.copy2(filename, backup_filename)
+            shutil.copy2(path, backup_path)
         except IOError as e:
             if e.errno != errno.ENOENT:
                 raise
-            backup_filename = None
-    write_filename = '{0}.tmp'.format(filename) if safe else filename
-    with open(write_filename, 'wb' if binary else 'w', None if binary else 'utf-8') as f:
+            backup_path = None
+    write_path = '{0}.tmp'.format(path) if safe else path
+    with open(write_path, 'wb' if binary else 'w', None if binary else 'utf-8') as f:
         if data is not None:
             f.write(data)
         if pickle_data is not None:
             pickle.dump(pickle_data, f)
     if safe:
-        os.rename(write_filename, filename)
-    return backup_filename if backup else None
+        os.rename(write_path, path)
+    return backup_path if backup else None
 
 
 # Object <-> Pickle file -----------------------------------------------------------------------------------------------
@@ -100,35 +100,35 @@ def to_file(filename, data=None, pickle_data=None, binary=False, safe=False, bac
 class PickleableObject(object):
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
-    def read(cls, filename, store_filename=False, create_if_error=False, **kwargs):
+    def read(cls, path, store_path=False, create_if_error=False, **kwargs):
         """Return a deserialized instance of a pickleable object loaded from a file."""
         try:
-            with open(filename, 'rb') as f:
+            with open(path, 'rb') as f:
                 the_object = pickle.load(f)
         except:
             if not create_if_error:
                 raise
             the_object = cls(**kwargs)
-            the_object.write(filename, store_filename=store_filename)
-        if store_filename:
-            the_object._pickle_filename = filename
+            the_object.write(path, store_path=store_path)
+        if store_path:
+            the_object._pickle_path = path
         return the_object
 
-    def write(self, filename=None, store_filename=False, safe=False, backup=False, makedirs=False):
-        """Serialize `self` to a file, excluding the attribute `_pickle_filename`."""
-        pickle_filename = getattr(self, '_pickle_filename', None)
-        filename = filename or pickle_filename
-        if filename is None:
-            raise ValueError(to_bytes('A filename must be specified'))
+    def write(self, path=None, store_path=False, safe=False, backup=False, makedirs=False):
+        """Serialize `self` to a file, excluding the attribute `_pickle_path`."""
+        pickle_path = getattr(self, '_pickle_path', None)
+        path = path or pickle_path
+        if path is None:
+            raise ValueError(to_bytes('A path must be specified'))
         try:
-            if pickle_filename:
-                del self._pickle_filename
-            to_file(filename, pickle_data=self, binary=True, safe=safe, backup=backup, makedirs=makedirs)
+            if pickle_path:
+                del self._pickle_path
+            to_file(path, pickle_data=self, binary=True, safe=safe, backup=backup, makedirs=makedirs)
         finally:
-            if store_filename:
-                self._pickle_filename = filename
-            elif pickle_filename:
-                self._pickle_filename = pickle_filename
+            if store_path:
+                self._pickle_path = path
+            elif pickle_path:
+                self._pickle_path = pickle_path
 
 
 # Object <-> JSON string -----------------------------------------------------------------------------------------------
@@ -197,9 +197,9 @@ def json_to_object(cls, json_string, inspect_constructor):
     return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
-def jsonfile_to_object(cls, filename_or_file, inspect_constructor):
+def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     """
-    Load and deserialize the JSON string stored in a file `filename` to an instance of `cls`.
+    Load and deserialize the JSON string stored in a file `path` to an instance of `cls`.
 
     .. warning::
 
@@ -227,8 +227,7 @@ def jsonfile_to_object(cls, filename_or_file, inspect_constructor):
     >>> eq_(p1.__dict__, p2.__dict__)
     >>> os.remove('test.json')
     """
-    f = (open(filename_or_file, 'r', encoding='utf-8') if isinstance(filename_or_file, string_types)
-         else filename_or_file)
+    f = open(path_or_file, 'r', encoding='utf-8') if isinstance(path_or_file, string_types) else path_or_file
     return json_to_object(cls, f.read(), inspect_constructor)
 
 
@@ -289,29 +288,29 @@ class JsoneableObject(object):
     >>> eq_(media_back.author.__dict__, media.author.__dict__)
     """
     @classmethod
-    def read(cls, filename, store_filename=False, inspect_constructor=True):
+    def read(cls, path, store_path=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
-        with open(filename, 'r', 'utf-8') as f:
+        with open(path, 'r', 'utf-8') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
-            if store_filename:
-                the_object._json_filename = filename
+            if store_path:
+                the_object._json_path = path
             return the_object
 
-    def write(self, filename=None, include_properties=False, safe=False, backup=False, makedirs=False, **kwargs):
-        """Serialize `self` to a file, excluding the attribute `_json_filename`."""
-        if filename is None and hasattr(self, '_json_filename'):
-            filename = self._json_filename
+    def write(self, path=None, include_properties=False, safe=False, backup=False, makedirs=False, **kwargs):
+        """Serialize `self` to a file, excluding the attribute `_json_path`."""
+        if path is None and hasattr(self, '_json_path'):
+            path = self._json_path
             try:
-                del self._json_filename
-                to_file(filename, data=object_to_json(self, include_properties, **kwargs),
+                del self._json_path
+                to_file(path, data=object_to_json(self, include_properties, **kwargs),
                         binary=False, safe=safe, backup=backup, makedirs=makedirs)
             finally:
-                self._json_filename = filename
-        elif filename is not None:
-            to_file(filename, data=object_to_json(self, include_properties, **kwargs),
+                self._json_path = path
+        elif path is not None:
+            to_file(path, data=object_to_json(self, include_properties, **kwargs),
                     binary=False, safe=safe, backup=backup, makedirs=makedirs)
         else:
-            raise ValueError('A filename must be specified')
+            raise ValueError('A path must be specified')
 
     def to_json(self, include_properties, **kwargs):
         """Serialize this instance to a JSON string."""

@@ -96,8 +96,8 @@ class FFmpeg(object):
         """
         Return the arguments for the encoding process.
 
-        * Set inputs to one or multiple strings (filenames) or Media instances (with options).
-        * Set outputs to one or multiple strings (filenames) or Media instances (with options).
+        * Set inputs to one or multiple strings (paths) or Media instances (with options).
+        * Set outputs to one or multiple strings (paths) or Media instances (with options).
         * Set options to a string or a list with the options to put in-between the inputs and outputs (legacy API).
 
         In return you will get a tuple with (arguments, inputs -> list Media, outputs -> list Media, options -> list).

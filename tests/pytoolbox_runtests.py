@@ -39,8 +39,8 @@ def main():
     settings.configure()
 
     print('Download the test assets')
-    for url, filename in constants.TEST_ASSETS:
-        download_ext(url, filename, force=False)
+    for url, path in constants.TEST_ASSETS:
+        download_ext(url, path, force=False)
 
     print('Download ffmpeg static binary')
     try:
@@ -57,8 +57,8 @@ def main():
         else:
             with tarfile.open(constants.FFMPEG_ARCHIVE) as f:
                 f.extractall(constants.TESTS_DIRECTORY)
-        for filename in 'ffmpeg', 'ffprobe':
-            shutil.copy(os.path.join(constants.FFMPEG_DIRECTORY, filename), tempfile.gettempdir())
+        for path in 'ffmpeg', 'ffprobe':
+            shutil.copy(os.path.join(constants.FFMPEG_DIRECTORY, path), tempfile.gettempdir())
     except BadHTTPResponseCodeError:
         print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 

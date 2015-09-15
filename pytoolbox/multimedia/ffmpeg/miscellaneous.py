@@ -119,25 +119,25 @@ class VideoStream(Stream):
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
-    __slots__ = ('filename', 'options')
+    __slots__ = ('path', 'options')
 
-    def __init__(self, filename, options=None):
-        self.filename = filename
+    def __init__(self, path, options=None):
+        self.path = path
         self.options = options
         self._size = None
 
     @property
     def directory(self):
-        return None if self.is_pipe else os.path.abspath(os.path.dirname(self.filename))
+        return None if self.is_pipe else os.path.abspath(os.path.dirname(self.path))
 
     @property
     def is_pipe(self):
-        return utils.is_pipe(self.filename)
+        return utils.is_pipe(self.path)
 
     @property
     def size(self):
         if self._size is None:
-            return 0 if self.is_pipe else filesystem.get_size(self.filename)
+            return 0 if self.is_pipe else filesystem.get_size(self.path)
         return self._size
 
     @size.setter
@@ -152,6 +152,6 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
             filesystem.try_makedirs(self.directory)
 
     def to_args(self, is_input):
-        return self.options + (['-i', self.filename] if is_input else [self.filename])
+        return self.options + (['-i', self.path] if is_input else [self.path])
 
 __all__ = _all.diff(globals())

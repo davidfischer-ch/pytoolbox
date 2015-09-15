@@ -133,7 +133,7 @@ class EncodeStatistics(object):
         self.returncode = returncode
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
         self.frame_rate = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
-        self.output.duration = self.ffprobe_class().get_media_duration(self.output.filename, as_delta=True)
+        self.output.duration = self.ffprobe_class().get_media_duration(self.output.path, as_delta=True)
         self.output.size = None
         self._update_ratio()
         return self

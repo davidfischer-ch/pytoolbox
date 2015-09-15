@@ -45,14 +45,14 @@ class X264(FFmpeg):
     encoding_regex = ENCODING_REGEX
     encoding_executable = 'x264'
 
-    def _get_arguments(self, in_filenames, out_filename, options):
-        in_filenames = [f for f in ([in_filenames] if isinstance(in_filenames, string_types) else in_filenames)]
-        if len(in_filenames) > 1:
-            raise NotImplementedError('Unable to handle more than one input filename.')
-        out_filename = out_filename or '/dev/null'
+    def _get_arguments(self, in_paths, out_path, options):
+        in_paths = [f for f in ([in_paths] if isinstance(in_paths, string_types) else in_paths)]
+        if len(in_paths) > 1:
+            raise NotImplementedError('Unable to handle more than one input.')
+        out_path = out_path or '/dev/null'
         options = (shlex.split(options) if isinstance(options, string_types) else options) or []
-        args = [self.encoder_executable] + options + ['-o', out_filename] + in_filenames
-        return args, in_filenames, out_filename, options
+        args = [self.encoder_executable] + options + ['-o', out_path] + in_paths
+        return args, in_paths, out_path, options
 
     def _get_progress(self, in_duration, stats):
         out_duration = in_duration * float(stats['percent'])

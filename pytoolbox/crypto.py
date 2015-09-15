@@ -40,7 +40,7 @@ def new(algorithm=hashlib.sha256):
     return hashlib.new(algorithm) if isinstance(algorithm, string_types) else algorithm()
 
 
-def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=hashlib.sha256, chunk_size=None):
+def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sha256, chunk_size=None):
     """
     Return the result of hashing `data` by given hash `algorithm`.
 
@@ -56,20 +56,20 @@ def checksum(filename_or_data, encoding='utf-8', is_filename=False, algorithm=ha
     ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef
     >>> print(checksum('et ça fonctionne !\\n', algorithm='md5'))
     3ca34e7965fd59beaa13b6e7094f43e7
-    >>> print(checksum('small.mp4', is_filename=True))
+    >>> print(checksum('small.mp4', is_path=True))
     1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
-    >>> print(checksum('small.mp4', is_filename=True, chunk_size=1024))
+    >>> print(checksum('small.mp4', is_path=True, chunk_size=1024))
     1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
     """
     hasher = new(algorithm)
-    for data in get_bytes(filename_or_data, encoding, is_filename, chunk_size):
+    for data in get_bytes(path_or_data, encoding, is_path, chunk_size):
         hasher.update(data)
     return hasher.hexdigest()
 
 
 # FIXME implement githash class with interface: https://hg.python.org/cpython/file/3.4/Lib/hashlib.py
 # FIXME add length optional argument to implement chunk'ed update()
-def githash(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=None):
+def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     """
     Return the blob of some data.
 
@@ -89,18 +89,18 @@ def githash(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=No
     abdd1818289725c072eff0f5ce185457679650be
     >>> print(githash('et ça fonctionne !\\n'))
     91de5baf6aaa1af4f662aac4383b27937b0e663d
-    >>> print(githash('small.mp4', is_filename=True))
+    >>> print(githash('small.mp4', is_path=True))
     1fc478842f51e7519866f474a02ad605235bc6a6
-    >>> print(githash('small.mp4', is_filename=True, chunk_size=1024))
+    >>> print(githash('small.mp4', is_path=True, chunk_size=1024))
     1fc478842f51e7519866f474a02ad605235bc6a6
     """
     s = hashlib.sha1()
-    if is_filename:
-        s.update(('blob %d\0' % os.path.getsize(filename_or_data)).encode('utf-8'))
-        for data_bytes in get_bytes(filename_or_data, encoding, is_filename, chunk_size):
+    if is_path:
+        s.update(('blob %d\0' % os.path.getsize(path_or_data)).encode('utf-8'))
+        for data_bytes in get_bytes(path_or_data, encoding, is_path, chunk_size):
             s.update(data_bytes)
     else:
-        data_bytes = next(get_bytes(filename_or_data, encoding, is_filename, chunk_size=None))
+        data_bytes = next(get_bytes(path_or_data, encoding, is_path, chunk_size=None))
         s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
         s.update(data_bytes)
     return s.hexdigest()

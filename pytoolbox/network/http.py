@@ -35,9 +35,9 @@ from ..filesystem import try_makedirs, try_remove
 _all = module.All(globals())
 
 
-def download(url, filename):
-    """Read the content of given `url` and save it as a file `filename`."""
-    with open(filename, 'wb') as f:
+def download(url, path):
+    """Read the content of given `url` and save it as a file `path`."""
+    with open(path, 'wb') as f:
         f.write(urllib2.urlopen(url).read())
 
 
@@ -57,10 +57,10 @@ def iter_download_core(url, code=200, chunk_size=102400, **kwargs):
             yield len(chunk), len(chunk), chunk
 
 
-def iter_download_to_file(url, filename, code=200, chunk_size=102400, force=True, hash_algorithm=None,
+def iter_download_to_file(url, path, code=200, chunk_size=102400, force=True, hash_algorithm=None,
                           expected_hash=None, **kwargs):
     position, length, chunk, downloaded, file_hash = 0, 0, None, False, None
-    if force or not os.path.exists(filename):
+    if force or not os.path.exists(path):
         file = None
         try:
             for position, length, chunk in iter_download_core(url, code, chunk_size, **kwargs):
@@ -69,7 +69,7 @@ def iter_download_to_file(url, filename, code=200, chunk_size=102400, force=True
                     file_hash = file_hash or crypto.new(hash_algorithm)
                     file_hash.update(chunk)
                 yield position, length, chunk, downloaded, file_hash.hexdigest() if file_hash else None
-                file = file or open(filename, 'wb')
+                file = file or open(path, 'wb')
                 file.write(chunk)
         finally:
             if file:
@@ -77,17 +77,17 @@ def iter_download_to_file(url, filename, code=200, chunk_size=102400, force=True
         if file_hash:
             file_hash = file_hash.hexdigest()
     elif hash_algorithm:
-        file_hash = crypto.checksum(filename, is_filename=True, algorithm=hash_algorithm, chunk_size=chunk_size)
+        file_hash = crypto.checksum(path, is_path=True, algorithm=hash_algorithm, chunk_size=chunk_size)
     if expected_hash and file_hash != expected_hash:
-        raise CorruptedFileError(filename=filename, file_hash=file_hash, expected_hash=expected_hash)
+        raise CorruptedFileError(path=path, file_hash=file_hash, expected_hash=expected_hash)
     if not downloaded:
         yield position, length, chunk, downloaded, file_hash
 
 
-def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_algorithm=None,
-                 expected_hash=None, progress_callback=None, **kwargs):
+def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algorithm=None, expected_hash=None,
+                 progress_callback=None, **kwargs):
     """
-    Read the content of given `url` and save it as a file `filename`, extended version.
+    Read the content of given `url` and save it as a file `path`, extended version.
 
     * Set `code` to expected response code.
     * Set `force` to False to avoid downloading the file if it already exists.
@@ -132,9 +132,9 @@ def download_ext(url, filename, code=200, chunk_size=102400, force=True, hash_al
 
     >>> asserts.raises(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
-    exists, start_time = os.path.exists(filename), time.time()
+    exists, start_time = os.path.exists(path), time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
-        url, filename, code, chunk_size, force, hash_algorithm, expected_hash
+        url, path, code, chunk_size, force, hash_algorithm, expected_hash
     ):
         if progress_callback:
             progress_callback(start_time, position, length, chunk)
@@ -146,21 +146,21 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
     """
     Download resources, showing a progress bar by default.
 
-    Each element should be a `dict` with the url, filename and name keys.
+    Each element should be a `dict` with the url, path and name keys.
     Any extra item is passed to :func:`iter_download_to_file` as extra keyword arguments.
     """
     for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
         kwargs, start_time = resource.copy(), time.time()
-        url, filename, name = kwargs.pop('url'), kwargs.pop('filename'), kwargs.pop('name')
+        url, path, name = kwargs.pop('url'), kwargs.pop('path'), kwargs.pop('name')
         callback = functools.partial(progress_callback, stream=progress_stream, template=progress_template.format(
                                      counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)))
-        if not os.path.exists(filename):
-            try_makedirs(os.path.dirname(filename))
+        if not os.path.exists(path):
+            try_makedirs(os.path.dirname(path))
             try:
-                for returned in iter_download_to_file(url, filename, chunk_size=chunk_size, force=False, **kwargs):
+                for returned in iter_download_to_file(url, path, chunk_size=chunk_size, force=False, **kwargs):
                     callback(start_time, returned[0], returned[1])
             except:
-                try_remove(filename)
+                try_remove(path)
                 raise
         callback(start_time, 1, 1)
         progress_stream.write(os.linesep)

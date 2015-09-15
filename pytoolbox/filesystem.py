@@ -128,14 +128,14 @@ def from_template(template, destination, values, jinja2=False):
             destination_file.write(content)
 
 
-def get_bytes(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=None):
+def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     """
-    Yield the content read from the given `filename` or the `data` converted to bytes.
+    Yield the content read from the given `path` or the `data` converted to bytes.
 
     Remark: Value of `encoding` is used only if `data` is actually a string.
     """
-    if is_filename:
-        with open(filename_or_data, 'rb') as f:
+    if is_path:
+        with open(path_or_data, 'rb') as f:
             if chunk_size is not None:
                 while True:
                     data = f.read(chunk_size)
@@ -145,7 +145,7 @@ def get_bytes(filename_or_data, encoding='utf-8', is_filename=False, chunk_size=
             else:
                 yield f.read()
     else:
-        yield filename_or_data.encode(encoding) if isinstance(filename_or_data, string_types) else filename_or_data
+        yield path_or_data.encode(encoding) if isinstance(path_or_data, string_types) else path_or_data
 
 
 def get_size(path):
@@ -431,24 +431,23 @@ class TempStorage(object):
         >>> import os
         >>> from nose.tools import eq_
         >>> tmp = TempStorage()
-        >>> filename = tmp.create_tmp_file(encoding=None, return_file=False)
-        >>> eq_(os.path.isfile(filename), True)
+        >>> path = tmp.create_tmp_file(encoding=None, return_file=False)
+        >>> eq_(os.path.isfile(path), True)
         >>> with tmp.create_tmp_file(extension='txt') as f:
         ...     eq_(os.path.isfile(f.name), True)
         ...     f.write('Je suis une théière')
-        ...     filename = f.name
-        >>> eq_(open(filename, encoding='utf-8').read(), 'Je suis une théière')
+        ...     path = f.name
+        >>> eq_(open(path, encoding='utf-8').read(), 'Je suis une théière')
         >>> tmp.remove_all()
         """
-        filename = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex) +
-                                ('.%s' % extension if extension else ''))
         mode = 'w' if encoding else 'wb'
-        self._path_to_key[filename] = key
-        self._paths_by_key[key].add(filename)
-        with open(filename, mode, encoding=encoding):
+        path = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
+        self._path_to_key[path] = key
+        self._paths_by_key[key].add(path)
+        with open(path, mode, encoding=encoding):
             pass
-        chown(filename, user, group)
-        return open(filename, mode, encoding=encoding) if return_file else filename
+        chown(path, user, group)
+        return open(path, mode, encoding=encoding) if return_file else path
 
     def remove_by_path(self, path):
         """

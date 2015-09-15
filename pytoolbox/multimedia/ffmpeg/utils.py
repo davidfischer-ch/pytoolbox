@@ -39,8 +39,8 @@ SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
 WIDTH, HEIGHT = range(2)
 
 
-def is_pipe(filename):
-    return isinstance(filename, string_types) and PIPE_REGEX.match(filename)
+def is_pipe(path):
+    return isinstance(path, string_types) and PIPE_REGEX.match(path)
 
 
 def to_bit_rate(bit_rate):

@@ -32,7 +32,7 @@ from . import module
 _all = module.All(globals())
 
 
-def setup_logging(name='', reset=False, filename=None, console=False, level=logging.DEBUG,
+def setup_logging(name='', reset=False, path=None, console=False, level=logging.DEBUG,
                   fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
     """
     Setup logging (TODO).
@@ -41,7 +41,7 @@ def setup_logging(name='', reset=False, filename=None, console=False, level=logg
     :type name: str
     :param reset: Unregister all previously registered handlers ?
     :type reset: bool
-    :param filename: TODO
+    :param path: TODO
     :type name: str
     :param console: Toggle console output (stdout)
     :type console: bool
@@ -80,10 +80,10 @@ def setup_logging(name='', reset=False, filename=None, console=False, level=logg
     """
     if reset:
         logging.getLogger(name).handlers = []
-    if filename:
+    if path:
         log = logging.getLogger(name)
         log.setLevel(level)
-        handler = logging.FileHandler(filename)
+        handler = logging.FileHandler(path)
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(handler)
     if console:

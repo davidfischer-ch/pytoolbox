@@ -53,7 +53,7 @@ class BadHTTPResponseCodeError(MessageMixin, Exception):
 
 
 class CorruptedFileError(MessageMixin, Exception):
-    message = 'File {filename} is corrupted checksum {file_hash} expected {expected_hash}.'
+    message = 'File {path} is corrupted checksum {file_hash} expected {expected_hash}.'
 
 
 class ForbiddenError(Exception):

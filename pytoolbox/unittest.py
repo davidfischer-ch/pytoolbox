@@ -179,35 +179,35 @@ class FFmpegMixin(object):
 
     # Codecs Asserts
 
-    def assertMediaCodecEqual(self, filename, stream_type, index, **codec_attrs):
-        codec = getattr(self.ffprobe, 'get_{0}_streams'.format(stream_type))(filename)[index].codec
+    def assertMediaCodecEqual(self, path, stream_type, index, **codec_attrs):
+        codec = getattr(self.ffprobe, 'get_{0}_streams'.format(stream_type))(path)[index].codec
         for attr, value in codec_attrs.items():
             self.assertEqual(getattr(codec, attr), value, msg='Codec attribute {0}'.format(attr))
 
-    def assertAudioCodecEqual(self, filename, index, **codec_attrs):
-        self.assertMediaCodecEqual(filename, 'audio', index, **codec_attrs)
+    def assertAudioCodecEqual(self, path, index, **codec_attrs):
+        self.assertMediaCodecEqual(path, 'audio', index, **codec_attrs)
 
-    def assertSubtitleCodecEqual(self, filename, index, **codec_attrs):
-        self.assertMediaCodecEqual(filename, 'subtitle', index, **codec_attrs)
+    def assertSubtitleCodecEqual(self, path, index, **codec_attrs):
+        self.assertMediaCodecEqual(path, 'subtitle', index, **codec_attrs)
 
-    def assertVideoCodecEqual(self, filename, index, **codec_attrs):
-        self.assertMediaCodecEqual(filename, 'video', index, **codec_attrs)
+    def assertVideoCodecEqual(self, path, index, **codec_attrs):
+        self.assertMediaCodecEqual(path, 'video', index, **codec_attrs)
 
     # Streams Asserts
 
-    def assertAudioStreamEqual(self, first_filename, second_filename, first_index, second_index, same_codec=True):
-        first = self.ffprobe.get_audio_streams(first_filename)[first_index]
-        second = self.ffprobe.get_audio_streams(second_filename)[second_index]
+    def assertAudioStreamEqual(self, first_path, second_path, first_index, second_index, same_codec=True):
+        first = self.ffprobe.get_audio_streams(first_path)[first_index]
+        second = self.ffprobe.get_audio_streams(second_path)[second_index]
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
 
-    def assertMediaFormatEqual(self, first_filename, second_filename, same_bit_rate=True, same_duration=True,
+    def assertMediaFormatEqual(self, first_path, second_path, same_bit_rate=True, same_duration=True,
                                same_size=True, same_start_time=True):
-        formats = [self.ffprobe.get_media_info(f)['format'] for f in (first_filename, second_filename)]
+        formats = [self.ffprobe.get_media_info(f)['format'] for f in (first_path, second_path)]
         bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
-            the_format.pop('filename')
+            the_format.pop('path')
             the_format.pop('tags', None)
             durations.append(float(the_format.pop('duration')))
             bit_rates.append(float(the_format.pop('bit_rate', 0)))
@@ -223,9 +223,9 @@ class FFmpegMixin(object):
             self.assertRelativeEqual(*start_times, msg='Start time mistmatch.')
         self.assertDictEqual(*formats)
 
-    def assertVideoStreamEqual(self, first_filename, second_filename, first_index, second_index, same_codec=True):
-        first = self.ffprobe.get_video_streams(first_filename)[first_index]
-        second = self.ffprobe.get_video_streams(second_filename)[second_index]
+    def assertVideoStreamEqual(self, first_path, second_path, first_index, second_index, same_codec=True):
+        first = self.ffprobe.get_video_streams(first_path)[first_index]
+        second = self.ffprobe.get_video_streams(second_path)[second_index]
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mismatch.')
         self.assertRelativeEqual(first.avg_frame_rate, second.avg_frame_rate, msg='Average frame rate mismatch.')
