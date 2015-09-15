@@ -204,10 +204,10 @@ class FFmpegMixin(object):
 
     def assertMediaFormatEqual(self, first_path, second_path, same_bit_rate=True, same_duration=True,
                                same_size=True, same_start_time=True):
-        formats = [self.ffprobe.get_media_info(f)['format'] for f in (first_path, second_path)]
+        formats = [self.ffprobe.get_media_info(p)['format'] for p in (first_path, second_path)]
         bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
-            the_format.pop('path')
+            the_format.pop('filename')
             the_format.pop('tags', None)
             durations.append(float(the_format.pop('duration')))
             bit_rates.append(float(the_format.pop('bit_rate', 0)))
