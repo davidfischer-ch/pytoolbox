@@ -174,6 +174,10 @@ class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
     ffprobe_class = StaticFFprobe
 
 
+class StaticEncodeStatisticsWithFrameBaseRatio(ffmpeg.FrameBasedRatioMixin, StaticEncodeStatistics):
+    pass
+
+
 class RaiseEncodeStatistics(ffmpeg.EncodeStatistics):
 
     def end(self, returncode):
@@ -221,17 +225,16 @@ class TestMedia(base.TestCase):
             self.equal(media.size, 0)
 
 
-class TestEncodeStatistics(base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
+class _EncodeStatisticsMixin(object):
 
     inputs = [Media('small.mp4')]
     outputs = [Media('ff_output.mp4')]
+    statistics_class = StaticEncodeStatistics
 
     def get_statistics(self, start=False, returncode=None, options=None, **kwargs):
         if options is None:
             options = ['-acodec', 'copy', '-vcodec', 'copy']
-        statistics = StaticEncodeStatistics(self.inputs, self.outputs, options, **kwargs)
+        statistics = self.statistics_class(self.inputs, self.outputs, options, **kwargs)
         start = start or returncode is not None
         if start:
             statistics.start('process')
@@ -239,6 +242,11 @@ class TestEncodeStatistics(base.TestCase):
             statistics.progress('')
             statistics.end(returncode)
         return statistics
+
+
+class TestEncodeStatistics(_EncodeStatisticsMixin, base.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
 
     def test_get_subclip_duration_and_size(self):
         eq, subclip = self.tuple_equal, self.get_statistics()._get_subclip_duration_and_size
@@ -319,6 +327,23 @@ class TestEncodeStatistics(base.TestCase):
         self.equal(statistics.eta_time, datetime.timedelta(0))
         self.equal(statistics.ratio, 1.0)
         self.is_none(statistics.output._size)
+
+
+class TestEncodeStatisticsWithFrameBasedRatioMixin(_EncodeStatisticsMixin, base.TestCase):
+
+    tags = ('multimedia', 'ffmpeg')
+
+    statistics_class = StaticEncodeStatisticsWithFrameBaseRatio
+
+    def test_compute_ratio_frame_based(self):
+        statistics = self.get_statistics()
+        self.greater(statistics.input.frame, 0)
+        statistics.input.duration = datetime.timedelta(seconds=60)
+        statistics.output.duration = datetime.timedelta(seconds=30)
+        statistics.frame, statistics.input.frame = 0, 100
+        self.equal(statistics._compute_ratio(), 0.0)
+        statistics.frame, statistics.input.frame = 60, 100
+        self.equal(statistics._compute_ratio(), 0.6)
 
 
 class TestFFmpeg(base.TestCase):

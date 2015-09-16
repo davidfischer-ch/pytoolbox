@@ -32,8 +32,7 @@ from ...datetime import datetime_now, multiply_time, secs_to_time, str_to_time, 
 
 _all = module.All(globals())
 
-# frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
-ENCODING_REGEX = re.compile(
+ENCODING_REGEX = re.compile(  # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
     r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<frame_rate>\d+\.?\d*)\s+q=\s*(?P<qscale>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
     r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bit_rate>\S+)'
 )
@@ -182,5 +181,22 @@ class EncodeStatistics(object):
             ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
             ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
             return ffmpeg_statistics
+
+
+class FrameBasedRatioMixin(object):
+    """
+    Compute ratio based on estimated input number of frames and current output number of frames.
+    Fall-back to super's ratio computation method.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(FrameBasedRatioMixin, self).__init__(*args, **kwargs)
+        fps = self.ffprobe_class().get_video_frame_rate(self.input)
+        self.input.frame = fps * self.input.duration.total_seconds() if fps and self.input.duration else None
+
+    def _compute_ratio(self):
+        if self.input.frame and self.frame is not None:
+            return self.frame / self.input.frame
+        return super(FrameBasedRatioMixin, self)._compute_ratio()
 
 __all__ = _all.diff(globals())
