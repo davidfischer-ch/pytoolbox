@@ -78,4 +78,11 @@ class NestedUpdateMixin(object):
         """Return a tuple with (self, validate_data) to allow working on validated data with this serializer."""
         return self, super(NestedUpdateMixin, self).to_internal_value(data)
 
+
+class ReadOnlyMixin(object):
+
+    def __init__(self, **kwargs):
+        kwargs['read_only'] = True
+        super(ReadOnlyMixin, self).__init__(**kwargs)
+
 __all__ = _all.diff(globals())
