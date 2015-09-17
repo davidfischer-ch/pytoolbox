@@ -81,8 +81,8 @@ class NestedUpdateMixin(object):
 
 class ReadOnlyMixin(object):
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         kwargs['read_only'] = True
-        super(ReadOnlyMixin, self).__init__(**kwargs)
+        super(ReadOnlyMixin, self).__init__(*args, **kwargs)
 
 __all__ = _all.diff(globals())
