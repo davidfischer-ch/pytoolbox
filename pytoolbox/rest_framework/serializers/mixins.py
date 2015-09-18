@@ -65,18 +65,11 @@ class FromPrivateKeyMixin(object):
         return super(FromPrivateKeyMixin, self).create(validated_data)
 
 
-class NestedCreateMixin(object):
+class NestedWriteMixin(object):
 
     def to_internal_value(self, data):
         """Return a tuple with (self, validate_data) to allow working on validated data with this serializer."""
-        return self, super(NestedCreateMixin, self).to_internal_value(data)
-
-
-class NestedUpdateMixin(object):
-
-    def to_internal_value(self, data):
-        """Return a tuple with (self, validate_data) to allow working on validated data with this serializer."""
-        return self, super(NestedUpdateMixin, self).to_internal_value(data)
+        return self, super(NestedWriteMixin, self).to_internal_value(data)
 
 
 class ReadOnlyMixin(object):
