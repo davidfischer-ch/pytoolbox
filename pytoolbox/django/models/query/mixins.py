@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import functools
 from django.db import transaction
 
-from .. import utils
 from .... import module
 from ....encoding import string_types
 
@@ -54,15 +53,6 @@ class CreateModelMethodMixin(object):
             return self.model.create(*args, **kwargs)
         return super(CreateModelMethodMixin, self).create(*args, **kwargs)
     create.alters_data = True
-
-
-class RelatedModelMixin(object):
-
-    def get_related_manager(self, field):
-        return utils.get_related_manager(self.model, field)
-
-    def get_related_model(self, field):
-        return utils.get_related_model(self.model, field)
 
 
 class StateMixin(object):
