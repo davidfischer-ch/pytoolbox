@@ -78,4 +78,10 @@ class ReadOnlyMixin(object):
         kwargs['read_only'] = True
         super(ReadOnlyMixin, self).__init__(*args, **kwargs)
 
+    def create(self, validated_data):
+        raise AttributeError('Read-only serializer')
+
+    def update(self, task, validated_data):
+        raise AttributeError('Read-only serializer')
+
 __all__ = _all.diff(globals())
