@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, re, time
+import datetime, os, re
 
 from django import template
 from django.conf import settings
@@ -226,21 +226,24 @@ def status_label(value, autoescape=None, default=''):
 
 
 @register.filter(is_safe=True)
-def timedelta(value, string_format='%H:%M:%S'):
+def timedelta(value, digits=0):
     """
     Return a string with representation of total seconds given timedelta or a number.
 
     Output::
 
         6316.9|timedelta -> 01:45:17
-        timedelta(0, 6317)|timedelta -> 01:45:17
-        None|timedelta:"H:i:s.u" -> (empty string)
+        datetime.timedelta(0, 6317)|timedelta -> 01:45:17
+        datetime.timedelta(days=10, hours=2)|timedelta -> 10 days, 02:00:00
+        datetime.timedelta(days=10, seconds=30.408)|timedelta -> 10 days, 00:00:30
+        datetime.timedelta(days=10, seconds=30.408)|timedelta:2 -> 10 days, 00:00:30.45
+        None|timedelta:10 -> (empty string)
         (empty string)|timedelta -> (empty string)
     """
     if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
     seconds = value.total_seconds() if hasattr(value, 'total_seconds') else float(value)
-    return time.strftime('%H:%M:%S', time.gmtime(seconds))
+    return force_text(datetime.timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
 
 
 @register.filter
