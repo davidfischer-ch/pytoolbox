@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
+
 from pytoolbox.unittest import asserts, with_tags, FilterByTagsMixin
 from pytoolbox.types import Missing
 

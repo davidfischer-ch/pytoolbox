@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import math, os
+
 from pytoolbox.encoding import csv_reader
 from pytoolbox.filesystem import try_remove
 from pytoolbox.serialization import PickleableObject

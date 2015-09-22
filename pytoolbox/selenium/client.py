@@ -24,9 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from urlparse import urljoin
+
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import ui
-from urlparse import urljoin
 
 from . import common, exceptions, webdrivers
 from .. import module

@@ -24,8 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, copy, errno, fnmatch, grp, magic, pwd, os, re, shutil, tempfile, time, uuid
+import collections, copy, errno, fnmatch, grp, pwd, os, re, shutil, tempfile, time, uuid
 from codecs import open
+
+import magic
 
 from . import module
 from .datetime import datetime_now

@@ -61,6 +61,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
+
 from django.conf import settings
 from django.db.models import fields
 from django.contrib.sites import models as site_app

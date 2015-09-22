@@ -24,7 +24,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import functools, re, voluptuous
+import functools, re
+
+import voluptuous
 
 from . import module
 from .validation import valid_email

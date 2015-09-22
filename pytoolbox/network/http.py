@@ -24,8 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import functools, os, requests, sys, time, urllib2, urlparse
+import functools, os, sys, time, urllib2, urlparse
 from codecs import open
+
+import requests
 
 from .. import console, crypto, module
 from ..encoding import to_bytes

@@ -16,6 +16,7 @@ Extra fields for your models.
 """
 
 import math, os
+
 from django.conf import settings
 from django.db import models
 from django.core import validators as dj_validators

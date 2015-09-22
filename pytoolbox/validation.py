@@ -25,9 +25,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import errno, inspect, httplib, os, re, socket, sys, uuid
-from bson.objectid import InvalidId, ObjectId
 from urlparse import urlparse
 
+from bson.objectid import InvalidId, ObjectId
 
 from . import module
 from .encoding import text_type, to_bytes

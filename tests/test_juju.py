@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 from mock import call, Mock
+
 from pytoolbox.unittest import mock_cmd
 
 from . import base

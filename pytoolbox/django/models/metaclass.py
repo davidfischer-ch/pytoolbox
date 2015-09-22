@@ -16,6 +16,7 @@ Meta-classes for enhancing your models.
 """
 
 import abc
+
 from django.db import models
 
 from ... import module

@@ -25,8 +25,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import errno, inspect, json, os, pickle, shutil
-from bson.objectid import ObjectId
 from codecs import open
+
+from bson.objectid import ObjectId
 
 from . import module
 from .encoding import string_types, text_type, to_bytes

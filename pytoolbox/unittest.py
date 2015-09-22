@@ -24,8 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import functools, inspect, io, itertools, nose, os, pprint, time, unittest
+import functools, inspect, io, itertools, os, pprint, time, unittest
 from mock import Mock
+
+import nose
 
 from . import module
 from .encoding import binary_type, string_types

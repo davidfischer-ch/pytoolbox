@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+
 from django.contrib.sites.models import Site
 from django.core.management import call_command
 from django.core.urlresolvers import resolve, reverse

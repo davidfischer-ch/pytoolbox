@@ -24,8 +24,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import six, sys
+import sys
 from codecs import open
+
+import six
 
 from . import module
 
