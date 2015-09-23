@@ -90,16 +90,18 @@ class MD5ChecksumField(mixins.OptionsMixin, StripCharField):
 
 class MoneyField(models.DecimalField):
 
-    def __init__(self, max_value):
+    def __init__(self, max_value, **kwargs):
         self.max_value = max_value
-        max_digits = int(math.log10(max_value)) + 3
-        super(MoneyField, self).__init__(max_digits=max_digits, decimal_places=2, editable=False, validators=[
+        super(MoneyField, self).__init__(decimal_places=2, max_digits=int(math.log10(max_value)) + 3, validators=[
             dj_validators.MinValueValidator(0), dj_validators.MaxValueValidator(max_value)
-        ])
+        ], **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super(MoneyField, self).deconstruct()
-        return name, path, [self.max_value], {}
+        kwargs.pop('decimal_places', None)
+        kwargs.pop('max_digits', None)
+        kwargs.pop('validators', None)
+        return name, path, [self.max_value], kwargs
 
 
 class URLField(StripCharField, models.URLField):
