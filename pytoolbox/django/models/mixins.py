@@ -47,7 +47,7 @@ from django.db.utils import IntegrityError
 from . import utils
 from .. import signals
 from ..core import exceptions
-from ... import module
+from ... import itertools as py_itertools, module
 
 _all = module.All(globals())
 
@@ -301,7 +301,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         raise self.transition_not_allowed_error_class(instance=self, state=state)
 
     def check_state_in(self, states, fail=False):
-        states = sorted(itertools.chain(states))
+        states = sorted(py_itertools.chain(states))
         if self.state in states:
             return True
         if not fail:
