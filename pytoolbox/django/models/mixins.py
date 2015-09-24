@@ -283,6 +283,7 @@ class StateTransitionEventsMixin(object):
 class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
 
     check_state = True
+    invalid_state_error_class = exceptions.InvalidStateError
     transition_not_allowed_error_class = exceptions.TransitionNotAllowedError
 
     def can_transit_to(self, state, fail=False, noop_skip=False):
@@ -298,6 +299,14 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         if not fail or noop_skip and self.state == state:
             return False
         raise self.transition_not_allowed_error_class(instance=self, state=state)
+
+    def check_state_in(self, states, fail=False):
+        states = sorted(itertools.chain(states))
+        if self.state in states:
+            return True
+        if not fail:
+            return False
+        raise self.invalid_state_error_class(instance=self, states=states)
 
     def pop_preconditions(self, *args, **kwargs):
         """Add state precondition if state will be saved and state is not enforced by preconditions."""

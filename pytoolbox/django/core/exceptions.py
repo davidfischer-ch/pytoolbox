@@ -25,17 +25,22 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from django.db import DatabaseError
+from django.utils.translation import ugettext_lazy as _
 
-from ... import module
+from ... import exceptions, module
 
 _all = module.All(globals())
 
 
-class DatabaseUpdatePreconditionsError(DatabaseError):
-    pass
+class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
+    message = _('Row update request preconditions failed: A concurrent request changed the row in database.')
 
 
-class TransitionNotAllowedError(Exception):
-    pass
+class InvalidStateError(exceptions.MessageMixin, Exception):
+    message = _('State of {instance} is {instance.state}, excepted in any of {states}.')
+
+
+class TransitionNotAllowedError(exceptions.MessageMixin, Exception):
+    message = _('Cannot change state of {instance} from {instance.state} to {state}.')
 
 __all__ = _all.diff(globals())
