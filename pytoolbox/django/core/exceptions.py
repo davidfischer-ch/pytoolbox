@@ -24,12 +24,37 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import itertools
+
 from django.db import DatabaseError
 from django.utils.translation import ugettext_lazy as _
 
 from ... import exceptions, module
 
 _all = module.All(globals())
+
+
+def has_code(validation_error, code):
+    """
+    **Example usage**
+
+    >>> from django.core.exceptions import ValidationError
+    >>> has_code(ValidationError('yo'), 'bad')
+    False
+    >>> has_code(ValidationError('yo', code='bad'), 'bad')
+    True
+    >>> has_code(ValidationError({'__all__': ValidationError('yo')}), 'bad')
+    False
+    >>> has_code(ValidationError({'__all__': ValidationError('yo', code='bad')}), 'bad')
+    True
+    >>> has_code(ValidationError([ValidationError('yo')]), 'bad')
+    False
+    >>> has_code(ValidationError([ValidationError('yo', code='bad')]), 'bad')
+    True
+    """
+    errors = getattr(validation_error, 'error_list', [])
+    errors.extend(itertools.chain.from_iterable(v for v in getattr(validation_error, 'error_dict', {}).values()))
+    return any(e.code == code for e in errors)
 
 
 class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
