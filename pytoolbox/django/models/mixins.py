@@ -319,7 +319,6 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
                 assert states, (states, valid)
                 key, values = ('state__in', states) if len(states) > 1 else ('state', next(iter(states)))
                 (pre_filters if valid else pre_excludes)[key] = values
-        self.p = self._preconditions
         return args, kwargs, any(self._preconditions)
 
 
