@@ -43,6 +43,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
+from django.utils.functional import cached_property
 
 from . import utils
 from .. import signals
@@ -331,5 +332,13 @@ class ValidateOnSaveMixin(object):
         if kwargs.pop('validate', self.validate_on_save):
             self.full_clean(**self.validate_on_save_kwargs)
         super(ValidateOnSaveMixin, self).save(*args, **kwargs)
+
+
+class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
+    """Do not validate uniqueness nor relation fields on save to prevent excessive SELECT queries."""
+
+    @cached_property
+    def validate_on_save_kwargs(self):
+        return {'exclude': [f.name for f in self._meta.concrete_fields if f.rel], 'validate_unique': False}
 
 __all__ = _all.diff(globals())
