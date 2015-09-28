@@ -325,10 +325,11 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
 class ValidateOnSaveMixin(object):
 
     validate_on_save = True
+    validate_on_save_kwargs = {}
 
     def save(self, *args, **kwargs):
         if kwargs.pop('validate', self.validate_on_save):
-            self.full_clean()
+            self.full_clean(**self.validate_on_save_kwargs)
         super(ValidateOnSaveMixin, self).save(*args, **kwargs)
 
 __all__ = _all.diff(globals())
