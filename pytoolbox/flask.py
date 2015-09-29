@@ -26,12 +26,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 
-from bson.objectid import ObjectId
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
 
 from . import module
 from .encoding import text_type
+from .private import ObjectId
 from .serialization import object_to_json
 from .validation import valid_uuid
 

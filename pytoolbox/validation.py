@@ -27,11 +27,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import errno, inspect, httplib, os, re, socket, sys, uuid
 from urlparse import urlparse
 
-from bson.objectid import InvalidId, ObjectId
-
 from . import module
 from .encoding import text_type, to_bytes
 from .network.ip import ip_address
+from .private import InvalidId, ObjectId
 
 _all = module.All(globals())
 

@@ -27,11 +27,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import errno, inspect, json, os, pickle, shutil
 from codecs import open
 
-from bson.objectid import ObjectId
-
 from . import module
 from .encoding import string_types, text_type, to_bytes
 from .filesystem import try_makedirs
+from .private import ObjectId
 from .types import get_slots
 
 _all = module.All(globals())
