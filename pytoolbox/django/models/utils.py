@@ -47,6 +47,11 @@ def get_instance(app_label, model, pk):
     return ct_models.ContentType.objects.get(app_label=app_label, model=model).get_object_for_this_type(pk=pk)
 
 
+def iter_unique_check_error_by_field(instance, validation_error):
+    for field in validation_error.params.get('unique_check', []):
+        yield field, instance.unique_error_message(validation_error.params['model_class'], [field])
+
+
 def try_get_field(instance, field_name):
     try:
         return getattr(instance, field_name)

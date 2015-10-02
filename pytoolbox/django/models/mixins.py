@@ -17,7 +17,6 @@ Mix-ins for building your own models.
 Recommended sub-classing order:
 
 - MapUniqueTogetherMixin
-- MapUniqueTogetherIntegrityErrorToValidationErrorMixin
 - AutoForceInsertMixin
 - CallFieldsPreSaveMixin
 - AutoUpdateFieldsMixin
@@ -39,7 +38,7 @@ Order for these does not matter:
 
 import itertools, re
 
-from django.core.exceptions import NON_FIELD_ERRORS
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
@@ -153,35 +152,38 @@ class CallFieldsPreSaveMixin(object):
 
 
 class MapUniqueTogetherMixin(object):
+    """Map the unique together checks errors as field errors. Also handle database uniqueness errors."""
 
     map_exclude_fields = ()
-
-    def _perform_unique_checks(self, unique_checks):
-        errors = super(MapUniqueTogetherMixin, self)._perform_unique_checks(unique_checks)
-        non_field_errors = errors.pop(NON_FIELD_ERRORS, [])
-        for error in non_field_errors:
-            for field in error.params['unique_check']:
-                if field not in self.map_exclude_fields:
-                    errors.setdefault(field, []).append(self.unique_error_message(error.params['model_class'], [field]))
-        return errors
-
-
-class MapUniqueTogetherIntegrityErrorToValidationErrorMixin(object):
-
-    @property
-    def unique_together_set(self):
-        return [set(fields) for fields in self._meta.unique_together]
+    map_integrity_error_by_field = True
+    map_unique_check_by_field = True
 
     def save(self, *args, **kwargs):
         try:
-            super(MapUniqueTogetherIntegrityErrorToValidationErrorMixin, self).save(*args, **kwargs)
+            super(MapUniqueTogetherMixin, self).save(*args, **kwargs)
         except IntegrityError as e:
             match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
             if match:
                 fields = set(f.strip().replace('_id', '') for f in match.groupdict()['fields'].split(','))
-                if fields in self.unique_together_set:
-                    raise self.unique_error_message(self.__class__, fields)
+                if fields in (set(u) for u in self._meta.unique_together):
+                    fields = fields - set(self.map_exclude_fields)
+                    if self.map_integrity_error_by_field:
+                        raise ValidationError({
+                            field: self.unique_error_message(self.__class__, [field]) for field in fields
+                        })
+                    else:
+                        raise self.unique_error_message(self.__class__, fields)
             raise
+
+    def _perform_unique_checks(self, unique_checks):
+        errors = super(MapUniqueTogetherMixin, self)._perform_unique_checks(unique_checks)
+        if self.map_unique_check_by_field:
+            map_exclude_fields = set(self.map_exclude_fields)
+            for error in errors.pop(NON_FIELD_ERRORS, []):
+                for field, unique_check_error in utils.iter_unique_check_error_by_field(self, error):
+                    if field not in map_exclude_fields:
+                        errors.setdefault(field, []).append(unique_check_error)
+        return errors
 
 
 class PublicMetaMixin(object):
