@@ -53,6 +53,22 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
+def to_dict_of_values(iterable, type=list, method=list.append):
+    """
+    Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as key -> values.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> assert to_dict_of_values([('odd', 1), ('odd', 3), ('even', 0), ('even', 2)]) == {'even': [0, 2], 'odd': [1, 3]}
+    >>> assert to_dict_of_values((('a', 1), ('a', 1), ('a', 2)), type=set, method=set.add) == {'a': {1, 2}}
+    """
+    dict_of_values = collections.defaultdict(type)
+    for key, value in iterable:
+        method(dict_of_values[key], value)
+    return dict_of_values
+
+
 def merge_dicts(*dicts):
     """
     Return a dictionary from multiple dictionaries.
@@ -77,12 +93,11 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
     >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
-    >>> eq_({k: sorted(v) for k, v in result.items()},
-    ...     {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
-    >>> eq_(swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, method='add')[2], {'even', 'fib'})
-    >>> eq_(swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'], {'bad', 'example'})
+    >>> assert ({k: sorted(v) for k, v in result.items()} ==
+    ... {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
+    >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
+    >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
     """
     method = getattr(type, method) if isinstance(method, string_types) else method
     reversed_dict = collections.defaultdict(type)
