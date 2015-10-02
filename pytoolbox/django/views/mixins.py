@@ -21,7 +21,7 @@ from django.contrib import messages
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
 from django.shortcuts import redirect
-from django.views.generic import base as generic, edit
+from django.views.generic import base as generic
 
 from ..core import exceptions
 from ..models import utils
@@ -134,7 +134,7 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
         ]
 
 
-class ValidationErrorsMixin(edit.FormMixin):
+class ValidationErrorsMixin(object):
 
     def form_valid(self, form):
         try:
