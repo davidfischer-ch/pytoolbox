@@ -5,34 +5,25 @@
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
+#  Origin         : https://github.com/davidfischer-ch/pytoolbox.git
 #
 #**********************************************************************************************************************#
-#
-# This file is part of David Fischer's pytoolbox Project.
-#
-# This project is free software: you can redistribute it and/or modify it under the terms of the EUPL v. 1.1 as provided
-# by the European Commission. This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-# See the European Union Public License for more details.
-#
-# You should have received a copy of the EUPL General Public License along with this project.
-# If not, see he EUPL licence v1.1 is available in 22 languages:
-#     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
-#
-# Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+
+"""
+Mix-ins for building your own views.
+"""
 
 import os
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.views.generic.edit import DeleteView
+from django.views.generic import base as generic, edit
 
+from ..core import exceptions
 from ..models import utils
 from ... import module
 
@@ -66,15 +57,6 @@ class BaseModelSingleMixin(object):
             return self.context_object_name
         elif isinstance(instance, models.Model):
             return utils.get_base_model(instance)._meta.model_name
-
-
-class CancellableDeleteView(DeleteView):
-    """Handle the cancel action (detect a cancel parameter in the POST request)."""
-
-    def post(self, request, *args, **kwargs):
-        if 'cancel' in request.POST:
-            return HttpResponseRedirect(self.success_url)
-        return super(CancellableDeleteView, self).post(request, *args, **kwargs)
 
 
 class InitialMixin(object):
@@ -152,14 +134,20 @@ class TemplateResponseMixin(object):
         ]
 
 
-class ValidationErrorsMixin(object):
+class ValidationErrorsMixin(edit.FormMixin):
 
     def form_valid(self, form):
         try:
             return super(ValidationErrorsMixin, self).form_valid(form)
         except ValidationError as e:
-            for field, error in e.error_dict.items():
-                form.add_error(field, error)
+            for field, error in exceptions.iter_validation_errors(e):
+                if field:
+                    form.add_error(field, error)
+                else:
+                    self._handle_unknown_error(form, error)
             return self.form_invalid(form)
+
+    def _handle_unknown_error(self, form, error):
+        form.add_error(NON_FIELD_ERRORS, error)
 
 __all__ = _all.diff(globals())
