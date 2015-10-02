@@ -62,24 +62,25 @@ def has_code(validation_error, code):
     return any(e.code == code for e in errors)
 
 
-def iter_errors_info(validation_error):
+def iter_validation_errors(validation_error):
     """
     **Example usage**
 
     >>> from django.core.exceptions import ValidationError
     >>> from pytoolbox.unittest import asserts
     >>> eq = lambda i, l: asserts.list_equal(list(i), l)
-    >>> eq(iter_errors_info(ValidationError('yo', code='bad')), [(None, 'yo', 'bad')])
-    >>> eq(iter_errors_info(ValidationError({'__all__': ValidationError('yo', code='x')})), [('__all__', 'yo', 'x')])
-    >>> eq(iter_errors_info(ValidationError([ValidationError('yo')])), [(None, 'yo', None)])
+    >>> bad, boy = ValidationError('yo', code='bad'), ValidationError('yo', code='boy')
+    >>> eq(iter_validation_errors(bad), [(None, bad)])
+    >>> eq(iter_validation_errors(ValidationError({'__all__': boy})), [('__all__', boy)])
+    >>> eq(iter_validation_errors(ValidationError([bad, boy])), [(None, bad), (None, boy)])
     """
     if hasattr(validation_error, 'error_dict'):
         for field, errors in validation_error.error_dict.items():
             for error in errors:
-                yield field, get_message(error), error.code
+                yield field, error
     else:
         for error in validation_error.error_list:
-            yield None, get_message(error), error.code
+            yield None, error
 
 
 class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
