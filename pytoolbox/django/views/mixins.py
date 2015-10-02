@@ -123,7 +123,7 @@ class RedirectMixin(object):
         return super(RedirectMixin, self).dispatch(request, *args, **kwargs)
 
 
-class TemplateResponseMixin(object):
+class TemplateResponseMixin(generic.TemplateResponseMixin):
 
     default_template_directory = 'default'
 
