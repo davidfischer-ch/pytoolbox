@@ -39,21 +39,6 @@ from ... import module
 _all = module.All(globals())
 
 
-def only_published(queryset, request):
-    """
-    Filter the queryset to remove the unpublished entries if the user is not authenticated and the model does have a
-    published field, defaults to the unfiltered queryset.
-    """
-    if not request.user.is_authenticated():
-        try:
-            return queryset.filter(published=True)
-        except:
-            # FIXME a better way to handle models w/o published attribute
-            return queryset
-    else:
-        return queryset
-
-
 class AddRequestToFormKwargsMixin(object):
     """Add the view request to the keywords arguments for instantiating the form."""
 
@@ -143,13 +128,6 @@ class LoggedCookieMixin(object):
         response = super(LoggedCookieMixin, self).post(*args, **kwargs)
         response.set_cookie('logged', self.request.user.is_authenticated())
         return response
-
-
-class PublishedMixin(object):
-    """Filter the queryset with the function :function:`only_published`."""
-
-    def get_queryset(self):
-        return only_published(super(PublishedMixin, self).get_queryset(), self.request)
 
 
 class RedirectMixin(object):
