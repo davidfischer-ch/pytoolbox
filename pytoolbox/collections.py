@@ -59,7 +59,6 @@ def to_dict_of_values(iterable, type=list, method=list.append):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
     >>> assert to_dict_of_values([('odd', 1), ('odd', 3), ('even', 0), ('even', 2)]) == {'even': [0, 2], 'odd': [1, 3]}
     >>> assert to_dict_of_values((('a', 1), ('a', 1), ('a', 2)), type=set, method=set.add) == {'a': {1, 2}}
     """
@@ -95,7 +94,7 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):
 
     >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
     >>> assert ({k: sorted(v) for k, v in result.items()} ==
-    ... {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
+    ...         {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
     >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
     >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
     """
@@ -155,29 +154,30 @@ class pygal_deque(collections.deque):
             pass
         if fill and self_list:
             previous = None
-            for i in xrange(len(self_list)):
-                if self_list[i] is None:
-                    self_list[i] = previous
+            for index in xrange(len(self_list)):
+                if self_list[index] is None:
+                    self_list[index] = previous
                 else:
-                    previous = self_list[i]
+                    previous = self_list[index]
         return self_list
 
 
 def window(values, index, delta):
     """
-    >>> from nose.tools import eq_
-    >>> eq_(window(['a'], 0, 2), (['a'], 0, 0))
-    >>> eq_(window(['a', 'b', 'c', 'd'], 2, 0), (['c'], 2, 2))
-    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 0, 1), (['a', 'b', 'c'], 0, 2))
-    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 1, 1), (['a', 'b', 'c'], 0, 2))
-    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 2, 1), (['b', 'c', 'd'], 1, 3))
-    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 3, 1), (['c', 'd', 'e'], 2, 4))
-    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 4, 1), (['c', 'd', 'e'], 2, 4))
-    >>> eq_(window(['a', 'b', 'c', 'd', 'e'], 3, 6), (['a', 'b', 'c', 'd', 'e'], 0, 4))
-    >>> eq_(window(range(20), 6, 6), ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12))
-    >>> eq_(window(range(20), 7, 6), ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13))
-    >>> eq_(window(range(20), 10, 6), ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16))
-    >>> eq_(window(range(20), 19, 6), ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19))
+    >>> from pytoolbox.unittest import asserts
+    >>> eq = asserts.equal
+    >>> eq(window(['a'], 0, 2), (['a'], 0, 0))
+    >>> eq(window(['a', 'b', 'c', 'd'], 2, 0), (['c'], 2, 2))
+    >>> eq(window(['a', 'b', 'c', 'd', 'e'], 0, 1), (['a', 'b', 'c'], 0, 2))
+    >>> eq(window(['a', 'b', 'c', 'd', 'e'], 1, 1), (['a', 'b', 'c'], 0, 2))
+    >>> eq(window(['a', 'b', 'c', 'd', 'e'], 2, 1), (['b', 'c', 'd'], 1, 3))
+    >>> eq(window(['a', 'b', 'c', 'd', 'e'], 3, 1), (['c', 'd', 'e'], 2, 4))
+    >>> eq(window(['a', 'b', 'c', 'd', 'e'], 4, 1), (['c', 'd', 'e'], 2, 4))
+    >>> eq(window(['a', 'b', 'c', 'd', 'e'], 3, 6), (['a', 'b', 'c', 'd', 'e'], 0, 4))
+    >>> eq(window(range(20), 6, 6), ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12))
+    >>> eq(window(range(20), 7, 6), ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13))
+    >>> eq(window(range(20), 10, 6), ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16))
+    >>> eq(window(range(20), 19, 6), ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19))
     """
     length = len(values)
     left, right = index - delta, index + delta
@@ -202,8 +202,8 @@ class EventsTable(object):
             previous_event = event
 
     def get(self, time, time_speedup=None, default_value=None):
-        # u"""
-        # >>> from nose.tools import eq_
+        # """
+        # >>> from pytoolbox.unittest import asserts
         # >>> def test_get_index(time_range, time_speedup):
         # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
         # ...     modulo = previous = 0
@@ -213,7 +213,7 @@ class EventsTable(object):
         # ...             modulo += 1
         # ...         assert(0 <= index < time_range)
         # ...         previous = index
-        # ...     eq_(modulo, time_speedup)
+        # ...     asserts.equal(modulo, time_speedup)
 
         # Test get_index with a speedup of 1440 (maps 1 minute to 24 hours):
         # >>> test_get_index(24, 24 * 60)
@@ -230,21 +230,21 @@ class EventsTable(object):
 
         **Example usage**
 
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> table = EventsTable({0: 'salut'}, 24, 60)
-        >>> eq_(table.sleep_time(1), 59)
-        >>> eq_(table.sleep_time(58), 2)
-        >>> eq_(table.sleep_time(60), 60)
-        >>> eq_(table.sleep_time(62), 58)
-        >>> eq_(table.sleep_time(3590, time_speedup=1), 10)
-        >>> eq_(table.sleep_time(12543, time_speedup=1), 1857)
-        >>> eq_(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
-        >>> eq_(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
-        >>> eq_(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
-        >>> eq_(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
-        >>> eq_(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
+        >>> asserts.equal(table.sleep_time(1), 59)
+        >>> asserts.equal(table.sleep_time(58), 2)
+        >>> asserts.equal(table.sleep_time(60), 60)
+        >>> asserts.equal(table.sleep_time(62), 58)
+        >>> asserts.equal(table.sleep_time(3590, time_speedup=1), 10)
+        >>> asserts.equal(table.sleep_time(12543, time_speedup=1), 1857)
+        >>> asserts.equal(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
+        >>> asserts.equal(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
+        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
+        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
+        >>> asserts.equal(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
         >>> table.time_range = 1
-        >>> eq_(table.sleep_time(1, time_speedup=1), 149)
+        >>> asserts.equal(table.sleep_time(1, time_speedup=1), 149)
         """
         # 150 = 3600 / 24
         d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
