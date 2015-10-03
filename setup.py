@@ -122,7 +122,10 @@ setup(
     packages=find_packages(exclude=['tests']),
     extras_require=extras_require,
     install_requires=install_requires,
-    tests_require=['coverage', 'mock', 'nose', 'nose-exclude'],
+    tests_require=[
+        'coverage', 'mock', 'nose', 'nose-exclude',
+        'sphinx', 'sphinx_rtd_theme'  # This is for the documentation
+    ],
     test_suite='tests.pytoolbox_runtests.main',
     use_2to3=True,
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
