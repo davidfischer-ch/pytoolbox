@@ -31,7 +31,7 @@ except:
 
     class ObjectId(uuid.UUID):
         def __init__(self, value):
-            return super(ObjectId, self).__init__(uuid.UUID('{{{0}}}'.format(value)))
+            super(ObjectId, self).__init__(uuid.UUID('{{{0}}}'.format(value)))
 
         def binary(self):
             return self.hex

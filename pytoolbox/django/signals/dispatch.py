@@ -38,7 +38,7 @@ class InstanceSignal(_dispatch.Signal):
         providing_args = providing_args or ['instance']
         if 'instance' not in providing_args:
             providing_args.insert(0, 'instance')
-        return super(InstanceSignal, self).__init__(providing_args, use_caching)
+        super(InstanceSignal, self).__init__(providing_args, use_caching)
 
     def send(self, sender=None, **named):
         return super(InstanceSignal, self).send(_utils.get_base_model(sender or named['instance']), **named)
