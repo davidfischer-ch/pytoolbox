@@ -37,6 +37,7 @@ Order for these does not matter:
 
 import collections, itertools, re
 
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
@@ -168,7 +169,8 @@ class BetterUniquenessErrorsMixin(object):
                     if fields in (set(u) for u in self._meta.unique_together):
                         fields = sorted(fields - set(self.unique_together_hide_fields))
                         if fields:
-                            raise self.unique_error_message(self.__class__, fields)
+                            error = self.unique_error_message(self.__class__, fields)
+                            raise ValidationError({fields[0]: error}) if len(fields) == 1 else error
                         return self._handle_hidden_duplicate_key_error(e)
             raise
 
