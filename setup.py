@@ -67,10 +67,8 @@ extras_require = {
 #
 # * hashlib, ipaddr: Part of python 3 standard library
 # * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
-# * sudo pip-3.3 install ming    -> File "/tmp/pip_build_root/ming/setup.py", line 5, SyntaxError: invalid syntax
 
 if sys.version_info[0] < 3:
-    extras_require['ming'] = ['ming']
     try:
         import hashlib
     except ImportError:

@@ -65,8 +65,7 @@ def main():
         print('Unable to download ffmpeg: Will mock ffmpeg if missing')
 
     print('Run the tests with nose')
-    return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'],
-                    ignore='session.py|schema.py')  # Ignore ming FIXME filter by package
+    return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'])
 
 if __name__ == '__main__':
     main()

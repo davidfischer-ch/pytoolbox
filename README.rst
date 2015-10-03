@@ -81,17 +81,23 @@ How to enable features/modules ?
 Example::
 
     sudo python setup.py install --help
-    usage: setup.py [-h] [--extra-flask] [--extra-ming] [--extra-mongo]
-                    [--extra-smpte2022] [--extra-django] [--extra-all]
+    usage: setup.py [-h] [--extra-flask] [--extra-mongo] [--extra-smpte2022]
+                         [--extra-django] [--extra-all]
 
     optional arguments:
       -h, --help         show this help message and exit
-      --extra-flask      Install dependencies for the module/feature flask. (default: False)
-      --extra-ming       Install dependencies for the module/feature ming. (default: False)
-      --extra-mongo      Install dependencies for the module/feature mongo. (default: False)
-      --extra-smpte2022  Install dependencies for the module/feature smpte2022. (default: False)
-      --extra-django     Install dependencies for the module/feature django. (default: False)
-      --extra-all        Install dependencies for all modules/features. (default: False)
+      --extra-all                   Install dependencies for all features.
+      --extra-atlassian             Install dependencies for the feature atlassian.
+      --extra-django                Install dependencies for the feature django.
+      --extra-django-filter         Install dependencies for the feature django_filter.
+      --extra-django-formtools      Install dependencies for the feature django_formtools.
+      --extra-flask                 Install dependencies for the feature flask.
+      --extra-mongo                 Install dependencies for the feature mongo.
+      --extra-rest-framework        Install dependencies for the feature rest_framework.
+      --extra-selenium              Install dependencies for the feature selenium.
+      --extra-smpte2022             Install dependencies for the feature smpte2022.
+      --extra-voluptuous            Install dependencies for the feature voluptuous.
+
 
     Some Python utility functions
 
@@ -99,7 +105,7 @@ Example::
 
 Another way to do this, with ``pip``::
 
-    sudo pip install -e .[django,flask,ming,mongo,smpte2022] --use-mirrors
+    sudo pip install -e .[django,flask,mongo,smpte2022] --use-mirrors
 
 -----------------------
 How to check coverage ?
