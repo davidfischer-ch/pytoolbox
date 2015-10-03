@@ -1,6 +1,6 @@
-=========================={equals}
- Pyutils API Reference > {title}
-=========================={equals}
+============================{equals}
+ Pytoolbox API Reference > {title}
+============================{equals}
 
 .. automodule:: {module}
     :members:
