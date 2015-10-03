@@ -16,7 +16,7 @@ Mix-ins for building your own models.
 
 Recommended sub-classing order:
 
-- MapUniqueTogetherMixin
+- BetterUniquenessErrorsMixin
 - AutoForceInsertMixin
 - CallFieldsPreSaveMixin
 - AutoUpdateFieldsMixin
@@ -29,16 +29,14 @@ Recommended sub-classing order:
 
 Order for these does not matter:
 
-- MapUniqueTogetherMixin
 - PublicMetaMixin
 - RelatedModelMixin
 - ReloadMixin
 - SaveInstanceFilesMixin
 """
 
-import itertools, re
+import collections, itertools, re
 
-from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import DatabaseError
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
@@ -138,6 +136,64 @@ class AutoUpdateFieldsMixin(object):
         self._setted_fields = set()
 
 
+class BetterUniquenessErrorsMixin(object):
+    """
+    Hide some fields from the unique-together errors.
+    Convert uniqueness integrity errors to validation errors.
+
+    **Use cases**
+
+    Case: Your model have some non editable fields that are included in a uniqueness constraint.
+    Issue: The uniqueness errors shown in your forms includes the name of the hidden fields.
+    Solution: Exclude the name of the hidden fields from the error messages.
+    Implementation: Set `unique_together_hide_fields` to the name of those hidden fields.
+
+    Case: Sometimes the form submit may raise an integrity error (concurrency, [yes] crazy unexpected usage of Django).
+    Issue: Those integrity errors are unfortunately returned as Internal Server Error (HTTP 500 page).
+    Solution: Convert the uniqueness integrity errors to validation errors and return an awesome form with errors.
+    Implementation: Set `unique_from_integrity_error` to True. And subclass
+    :class:`pytoolbox.django.views.mixins.ValidationErrorsMixin` in your edit views.
+    """
+    unique_from_integrity_error = True
+    unique_together_hide_fields = ()
+
+    def save(self, *args, **kwargs):
+        try:
+            super(BetterUniquenessErrorsMixin, self).save(*args, **kwargs)
+        except IntegrityError as e:
+            if self.unique_from_integrity_error:
+                match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
+                if match:
+                    fields = set(f.strip().replace('_id', '') for f in match.groupdict()['fields'].split(','))
+                    if fields in (set(u) for u in self._meta.unique_together):
+                        fields = sorted(fields - set(self.unique_together_hide_fields))
+                        if fields:
+                            raise self.unique_error_message(self.__class__, fields)
+                        return self._handle_hidden_duplicate_key_error(e)
+            raise
+
+    def _handle_hidden_duplicate_key_error(self, e):
+        raise e
+
+    def _perform_unique_checks(self, unique_checks):
+        errors_by_field = super(BetterUniquenessErrorsMixin, self)._perform_unique_checks(unique_checks)
+        hidden_fields = set(self.unique_together_hide_fields)
+        if not hidden_fields:
+            return errors_by_field
+        filtered_errors_by_field = collections.defaultdict(list)
+        for field, errors in errors_by_field.iteritems():
+            for error in errors:
+                # only process the uniqueness errors related to multiple fields
+                if len(error.params.get('unique_check', [])) > 1:
+                    fields = [f for f in error.params['unique_check'] if f not in hidden_fields]
+                    if fields:
+                        error = self.unique_error_message(self.__class__, fields)
+                        filtered_errors_by_field[fields[0] if len(fields) == 1 else field].append(error)
+                else:
+                    filtered_errors_by_field[field].append(error)
+        return filtered_errors_by_field
+
+
 class CallFieldsPreSaveMixin(object):
     """
     If you wanna be sure the fields pre_save method are called, now you can!
@@ -149,41 +205,6 @@ class CallFieldsPreSaveMixin(object):
         for field in non_pk_fields:
             field.pre_save(self, self._state.adding)
         super(CallFieldsPreSaveMixin, self).save(*args, **kwargs)
-
-
-class MapUniqueTogetherMixin(object):
-    """Map the unique together checks errors as field errors. Also handle database uniqueness errors."""
-
-    map_exclude_fields = ()
-    map_integrity_error_by_field = True
-    map_unique_check_by_field = True
-
-    def save(self, *args, **kwargs):
-        try:
-            super(MapUniqueTogetherMixin, self).save(*args, **kwargs)
-        except IntegrityError as e:
-            match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
-            if match:
-                fields = set(f.strip().replace('_id', '') for f in match.groupdict()['fields'].split(','))
-                if fields in (set(u) for u in self._meta.unique_together):
-                    fields = fields - set(self.map_exclude_fields)
-                    if self.map_integrity_error_by_field:
-                        raise ValidationError({
-                            field: self.unique_error_message(self.__class__, [field]) for field in fields
-                        })
-                    else:
-                        raise self.unique_error_message(self.__class__, fields)
-            raise
-
-    def _perform_unique_checks(self, unique_checks):
-        errors = super(MapUniqueTogetherMixin, self)._perform_unique_checks(unique_checks)
-        if self.map_unique_check_by_field:
-            map_exclude_fields = set(self.map_exclude_fields)
-            for error in errors.pop(NON_FIELD_ERRORS, []):
-                for field, unique_check_error in utils.iter_unique_check_error_by_field(self, error):
-                    if field not in map_exclude_fields:
-                        errors.setdefault(field, []).append(unique_check_error)
-        return errors
 
 
 class PublicMetaMixin(object):
