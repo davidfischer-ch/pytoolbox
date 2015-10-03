@@ -35,7 +35,7 @@ class CrispyFormsMixin(object):
     def get_context_data(self, form, **kwargs):
         """Add the management form to the form for working with crispy forms."""
         from crispy_forms import layout
-        context = super().get_context_data(form=form, **kwargs)
+        context = super(CrispyFormsMixin, self).get_context_data(form=form, **kwargs)
         context['wizard']['form'].helper.layout.append(layout.HTML(context['wizard']['management_form']))
         context['form'] = context['wizard']['form']
         return context

@@ -35,14 +35,14 @@ _all = module.All(globals())
 class WebElement(common.FindMixin, webelement.WebElement):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(WebElement, self).__init__(*args, **kwargs)
         self._specialize()
 
     def clean_value(self, value):
         return value
 
     def get_attribute(self, name):
-        value = super().get_attribute(name)
+        value = super(WebElement, self).get_attribute(name)
         return self.clean_value(value) if name == 'value' else value
 
     def _specialize(self):

@@ -39,6 +39,6 @@ class BootstrapSwitchMixin(object):
         return {'on': True, 'off': False, True: True, False: False}[value]
 
     def send_keys(self, *value):
-        return super().send_keys(*[self.key_map.get(v, v) for v in value])
+        return super(BootstrapSwitchMixin, self).send_keys(*[self.key_map.get(v, v) for v in value])
 
 __all__ = _all.diff(globals())
