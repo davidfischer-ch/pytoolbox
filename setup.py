@@ -139,8 +139,9 @@ class docs(setuptools.Command):
         shutil.rmtree(os.path.join(docs_directory, 'build', 'html'), ignore_errors=True)
         result = cmd('make html', cwd=docs_directory, fail=False)
 
-        print('{0}Outputs{0}======={0}{0}{1[stdout]}{0}{0}Errors{0}======{0}{0}{1[stderr]}'.format(os.linesep, result))
-
+        print('{0}Outputs{0}======={0}{1}{0}{0}Errors{0}======{0}{2}{0}'.format(
+            os.linesep, result['stdout'].decode('utf-8'), result['stderr'].decode('utf-8'))
+        )
         sys.exit(1 if result['stderr'] else 0)
 
 setuptools.setup(
