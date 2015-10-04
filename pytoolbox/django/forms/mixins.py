@@ -92,7 +92,7 @@ class UpdateWidgetAttributeMixin(object):
     """
     Update the widgets of the form based on a set of rules applied depending of the form field's class.
     The rules can change the class of the widget and/or update the attributes of the widget with
-    :function:`update_widget_attributes`.
+    :func:`pytoolbox.django.forms.utils.update_widget_attributes`.
     """
 
     #: Set of rules linking the form field's class to the replacement class and the attributes update list.
