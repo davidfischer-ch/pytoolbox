@@ -35,7 +35,7 @@ def isiterable(obj, blacklist=(binary_type, string_types)):
     ...     asserts.false(isiterable(obj), obj)
     >>> for obj in [], (), set(), {}.iteritems():
     ...     asserts.true(isiterable(obj), obj)
-    ...     asserts.false(isiterable({}, dict))
+    >>> asserts.false(isiterable({}, dict))
     """
     return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
 
