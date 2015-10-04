@@ -137,10 +137,7 @@ class docs(setuptools.Command):
 
         cmd(['sphinx-apidoc', '--force', '--module-first', '--separate', '-o', source_directory, package_directory])
         shutil.rmtree(os.path.join(docs_directory, 'build', 'html'), ignore_errors=True)
-
-        sphinx_env = os.environ.copy()
-        sphinx_env['DJANGO_SETTINGS_MODULE'] = 'pytoolbox.django._settings'
-        result = cmd('make html', cwd=docs_directory, env=sphinx_env, fail=False)
+        result = cmd('make html', cwd=docs_directory, fail=False)
 
         print('{0}Outputs{0}======={0}{0}{1[stdout]}{0}{0}Errors{0}======{0}{0}{1[stderr]}'.format(os.linesep, result))
 
