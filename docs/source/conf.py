@@ -16,6 +16,14 @@ import sys
 
 import sphinx_rtd_theme
 
+
+def setup(app):
+    def skip(app, what, name, obj, skip, options):
+        return False if name == '__init__' else skip
+
+    # http://sphinx-doc.org/ext/autodoc.html#event-autodoc-skip-member
+    app.connect('autodoc-skip-member', skip)
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -92,7 +100,7 @@ exclude_patterns = []
 #default_role = None
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
+add_function_parentheses = True
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
