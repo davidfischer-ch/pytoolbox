@@ -29,6 +29,8 @@ import itertools, os, setuptools, shutil, sys
 from codecs import open
 from setuptools.command import develop, install, test
 
+import pytoolbox
+
 try:
     # Check if import succeed and print the exception because setup() ciphered stack-trace is not useful
     from tests import pytoolbox_runtests
@@ -152,7 +154,7 @@ setuptools.setup(
         'test': get_command_with_extras(test.test, extras_require)
     },
     name='pytoolbox',
-    version='10.4.0',
+    version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
     extras_require=extras_require,
     install_requires=install_requires,

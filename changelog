@@ -2,6 +2,33 @@
 changelog
 =========
 
+Compatibility breaks
+====================
+
+* Remove ming module to cleanup build
+* Remove django.models.mixins.PublishedMixin (not generic enough neither powerful enough)
+
+Minor compatibility breaks
+==========================
+
+* Prefer path over filename (arguments convention)
+* Replace MapUniqueTogetherMixin + MapUniqueTogetherIntegrityErrorToValidationErrorMixin by BetterUniquenessErrorsMixin.
+* Move CancellableDeleteView to django.views.base
+
+Features
+========
+
+* Generate documentation and publish on readthedocs.org
+* Add mixin django.models.mixins.BetterUniquenessErrorsMixin
+
+Fixes and enhancements
+======================
+
+* Add/fix docstrings
+* Update modules headers
+* Make django.views.mixins.ValidationErrorsMixin more "generic"
+* Too many to be listed here, https://github.com/davidfischer-ch/pytoolbox/compare/10.4.0...11.0.0
+
 ------------------
 v10.3.0 -> v10.4.0
 ------------------
@@ -51,7 +78,7 @@ Compatibility breaks
 * Refactor (optimize) unittest.FilterByTagsMixin
 
 Minor compatibility breaks
-=========================
+==========================
 
 * Rename module exception to exceptions
 * Rename module rest_framework.v3 to rest_framework
@@ -101,7 +128,7 @@ Compatibility breaks
 * Add EncodeStatistics and refactor FFmpeg.encode()
 
 Minor compatibility breaks
-=========================
+==========================
 
 * Merge django.template tags & filters into 1 file
 * Split FFmpeg class to FFmpeg + FFprobe classes
