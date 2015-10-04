@@ -25,10 +25,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import itertools, os, sys
+import itertools, os, setuptools, shutil, sys
 from codecs import open
-from setuptools import setup, find_packages
 from setuptools.command import develop, install, test
+
 try:
     # Check if import succeed and print the exception because setup() ciphered stack-trace is not useful
     from tests import pytoolbox_runtests
@@ -109,15 +109,53 @@ def get_command_with_extras(cls, extras_require):
 
     return WithExtra
 
-setup(
+
+class docs(setuptools.Command):
+
+    description = 'Generate documentation using Sphinx'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        from pytoolbox import encoding, filesystem
+        from pytoolbox.subprocess import cmd
+
+        encoding.configure_unicode()
+
+        docs_directory = os.path.join(os.path.dirname(__file__), 'docs')
+        source_directory = os.path.join(docs_directory, 'source')
+        package_directory = os.path.join(os.path.dirname(__file__), 'pytoolbox')
+
+        # Cleanup previously generated restructured files
+        for path in filesystem.find_recursive(source_directory, r'^pytoolbox.*\.rst$', unix_wildcards=False):
+            os.remove(path)
+
+        cmd(['sphinx-apidoc', '--force', '--module-first', '--separate', '-o', source_directory, package_directory])
+        shutil.rmtree(os.path.join(docs_directory, 'build', 'html'), ignore_errors=True)
+
+        sphinx_env = os.environ.copy()
+        sphinx_env['DJANGO_SETTINGS_MODULE'] = 'pytoolbox.django._settings'
+        result = cmd('make html', cwd=docs_directory, env=sphinx_env, fail=False)
+
+        print('{0}Outputs{0}======={0}{0}{1[stdout]}{0}{0}Errors{0}======{0}{0}{1[stderr]}'.format(os.linesep, result))
+
+        sys.exit(1 if result['stderr'] else 0)
+
+setuptools.setup(
     cmdclass={
+        'docs': docs,
         'develop': get_command_with_extras(develop.develop, extras_require),
         'install': get_command_with_extras(install.install, extras_require),
         'test': get_command_with_extras(test.test, extras_require)
     },
     name='pytoolbox',
     version='10.4.0',
-    packages=find_packages(exclude=['tests']),
+    packages=setuptools.find_packages(exclude=['tests']),
     extras_require=extras_require,
     install_requires=install_requires,
     tests_require=[
