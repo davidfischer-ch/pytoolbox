@@ -95,11 +95,13 @@ class AutoUpdateFieldsMixin(object):
     Keep track of what fields were set in order to make UPDATE queries lighter.
 
     This mix-in comes with the following features:
+
     * Foreign keys and the mutable types are correctly handled.
     * Models with a primary key preset to a value before being saved in database are correctly handled.
     * You can specify the value for `force_update` if it is `None` with `default_force_update`.
 
     However this low-memory footprint mix-in also comes with some limitations, it does not:
+
     * Store old fields values - you cannot know if the fields are really modified or not.
     * Watch for background modifications of the mutable fields - it can drives you crazy, sometimes.
     * Detect fields updated by the field's pre_save - CallFieldsPreSaveMixin before this mix-in.
