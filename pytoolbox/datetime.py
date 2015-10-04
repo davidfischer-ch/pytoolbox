@@ -16,8 +16,8 @@ _all = module.All(globals())
 
 def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):
     """
-    Return the current (timezone aware) date and time as UTC (tz=pytz.utc), local (tz=None) or related to a timezone.
-    If format is not None, the date will be returned in a formatted string.
+    Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a timezone. If `format` is
+    not None, the date will be returned in a formatted string.
 
     :param format: Output date string formatting
     :type format: str
@@ -25,7 +25,7 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     :type append_utc: bool
     :param offset: Offset to add to current time
     :type offset: datetime.timedelta
-    :param tz: The timezone (e.g. pytz.timezone('EST'))
+    :param tz: The timezone (e.g. ``pytz.timezone('EST')``)
     :type tz: tz
 
     **Example usage**
@@ -45,12 +45,12 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     >>> assert(' UTC' not in datetime_now(tz=pytz.timezone('EST'), append_utc=True))
     >>> assert(' UTC' in datetime_now(tz=pytz.utc, append_utc=True))
 
-    Play with timezones:
+    Play with timezones::
 
-    >> datetime_now(tz=pytz.timezone('Europe/Zurich'))
-    '2013-10-17 09:54:08'
-    >> datetime_now(tz=pytz.timezone('US/Eastern'))
-    '2013-10-17 03:54:08'
+        >> datetime_now(tz=pytz.timezone('Europe/Zurich'))
+        '2013-10-17 09:54:08'
+        >> datetime_now(tz=pytz.timezone('US/Eastern'))
+        '2013-10-17 03:54:08'
     """
     now = datetime.datetime.now(tz)
     if offset is not None:
@@ -64,7 +64,7 @@ def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
 
 def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):
     """
-    Return the date string converted into an instance of datetime.
+    Return the `date` string converted into an instance of :class:`datetime.datetime`.
     Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5 minutes.
 
     **Example usage**
@@ -85,7 +85,8 @@ def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):
 
 def multiply_time(value, factor, as_delta=False):
     """
-    Return an instance of time/timedelta corresponding to valuemultiplied by a factor.
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` corresponding to `value` multiplied by a
+    `factor`.
 
     **Example usage**
 
@@ -103,7 +104,7 @@ def multiply_time(value, factor, as_delta=False):
 
 def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):
     """
-    Return an instance of time/timedelta out of the parts.
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` out of the parts.
 
     **Example usage**
 
@@ -119,7 +120,8 @@ def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):
 
 def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     """
-    Return an instance of time/timedelta, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the number of seconds +
+    microseconds (e.g. 10.3 = 10s 3000us).
 
     **Example usage**
 
@@ -185,12 +187,12 @@ def time_ratio(numerator, denominator, zero_div_result=1.0):
 
     **Example usage**
 
-    >>> from nose.tools import assert_raises
+    >>> from pytoolbox.unittest import asserts
     >>> print(time_ratio('0:30:00', '01:30:00'))  # doctest: +ELLIPSIS
     0.33...
     >>> print(time_ratio('0:00:05', '00:00:00'))  # doctest: +ELLIPSIS
     1.0
-    >>> assert_raises(ValueError, time_ratio, '01:42:34', 'N/A')
+    >>> asserts.raises(ValueError, time_ratio, '01:42:34', 'N/A')
     """
     try:
         ratio = total_seconds(numerator) / total_seconds(denominator)
@@ -201,7 +203,7 @@ def time_ratio(numerator, denominator, zero_div_result=1.0):
 
 def total_seconds(time):
     """
-    Return the time converted in seconds.
+    Return the `time` converted in seconds.
 
     **Example usage**
 
@@ -238,7 +240,8 @@ def total_seconds(time):
 
 def datetime_to_epoch(date_time, utc=True, factor=1):
     """
-    Return the datetime/date converted into an Unix epoch. Default `factor` means that the result is in seconds.
+    Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch. Default `factor` means
+    that the result is in seconds.
 
     **Example usage**
 
@@ -253,12 +256,12 @@ def datetime_to_epoch(date_time, utc=True, factor=1):
     >>> datetime_to_epoch(datetime.date(1987, 6, 10), factor=1000)
     550281600000
 
-    In Switzerland:
+    In Switzerland::
 
-    >> datetime_to_epoch(datetime.datetime(1970, 1, 1), utc=False, factor=1)
-    -3600
-    >> datetime_to_epoch(datetime.date(1970, 1, 1), utc=False, factor=1)
-    -3600
+        >> datetime_to_epoch(datetime.datetime(1970, 1, 1), utc=False, factor=1)
+        -3600
+        >> datetime_to_epoch(datetime.date(1970, 1, 1), utc=False, factor=1)
+        -3600
     """
     if utc:
         time_tuple = date_time.utctimetuple() if hasattr(date_time, 'utctimetuple') else date_time.timetuple()
@@ -268,7 +271,8 @@ def datetime_to_epoch(date_time, utc=True, factor=1):
 
 def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     """
-    Return the Unix epoch converted to a datetime. Default `factor` means that the `unix_epoch` is in seconds.
+    Return the Unix epoch converted to a :class:`datetime.datetime`. Default `factor` means that the `unix_epoch` is in
+    seconds.
 
     **Example usage**
 

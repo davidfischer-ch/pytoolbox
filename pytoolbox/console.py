@@ -15,15 +15,17 @@ def confirm(question=None, default=False, stream=sys.stdout):
 
     **Example usage**
 
-    >> confirm('Do it now', default=True)
-    Do it now ? [Y/n]:
-    True
-    >> confirm('Are you sure', default=False)
-    Are you sure ? [y/N]:
-    False
-    >> confirm('Really, I am sure that is false', default=False)
-    Really, I am sure that is false ? [y/N]: y
-    True
+    ::
+
+        >> confirm('Do it now', default=True)
+        Do it now ? [Y/n]:
+        True
+        >> confirm('Are you sure', default=False)
+        Are you sure ? [y/N]:
+        False
+        >> confirm('Really, I am sure that is false', default=False)
+        Really, I am sure that is false ? [y/N]: y
+        True
     """
     if question is None:
         question = 'Confirm'
@@ -48,12 +50,14 @@ def choice(question='', choices=[], stream=sys.stdout):
 
     **Example of usage**
 
-    >> choice('What is your favorite color?', ['blue', 'orange', 'red'])
-    What is your favourite color? [blue, orange, red]: orange
-    orange
-    >> choice(['male', 'female'])
-    [male, female]? female
-    female
+    ::
+
+        >> choice('What is your favorite color?', ['blue', 'orange', 'red'])
+        What is your favourite color? [blue, orange, red]: orange
+        orange
+        >> choice(['male', 'female'])
+        [male, female]? female
+        female
     """
 
     # generate question and choices list
@@ -106,13 +110,10 @@ def progress_bar(start_time, current, total, size=50, done='=', todo=' ', templa
 
     >>> import functools, time
     >>> progress = functools.partial(progress_bar, template='[{done}{todo}]', stream=sys.stdout)
-
     >>> progress(time.time(), 10, 15, size=30)
     [====================          ]
-
     >>> progress(time.time(), 1, 6, size=10)
     [=         ]
-
     >>> progress(time.time(), 3, 5, size=5, done='+', todo='-')
     [+++--]
     """

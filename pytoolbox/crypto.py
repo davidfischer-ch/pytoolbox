@@ -51,13 +51,10 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     """
     Return the blob of some data.
 
-    This is how Git calculates the SHA1 for a file (or, in Git terms, a "blob")::
+    This is how Git `calculates <http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git>`_ the SHA1
+    for a file (or, in Git terms, a "blob")::
 
         sha1('blob ' + filesize + (the byte 0) + data)
-
-    .. seealso::
-
-        http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git
 
     **Example usage**
 
@@ -90,21 +87,22 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
+    >>> eq = asserts.equal
     >>> algorithms = ('md4', 'md5', 'sha256', 'sha512', 'whirlpool')
     >>> long_checksum = '43d92a466b57e3744532eab7d760708028a7562d9678f6762bf341f29b921e42'
     >>> short_checksum = '2b31de8940dfd3286f70c316f701a54a'
-
-    >>> eq_(guess_algorithm('', algorithms), set())
-    >>> eq_(set(a.name for a in guess_algorithm(long_checksum, algorithms)), {'sha256'})
+    >>> eq(guess_algorithm('', algorithms), set())
+    >>> eq(set(a.name for a in guess_algorithm(long_checksum, algorithms)), {'sha256'})
     >>> print(guess_algorithm(long_checksum, algorithms, unique=True).name)
     sha256
     >>> print(guess_algorithm(short_checksum, algorithms, unique=True))
     None
 
-    Following examples depends of your system, so they are disabled:
-    >> eq_(set(a.name for a in guess_algorithm(short_checksum)), {'md4', 'md5'})
-    >> eq_(set(a.name for a in guess_algorithm(long_checksum)), {'sha256'})
+    Following examples depends of your system, so they are disabled::
+
+    >> eq(set(a.name for a in guess_algorithm(short_checksum)), {'md4', 'md5'})
+    >> eq(set(a.name for a in guess_algorithm(long_checksum)), {'sha256'})
     """
     digest_size = len(checksum) / 2
     if algorithms:
