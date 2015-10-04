@@ -138,8 +138,8 @@ In fact most of this documentation is extracted from the docstrings of the code.
 
 Here is the procedure::
 
-    python setup.py test
-    xdg-open doc/build/html/index.html
+    python setup.py docs
+    xdg-open docs/build/html/index.html
 
 -------------------------------------------------
 How to add it to dependencies of my own project ?
