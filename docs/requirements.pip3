@@ -1,0 +1,25 @@
+argparse
+jinja2
+mock
+nose
+passlib
+pyaml
+pycallgraph
+pygal
+python-magic
+pytz
+six
+termcolor
+# For the extra features
+jira
+django
+django-filter
+django-formtools
+flask
+celery
+pymongo
+django-oauth-toolkit
+djangorestframework>=3
+selenium
+fastxor
+voluptuous
