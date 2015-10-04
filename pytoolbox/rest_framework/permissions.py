@@ -1,16 +1,8 @@
 # -*- encoding: utf-8 -*-
 
-#**********************************************************************************************************************#
-#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
-#
-#  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
-#  Origin         : https://github.com/davidfischer-ch/pytoolbox.git
-#
-#**********************************************************************************************************************#
-
 """
-Permission policies for a Django REST Framework powered API.
+Extra `permission policies <http://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/>`_ for
+building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_ powered API.
 """
 
 from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope

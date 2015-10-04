@@ -1,27 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-#**********************************************************************************************************************#
-#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
-#
-#  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
-#
-#**********************************************************************************************************************#
-#
-# This file is part of David Fischer's pytoolbox Project.
-#
-# This project is free software: you can redistribute it and/or modify it under the terms of the EUPL v. 1.1 as provided
-# by the European Commission. This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-# See the European Union Public License for more details.
-#
-# You should have received a copy of the EUPL General Public License along with this project.
-# If not, see he EUPL licence v1.1 is available in 22 languages:
-#     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
-#
-# Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections, math
@@ -33,77 +11,66 @@ from .encoding import string_types
 _all = module.All(globals())
 
 
-def flatten_dict(the_dict, key_template='{0}.{1}'):
-    """
-    Flatten the keys of a nested dictionary.
+class EventsTable(object):
+    """Scan a spare events table and replace missing entry by previous (non empty) entry."""
 
-    **Example usage**
+    def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
+        self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
+        previous_event = sparse_events_table[0]
+        self.events = {}
+        for index in xrange(self.time_range):
+            event = sparse_events_table.get(index, previous_event)
+            self.events[index] = event
+            previous_event = event
 
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.dict_equal(flatten_dict({'a': 'b', 'c': 'd'}), {'a': 'b', 'c': 'd'})
-    >>> asserts.dict_equal(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}), {'a.b.c': ['d', 'e'], 'a.f': 'g'})
-    >>> asserts.dict_equal(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}'),
-    ...                    {'c-b-a': ['d', 'e'], 'f-a': 'g'})
-    """
-    def expand_item(key, value):
-        if isinstance(value, dict):
-            return [(key_template.format(key, k), v) for k, v in flatten_dict(value, key_template).items()]
-        else:
-            return [(key, value)]
-    return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
+    def get(self, time, time_speedup=None, default_value=None):
+        # """
+        # >>> from pytoolbox.unittest import asserts
+        # >>> def test_get_index(time_range, time_speedup):
+        # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
+        # ...     modulo = previous = 0
+        # ...     for t in xrange(24*3600+1):
+        # ...         index = table.get(t+2*60, time_range, time_speedup)[0]
+        # ...         if previous > index:
+        # ...             modulo += 1
+        # ...         assert(0 <= index < time_range)
+        # ...         previous = index
+        # ...     asserts.equal(modulo, time_speedup)
 
+        # Test get_index with a speedup of 1440 (maps 1 minute to 24 hours):
+        # >>> test_get_index(24, 24 * 60)
 
-def to_dict_of_values(iterable, type=list, method=list.append):
-    """
-    Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as key -> values.
+        # Test get_index with a speedup of 12 (maps 2 hours to 24 hours):
+        # >>> test_get_index(24, 12)
+        # """
+        index = int((total_seconds(time) * ((time_speedup or self.time_speedup) / 3600) % self.time_range))
+        return index, self.events.get(index, default_value)
 
-    **Example usage**
+    def sleep_time(self, time, time_speedup=None, sleep_factor=None):
+        """
+        Return required sleep time to wait for next scheduled event.
 
-    >>> assert to_dict_of_values([('odd', 1), ('odd', 3), ('even', 0), ('even', 2)]) == {'even': [0, 2], 'odd': [1, 3]}
-    >>> assert to_dict_of_values((('a', 1), ('a', 1), ('a', 2)), type=set, method=set.add) == {'a': {1, 2}}
-    """
-    dict_of_values = collections.defaultdict(type)
-    for key, value in iterable:
-        method(dict_of_values[key], value)
-    return dict_of_values
+        **Example usage**
 
-
-def merge_dicts(*dicts):
-    """
-    Return a dictionary from multiple dictionaries.
-    Warning: This operation is not commutative.
-
-    **Example usage**
-
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.dict_equal(merge_dicts({'a': 1, 'b': 2}, {'b': 3, 'c': 4}, {'c': 5}), {'a': 1, 'b': 3, 'c': 5})
-    >>> asserts.dict_equal(merge_dicts({'c': 5}, {'b': 3, 'c': 4}, {'a': 1, 'b': 2}), {'a': 1, 'b': 2, 'c': 4})
-    """
-    merged_dict = {}
-    set(merged_dict.update(d) for d in dicts)
-    return merged_dict
-
-
-def swap_dict_of_values(the_dict, type=set, method=set.add):
-    """
-    Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
-
-    This algorithm expect that the values are a container with objects, not a single object.
-
-    **Example usage**
-
-    >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
-    >>> assert ({k: sorted(v) for k, v in result.items()} ==
-    ...         {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
-    >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
-    >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
-    """
-    method = getattr(type, method) if isinstance(method, string_types) else method
-    reversed_dict = collections.defaultdict(type)
-    for key, values in the_dict.items():
-        for value in values:
-            method(reversed_dict[value], key)
-    return reversed_dict
+        >>> from pytoolbox.unittest import asserts
+        >>> table = EventsTable({0: 'salut'}, 24, 60)
+        >>> asserts.equal(table.sleep_time(1), 59)
+        >>> asserts.equal(table.sleep_time(58), 2)
+        >>> asserts.equal(table.sleep_time(60), 60)
+        >>> asserts.equal(table.sleep_time(62), 58)
+        >>> asserts.equal(table.sleep_time(3590, time_speedup=1), 10)
+        >>> asserts.equal(table.sleep_time(12543, time_speedup=1), 1857)
+        >>> asserts.equal(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
+        >>> asserts.equal(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
+        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
+        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
+        >>> asserts.equal(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
+        >>> table.time_range = 1
+        >>> asserts.equal(table.sleep_time(1, time_speedup=1), 149)
+        """
+        # 150 = 3600 / 24
+        d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
+        return math.ceil(d - (total_seconds(time) % d))
 
 
 class pygal_deque(collections.deque):
@@ -162,6 +129,82 @@ class pygal_deque(collections.deque):
         return self_list
 
 
+def flatten_dict(the_dict, key_template='{0}.{1}'):
+    """
+    Flatten the keys of a nested dictionary.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.dict_equal(flatten_dict({'a': 'b', 'c': 'd'}), {'a': 'b', 'c': 'd'})
+    >>> asserts.dict_equal(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}), {'a.b.c': ['d', 'e'], 'a.f': 'g'})
+    >>> asserts.dict_equal(flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}'),
+    ...                    {'c-b-a': ['d', 'e'], 'f-a': 'g'})
+    """
+    def expand_item(key, value):
+        if isinstance(value, dict):
+            return [(key_template.format(key, k), v) for k, v in flatten_dict(value, key_template).items()]
+        else:
+            return [(key, value)]
+    return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
+
+
+def merge_dicts(*dicts):
+    """
+    Return a dictionary from multiple dictionaries.
+
+    .. warning::
+
+        This operation is not commutative.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.dict_equal(merge_dicts({'a': 1, 'b': 2}, {'b': 3, 'c': 4}, {'c': 5}), {'a': 1, 'b': 3, 'c': 5})
+    >>> asserts.dict_equal(merge_dicts({'c': 5}, {'b': 3, 'c': 4}, {'a': 1, 'b': 2}), {'a': 1, 'b': 2, 'c': 4})
+    """
+    merged_dict = {}
+    set(merged_dict.update(d) for d in dicts)
+    return merged_dict
+
+
+def swap_dict_of_values(the_dict, type=set, method=set.add):
+    """
+    Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
+
+    This algorithm expect that the values are a container with objects, not a single object.
+
+    **Example usage**
+
+    >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
+    >>> assert ({k: sorted(v) for k, v in result.items()} ==
+    ...         {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
+    >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
+    >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
+    """
+    method = getattr(type, method) if isinstance(method, string_types) else method
+    reversed_dict = collections.defaultdict(type)
+    for key, values in the_dict.items():
+        for value in values:
+            method(reversed_dict[value], key)
+    return reversed_dict
+
+
+def to_dict_of_values(iterable, type=list, method=list.append):
+    """
+    Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as key -> values.
+
+    **Example usage**
+
+    >>> assert to_dict_of_values([('odd', 1), ('odd', 3), ('even', 0), ('even', 2)]) == {'even': [0, 2], 'odd': [1, 3]}
+    >>> assert to_dict_of_values((('a', 1), ('a', 1), ('a', 2)), type=set, method=set.add) == {'a': {1, 2}}
+    """
+    dict_of_values = collections.defaultdict(type)
+    for key, value in iterable:
+        method(dict_of_values[key], value)
+    return dict_of_values
+
+
 def window(values, index, delta):
     """
     >>> from pytoolbox.unittest import asserts
@@ -187,67 +230,5 @@ def window(values, index, delta):
         left, right = left - right + length - 1, length - 1
     left, right = max(left, 0), min(right, length - 1)
     return values[left:right + 1], left, right
-
-
-class EventsTable(object):
-
-    def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
-        """Scan a spare events table and replace missing entry by previous (non empty) entry."""
-        self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
-        previous_event = sparse_events_table[0]
-        self.events = {}
-        for index in xrange(self.time_range):
-            event = sparse_events_table.get(index, previous_event)
-            self.events[index] = event
-            previous_event = event
-
-    def get(self, time, time_speedup=None, default_value=None):
-        # """
-        # >>> from pytoolbox.unittest import asserts
-        # >>> def test_get_index(time_range, time_speedup):
-        # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
-        # ...     modulo = previous = 0
-        # ...     for t in xrange(24*3600+1):
-        # ...         index = table.get(t+2*60, time_range, time_speedup)[0]
-        # ...         if previous > index:
-        # ...             modulo += 1
-        # ...         assert(0 <= index < time_range)
-        # ...         previous = index
-        # ...     asserts.equal(modulo, time_speedup)
-
-        # Test get_index with a speedup of 1440 (maps 1 minute to 24 hours):
-        # >>> test_get_index(24, 24 * 60)
-
-        # Test get_index with a speedup of 12 (maps 2 hours to 24 hours):
-        # >>> test_get_index(24, 12)
-        # """
-        index = int((total_seconds(time) * ((time_speedup or self.time_speedup) / 3600) % self.time_range))
-        return index, self.events.get(index, default_value)
-
-    def sleep_time(self, time, time_speedup=None, sleep_factor=None):
-        """
-        Return required sleep time to wait for next scheduled event.
-
-        **Example usage**
-
-        >>> from pytoolbox.unittest import asserts
-        >>> table = EventsTable({0: 'salut'}, 24, 60)
-        >>> asserts.equal(table.sleep_time(1), 59)
-        >>> asserts.equal(table.sleep_time(58), 2)
-        >>> asserts.equal(table.sleep_time(60), 60)
-        >>> asserts.equal(table.sleep_time(62), 58)
-        >>> asserts.equal(table.sleep_time(3590, time_speedup=1), 10)
-        >>> asserts.equal(table.sleep_time(12543, time_speedup=1), 1857)
-        >>> asserts.equal(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
-        >>> asserts.equal(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
-        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
-        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
-        >>> asserts.equal(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
-        >>> table.time_range = 1
-        >>> asserts.equal(table.sleep_time(1, time_speedup=1), 149)
-        """
-        # 150 = 3600 / 24
-        d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
-        return math.ceil(d - (total_seconds(time) % d))
 
 __all__ = _all.diff(globals())

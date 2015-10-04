@@ -1,16 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-#**********************************************************************************************************************#
-#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
-#
-#  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
-#  Origin         : https://github.com/davidfischer-ch/pytoolbox.git
-#
-#**********************************************************************************************************************#
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 """
 Mix-ins for building your own models.
 
@@ -34,6 +23,8 @@ Order for these does not matter:
 - ReloadMixin
 - SaveInstanceFilesMixin
 """
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections, itertools, re
 
