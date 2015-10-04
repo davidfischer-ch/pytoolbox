@@ -39,7 +39,7 @@ sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
 sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
 python3 setup.py docs || warning 'Sphinx is not fully happy with our docstrings'
 
-version=$(cat setup.py | grep 'version=' | cut -d'=' -f2 | sed "s:',*::g")
+version=$(cat 'pytoolbox/__init__.py' | grep '__version__ = ' | cut -d'=' -f2 | sed "s:'::g;s: ::g")
 echo "Release version $version, press enter to continue ..."
 read a
 
