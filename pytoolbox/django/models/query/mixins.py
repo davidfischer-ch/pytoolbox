@@ -50,8 +50,8 @@ class CreateModelMethodMixin(object):
 class StateMixin(object):
     """
     Generate on the fly utility query-set filtering methods to a model using a :class:`pytoolbox.states.StateEnum` to
-    implement its own state machine. Then you can use something like `Model.objects.ready_or_canceled(inverse=True) to
-    exclude models in state READY or CANCELED.
+    implement its own state machine. Then you can use something like ``Model.objects.ready_or_canceled(inverse=True)``
+    to exclude models in state READY or CANCELED.
 
     This mixin requires the following to work:
 

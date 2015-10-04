@@ -138,15 +138,15 @@ def rst_title(value, level):
     """
     Return a title formatted with reSTructuredtext markup.
 
-    level as number: (1, 2, 3, 4, 5)
-    level as text: ('document', 'subtitle', 'chapter', 'section', 'subsection')
+    * level as number: (1, 2, 3, 4, 5)
+    * level as text: ('document', 'subtitle', 'chapter', 'section', 'subsection')
 
     Output::
 
         'Document Title'|rst_title:'document' -> ==============\nDocument Title\n==============\n
         'My Subtitle'|rst_title:'subtitle' -> -----------\nMy Subtitle\n-----------\n
 
-    Source : https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
+    Source: https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
 
     **Example usage**
 

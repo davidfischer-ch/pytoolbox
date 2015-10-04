@@ -699,72 +699,73 @@ class Environment(object):
 
         **Example usage**
 
-        >> from functools import partial
-        >> e = Environment(config=None)
-        >> e.bootstrap(wait_started=True)
-        >> ensure = partial(e.ensure_num_units, charm='ubuntu', local=False, terminate=True)
+        ::
 
-        Ensure the charm ubuntu is deployed as the service vanilla with 10 machines, and exposed:
+            >> from functools import partial
+            >> e = Environment(config=None)
+            >> e.bootstrap(wait_started=True)
+            >> ensure = partial(e.ensure_num_units, charm='ubuntu', local=False, terminate=True)
 
-        >> ensure(service='vanilla', expose=True, num_units=5)
-        Deploy ubuntu as vanilla (ensure 5 instances)
-        do it now ? [y/N]: y
-        {'deploy_units': None, 'expose_service': None}
+        Ensure the charm ubuntu is deployed as the service vanilla with 10 machines, and exposed::
 
-        Ensure the service unwanted does not exist (was not deployed):
+            >> ensure(service='vanilla', expose=True, num_units=5)
+            Deploy ubuntu as vanilla (ensure 5 instances)
+            do it now ? [y/N]: y
+            {'deploy_units': None, 'expose_service': None}
 
-        >> ensure(service='unwanted', num_units=None)
-        {}
+        Ensure the service unwanted does not exist (was not deployed)::
 
-        Ensure the service vanilla scale-down to 1 unit, keeping unit number 3 (previously 5 machines):
+            >> ensure(service='unwanted', num_units=None)
+            {}
 
-        >> ensure(service='vanilla', num_units=1, units_number_to_keep=[3])
-        {'destroy_unit': {0: {'agent-state': 'started',
-                              'agent-version': '1.16.6.1',
-                              'machine': '1',
-                              'public-address': '10.0.3.115'},
-                          4: {'agent-state': 'pending',
-                              'agent-version': '1.16.6.1',
-                              'machine': '5',
-                              'public-address': '10.0.3.213'},
-                          2: {'agent-state': 'started',
-                              'agent-version': '1.16.6.1',
-                              'machine': '3',
-                              'public-address': '10.0.3.23'},
-                          1: {'agent-state': 'started',
-                              'agent-version': '1.16.6.1',
-                              'machine': '2',
-                              'public-address': '10.0.3.170'}}}
+        Ensure the service vanilla scale-down to 1 unit, keeping unit number 3 (previously 5 machines)::
 
-        >> ensure(service='vanilla', num_units=1, units_number_to_keep=[3])
-        {}
+            >> ensure(service='vanilla', num_units=1, units_number_to_keep=[3])
+            {'destroy_unit': {0: {'agent-state': 'started',
+                                  'agent-version': '1.16.6.1',
+                                  'machine': '1',
+                                  'public-address': '10.0.3.115'},
+                              4: {'agent-state': 'pending',
+                                  'agent-version': '1.16.6.1',
+                                  'machine': '5',
+                                  'public-address': '10.0.3.213'},
+                              2: {'agent-state': 'started',
+                                  'agent-version': '1.16.6.1',
+                                  'machine': '3',
+                                  'public-address': '10.0.3.23'},
+                              1: {'agent-state': 'started',
+                                  'agent-version': '1.16.6.1',
+                                  'machine': '2',
+                                  'public-address': '10.0.3.170'}}}
+            >> ensure(service='vanilla', num_units=1, units_number_to_keep=[3])
+            {}
 
-        Scale-up the service vanilla again:
+        Scale-up the service vanilla again::
 
-        >> ensure(service='vanilla', num_units=2)
-        {'add_units': None}
+            >> ensure(service='vanilla', num_units=2)
+            {'add_units': None}
 
-        Scale-down the service vanilla to 0 units but keep it alive:
+        Scale-down the service vanilla to 0 units but keep it alive::
 
-        >> ensure(service='vanilla', num_units=0)
-        {'destroy_unit': {3: {'agent-state': 'started',
-                               'agent-version': '1.16.6.1',
-                               'machine': '4',
-                               'public-address': '10.0.3.50'},
-                           5: {'agent-state': 'started',
-                               'agent-version': '1.16.6.1',
-                               'machine': '6',
-                               'public-address': '10.0.3.129'}}}
+            >> ensure(service='vanilla', num_units=0)
+            {'destroy_unit': {3: {'agent-state': 'started',
+                                   'agent-version': '1.16.6.1',
+                                   'machine': '4',
+                                   'public-address': '10.0.3.50'},
+                               5: {'agent-state': 'started',
+                                   'agent-version': '1.16.6.1',
+                                   'machine': '6',
+                                   'public-address': '10.0.3.129'}}}
 
-        Ensure the service another has 0 units but doesn't allow his destruction (the service does not exist):
+        Ensure the service another has 0 units but doesn't allow his destruction (the service does not exist)::
 
-        >> ensure(service='another', num_units=0)
-        {}
+            >> ensure(service='another', num_units=0)
+            {}
 
-        Ensure the service vanilla does not exist at all:
+        Ensure the service vanilla does not exist at all::
 
-        >> ensure(service='vanilla', num_units=None)
-        {'destroy_service': None}
+            >> ensure(service='vanilla', num_units=None)
+            {'destroy_service': None}
 
         """
         results = {}
