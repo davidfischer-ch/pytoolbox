@@ -27,44 +27,25 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os, shutil, sys
 
-from pytoolbox.encoding import configure_unicode
+from pytoolbox import encoding, filesystem
 from pytoolbox.subprocess import cmd
-from pytoolbox.filesystem import find_recursive, from_template
-from pytoolbox.string import to_lines
 
 PACKAGE_DIRECTORY = os.path.join('..', 'pytoolbox')
 
 
 def main():
-    configure_unicode()
+    encoding.configure_unicode()
 
     # Cleanup previously generated restructured files
-    for path in find_recursive('source', r'^pytoolbox.*\.rst$', unix_wildcards=False):
+    for path in filesystem.find_recursive('source', r'^pytoolbox.*\.rst$', unix_wildcards=False):
         os.remove(path)
 
-    submodules = sorted(
-        m.replace('.py', '').replace(PACKAGE_DIRECTORY, '').strip(os.path.sep).replace(os.path.sep, '.')
-        for m in find_recursive(PACKAGE_DIRECTORY, r'[^_].*\.py$', unix_wildcards=False)
-    )
-
-    print('Detected modules are: {0}'.format(to_lines(submodules)))
-
-    modules = []
-    for submodule in submodules:
-        if 'django' in submodule or 'crypto' in submodule:
-            continue  # FIXME temporary hack, see issue #6
-        module = 'pytoolbox.{0}'.format(submodule)
-        title = module.replace('.', ' > ')
-        modules.append(module)
-        from_template(os.path.join('templates', 'module.rst.template'), os.path.join('source', module + '.rst'), {
-            'module': module, 'title': title, 'equals': '='*len(title)
-        })
-
-    from_template(os.path.join('templates', 'api.rst.template'), os.path.join('source', 'api.rst'), {
-        'api_toc': os.linesep.join('    ' + m for m in modules)
-    })
+    cmd('sphinx-apidoc --force --module-first --separate -o source ../pytoolbox')
     shutil.rmtree(os.path.join('build', 'html'), ignore_errors=True)
-    result = cmd('make html', fail=False)
+
+    sphinx_env = os.environ.copy()
+    sphinx_env['DJANGO_SETTINGS_MODULE'] = 'pytoolbox.django._settings'
+    result = cmd('make html', fail=False, env=sphinx_env)
 
     print('{0}Outputs{0}======={0}{0}{1[stdout]}{0}{0}Errors{0}======{0}{0}{1[stderr]}'.format(os.linesep, result))
 
