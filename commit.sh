@@ -31,6 +31,6 @@ warning()
 
 sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
 sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
-cd doc && sudo python2 update.py || warning 'Sphinx is not fully happy with our docstrings'
+python2 setup.py docs || warning 'Sphinx is not fully happy with our docstrings'
 cd ..
 git commit
