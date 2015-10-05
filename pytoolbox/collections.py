@@ -75,7 +75,8 @@ class EventsTable(object):
 
 class pygal_deque(collections.deque):
     """
-    A deque None'ing duplicated values to produce nicer pygal line charts (e.g. 5555322211111 -> 5__532_21___1).
+    A deque None'ing duplicated values to produce nicer `pygal <pygal.org>`_ line charts
+    (e.g. 5555322211111 -> 5__532_21___1).
 
     .. warning::
 
@@ -131,7 +132,7 @@ class pygal_deque(collections.deque):
 
 def flatten_dict(the_dict, key_template='{0}.{1}'):
     """
-    Flatten the keys of a nested dictionary.
+    Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given `key_template`.
 
     **Example usage**
 
@@ -207,6 +208,22 @@ def to_dict_of_values(iterable, type=list, method=list.append):
 
 def window(values, index, delta):
     """
+    Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with (items, left, right).
+
+    This function tries to simulate a physical slider, meaning the number of extracted elements is constant but the
+    centering at `index` is not guaranteed.
+
+    A visual example with 6 `values` and ``delta=1``::
+
+        index = 0  [+++]---  left = 0, right = 2
+        index = 1  [+++]---  left = 0, right = 2
+        index = 2  -[+++]--  left = 1, right = 3
+        index = 3  --[+++]-  left = 2, right = 4
+        index = 4  ---[+++]  left = 3, right = 5
+        index = 5  ---[+++]  left = 3, right = 5
+
+    **Example usage**
+
     >>> from pytoolbox.unittest import asserts
     >>> eq = asserts.equal
     >>> eq(window(['a'], 0, 2), (['a'], 0, 0))

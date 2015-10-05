@@ -77,11 +77,11 @@ def choice(question='', choices=[], stream=sys.stdout):
 
 def print_error(message, exit_code=1, stream=sys.stderr):
     """
-    Print a error message and exit if `exit_code` is not None.
+    Print an error message and exit if `exit_code` is not None.
 
     **Example usage**
 
-    In following example stream is set to `stdout` and exit is disabled (for :mod:`doctest`):
+    In following example stream is set to `sys.stdout` and exit is disabled (for :mod:`doctest`):
 
     >>> print_error(u"It's not a bug - it's an undocumented feature.", exit_code=None, stream=sys.stdout)
     [ERROR] It's not a bug - it's an undocumented feature.
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 def progress_bar(start_time, current, total, size=50, done='=', todo=' ', template='\r[{done}{todo}]',
                  stream=sys.stdout):
     """
-    Show a progress bar. Default template string starts with a carriage return to update progress on same line.
+    Show a progress bar. Default `template` string starts with a carriage return to update progress on same line.
 
     **Example usage**
 

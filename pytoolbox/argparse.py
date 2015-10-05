@@ -47,7 +47,7 @@ def is_file(path):
 
 
 def multiple(f):
-    """Return a list with the result of f(value) for value in values."""
+    """Return a list with the result of `f`(value) for value in values."""
     def _multiple(values):
         return [f(v) for v in values] if isinstance(values, (list, tuple)) else f(values)
     return _multiple
