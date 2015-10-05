@@ -528,9 +528,13 @@ class FecReceiver(object):
 
         **Example usage**
 
-        >>> from nose.tools import eq_
-        >>> eq_(FecReceiver.compute_col_address('192.168.50.100:8000'), {'ip': '192.168.50.100', 'port': 8002})
-        >>> eq_(FecReceiver.compute_col_address(IPSocket('50.0.0.7:4000')), {'ip': '50.0.0.7', 'port': 4002})
+        >>> from pytoolbox.unittest import asserts
+        >>> asserts.dict_equal(FecReceiver.compute_col_address('192.168.50.100:8000'), {
+        ...     'ip': '192.168.50.100', 'port': 8002
+        ... })
+        >>> asserts.dict_equal(FecReceiver.compute_col_address(IPSocket('50.0.0.7:4000')), {
+        ...     'ip': '50.0.0.7', 'port': 4002
+        ... })
         >>> print(FecReceiver.compute_col_address('salut'))
         Traceback (most recent call last):
             ....
@@ -548,9 +552,13 @@ class FecReceiver(object):
 
         **Example usage**
 
-        >>> from nose.tools import eq_
-        >>> eq_(FecReceiver.compute_row_address('192.168.50.100:8000'), {'ip': '192.168.50.100', 'port': 8004})
-        >>> eq_(FecReceiver.compute_row_address(IPSocket('50.0.0.7:4000')), {'ip': '50.0.0.7', 'port': 4004})
+        >>> from pytoolbox.unittest import asserts
+        >>> asserts.dict_equal(FecReceiver.compute_row_address('192.168.50.100:8000'), {
+        ...     'ip': '192.168.50.100', 'port': 8004
+        ... })
+        >>> asserts.dict_equal(FecReceiver.compute_row_address(IPSocket('50.0.0.7:4000')), {
+        ...     'ip': '50.0.0.7', 'port': 4004
+        ... })
         >>> print(FecReceiver.compute_row_address('salut'))
         Traceback (most recent call last):
             ....
@@ -575,16 +583,17 @@ class FecReceiver(object):
 
         Testing validity window condition:
 
-        >>> assert(not FecReceiver.validity_window(    0,     5, 10))
-        >>> assert(    FecReceiver.validity_window(    5,     5, 10))
-        >>> assert(    FecReceiver.validity_window(    8,     5, 10))
-        >>> assert(    FecReceiver.validity_window(   10,     5, 10))
-        >>> assert(not FecReceiver.validity_window(   15,     5, 10))
-        >>> assert(    FecReceiver.validity_window(    0, 65534,  2))
-        >>> assert(    FecReceiver.validity_window(    2, 65534,  2))
-        >>> assert(not FecReceiver.validity_window(    5, 65534,  2))
-        >>> assert(    FecReceiver.validity_window(65534, 65534,  2))
-        >>> assert(    FecReceiver.validity_window(65535, 65534,  2))
+        >>> from pytoolbox.unittest import asserts
+        >>> asserts.false(FecReceiver.validity_window(    0,     5, 10))
+        >>> asserts.true( FecReceiver.validity_window(    5,     5, 10))
+        >>> asserts.true( FecReceiver.validity_window(    8,     5, 10))
+        >>> asserts.true( FecReceiver.validity_window(   10,     5, 10))
+        >>> asserts.false(FecReceiver.validity_window(   15,     5, 10))
+        >>> asserts.true( FecReceiver.validity_window(    0, 65534,  2))
+        >>> asserts.true( FecReceiver.validity_window(    2, 65534,  2))
+        >>> asserts.false(FecReceiver.validity_window(    5, 65534,  2))
+        >>> asserts.true( FecReceiver.validity_window(65534, 65534,  2))
+        >>> asserts.true( FecReceiver.validity_window(65535, 65534,  2))
         """
         if end > start:
             return current >= start and current <= end

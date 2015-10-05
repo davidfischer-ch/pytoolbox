@@ -26,22 +26,22 @@ def check_id(id):
     raise ValueError('Wrong id format {0}'.format(id))
 
 
-def map_exceptions(e):
+def map_exceptions(exception):
     """
-    Maps a standard exception into corresponding HTTP exception class.
+    Maps a standard `exception` into corresponding HTTP exception class.
 
     **Example usage**
 
-    >>> from nose.tools import assert_raises
-    >>> import werkzeug.exceptions
-    >>> assert_raises(werkzeug.exceptions.BadRequest, map_exceptions, TypeError('test'))
-    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, IndexError('test'))
-    >>> assert_raises(werkzeug.exceptions.NotImplemented, map_exceptions, NotImplementedError('test'))
+    >>> from werkzeug import exceptions as w_exceptions
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.raises(w_exceptions.BadRequest, map_exceptions, TypeError('test'))
+    >>> asserts.raises(w_exceptions.NotFound, map_exceptions, IndexError('test'))
+    >>> asserts.raises(w_exceptions.NotImplemented, map_exceptions, NotImplementedError('test'))
 
     Any instance of HTTPException is simply raised without any mapping:
 
-    >>> assert_raises(werkzeug.exceptions.ImATeapot, map_exceptions, werkzeug.exceptions.ImATeapot('test'))
-    >>> assert_raises(werkzeug.exceptions.NotFound, map_exceptions, werkzeug.exceptions.NotFound('test'))
+    >>> asserts.raises(w_exceptions.ImATeapot, map_exceptions, w_exceptions.ImATeapot('test'))
+    >>> asserts.raises(w_exceptions.NotFound, map_exceptions, w_exceptions.NotFound('test'))
 
     Convert a JSON response of kind {'status': 200, 'value': '...'}:
 
@@ -52,30 +52,30 @@ def map_exceptions(e):
         ...
     ValueError: The value is bad.
     """
-    if isinstance(e, Exception):
+    if isinstance(exception, Exception):
         try:
-            logging.exception(e)
+            logging.exception(exception)
         except AttributeError:
-            logging.exception(repr(e))
-    if isinstance(e, dict):
-        if e['status'] == 200:
-            return e['value']
-        exception = STATUS_TO_EXCEPTION.get(e['status'], Exception)
-        raise exception(e['value'])
-    elif isinstance(e, HTTPException):
-        raise e
-    elif isinstance(e, TypeError):
-        abort(400, text_type(e))
-    elif isinstance(e, KeyError):
-        abort(400, 'Key {0} not found.'.format(e))
-    elif isinstance(e, IndexError):
-        abort(404, text_type(e))
-    elif isinstance(e, ValueError):
-        abort(415, text_type(e))
-    elif isinstance(e, NotImplementedError):
-        abort(501, text_type(e))
+            logging.exception(repr(exception))
+    if isinstance(exception, dict):
+        if exception['status'] == 200:
+            return exception['value']
+        exception_class = STATUS_TO_EXCEPTION.get(exception['status'], Exception)
+        raise exception_class(exception['value'])
+    elif isinstance(exception, HTTPException):
+        raise exception
+    elif isinstance(exception, TypeError):
+        abort(400, text_type(exception))
+    elif isinstance(exception, KeyError):
+        abort(400, 'Key {0} not found.'.format(exception))
+    elif isinstance(exception, IndexError):
+        abort(404, text_type(exception))
+    elif isinstance(exception, ValueError):
+        abort(415, text_type(exception))
+    elif isinstance(exception, NotImplementedError):
+        abort(501, text_type(exception))
     else:
-        abort(500, '{0} {1} {2}'.format(e.__class__.__name__, repr(e), text_type(e)))
+        abort(500, '{0} {1} {2}'.format(exception.__class__.__name__, repr(exception), text_type(exception)))
 
 
 def json_response(status, value=None, include_properties=False):

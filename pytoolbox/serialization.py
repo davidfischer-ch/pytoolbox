@@ -25,32 +25,32 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
 
     In-place write operation:
 
-    >>> from nose.tools import eq_, assert_raises
-    >>> eq_(to_file('/tmp/to_file', data='bonjour'), None)
-    >>> eq_(open('/tmp/to_file', 'r', 'utf-8').read(), 'bonjour')
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.is_none(to_file('/tmp/to_file', data='bonjour'))
+    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'bonjour')
 
     No backup is created if the destination file does not exist:
 
-    >>> from .filesystem import try_remove
+    >>> from pytoolbox.filesystem import try_remove
     >>> _ = try_remove('/tmp/to_file')
-    >>> eq_(to_file('/tmp/to_file', data='bonjour', backup=True), None)
+    >>> asserts.is_none(to_file('/tmp/to_file', data='bonjour', backup=True))
 
     In-place write operation after having copied the file into a backup:
 
-    >>> eq_(to_file('/tmp/to_file', data='ça va ?', backup=True), '/tmp/to_file.bkp')
-    >>> eq_(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'bonjour')
-    >>> eq_(open('/tmp/to_file', 'r', 'utf-8').read(), 'ça va ?')
+    >>> asserts.equal(to_file('/tmp/to_file', data='ça va ?', backup=True), '/tmp/to_file.bkp')
+    >>> asserts.equal(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'bonjour')
+    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'ça va ?')
 
     The most secure, do a backup, write into a temporary file, and rename the temporary file to the destination:
 
-    >>> eq_(to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True), '/tmp/to_file.bkp')
-    >>> eq_(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'ça va ?')
-    >>> eq_(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
+    >>> asserts.equal(to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True), '/tmp/to_file.bkp')
+    >>> asserts.equal(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'ça va ?')
+    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
 
     The content of the destination is not broken if the write operation fails:
 
-    >>> assert_raises(TypeError, to_file, '/tmp/to_file', data=eq_, safe=True)
-    >>> eq_(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
+    >>> asserts.raises(TypeError, to_file, '/tmp/to_file', data=asserts.equal, safe=True)
+    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
     """
     if makedirs:
         try_makedirs(os.path.dirname(path))
@@ -144,7 +144,8 @@ def object_to_json(obj, include_properties, **kwargs):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
+    >>>
     >>> class Point(object):
     ...     def __init__(self, x=0, y=0):
     ...         self.x = x
@@ -153,8 +154,8 @@ def object_to_json(obj, include_properties, **kwargs):
     ...     def z(self):
     ...         return self.x + self.y
     >>> p1 = Point(x=16, y=-5)
-    >>> eq_(object_to_json(p1, include_properties=False, sort_keys=True), '{"x": 16, "y": -5}')
-    >>> eq_(object_to_json(p1, include_properties=True, sort_keys=True), '{"x": 16, "y": -5, "z": 11}')
+    >>> asserts.equal(object_to_json(p1, include_properties=False, sort_keys=True), '{"x": 16, "y": -5}')
+    >>> asserts.equal(object_to_json(p1, include_properties=True, sort_keys=True), '{"x": 16, "y": -5, "z": 11}')
     >>> print(object_to_json(p1, include_properties=True, sort_keys=True, indent=4)) # doctest: +NORMALIZE_WHITESPACE
     {
         "x": 16,
@@ -188,7 +189,8 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     Define the sample class, instantiate it and serialize it to a file:
 
     >>> import os
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
+    >>>
     >>> class Point(object):
     ...     def __init__(self, name=None, x=0, y=0):
     ...         self.name = name
@@ -200,9 +202,9 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     Deserialize the freshly saved file:
 
     >>> p2 = jsonfile_to_object(Point, 'test.json', inspect_constructor=False)
-    >>> eq_(p1.__dict__, p2.__dict__)
+    >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
     >>> p2 = jsonfile_to_object(Point, open('test.json', 'r', encoding='utf-8'), inspect_constructor=False)
-    >>> eq_(p1.__dict__, p2.__dict__)
+    >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
     >>> os.remove('test.json')
     """
     f = open(path_or_file, 'r', encoding='utf-8') if isinstance(path_or_file, string_types) else path_or_file
@@ -219,7 +221,7 @@ class JsoneableObject(object):
 
     Convert-back from JSON strings containing extra parameters:
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>>
     >>> class User(object):
     ...     def __init__(self, first_name, last_name):
@@ -240,7 +242,7 @@ class JsoneableObject(object):
     >>> media_back = Media.from_json(media_json, inspect_constructor=True)
     >>> isinstance(media_back.author, User)
     True
-    >>> eq_(media_back.author.__dict__, media.author.__dict__)
+    >>> asserts.dict_equal(media_back.author.__dict__, media.author.__dict__)
 
     A second example handling extra arguments by using ``**kwargs`` (a.k.a the dirty way):
 
@@ -263,7 +265,7 @@ class JsoneableObject(object):
     >>> media_back = Media.from_json(media_json, inspect_constructor=False)
     >>> isinstance(media_back.author, User)
     True
-    >>> eq_(media_back.author.__dict__, media.author.__dict__)
+    >>> asserts.dict_equal(media_back.author.__dict__, media.author.__dict__)
     """
     @classmethod
     def read(cls, path, store_path=False, inspect_constructor=True):
@@ -315,7 +317,8 @@ def object_to_dict(obj, include_properties):
 
     Define the sample class and convert some instances to a dictionary:
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
+    >>>
     >>> class Point(object):
     ...     def __init__(self, name, x, y, p):
     ...         self.name = name
@@ -327,11 +330,17 @@ def object_to_dict(obj, include_properties):
     ...         return self.x - self.y
     >>>
     >>> p1_dict = {'y': 2, 'x': 5, 'name': 'p1', 'p': {'y': 4, 'x': 3, 'name': 'p2', 'p': None}}
-    >>> eq_(object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False), p1_dict)
+    >>> asserts.dict_equal(
+    ...     object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False),
+    ...     p1_dict
+    ... )
     >>>
     >>> p2_dict = {'y': 4, 'p': None, 'z': -1, 'name': 'p2', 'x': 3}
     >>> p1_dict = {'y': 2, 'p': p2_dict, 'z': 3, 'name': 'p1', 'x': 5}
-    >>> eq_(object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True), p1_dict)
+    >>> asserts.dict_equal(
+    ...     object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True),
+    ...     p1_dict
+    ... )
     >>>
     >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
     >>> p1.p, p2.p = p2, p1
@@ -372,7 +381,7 @@ def dict_to_object(cls, the_dict, inspect_constructor):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>>
     >>> class User(object):
     ...     def __init__(self, first_name, last_name='Fischer'):
@@ -382,14 +391,13 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     ...        return '{0} {1}'.format(self.first_name, self.last_name)
     ...
     >>> user_dict = {'first_name': 'Victor', 'last_name': 'Fischer', 'unexpected': 10}
-    >>>
     >>> dict_to_object(User, user_dict, inspect_constructor=False)
     Traceback (most recent call last):
         ...
     TypeError: __init__() got an unexpected keyword argument 'unexpected'
-    >>>
-    >>> expected = {'first_name': 'Victor', 'last_name': 'Fischer'}
-    >>> eq_(dict_to_object(User, user_dict, inspect_constructor=True).__dict__, expected)
+    >>> asserts.dict_equal(dict_to_object(User, user_dict, inspect_constructor=True).__dict__, {
+    ...     'first_name': 'Victor', 'last_name': 'Fischer'
+    ... })
     """
     if inspect_constructor:
         the_dict = {arg: the_dict.get(arg, None) for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'}

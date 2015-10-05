@@ -96,14 +96,17 @@ class RtpPacket(object):
 
         Testing invalid header:
 
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> rtp = RtpPacket(bytearray(RtpPacket.HEADER_LENGTH-1), RtpPacket.HEADER_LENGTH-1)
-        >>> eq_(rtp.errors, ['RTP Header : Version must be set to 2', 'RTP packet must have a payload'])
+        >>> asserts.list_equal(rtp.errors, [
+        ...     'RTP Header : Version must be set to 2',
+        ...     'RTP packet must have a payload'
+        ... ])
 
         Testing a valid RTP packet with a MPEG2-TS payload:
 
         >>> rtp = RtpPacket.create(6, 777, RtpPacket.MP2T_PT, 'salut')
-        >>> eq_(rtp.errors, [])
+        >>> asserts.list_equal(rtp.errors, [])
         """
         errors = []
         if self._errors:

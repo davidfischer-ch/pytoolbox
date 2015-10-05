@@ -110,9 +110,9 @@ if PY2:
 
         If the exception was not raised then there are no traceback:
 
-        >>> from nose.tools import eq_
         >>> from pytoolbox.encoding import to_bytes
-        >>> eq_(get_exception_with_traceback(ValueError(to_bytes('yé'))), 'ValueError: yé\\n')
+        >>> from pytoolbox.unittest import asserts
+        >>> asserts.equal(get_exception_with_traceback(ValueError(to_bytes('yé'))), 'ValueError: yé\\n')
 
         If the exception was raised then there is a traceback:
 
@@ -120,8 +120,8 @@ if PY2:
         ...     raise RuntimeError()
         ... except Exception as e:
         ...     trace = get_exception_with_traceback(e)
-        ...     assert 'Traceback' in trace
-        ...     assert 'raise RuntimeError()' in trace
+        ...     asserts.assert_in('Traceback', trace)
+        ...     asserts.assert_in('raise RuntimeError()', trace)
         """
         exception_io = io.BytesIO()
         trace = sys.exc_info()[2] if sys.exc_info()[1] is exception else None
@@ -136,8 +136,8 @@ else:
 
         If the exception was not raised then there are no traceback:
 
-        >>> from nose.tools import eq_
-        >>> eq_(get_exception_with_traceback(ValueError('yé')), 'ValueError: yé\\n')
+        >>> from pytoolbox.unittest import asserts
+        >>> asserts.equal(get_exception_with_traceback(ValueError('yé')), 'ValueError: yé\\n')
 
         If the exception was raised then there is a traceback:
 
@@ -145,8 +145,8 @@ else:
         ...     raise RuntimeError('yé')
         ... except Exception as e:
         ...     trace = get_exception_with_traceback(e)
-        ...     assert 'Traceback' in trace
-        ...     assert "raise RuntimeError('yé')" in trace
+        ...     asserts.assert_in('Traceback', trace)
+        ...     asserts.assert_in("raise RuntimeError('yé')", trace)
         """
         exception_io = io.StringIO()
         traceback.print_exception(type(exception), exception, exception.__traceback__, file=exception_io)

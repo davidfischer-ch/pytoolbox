@@ -263,8 +263,8 @@ def try_remove(path, recursive=False):
     True
     >>> try_remove('try_remove/d/e', recursive=True)
     False
-    >>> from nose.tools import assert_raises
-    >>> assert_raises(OSError, try_remove, 'try_remove/b')
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.raises(OSError, try_remove, 'try_remove/b')
     >>> try_remove('try_remove', recursive=True)
     True
     """
@@ -299,8 +299,8 @@ def try_symlink(source, link_name):
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
-    >>> from nose.tools import assert_raises
-    >>> assert_raises(OSError, try_symlink, '/home', '/etc')
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.raises(OSError, try_symlink, '/home', '/etc')
 
     Symlinking /etc to itself only returns that nothing changed:
 
@@ -313,8 +313,8 @@ def try_symlink(source, link_name):
     True
     >>> try_symlink('/etc', '/tmp/link_etc')
     False
-    >>> assert_raises(OSError, try_symlink, '/etc/does_not_exist', '/tmp/link_etc')
-    >>> assert_raises(OSError, try_symlink, '/home', '/tmp/link_etc')
+    >>> asserts.raises(OSError, try_symlink, '/etc/does_not_exist', '/tmp/link_etc')
+    >>> asserts.raises(OSError, try_symlink, '/home', '/tmp/link_etc')
 
     Creating a symlink to a non existing has the following behaviour:
 
@@ -322,8 +322,8 @@ def try_symlink(source, link_name):
     True
     >>> try_symlink('~/does_not_exist', '~/broken_link')
     False
-    >>> assert_raises(OSError, try_symlink, '~/does_not_exist_2', '~/broken_link')
-    >>> assert_raises(OSError, try_symlink, '/home', '~/broken_link')
+    >>> asserts.raises(OSError, try_symlink, '~/does_not_exist_2', '~/broken_link')
+    >>> asserts.raises(OSError, try_symlink, '/home', '~/broken_link')
     >>> os.remove('/tmp/link_etc')
     >>> os.remove(os.path.expanduser('~/broken_link'))
     """
@@ -372,11 +372,11 @@ class TempStorage(object):
     As a context manager:
 
     >>> import os
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>> with TempStorage() as tmp:
     ...     directory = tmp.create_tmp_directory()
-    ...     eq_(os.path.isdir(directory), True)
-    >>> eq_(os.path.isdir(directory), False)
+    ...     asserts.true(os.path.isdir(directory))
+    >>> asserts.false(os.path.isdir(directory))
     """
     def __init__(self, root=None):
         self.root = root or tempfile.gettempdir()
@@ -394,10 +394,10 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> directory = tmp.create_tmp_directory()
-        >>> eq_(os.path.isdir(directory), True)
+        >>> asserts.true(os.path.isdir(directory))
         >>> tmp.remove_all()
         """
         directory = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex))
@@ -413,15 +413,15 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> path = tmp.create_tmp_file(encoding=None, return_file=False)
-        >>> eq_(os.path.isfile(path), True)
+        >>> asserts.true(os.path.isfile(path))
         >>> with tmp.create_tmp_file(extension='txt') as f:
-        ...     eq_(os.path.isfile(f.name), True)
+        ...     asserts.true(os.path.isfile(f.name))
         ...     f.write('Je suis une théière')
         ...     path = f.name
-        >>> eq_(open(path, encoding='utf-8').read(), 'Je suis une théière')
+        >>> asserts.equal(open(path, encoding='utf-8').read(), 'Je suis une théière')
         >>> tmp.remove_all()
         """
         mode = 'w' if encoding else 'wb'
@@ -437,13 +437,13 @@ class TempStorage(object):
         """
         **Example usage**
 
-        >>> from nose.tools import assert_raises
+        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> directory = tmp.create_tmp_directory()
         >>> tmp.remove_by_path(directory)
-        >>> with assert_raises(KeyError):
+        >>> with asserts.raises(KeyError):
         ...     tmp.remove_by_path(directory)
-        >>> with assert_raises(KeyError):
+        >>> with asserts.raises(KeyError):
         ...     tmp.remove_by_path('random-path')
         """
         key = self._path_to_key[path]
@@ -456,15 +456,15 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_by_key(10)
-        >>> eq_(os.path.isdir(d1), True)
-        >>> eq_(os.path.isdir(d2), False)
+        >>> asserts.true(os.path.isdir(d1))
+        >>> asserts.false(os.path.isdir(d2))
         >>> tmp.remove_by_key()
-        >>> eq_(os.path.isdir(d1), False)
+        >>> asserts.false(os.path.isdir(d1))
         """
         paths = self._paths_by_key[key]
         for path in copy.copy(paths):
@@ -478,13 +478,13 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_all()
-        >>> eq_(os.path.isdir(d1), False)
-        >>> eq_(os.path.isdir(d2), False)
+        >>> asserts.false(os.path.isdir(d1))
+        >>> asserts.false(os.path.isdir(d2))
         >>> tmp.remove_all()
         """
         for key in self._paths_by_key.copy().iterkeys():

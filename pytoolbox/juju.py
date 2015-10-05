@@ -477,14 +477,13 @@ class CharmHooks(object):
         **Example usage**
 
         >>> import os
-        >>> from nose.tools import eq_
+        >>> from pytoolbox.unittest import asserts
         >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
         >>> metadata = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests/metadata.yaml')
-
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.metadata
         >>> hooks.load_metadata({'ensemble': 'oscied'})
-        >>> eq_(hooks.metadata, {'ensemble': 'oscied'})
+        >>> asserts.equal(hooks.metadata, {'ensemble': 'oscied'})
         >>> hooks.config.verbose = True
         >>> hooks.load_metadata(metadata)  # doctest: +ELLIPSIS
         [DEBUG] Load metadata from file ...

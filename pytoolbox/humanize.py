@@ -138,11 +138,11 @@ def natural_int_key(text):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>> result = sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'])
-    >>> eq_(result, ['a1', 'a10', 'a19', 'a26', 'a3', 'a4', 'b12', 'b2'])
+    >>> asserts.list_equal(result, ['a1', 'a10', 'a19', 'a26', 'a3', 'a4', 'b12', 'b2'])
     >>> result = sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'], key=natural_int_key)
-    >>> eq_(result, ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12'])
+    >>> asserts.list_equal(result, ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12'])
     """
     return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
 

@@ -130,7 +130,6 @@ def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     >>> secs_to_time(None)
     >>> secs_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
-
     >>> secs_to_time(83707.0035, as_delta=True)
     datetime.timedelta(0, 83707, 3500)
     >>> secs_to_time(None, as_delta=True)
@@ -159,7 +158,6 @@ def str_to_time(value, defaults_to_zero=False, as_delta=False):
     >>> str_to_time(None)
     >>> str_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
-
     >>> str_to_time('08:23:57', as_delta=True)
     datetime.timedelta(0, 30237)
     >>> str_to_time('00:03:02.12', as_delta=True)
@@ -276,7 +274,7 @@ def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>> epoch_to_datetime(0, factor=1)
     datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>)
     >>> epoch_to_datetime(1276128000, factor=1)
@@ -286,7 +284,7 @@ def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     >>> epoch_to_datetime(1276128000000, factor=1000)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
     >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
-    >>> eq_(epoch_to_datetime(datetime_to_epoch(today, factor=1000), factor=1000), today)
+    >>> asserts.equal(epoch_to_datetime(datetime_to_epoch(today, factor=1000), factor=1000), today)
     """
     return datetime.datetime.fromtimestamp(unix_epoch / factor, tz)
 

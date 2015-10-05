@@ -159,7 +159,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=['
     **Example usage**
 
     >>> from cStringIO import StringIO
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>> from werkzeug.wrappers import Request
 
     >>> d = 'key1=this+is+encoded+form+data&key2=another'
@@ -167,8 +167,12 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=['
     >>> c = 'application/x-www-form-urlencoded'
     >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
 
-    >>> all = {'blah': ['blafasel'], 'foo': ['bar'], 'key1': ['this is encoded form data'], 'key2': ['another']}
-    >>> eq_(get_request_data(r), all)
+    >>> asserts.dict_equal(get_request_data(r), {
+    ...     'blah': ['blafasel'],
+    ...     'foo': ['bar'],
+    ...     'key1': ['this is encoded form data'],
+    ...     'key2': ['another']
+    ... })
 
     Restrict valid keys:
 
@@ -198,14 +202,22 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=['
     >>> d = 'foo=bar+form+data'
     >>> q = 'foo=bar+query+string&it=works'
     >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
-    >>> eq_(get_request_data(r, sources=['query', 'form']), {'it': ['works'], 'foo': ['bar form data']})
-    >>> eq_(get_request_data(r, sources=['form', 'query']), {'it': ['works'], 'foo': ['bar query string']})
+    >>> asserts.dict_equal(get_request_data(r, sources=['query', 'form']), {
+    ...     'it': ['works'], 'foo': ['bar form data']
+    ... })
+    >>> asserts.dict_equal(get_request_data(r, sources=['form', 'query']), {
+    ...     'it': ['works'], 'foo': ['bar query string']
+    ... })
 
     Retrieve only the first value of the keys (Query string):
 
     >>> r = Request.from_values(query_string='foo=bar+1&foo=bar+2&foo=bar+3', content_type=c)
-    >>> eq_(get_request_data(r, sources=['query']), {'foo': ['bar 1', 'bar 2', 'bar 3']})
-    >>> eq_(get_request_data(r, sources=['query'], qs_only_first_value=True), {'foo': 'bar 1'})
+    >>> asserts.dict_equal(get_request_data(r, sources=['query']), {
+    ...     'foo': ['bar 1', 'bar 2', 'bar 3']
+    ... })
+    >>> asserts.dict_equal(get_request_data(r, sources=['query'], qs_only_first_value=True), {
+    ...     'foo': 'bar 1'
+    ... })
 
     """
     data = {}

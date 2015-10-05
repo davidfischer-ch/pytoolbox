@@ -31,7 +31,7 @@ def conditional_required(form, required_dict, data=None, cleanup=False):
 
 def get_instance(form, field_name, request, msg=None):
     """
-    Return the instance if the form is valid, or try to get it from database.
+    Return the instance if the `form` is valid, or try to get it from database.
     Return None if not found and add an error message if set.
     """
     if form.is_valid():
@@ -62,13 +62,13 @@ def update_widget_attributes(widget, updates):
 
     **Example usage**
 
-    >>> from nose.tools import eq_
+    >>> from pytoolbox.unittest import asserts
     >>> widget = type(str(''), (), {})
     >>> widget.attrs = {'class': 'mondiale'}
     >>> update_widget_attributes(widget, {'class': '+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
-    >>> eq_(widget.attrs, {'class': 'pigeon voyageur'})
+    >>> asserts.dict_equal(widget.attrs, {'class': 'pigeon voyageur'})
     >>> update_widget_attributes(widget, {'class': '+le', 'cols': 100})
-    >>> eq_(widget.attrs, {'class': 'le pigeon voyageur', 'cols': 100})
+    >>> asserts.dict_equal(widget.attrs, {'class': 'le pigeon voyageur', 'cols': 100})
     """
     updates = copy(updates)
     if 'class' in updates:

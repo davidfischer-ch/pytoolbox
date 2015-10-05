@@ -31,8 +31,10 @@ def IPSocket(string):
         ...
     ValueError: gaga:gogo is not a valid IP socket.
     >>>
-    >>> from nose.tools import eq_
-    >>> eq_(IPSocket('239.232.0.222:5004'), {'ip': '239.232.0.222', 'port': 5004})
+    >>> from pytoolbox.unittest import asserts
+    >>> asserts.dict_equal(IPSocket('239.232.0.222:5004'), {
+    ...     'ip': '239.232.0.222', 'port': 5004
+    ... })
 
     .. warning::
 
