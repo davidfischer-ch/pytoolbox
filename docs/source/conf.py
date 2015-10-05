@@ -24,6 +24,8 @@ def setup(app):
     # http://sphinx-doc.org/ext/autodoc.html#event-autodoc-skip-member
     app.connect('autodoc-skip-member', skip)
 
+autodoc_member_order = 'bysource'
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -241,8 +243,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'pytoolbox.tex', 'pytoolbox Documentation',
-   'David Fischer', 'manual'),
+    (master_doc, 'pytoolbox.tex', 'pytoolbox Documentation', 'David Fischer', 'manual')
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -271,8 +272,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pytoolbox', 'pytoolbox Documentation',
-     [author], 1)
+    (master_doc, 'pytoolbox', 'pytoolbox Documentation', [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -285,9 +285,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'pytoolbox', 'pytoolbox Documentation',
-   author, 'pytoolbox', 'One line description of project.',
-   'Miscellaneous'),
+    (
+        master_doc, 'pytoolbox', 'pytoolbox Documentation', author,
+        'pytoolbox', 'One line description of project.', 'Miscellaneous'
+    )
 ]
 
 # Documents to append as an appendix to all manuals.
