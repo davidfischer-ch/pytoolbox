@@ -147,7 +147,7 @@ class FFmpegMixin(object):
 
     @classmethod
     def setUpClass(cls):
-        for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
+        for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.iteritems():
             assert stream_class is not None, name
             assert stream_class.codec_class is not None, name
         super(FFmpegMixin, cls).setUpClass()
@@ -161,7 +161,7 @@ class FFmpegMixin(object):
 
     def assertMediaCodecEqual(self, path, stream_type, index, **codec_attrs):
         codec = getattr(self.ffprobe, 'get_{0}_streams'.format(stream_type))(path)[index].codec
-        for attr, value in codec_attrs.items():
+        for attr, value in codec_attrs.iteritems():
             self.assertEqual(getattr(codec, attr), value, msg='Codec attribute {0}'.format(attr))
 
     def assertAudioCodecEqual(self, path, index, **codec_attrs):

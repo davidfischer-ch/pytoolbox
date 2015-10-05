@@ -796,7 +796,7 @@ class Environment(object):
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
-                    for number, unit_dict in list(units_dict.items()):
+                    for number, unit_dict in list(units_dict.iteritems()):
                         if num_units == 0:
                             break
                         if number in units_number_to_keep:
@@ -1051,7 +1051,7 @@ class SimulatedUnits(object):
             for state in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                 if num_units == 0:
                     break
-                for number, unit in self.units.items():
+                for number, unit in self.units.iteritems():
                     if num_units == 0:
                         break
                     if units_number_to_keep is not None and number in units_number_to_keep:
@@ -1064,7 +1064,7 @@ class SimulatedUnits(object):
 
     def tick(self):
         """Increment time of 1 tick and remove units that are in STOPPED state."""
-        for number, unit in self.units.items():
+        for number, unit in self.units.iteritems():
             unit.tick()
             if unit.state == STOPPED:
                 del self.units[number]

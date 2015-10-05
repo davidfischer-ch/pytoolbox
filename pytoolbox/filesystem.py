@@ -487,7 +487,7 @@ class TempStorage(object):
         >>> eq_(os.path.isdir(d2), False)
         >>> tmp.remove_all()
         """
-        for key in self._paths_by_key.copy().keys():
+        for key in self._paths_by_key.copy().iterkeys():
             self.remove_by_key(key)
 
 __all__ = _all.diff(globals())

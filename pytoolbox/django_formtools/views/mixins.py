@@ -76,7 +76,7 @@ class SerializeStepInstanceMixin(object):
     def get_form(self, step=None, *args, **kwargs):
         if step is None:
             step = self.steps.current
-        if step in self.serialized_instances.keys():
+        if step in self.serialized_instances.iterkeys():
             self.form_list[step] = self.serialized_instance_form_class
         return super(SerializeStepInstanceMixin, self).get_form(step, *args, **kwargs)
 

@@ -18,7 +18,7 @@ class Firefox(common.FindMixin, webdriver.Firefox):
     }
 
     def _wrap_value(self, value):
-        if isinstance(value, tuple(self.web_element_classes.values())):
+        if isinstance(value, tuple(self.web_element_classes.itervalues())):
             return {'ELEMENT': value.id, 'element-6066-11e4-a52e-4f735466cecf': value.id}
         return super()._wrap_value(value)
 

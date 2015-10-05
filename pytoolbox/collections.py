@@ -143,10 +143,10 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
     """
     def expand_item(key, value):
         if isinstance(value, dict):
-            return [(key_template.format(key, k), v) for k, v in flatten_dict(value, key_template).items()]
+            return [(key_template.format(key, k), v) for k, v in flatten_dict(value, key_template).iteritems()]
         else:
             return [(key, value)]
-    return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
+    return dict(item for k, v in the_dict.iteritems() for item in expand_item(k, v))
 
 
 def merge_dicts(*dicts):
@@ -177,14 +177,14 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):
     **Example usage**
 
     >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
-    >>> assert ({k: sorted(v) for k, v in result.items()} ==
+    >>> assert ({k: sorted(v) for k, v in result.iteritems()} ==
     ...         {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
     >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
     >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
     """
     method = getattr(type, method) if isinstance(method, string_types) else method
     reversed_dict = collections.defaultdict(type)
-    for key, values in the_dict.items():
+    for key, values in the_dict.iteritems():
         for value in values:
             method(reversed_dict[value], key)
     return reversed_dict

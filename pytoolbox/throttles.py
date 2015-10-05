@@ -22,11 +22,11 @@ class TimeThrottle(object):
     >>> import datetime
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
-    ...     for i in range(*args):
+    ...     for i in xrange(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> t1, t2 = (TimeThrottle(t) for t in (datetime.timedelta(minutes=1), 0.2))
-    >>> asserts.list_equal(list(t1.throttle_iterable((i, i) for i in range(10))), [(0, 0), (9, 9)])
+    >>> asserts.list_equal(list(t1.throttle_iterable((i, i) for i in xrange(10))), [(0, 0), (9, 9)])
     >>> asserts.list_equal(list(t2.throttle_iterable(slow_range(3))), [0, 1, 2])
     """
     def __init__(self, min_time_delta):
@@ -70,7 +70,7 @@ class TimeAndRatioThrottle(TimeThrottle):
     >>> import datetime
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
-    ...     for i in range(*args):
+    ...     for i in xrange(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> t1, t2 = (TimeAndRatioThrottle(0.3, t, 10*t) for t in (datetime.timedelta(minutes=1), 0.4))

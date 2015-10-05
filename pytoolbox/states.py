@@ -14,12 +14,12 @@ class StateEnumMetaclass(type):
     def __init__(self, name, bases, cls_dict):
         super(StateEnumMetaclass, self).__init__(name, bases, cls_dict)
         if hasattr(self, 'TRANSITIONS'):
-            self.ALL_STATES = frozenset(self.TRANSITIONS.keys())
-            self.FINAL_STATES = frozenset(s for s, t in self.TRANSITIONS.items() if not t)
+            self.ALL_STATES = frozenset(self.TRANSITIONS.iterkeys())
+            self.FINAL_STATES = frozenset(s for s, t in self.TRANSITIONS.iteritems() if not t)
             inverse_transitions = collections.defaultdict(set)
-            for state, transitions in self.TRANSITIONS.items():
+            for state, transitions in self.TRANSITIONS.iteritems():
                 set(inverse_transitions[t].add(state) for t in transitions)
-            self.INVERSE_TRANSITIONS = {s: frozenset(t) for s, t in inverse_transitions.items()}
+            self.INVERSE_TRANSITIONS = {s: frozenset(t) for s, t in inverse_transitions.iteritems()}
 
 
 class StateEnumMergeMetaclass(StateEnumMetaclass):
@@ -30,12 +30,12 @@ class StateEnumMergeMetaclass(StateEnumMetaclass):
         for base in bases:
             for key, value in (i for i in inspect.getmembers(base) if i[0].endswith('_STATES')):
                 m_states[key].update(value)
-            for key, values in base.TRANSITIONS.items():
+            for key, values in base.TRANSITIONS.iteritems():
                 transitions[key].update(values)
         # Update "state" class attributes
-        for key, value in m_states.items():
+        for key, value in m_states.iteritems():
             setattr(self, key, frozenset(value))
-        for state in transitions.keys():
+        for state in transitions.iterkeys():
             setattr(self, state, state)
         self.TRANSITIONS = transitions
         super(StateEnumMergeMetaclass, self).__init__(name, bases, cls_dict)

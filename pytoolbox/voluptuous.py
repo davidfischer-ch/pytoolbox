@@ -77,7 +77,7 @@ def SHA256(value):
 
 
 def Version(digits=4, msg=None):
-    assert digits in range(1, 5)  # 1-4 not 5
+    assert digits in xrange(1, 5)  # 1-4 not 5
 
     @functools.wraps(Version)
     def f(value):

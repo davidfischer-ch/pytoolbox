@@ -56,7 +56,7 @@ def throttle(objects, min_delay):
     >>> import datetime, time
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
-    ...     for i in range(*args):
+    ...     for i in xrange(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> asserts.list_equal(list(throttle(range(10), datetime.timedelta(minutes=1))), [0, 9])

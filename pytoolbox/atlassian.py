@@ -33,7 +33,7 @@ class JiraProject(object):
                     'project={0.project} AND issuetype="{0.feature_type}"'.format(self), startAt=count
                 )
             })
-        return issues.values()
+        return issues.itervalues()
 
     @property
     def jira(self):

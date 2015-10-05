@@ -57,7 +57,7 @@ class InitialMixin(object):
 
     def get_initial(self):
         initial = super(InitialMixin, self).get_initial()
-        for name, default in self.initials.items():
+        for name, default in self.initials.iteritems():
             self.set_inital(initial, name, default)
         return initial
 

@@ -22,6 +22,6 @@ class Camera(equipment.Equipement):
 
     @decorators.cached_property
     def tags(self):
-        return {k: t for k, t in self.metadata.tags.items() if 'camera' in t.label.lower()}
+        return {k: t for k, t in self.metadata.tags.iteritems() if 'camera' in t.label.lower()}
 
 __all__ = _all.diff(globals())

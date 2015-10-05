@@ -51,7 +51,7 @@ class FecReceiver(object):
     >>> output = StringIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1024, FecReceiver.PACKETS)
-    >>> source = range(1024)
+    >>> source = xrange(1024)
     >>> random.shuffle(source)
     >>> for i in source:
     ...     receiver.put_media(RtpPacket.create(i, i * 100, RtpPacket.MP2T_PT, str(i)), True)

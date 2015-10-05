@@ -19,7 +19,7 @@ class ConvertEmailToTextMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(ConvertEmailToTextMixin, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
+        for field in self.fields.itervalues():
             if getattr(field.widget, 'input_type', None) == 'email':
                 field.widget.input_type = 'text'
 
