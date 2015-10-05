@@ -160,7 +160,7 @@ setuptools.setup(
     install_requires=install_requires,
     tests_require=[
         'coverage', 'mock', 'nose', 'nose-exclude',
-        'sphinx', 'sphinx_rtd_theme'  # This is for the documentation
+        'sphinx>=1.3.1', 'sphinx_rtd_theme'  # This is for the documentation
     ],
     test_suite='tests.pytoolbox_runtests.main',
     use_2to3=True,
