@@ -24,6 +24,48 @@ def get_slots(obj):
     return set(itertools.chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))
 
 
+def get_subclasses(obj, nested=True):
+    """
+    Walk the inheritance tree of ``obj``. Yield tuples with (class, subclasses).
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>>
+    >>> class Root(object):
+    ...     pass
+    ...
+    >>> class NodeA(Root):
+    ...     pass
+    ...
+    >>> class NodeB(Root):
+    ...     pass
+    ...
+    >>> class NodeC(NodeA):
+    ...     pass
+    ...
+    >>> class NodeD(NodeA):
+    ...     pass
+    ...
+    >>> class NodeE(NodeD):
+    ...     pass
+    ...
+    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(Root)], [
+    ...     (NodeA, True), (NodeC, False), (NodeD, True), (NodeE, False), (NodeB, False)
+    ... ])
+    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(Root, nested=False)], [
+    ...     (NodeA, True), (NodeB, False)
+    ... ])
+    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(NodeB)], [])
+    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(NodeD)], [(NodeE, False)])
+    """
+    for subclass in obj.__subclasses__():
+        yield subclass, subclass.__subclasses__()
+        if nested:
+            for subclass in get_subclasses(subclass, nested):
+                yield subclass
+
+
 def isiterable(obj, blacklist=(binary_type, string_types)):
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
