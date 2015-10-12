@@ -88,6 +88,15 @@ class RequestMixin(object):
         self.request = request
 
 
+class CreatedByMixin(RequestMixin):
+    """Set instance's created_by field to current user if the instance is just created."""
+
+    def save(self, commit=True):
+        if hasattr(self.instance, 'created_by_id') and not self.instance.created_by_id:
+            self.instance.created_by = self.request.user
+        return super(CreatedByMixin, self).save(commit=commit)
+
+
 class UpdateWidgetAttributeMixin(object):
     """
     Update the widgets of the form based on a set of rules applied depending of the form field's class.
