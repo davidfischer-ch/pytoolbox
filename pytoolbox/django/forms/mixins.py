@@ -97,6 +97,18 @@ class CreatedByMixin(RequestMixin):
         return super(CreatedByMixin, self).save(commit=commit)
 
 
+class StaffOnlyFieldsMixin(RequestMixin):
+    """Hide some fields if authenticated user is not a member of the staff."""
+
+    staff_only_fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(StaffOnlyFieldsMixin, self).__init__(*args, **kwargs)
+        if not self.request or not self.request.user.is_staff:
+            for field in self.staff_only_fields:
+                self.fields.pop(field, None)
+
+
 class UpdateWidgetAttributeMixin(object):
     """
     Update the widgets of the form based on a set of rules applied depending of the form field's class.
