@@ -83,9 +83,9 @@ class RequestMixin(object):
     Accept request as a optional (default: None) argument of the constructor and set it as an attribute of the object.
     """
 
-    def __init__(self, request=None, **kwargs):
-        super(RequestMixin, self).__init__(**kwargs)
-        self.request = request
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(RequestMixin, self).__init__(*args, **kwargs)
 
 
 class CreatedByMixin(RequestMixin):
