@@ -15,6 +15,7 @@ from django.shortcuts import redirect
 from django.views.generic import base as generic
 
 from ..core import exceptions
+from ..forms import mixins as forms_mixins
 from ..models import utils
 from ... import module
 
@@ -26,8 +27,12 @@ class AddRequestToFormKwargsMixin(object):
 
     def get_form_kwargs(self, *args, **kwargs):
         kwargs = super(AddRequestToFormKwargsMixin, self).get_form_kwargs(*args, **kwargs)
-        kwargs.update({'request': self.request})
+        if self.should_add_request_to_form_kwargs():
+            kwargs.update({'request': self.request})
         return kwargs
+
+    def should_add_request_to_form_kwargs(self):
+        return issubclass(self.get_form_class(), forms_mixins.RequestMixin)
 
 
 class BaseModelMultipleMixin(object):
