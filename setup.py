@@ -49,7 +49,8 @@ install_requires = [
     'python-magic',
     'pytz',
     'six',
-    'termcolor'
+    'termcolor',
+    'tldextract'
 ]
 
 extras_require = {
