@@ -114,7 +114,7 @@ def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algori
     """
     exists, start_time = os.path.exists(path), time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
-        url, path, code, chunk_size, force, hash_algorithm, expected_hash
+        url, path, code, chunk_size, force, hash_algorithm, expected_hash, **kwargs
     ):
         if progress_callback:
             progress_callback(start_time, position, length, chunk)
