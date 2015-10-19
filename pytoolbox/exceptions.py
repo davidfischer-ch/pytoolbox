@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import io, sys, traceback
+import inspect, io, sys, traceback
 
 from . import module
 from .encoding import PY2, to_bytes
@@ -21,7 +21,8 @@ class MessageMixin(Exception):
         super(MessageMixin, self).__init__(self)
 
     def __unicode__(self):
-        return self.message.format(**self.__dict__)
+        attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
+        return self.message.format(**{a: v for a, v in attributes if a[0] != '_'})
 
     __str__ = __unicode__
 

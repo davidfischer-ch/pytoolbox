@@ -40,7 +40,7 @@ class TestExceptions(base.TestCase):
 
     def test_message_mixin_to_string_includes_class_attributes(self):
 
-        class NewError(exceptions.MessageMixin):
+        class NewError(exceptions.MessageMixin, IOError):
             message = 'The attribute from {my_attr}'
             my_attr = 'class'
 
