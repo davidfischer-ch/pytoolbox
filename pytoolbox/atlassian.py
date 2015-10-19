@@ -1,5 +1,9 @@
 # -*- encoding: utf-8 -*-
 
+"""
+Module related to managing projects with Atlassian's products.
+"""
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from jira import JIRA
@@ -10,6 +14,7 @@ _all = module.All(globals())
 
 
 class JiraProject(object):
+    """A JIRA project class with a simple API leveraging the class :class:`jira.JIRA`."""
 
     def __init__(self, project=None, server=None, auth=None, feature_type=None):
         self.project = project
