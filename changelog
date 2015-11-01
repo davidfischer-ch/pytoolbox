@@ -2,6 +2,36 @@
 changelog
 =========
 
+------------------
+v11.0.0 -> v11.1.0
+------------------
+
+Minor compatibility breaks
+==========================
+
+* Update git_clone_or_pull to full clone by default
+
+Features
+========
+
+* Add module network.url
+* Add mixin django.forms.mixins.CreatedByMixin
+* Add mixin django.forms.mixins.StaffOnlyFieldsMixin
+
+Fixes and enhancements
+======================
+
+* Add/fix docstrings and unit-tests
+* Use xrange and iter{items,keys,values} under Python 2
+* Replace nose.tools by pytoolbox.unittest.asserts
+* Make RequestMixin more transparent
+* network.http.download_ext: Pass kwargs to iter_download_to_file
+* django.views.mixins.AddRequestToFormKwargsMixin: Check form "handles" request as kwarg based on its class
+
+------------------
+v10.4.0 -> v11.0.0
+------------------
+
 Compatibility breaks
 ====================
 
