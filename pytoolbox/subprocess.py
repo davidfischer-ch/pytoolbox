@@ -205,13 +205,17 @@ def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None,
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
 
 
-def git_clone_or_pull(directory, url, clone_depth=1, reset=True, fail=True, log=None, **kwargs):
+def git_clone_or_pull(directory, url, clone_depth=None, reset=True, fail=True, log=None, **kwargs):
     if os.path.exists(directory):
         if reset:
             cmd(['git', 'reset', '--hard'], cwd=directory, fail=fail, log=log, **kwargs)
         cmd(['git', 'pull'], cwd=directory, fail=fail, log=log, **kwargs)
     else:
-        cmd(['git', 'clone', '--depth', to_unicode(clone_depth), url, directory], fail=fail, log=log, **kwargs)
+        command = ['git', 'clone']
+        if clone_depth:
+            command.extend(['--depth', clone_depth])
+        command.extend([url, directory])
+        cmd(command, fail=fail, log=log, **kwargs)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
