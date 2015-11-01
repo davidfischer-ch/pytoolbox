@@ -21,4 +21,5 @@ Submodules
    pytoolbox.network.http
    pytoolbox.network.ip
    pytoolbox.network.rtp
+   pytoolbox.network.url
 
