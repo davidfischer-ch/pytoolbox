@@ -98,6 +98,88 @@ class DummyObject(object):
         self.__dict__.update(kwargs)
 
 
+class EchoObject(object):
+    """
+    Object that return any missing attribute as an instance of :class:`EchoObject` with the name set to the Python
+    expression used to access it. Also implements __getitem__. Some examples are worth hundred words...
+
+    **Example usage**
+
+    >>> from pytoolbox.encoding import text_type
+    >>> from pytoolbox.unittest import asserts
+    >>> something = EchoObject('something', language='Python')
+    >>> asserts.equal(something._name, 'something')
+    >>> asserts.equal(something.language, 'Python')
+    >>> asserts.is_instance(something.user.email, EchoObject)
+    >>> asserts.equal(text_type(something.user.first_name), 'something.user.first_name')
+    >>> asserts.equal(text_type(something[0][None]['bar']), "something[0][None]['bar']")
+    >>> asserts.equal(text_type(something[0].node['foo'].x), "something[0].node['foo'].x")
+    >>> asserts.equal(text_type(something), 'something')
+
+    You can also define the class for the generated attributes:
+
+    >>> something.attr_class = list
+    >>> asserts.is_instance(something.cool, list)
+
+    This class handles sub-classing appropriately:
+
+    >>> class MyEchoObject(EchoObject):
+    ...     pass
+    >>>
+    >>> asserts.is_instance(MyEchoObject('name').x.y.z, MyEchoObject)
+    """
+    attr_class = None
+
+    def __init__(self, name, **attrs):
+        assert '_name' not in attrs
+        self.__dict__.update(attrs)
+        self._name = name
+
+    def __getattr__(self, name):
+        return (self.attr_class or self.__class__)('{0._name}.{1}'.format(self, name))
+
+    def __getitem__(self, key):
+        return (self.attr_class or self.__class__)('{0._name}[{1}]'.format(self, repr(key)))
+
+    def __unicode__(self):
+        return self._name
+
+
+class EchoDict(dict):
+    """
+    Dictionary that return any missing item as an instance of :class:`EchoObject` with the name set to the Python
+    expression used to access it. Some examples are worth hundred words...
+
+    **Example usage**
+
+    >>> from pytoolbox.encoding import text_type
+    >>> from pytoolbox.unittest import asserts
+    >>> context = EchoDict('context', language='Python')
+    >>> asserts.equal(context._name, 'context')
+    >>> asserts.equal(context['language'], 'Python')
+    >>> asserts.equal(text_type(context['user'].first_name), "context['user'].first_name")
+    >>> asserts.equal(text_type(context[0][None]['bar']), "context[0][None]['bar']")
+    >>> asserts.equal(text_type(context[0].node['foo'].x), "context[0].node['foo'].x")
+
+    You can also define the class for the generated items:
+
+    >>> context.item_class = set
+    >>> asserts.is_instance(context['jet'], set)
+    """
+    item_class = EchoObject
+
+    def __init__(self, name, **items):
+        assert '_name' not in items
+        super(EchoDict, self).__init__(**items)
+        self._name = name
+
+    def __getitem__(self, key):
+        try:
+            return super(EchoDict, self).__getitem__(key)
+        except KeyError:
+            return self.item_class('{0._name}[{1}]'.format(self, repr(key)))
+
+
 class MissingType(object):
 
     def __copy__(self):
