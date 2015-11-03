@@ -91,8 +91,8 @@ class DummyObject(object):
     >>> obj = DummyObject(foo=42, bar=None)
     >>> obj.foo
     42
-    >>> obj.bar
-    None
+    >>> obj.bar is None
+    True
     """
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
@@ -112,8 +112,8 @@ class EchoObject(object):
     >>> asserts.equal(something.language, 'Python')
     >>> asserts.is_instance(something.user.email, EchoObject)
     >>> asserts.equal(text_type(something.user.first_name), 'something.user.first_name')
-    >>> asserts.equal(text_type(something[0][None]['bar']), "something[0][None]['bar']")
-    >>> asserts.equal(text_type(something[0].node['foo'].x), "something[0].node['foo'].x")
+    >>> asserts.equal(text_type(something[0][None]['bar']).replace("[u'", "['"), "something[0][None]['bar']")
+    >>> asserts.equal(text_type(something[0].node['foo'].x).replace("[u'", "['"), "something[0].node['foo'].x")
     >>> asserts.equal(text_type(something), 'something')
 
     You can also define the class for the generated attributes:
@@ -158,8 +158,8 @@ class EchoDict(dict):
     >>> asserts.equal(context._name, 'context')
     >>> asserts.equal(context['language'], 'Python')
     >>> asserts.equal(text_type(context['user'].first_name), "context['user'].first_name")
-    >>> asserts.equal(text_type(context[0][None]['bar']), "context[0][None]['bar']")
-    >>> asserts.equal(text_type(context[0].node['foo'].x), "context[0].node['foo'].x")
+    >>> asserts.equal(text_type(context[0][None]['bar']).replace("[u'", "['"), "context[0][None]['bar']")
+    >>> asserts.equal(text_type(context[0].node['foo'].x).replace("[u'", "['"), "context[0].node['foo'].x")
 
     You can also define the class for the generated items:
 
