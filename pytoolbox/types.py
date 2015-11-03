@@ -110,6 +110,7 @@ class EchoObject(object):
     >>> something = EchoObject('something', language='Python')
     >>> asserts.equal(something._name, 'something')
     >>> asserts.equal(something.language, 'Python')
+    >>> asserts.true(hasattr(something, 'everything'))
     >>> asserts.is_instance(something.user.email, EchoObject)
     >>> asserts.equal(text_type(something.user.first_name), 'something.user.first_name')
     >>> asserts.equal(text_type(something[0][None]['bar']).replace("[u'", "['"), "something[0][None]['bar']")
@@ -157,6 +158,7 @@ class EchoDict(dict):
     >>> context = EchoDict('context', language='Python')
     >>> asserts.equal(context._name, 'context')
     >>> asserts.equal(context['language'], 'Python')
+    >>> asserts.true('anything' in context)
     >>> asserts.equal(text_type(context['user'].first_name).replace("[u'", "['"), "context['user'].first_name")
     >>> asserts.equal(text_type(context[0][None]['bar']).replace("[u'", "['"), "context[0][None]['bar']")
     >>> asserts.equal(text_type(context[0].node['foo'].x).replace("[u'", "['"), "context[0].node['foo'].x")
@@ -172,6 +174,10 @@ class EchoDict(dict):
         assert '_name' not in items
         super(EchoDict, self).__init__(**items)
         self._name = name
+
+    def __contains__(self, key):
+        """Always return True because missing items are generated."""
+        return True
 
     def __getitem__(self, key):
         try:
