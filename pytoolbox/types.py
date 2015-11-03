@@ -83,7 +83,17 @@ def isiterable(obj, blacklist=(binary_type, string_types)):
 
 
 class DummyObject(object):
+    """
+    Easy way to generate a dynamic object with the attributes defined at instantiation.
 
+    **Example usage**
+
+    >>> obj = DummyObject(foo=42, bar=None)
+    >>> obj.foo
+    42
+    >>> obj.bar
+    None
+    """
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
