@@ -157,7 +157,7 @@ class EchoDict(dict):
     >>> context = EchoDict('context', language='Python')
     >>> asserts.equal(context._name, 'context')
     >>> asserts.equal(context['language'], 'Python')
-    >>> asserts.equal(text_type(context['user'].first_name), "context['user'].first_name")
+    >>> asserts.equal(text_type(context['user'].first_name).replace("[u'", "['"), "context['user'].first_name")
     >>> asserts.equal(text_type(context[0][None]['bar']).replace("[u'", "['"), "context[0][None]['bar']")
     >>> asserts.equal(text_type(context[0].node['foo'].x).replace("[u'", "['"), "context[0].node['foo'].x")
 
