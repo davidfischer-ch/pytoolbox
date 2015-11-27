@@ -38,7 +38,7 @@ def get_instance(form, field_name, request, msg=None):
         return form.cleaned_data[field_name]
     queryset = form.fields[field_name].queryset
     try:
-        return queryset.objects.get(pk=form.data[form.add_prefix(field_name)])
+        return queryset.get(pk=form.data[form.add_prefix(field_name)])
     except (KeyError, queryset.model.DoesNotExist):
         if msg:
             messages.error(request, msg)
