@@ -27,8 +27,8 @@ class FromPrivateKeyMixin(object):
     """Allow to provide the PK of the model to retrieve it instead of creating a new instance with fields from data."""
 
     default_error_messages = {
-        'does_not_exist': _("Invalid pk '%s' - object does not exist."),
-        'incorrect_type': _('Incorrect type. Expected pk value, received %s.'),
+        'does_not_exist': _('Invalid pk "{pk_value}" - object does not exist.'),
+        'incorrect_type': _('Incorrect type. Expected pk value, received {data_type}.'),
     }
 
     def to_internal_value(self, data):
@@ -38,9 +38,9 @@ class FromPrivateKeyMixin(object):
         try:
             return self.Meta.model.objects.get(pk=data)
         except ObjectDoesNotExist:
-            self.fail('does_not_exist', smart_text(data))
+            self.fail('does_not_exist', pk_value=smart_text(data))
         except (TypeError, ValueError):
-            self.fail('incorrect_type', type(data).__name__)
+            self.fail('incorrect_type', data_type=type(data).__name__)
 
     def create(self, validated_data):
         if isinstance(validated_data, self.Meta.model):
