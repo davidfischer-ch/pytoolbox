@@ -3,6 +3,23 @@ changelog
 =========
 
 ------------------
+v11.1.0 -> v11.2.0
+------------------
+
+Features
+========
+
+* Add classes types.Echo{Object,Dict}
+* Add classes argparse.Help{ArgumentParser,Formatter}
+
+Fixes and enhancements
+======================
+
+* Add docstrings and fix doctests
+* Fix django.forms.utils.get_instance
+* Update FromPrivateKeyMixin to fix call to fail with recent DRF
+
+------------------
 v11.0.0 -> v11.1.0
 ------------------
 
