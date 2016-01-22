@@ -76,4 +76,14 @@ class Range(object):
             raise argparse.ArgumentTypeError('Must be in range [{0.min}, {0.max}]'.format(self))
         return value
 
+
+class HelpArgumentParser(argparse.ArgumentParser):
+
+    def __init__(self, *args, **kwargs):
+        return super(HelpArgumentParser, self).__init__(*args, formatter_class=HelpFormatter, **kwargs)
+
+
+class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+    pass
+
 __all__ = _all.diff(globals())
