@@ -43,10 +43,8 @@ How to install it (Python 2.7) ?
 
 Install some packages that are not handled by pip::
 
-    sudo apt-add-repository ppa:mc3man/trusty-media
-    sudo apt-get update
-    sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python-dev python-pip screen
-    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev python-gi
+    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
+    sudo apt-get install ffmpeg git-core python-dev python-gi python-pip screen
 
 Make sure that pip is up-to-date (PIPception)::
 
@@ -63,10 +61,8 @@ How to install it (Python 3.3) ?
 
 Install some packages that are not handled by pip::
 
-    sudo apt-add-repository ppa:mc3man/trusty-media
-    sudo apt-get update
-    sudo apt-get install ffmpeg git-core libyaml-dev libxml2-dev libxslt-dev libz-dev python3-dev python3-pip screen
-    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev python3-gi
+    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
+    sudo apt-get install ffmpeg git-core python3-dev python3-gi python3-pip screen
 
 Make sure that pip is up-to-date (PIPception)::
 
