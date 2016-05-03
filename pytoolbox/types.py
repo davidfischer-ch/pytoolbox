@@ -15,6 +15,15 @@ from .encoding import binary_type, string_types
 _all = module.All(globals())
 
 
+def get_arguments_names(function):
+    specs = inspect.getargspec(function)
+    all_names = specs.args[:]
+    for names in specs.varargs, specs.keywords:
+        if names:
+            all_names.extend(names if isinstance(names, list) else [names])
+    return all_names
+
+
 def get_properties(obj):
     return ((n, getattr(obj, n)) for n, p in inspect.getmembers(obj.__class__, lambda m: isinstance(m, property)))
 
