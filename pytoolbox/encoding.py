@@ -13,6 +13,7 @@ _all = module.All(globals())
 
 PY2 = six.PY2
 binary_type = six.binary_type
+integer_types = six.integer_types
 string_types = six.string_types
 text_type = six.text_type
 
