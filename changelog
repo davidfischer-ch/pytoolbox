@@ -3,6 +3,16 @@ changelog
 =========
 
 ------------------
+v11.4.0 -> v11.4.1
+------------------
+
+Features
+========
+
+* Add constant encoding.integer_types
+* Add function types.get_arguments_names
+
+------------------
 v11.2.0 -> v11.4.0
 ------------------
 
