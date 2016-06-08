@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, fcntl, logging, multiprocessing, os, random, re, setuptools.archive_util, shlex, shutil, subprocess
-import threading, time
+import errno, fcntl, grp, logging, multiprocessing, os, pwd, random, re
+import setuptools.archive_util, shlex, shutil, subprocess, threading, time
 
 from . import module
 from .encoding import string_types, to_bytes, to_unicode
@@ -35,6 +35,22 @@ def kill(process):
     except Exception as e:
         if not NoSuchProcess or not isinstance(e, NoSuchProcess):
             raise
+
+
+def su(user, group):
+    """
+    Return a function to change current user/group id.
+
+    **Example usage**
+
+    >> import subprocess
+    >> subprocess.call(['ls', '/'], preexec_fn=su(1000, 1000))
+    >> subprocess.call(['ls', '/'], preexec_fn=su('root', 'root'))
+    """
+    def set_ids():
+        os.setgid(grp.getgrnam(group).gr_gid if isinstance(group, string_types) else group)
+        os.setuid(pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else user)
+    return set_ids
 
 
 # http://stackoverflow.com/a/7730201/190597
