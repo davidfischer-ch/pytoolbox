@@ -3,7 +3,7 @@ changelog
 =========
 
 ------------------
-v11.4.0 -> v11.4.2
+v11.4.0 -> v11.4.3
 ------------------
 
 Features
@@ -12,6 +12,11 @@ Features
 * Add constant encoding.integer_types
 * Add function subprocess.su
 * Add function types.get_arguments_names
+
+Fixes and enhancements
+======================
+
+* Add bare argument to subprocess.git_clone_or_pull
 
 ------------------
 v11.2.0 -> v11.4.0
