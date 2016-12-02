@@ -230,9 +230,10 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
     False
 
-    Do not map any standard error :mod:`errno` to False (1. time-out, 2. aaa does not exist):
+    Only map network unreachable from :mod:`errno` to False:
 
-    >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080, timeout=0.2, excepted_errnos=())
+    >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080, timeout=0.2,
+    ...           excepted_errnos=[errno.ENETUNREACH])
     False
     >>> valid_uri('cloudncode.com/aaa', check_404=True, excepted_errnos=())
     False
