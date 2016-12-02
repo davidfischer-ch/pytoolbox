@@ -14,7 +14,7 @@ from .encoding import string_types
 _all = module.All(globals())
 
 
-def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):
+def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):  # noqa
     """
     Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a timezone. If `format` is
     not None, the date will be returned in a formatted string.
@@ -58,11 +58,11 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     return (now.strftime(format) + (' UTC' if tz == pytz.utc and append_utc else '')) if format else now
 
 
-def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):
+def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):  # pylint:disable=redefined-builtin
     return date_time.strftime(format) + (' UTC' if append_utc else '')
 
 
-def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):
+def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):  # pylint:disable=redefined-builtin
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
     Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5 minutes.

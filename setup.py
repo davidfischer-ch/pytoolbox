@@ -26,7 +26,7 @@
 from __future__ import absolute_import, division, print_function
 
 import itertools, os, setuptools, shutil, sys
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 from setuptools.command import develop, install, test
 
 import pytoolbox

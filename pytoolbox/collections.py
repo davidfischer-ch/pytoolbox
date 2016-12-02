@@ -169,7 +169,7 @@ def merge_dicts(*dicts):
     return merged_dict
 
 
-def swap_dict_of_values(the_dict, type=set, method=set.add):
+def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=redefined-builtin
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
@@ -191,7 +191,7 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):
     return reversed_dict
 
 
-def to_dict_of_values(iterable, type=list, method=list.append):
+def to_dict_of_values(iterable, type=list, method=list.append):  # pylint:disable=redefined-builtin
     """
     Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as key -> values.
 

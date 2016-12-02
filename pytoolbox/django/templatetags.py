@@ -113,9 +113,9 @@ def naturalbitrate(bps, kwargs_string=None):
 
 
 @register.filter(is_safe=True)
-def naturalfilesize(bytes, kwargs_string=None):
+def naturalfilesize(the_bytes, kwargs_string=None):
     """
-    Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
+    Return a human readable representation of a *file* size taking `the_bytes` as the size in bytes.
     See documentation of :func:`pytoolbox.humanize.naturalfilesize` for further examples.
 
     Output::
@@ -128,9 +128,9 @@ def naturalfilesize(bytes, kwargs_string=None):
         None|naturalfilesize -> (empty string)
         (empty string)|naturalfilesize -> (empty string)
     """
-    if bytes in (None, settings.TEMPLATE_STRING_IF_INVALID):
+    if the_bytes in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    return humanize.naturalfilesize(bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
+    return humanize.naturalfilesize(the_bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
 
 
 @register.filter(is_safe=True)

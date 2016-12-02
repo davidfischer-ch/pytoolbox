@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import json, os, socket, random, subprocess, sys, time, uuid, yaml
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 
 from . import module
 from .console import confirm

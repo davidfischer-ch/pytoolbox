@@ -196,7 +196,7 @@ class FecReceiver(object):
         elif self.delay_units == FecReceiver.SECONDS:
             raise NotImplementedError()
         raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(self.delay_units)))
-            #return medias.lastEntry().getValue().getTime() - medias.firstEntry().getValue().getTime()
+        #return medias.lastEntry().getValue().getTime() - medias.firstEntry().getValue().getTime()
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -345,7 +345,7 @@ class FecReceiver(object):
         """Recover a missing media packet helped by a FEC packet, this method is also called to register an incoming
         media packet if it is registered as missing."""
 
-        recovered_by_fec = not fec is None
+        recovered_by_fec = fec not is None
 
         # Read and remove "cross" it from the buffer
         col_sequence = cross['col_sequence']

@@ -3,11 +3,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import errno, inspect, json, os, pickle, shutil
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 
 from . import module
 from .encoding import string_types, text_type, to_bytes
-from .filesystem import makedirs
 from .private import ObjectId
 from .types import get_slots
 

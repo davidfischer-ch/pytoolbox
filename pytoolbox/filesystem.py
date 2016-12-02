@@ -7,7 +7,7 @@ Module related to file system and path operations.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections, copy, errno, fnmatch, grp, pwd, os, re, shutil, tempfile, time, uuid
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 
 import magic
 

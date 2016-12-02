@@ -75,7 +75,7 @@ def update_widget_attributes(widget, updates):
         class_set = set([c for c in widget.attrs.get('class', '').split(' ') if c])
         for cls in set([c for c in updates['class'].split(' ') if c]):
             operation, cls = cls[0], cls[1:]
-            if operation == '+' or (operation == '^' and not cls in class_set):
+            if operation == '+' or (operation == '^' and cls not in class_set):
                 class_set.add(cls)
             elif operation in ('-', '^'):
                 class_set.discard(cls)

@@ -48,7 +48,7 @@ class HelpTextToPlaceholderMixin(object):
             if field and isinstance(field, self.placeholder_fields):
                 self.set_placeholder(name, field)
 
-    def set_placeholder(self, name, field):
+    def set_placeholder(self, name, field):  # pylint:disable=unused-argument
         field.widget.attrs['placeholder'] = field.help_text
         if self.placeholder_remove_help_text:
             field.help_text = None
@@ -126,7 +126,7 @@ class UpdateWidgetAttributeMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(UpdateWidgetAttributeMixin, self).__init__(*args, **kwargs)
-        for name, field in self.fields.iteritems():
+        for field in self.fields.itervalues():
             updates = self.widgets_rules.get(field.__class__)
             # May Update widget class with rules-based replacement class
             if updates and updates[0]:

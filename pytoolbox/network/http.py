@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import functools, os, sys, time, urllib2, urlparse
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 
 import requests
 

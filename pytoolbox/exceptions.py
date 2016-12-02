@@ -129,7 +129,7 @@ if PY2:
         traceback.print_exception(type(exception), exception, trace, file=exception_io)
         return exception_io.getvalue().decode(encoding)
 else:
-    def get_exception_with_traceback(exception, encoding='utf-8'):
+    def get_exception_with_traceback(exception, encoding='utf-8'):  # pylint:disable=unused-argument
         """
         Return a string with the exception traceback.
 

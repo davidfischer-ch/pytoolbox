@@ -62,7 +62,7 @@ class FullPaths(argparse.Action):
 
 class Range(object):
 
-    def __init__(self, type, min, max):
+    def __init__(self, type, min, max):  # pylint:disable=redefined-builtin
         self.type = type
         self.min = min
         self.max = max
@@ -80,7 +80,7 @@ class Range(object):
 class HelpArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
-        return super(HelpArgumentParser, self).__init__(*args, formatter_class=HelpFormatter, **kwargs)
+        super(HelpArgumentParser, self).__init__(*args, formatter_class=HelpFormatter, **kwargs)
 
 
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):

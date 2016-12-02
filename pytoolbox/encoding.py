@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 
 import six
 
@@ -46,7 +46,7 @@ else:
             return message.decode(encoding)
         return str(message)
 
-    def configure_unicode(encoding='utf-8'):
+    def configure_unicode(encoding='utf-8'):  # pylint:disable=unused-argument
         """Configure `sys.stdout` and `sys.stderr` to be in Unicode (Do nothing if Python 3)."""
         pass
 

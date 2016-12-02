@@ -25,7 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime, os, tempfile, unittest, uuid
-from codecs import open
+from codecs import open  # pylint:disable=redefined-builtin
 
 from pytoolbox.filesystem import remove
 from pytoolbox.multimedia import ffmpeg

@@ -20,8 +20,8 @@ class RaiseOnUnhandledFieldClassMixin(object):
     def filter_for_field(cls, f, name, lookup_type='exact'):
         value = super(RaiseOnUnhandledFieldClassMixin, cls).filter_for_field(f, name, lookup_type)
         if not value:
-            raise NotImplementedError("Unable to find a suitable filter for field '{1}' of class {0.__class__}".format(
-                                      f, name, lookup_type))
+            raise NotImplementedError("Unable to find a suitable filter for field '{1}' of class {0.__class__} "
+                                      "with lookup type '{2}'".format(f, name, lookup_type))
         return value
 
 __all__ = _all.diff(globals())
