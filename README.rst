@@ -76,26 +76,39 @@ How to enable features/modules ?
 
 Example::
 
-    sudo python setup.py install --help
-    usage: setup.py [-h] [--extra-flask] [--extra-mongo] [--extra-smpte2022]
-                         [--extra-django] [--extra-all]
+    python setup.py install --help
 
-    optional arguments:
-      -h, --help         show this help message and exit
-      --extra-all                   Install dependencies for all features.
-      --extra-atlassian             Install dependencies for the feature atlassian.
-      --extra-django                Install dependencies for the feature django.
-      --extra-django-filter         Install dependencies for the feature django_filter.
-      --extra-django-formtools      Install dependencies for the feature django_formtools.
-      --extra-flask                 Install dependencies for the feature flask.
-      --extra-mongo                 Install dependencies for the feature mongo.
-      --extra-rest-framework        Install dependencies for the feature rest_framework.
-      --extra-selenium              Install dependencies for the feature selenium.
-      --extra-smpte2022             Install dependencies for the feature smpte2022.
-      --extra-voluptuous            Install dependencies for the feature voluptuous.
+    Common commands: (see '--help-commands' for more)
 
+      setup.py build      will build the package underneath 'build/'
+      setup.py install    will install the package
 
-    Some Python utility functions
+    Global options:
+      --verbose (-v)  run verbosely (default)
+      --quiet (-q)    run quietly (turns verbosity off)
+      --dry-run (-n)  don't actually do anything
+      --help (-h)     show detailed help message
+      --no-user-cfg   ignore pydistutils.cfg in your home directory
+
+    Options for 'WithExtra' command:
+      ...
+      --extra-all                          Install dependencies for all features.
+      --extra-atlassian                    Install dependencies for the feature atlassian.
+      --extra-django                       Install dependencies for the feature django.
+      --extra-django-filter                Install dependencies for the feature django_filter.
+      --extra-django-formtools             Install dependencies for the feature django_formtools.
+      --extra-flask                        Install dependencies for the feature flask.
+      --extra-mongo                        Install dependencies for the feature mongo.
+      --extra-rest-framework               Install dependencies for the feature rest_framework.
+      --extra-selenium                     Install dependencies for the feature selenium.
+      --extra-smpte2022                    Install dependencies for the feature smpte2022.
+      --extra-voluptuous                   Install dependencies for the feature voluptuous.
+
+    usage: setup.py [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
+       or: setup.py --help [cmd1 cmd2 ...]
+       or: setup.py --help-commands
+       or: setup.py cmd --help
+
 
     sudo python setup.py install --extra-smpte2022
 
