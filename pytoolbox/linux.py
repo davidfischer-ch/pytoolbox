@@ -5,6 +5,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import ConfigParser, os, re
 from codecs import open
 
+from . import module
+
+_all = module.All(globals())
+
 CONFIG_PREFIX = re.compile(r'^config_')
 DRIVER_IN_KERNEL = 'y'
 DRIVER_HAS_MODULE = 'm'
@@ -41,3 +45,5 @@ def get_kernel_config(release=None, fail=True):
             raise
         return {}
     return {CONFIG_PREFIX.sub('', k): v for k, v in config.items('kernel')}
+
+__all__ = _all.diff(globals())
