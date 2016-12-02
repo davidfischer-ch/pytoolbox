@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import configparser, os, re
+import ConfigParser, os, re
 from codecs import open
 
 CONFIG_PREFIX = re.compile(r'^config_')
@@ -29,7 +29,7 @@ def get_kernel_config(release=None, fail=True):
     # On Python<2.3.3 os.uname returns a tuple, so we stuck with it
     try:
         with open('/boot/config-{0}'.format(release or os.uname()[2])) as f:
-            config = configparser.ConfigParser()
+            config = ConfigParser.ConfigParser()
             config.read_string('[kernel]' + f.read())
     except IOError:
         if fail:
