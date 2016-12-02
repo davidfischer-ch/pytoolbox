@@ -150,7 +150,7 @@ def get_size(path):
 
 def makedirs(path):
     """
-    Tries to recursive make directories (which may already exists) without throwing an exception.
+    Recursively make directories (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if directory found and re-raise any other type of exception.
 
     **Example usage**
@@ -246,7 +246,7 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
 
 def remove(path, recursive=False):
     """
-    Tries to remove a file/directory (which may not exists) without throwing an exception.
+    Remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
 
     **Example usage**
@@ -289,7 +289,7 @@ try_remove = remove
 
 def symlink(source, link_name):
     """
-    Tries to symlink a file/directory (which may already exists) without throwing an exception. Returns True if
+    Symlink a file/directory (which may already exists) without throwing an exception. Returns True if
     operation is successful, False if found & target is `link_name` and re-raise any other type of exception.
 
     **Example usage**
