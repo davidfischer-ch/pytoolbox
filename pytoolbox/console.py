@@ -69,7 +69,7 @@ def choice(question='', choices=[], stream=sys.stdout):
 
     # loop until an acceptable choice has been answered
     while True:
-        ans = raw_input(question)
+        ans = raw_input(question)  # noqa
         if ans in choices:
             return ans
         stream.write('Please choose between {1}.{0}'.format(os.linesep, choices_string))

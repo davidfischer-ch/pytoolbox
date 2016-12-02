@@ -37,7 +37,7 @@ from django.utils.functional import cached_property
 from . import utils
 from .. import signals
 from ..core import exceptions
-from ... import itertools as py_itertools, module  # pylint:disable=reimport
+from ... import itertools as py_itertools, module  # pylint:disable=reimported
 
 _all = module.All(globals())
 
