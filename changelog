@@ -3,6 +3,16 @@ changelog
 =========
 
 ------------------
+v11.4.3 -> v11.5.0
+------------------
+
+Fixes and enhancements
+======================
+
+* Improve code quality
+* Remove try_ prefix from filesystem functions (retro compat: try_ functions still defined)
+
+------------------
 v11.4.0 -> v11.4.3
 ------------------
 
