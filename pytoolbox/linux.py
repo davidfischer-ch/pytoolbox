@@ -30,9 +30,14 @@ def get_kernel_config(release=None, fail=True):
     try:
         with open('/boot/config-{0}'.format(release or os.uname()[2])) as f:
             config = ConfigParser.ConfigParser()
-            config.read_string('[kernel]' + f.read())
+            config_string = '[kernel]' + f.read()
+            try:
+                config.read_string(config_string)
+            except AttributeError:
+                import StringIO
+                config.readfp(StringIO.StringIO(config_string))
     except IOError:
         if fail:
             raise
         return {}
-    return {CONFIG_PREFIX.sub('', k): v for k, v in config['kernel'].items()}
+    return {CONFIG_PREFIX.sub('', k): v for k, v in config.items('kernel')}
