@@ -26,7 +26,7 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library supports Python 2.6, 2.7, 3.2, 3.3, 3.4 and PyPy.
+This library supports Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5 and PyPy.
 
 ------------------------------------
 What the release number stands for ?
@@ -53,7 +53,7 @@ Then, you only need to run ``setup.py``::
     sudo python2 setup.py install
 
 --------------------------------
-How to install it (Python 3.3) ?
+How to install it (Python 3.5) ?
 --------------------------------
 
 Install some packages that are not handled by pip::
@@ -63,7 +63,7 @@ Install some packages that are not handled by pip::
 
 Make sure that pip is up-to-date (PIPception)::
 
-    sudo pip-3.3 install --upgrade pip
+    sudo pip-3.5 install --upgrade pip
 
 Then, you only need to run ``setup.py``::
 
