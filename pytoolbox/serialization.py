@@ -7,7 +7,7 @@ from codecs import open
 
 from . import module
 from .encoding import string_types, text_type, to_bytes
-from .filesystem import try_makedirs
+from .filesystem import makedirs
 from .private import ObjectId
 from .types import get_slots
 
@@ -31,8 +31,8 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
 
     No backup is created if the destination file does not exist:
 
-    >>> from pytoolbox.filesystem import try_remove
-    >>> _ = try_remove('/tmp/to_file')
+    >>> from pytoolbox.filesystem import remove
+    >>> _ = remove('/tmp/to_file')
     >>> asserts.is_none(to_file('/tmp/to_file', data='bonjour', backup=True))
 
     In-place write operation after having copied the file into a backup:
@@ -53,7 +53,7 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
     >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
     """
     if makedirs:
-        try_makedirs(os.path.dirname(path))
+        makedirs(os.path.dirname(path))
     if backup:
         backup_path = '{0}.bkp'.format(path)
         try:

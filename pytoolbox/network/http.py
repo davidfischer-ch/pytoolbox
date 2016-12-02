@@ -10,7 +10,7 @@ import requests
 from .. import console, crypto, module
 from ..encoding import to_bytes
 from ..exceptions import BadHTTPResponseCodeError, CorruptedFileError
-from ..filesystem import try_makedirs, try_remove
+from ..filesystem import makedirs, remove
 
 _all = module.All(globals())
 
@@ -135,12 +135,12 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
         callback = functools.partial(progress_callback, stream=progress_stream, template=progress_template.format(
                                      counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)))
         if not os.path.exists(path):
-            try_makedirs(os.path.dirname(path))
+            makedirs(os.path.dirname(path))
             try:
                 for returned in iter_download_to_file(url, path, chunk_size=chunk_size, force=False, **kwargs):
                     callback(start_time, returned[0], returned[1])
             except:
-                try_remove(path)
+                remove(path)
                 raise
         callback(start_time, 1, 1)
         progress_stream.write(os.linesep)

@@ -127,7 +127,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     def create_directory(self):
         if not self.is_pipe:
-            filesystem.try_makedirs(self.directory)
+            filesystem.makedirs(self.directory)
 
     def to_args(self, is_input):
         return self.options + (['-i', self.path] if is_input else [self.path])

@@ -148,6 +148,31 @@ def get_size(path):
     return size
 
 
+def makedirs(path):
+    """
+    Tries to recursive make directories (which may already exists) without throwing an exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type of exception.
+
+    **Example usage**
+
+    >>> import shutil
+    >>> makedirs('/etc')
+    False
+    >>> makedirs('/tmp/salut/mec')
+    True
+    >>> shutil.rmtree('/tmp/salut/mec')
+    """
+    try:
+        os.makedirs(path)
+        return True
+    except OSError as e:
+        # File exists
+        if e.errno == errno.EEXIST:
+            return False
+        raise  # Re-raise exception if a different error occurred
+try_makedirs = makedirs
+
+
 def recursive_copy(source_path, destination_path, progress_callback=None, ratio_delta=0.01, time_delta=1,
                    check_size=True, remove_on_error=True):
     """
@@ -173,7 +198,7 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
                 dst_path = os.path.join(dst_root, filename)
 
                 # Initialize block-based copy
-                try_makedirs(os.path.dirname(dst_path))
+                makedirs(os.path.dirname(dst_path))
                 block_size = 1024 * 1024
                 src_file = open(src_path, 'rb')
                 dst_file = open(dst_path, 'wb')
@@ -219,53 +244,29 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
         raise
 
 
-def try_makedirs(path):
-    """
-    Tries to recursive make directories (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if directory found and re-raise any other type of exception.
-
-    **Example usage**
-
-    >>> import shutil
-    >>> try_makedirs('/etc')
-    False
-    >>> try_makedirs('/tmp/salut/mec')
-    True
-    >>> shutil.rmtree('/tmp/salut/mec')
-    """
-    try:
-        os.makedirs(path)
-        return True
-    except OSError as e:
-        # File exists
-        if e.errno == errno.EEXIST:
-            return False
-        raise  # Re-raise exception if a different error occurred
-
-
-def try_remove(path, recursive=False):
+def remove(path, recursive=False):
     """
     Tries to remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
 
     **Example usage**
 
-    >>> open('try_remove.example', 'w', encoding='utf-8').write('salut les pépés')
-    >>> try_remove('try_remove.example')
+    >>> open('remove.example', 'w', encoding='utf-8').write('salut les pépés')
+    >>> remove('remove.example')
     True
-    >>> try_remove('try_remove.example')
+    >>> remove('remove.example')
     False
 
-    >>> for file_name in ('try_remove/a', 'try_remove/b/c', 'try_remove/d/e/f'):
-    ...     _ = try_makedirs(os.path.dirname(file_name))
+    >>> for file_name in ('remove/a', 'remove/b/c', 'remove/d/e/f'):
+    ...     _ = makedirs(os.path.dirname(file_name))
     ...     open(file_name, 'w', encoding='utf-8').write('salut les pépés')
-    >>> try_remove('try_remove/d/e', recursive=True)
+    >>> remove('remove/d/e', recursive=True)
     True
-    >>> try_remove('try_remove/d/e', recursive=True)
+    >>> remove('remove/d/e', recursive=True)
     False
     >>> from pytoolbox.unittest import asserts
-    >>> asserts.raises(OSError, try_remove, 'try_remove/b')
-    >>> try_remove('try_remove', recursive=True)
+    >>> asserts.raises(OSError, remove, 'remove/b')
+    >>> remove('remove', recursive=True)
     True
     """
     try:
@@ -283,47 +284,48 @@ def try_remove(path, recursive=False):
         if e.errno == errno.ENOENT:
             return False
         raise  # Re-raise exception if a different error occurred
+try_remove = remove
 
 
-def try_symlink(source, link_name):
+def symlink(source, link_name):
     """
     Tries to symlink a file/directory (which may already exists) without throwing an exception. Returns True if
     operation is successful, False if found & target is `link_name` and re-raise any other type of exception.
 
     **Example usage**
 
-    >>> a = try_remove('/tmp/does_not_exist')
-    >>> a = try_remove('/tmp/does_not_exist_2')
-    >>> a = try_remove('/tmp/link_etc')
-    >>> a = try_remove(os.path.expanduser('~/broken_link'))
+    >>> a = remove('/tmp/does_not_exist')
+    >>> a = remove('/tmp/does_not_exist_2')
+    >>> a = remove('/tmp/link_etc')
+    >>> a = remove(os.path.expanduser('~/broken_link'))
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
     >>> from pytoolbox.unittest import asserts
-    >>> asserts.raises(OSError, try_symlink, '/home', '/etc')
+    >>> asserts.raises(OSError, symlink, '/home', '/etc')
 
     Symlinking /etc to itself only returns that nothing changed:
 
-    >>> try_symlink('/etc', '/etc')
+    >>> symlink('/etc', '/etc')
     False
 
     Creating a symlink to an existing file has the following behaviour:
 
-    >>> try_symlink('/etc', '/tmp/link_etc')
+    >>> symlink('/etc', '/tmp/link_etc')
     True
-    >>> try_symlink('/etc', '/tmp/link_etc')
+    >>> symlink('/etc', '/tmp/link_etc')
     False
-    >>> asserts.raises(OSError, try_symlink, '/etc/does_not_exist', '/tmp/link_etc')
-    >>> asserts.raises(OSError, try_symlink, '/home', '/tmp/link_etc')
+    >>> asserts.raises(OSError, symlink, '/etc/does_not_exist', '/tmp/link_etc')
+    >>> asserts.raises(OSError, symlink, '/home', '/tmp/link_etc')
 
     Creating a symlink to a non existing has the following behaviour:
 
-    >>> try_symlink('~/does_not_exist', '~/broken_link')
+    >>> symlink('~/does_not_exist', '~/broken_link')
     True
-    >>> try_symlink('~/does_not_exist', '~/broken_link')
+    >>> symlink('~/does_not_exist', '~/broken_link')
     False
-    >>> asserts.raises(OSError, try_symlink, '~/does_not_exist_2', '~/broken_link')
-    >>> asserts.raises(OSError, try_symlink, '/home', '~/broken_link')
+    >>> asserts.raises(OSError, symlink, '~/does_not_exist_2', '~/broken_link')
+    >>> asserts.raises(OSError, symlink, '/home', '~/broken_link')
     >>> os.remove('/tmp/link_etc')
     >>> os.remove(os.path.expanduser('~/broken_link'))
     """
@@ -348,6 +350,7 @@ def try_symlink(source, link_name):
                         raise OSError(errno.EEXIST, 'File exists')
                 raise
         raise  # Re-raise exception if a different error occurred
+try_symlink = symlink
 
 
 def chown(path, user=None, group=None, recursive=False):
@@ -403,7 +406,7 @@ class TempStorage(object):
         directory = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex))
         self._path_to_key[directory] = key
         self._paths_by_key[key].add(directory)
-        try_makedirs(directory)
+        makedirs(directory)
         chown(directory, user, group, recursive=True)
         return directory
 
@@ -447,7 +450,7 @@ class TempStorage(object):
         ...     tmp.remove_by_path('random-path')
         """
         key = self._path_to_key[path]
-        try_remove(path, recursive=True)
+        remove(path, recursive=True)
         del self._path_to_key[path]
         self._paths_by_key[key].remove(path)
 
@@ -468,7 +471,7 @@ class TempStorage(object):
         """
         paths = self._paths_by_key[key]
         for path in copy.copy(paths):
-            try_remove(path, recursive=True)
+            remove(path, recursive=True)
             paths.remove(path)
             del self._path_to_key[path]
         del self._paths_by_key[key]

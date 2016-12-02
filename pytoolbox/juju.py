@@ -8,7 +8,7 @@ from codecs import open
 from . import module
 from .console import confirm
 from .encoding import string_types, text_type, to_bytes, to_unicode
-from .filesystem import from_template, try_remove, try_symlink
+from .filesystem import from_template, remove, symlink
 from .exceptions import TimeoutError
 from .subprocess import cmd
 
@@ -577,8 +577,8 @@ class Environment(object):
     def symlink_local_charms(self, default_path='default'):
         """Symlink charms default directory to directory of current release."""
         release_symlink = os.path.abspath(os.path.join(self.charms_path, self.release))
-        try_remove(release_symlink)
-        try_symlink(os.path.abspath(os.path.join(self.charms_path, default_path)), release_symlink)
+        remove(release_symlink)
+        symlink(os.path.abspath(os.path.join(self.charms_path, default_path)), release_symlink)
 
     def sync_tools(self, all_tools=True):
         """Copy tools from the official bucket into a local environment."""

@@ -7,7 +7,7 @@ import setuptools.archive_util, shlex, shutil, subprocess, threading, time
 
 from . import module
 from .encoding import string_types, to_bytes, to_unicode
-from .filesystem import try_makedirs
+from .filesystem import makedirs
 
 _all = module.All(globals())
 
@@ -247,7 +247,7 @@ def make(archive, path=None, with_cmake=False, configure_options='', install=Tru
     setuptools.archive_util.unpack_archive(archive, path)
     os.chdir(path)
     if with_cmake:
-        try_makedirs('build')
+        makedirs('build')
         os.chdir('build')
         results['cmake'] = cmd('cmake -DCMAKE_BUILD_TYPE=RELEASE ..', fail=fail, log=log, **kwargs)
     else:
