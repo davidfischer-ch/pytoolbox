@@ -18,6 +18,19 @@ from .encoding import string_types
 _all = module.All(globals())
 
 
+def chown(path, user=None, group=None, recursive=False):
+    """Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
+    uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
+    gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
+    if recursive:
+        for dirpath, dirnames, filenames in os.walk(path):
+            os.chown(dirpath, uid, gid)
+            for filename in filenames:
+                os.chown(os.path.join(dirpath, filename), uid, gid)
+    else:
+        os.chown(path, uid, gid)
+
+
 def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
     """
     Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions, if necessary.
@@ -351,19 +364,6 @@ def symlink(source, link_name):
                 raise
         raise  # Re-raise exception if a different error occurred
 try_symlink = symlink
-
-
-def chown(path, user=None, group=None, recursive=False):
-    """Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
-    uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
-    gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
-    if recursive:
-        for dirpath, dirnames, filenames in os.walk(path):
-            os.chown(dirpath, uid, gid)
-            for filename in filenames:
-                os.chown(os.path.join(dirpath, filename), uid, gid)
-    else:
-        os.chown(path, uid, gid)
 
 
 class TempStorage(object):
