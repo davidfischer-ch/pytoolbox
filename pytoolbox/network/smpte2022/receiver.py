@@ -122,7 +122,7 @@ class FecReceiver(object):
     ER_VALID_RTP = 'packet is not valid (expected RTP packet)'
 
     DELAY_NAMES = ['packets', 'seconds']
-    DELAY_RANGE = xrange(len(DELAY_NAMES))  # pylint:disable=undefined-variable
+    DELAY_RANGE = xrange(len(DELAY_NAMES))  # noqa
     PACKETS, SECONDS = DELAY_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -386,7 +386,7 @@ class FecReceiver(object):
                 media.timestamp ^= friend.timestamp
                 payload_size ^= friend.payload_size
                 # FIXME FIXME FIXME FIXME FIXME OPTIMIZATION FIXME FIXME FIXME FIXME
-                for no in xrange(min(len(media.payload), len(friend.payload))):  # pylint:disable=undefined-variable
+                for no in xrange(min(len(media.payload), len(friend.payload))):  # noqa
                     media.payload[no] ^= friend.payload[no]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK
 

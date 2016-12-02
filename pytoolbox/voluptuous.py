@@ -77,7 +77,7 @@ def SHA256(value):
 
 
 def Version(digits=4, msg=None):
-    assert digits in xrange(1, 5)  # pylint:disable=undefined-variable
+    assert digits in xrange(1, 5)  # noqa
 
     @functools.wraps(Version)
     def f(value):

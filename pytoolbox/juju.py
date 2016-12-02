@@ -1036,7 +1036,7 @@ class SimulatedUnits(object):
             return 'Simulate destruction of service.'
         if units_count < num_units:
             num_units = num_units - units_count
-            for i in xrange(num_units):  # pylint:disable=undefined-variable
+            for i in xrange(num_units):  # noqa
                 unit = SimulatedUnit(self.start_latency_range, self.stop_latency_range)
                 unit.start()
                 self.units[self.number] = unit

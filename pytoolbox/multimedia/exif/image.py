@@ -15,7 +15,7 @@ try:
         HOR_FLIP_ROT_90_CW = 7
         ROT_270_CW = 8
 except ImportError:
-    Orientation = lambda x: xrange(1, 9)[x-1]  # pylint:disable=undefined-variable
+    Orientation = lambda x: xrange(1, 9)[x-1]  # noqa
 
 from . import tag
 from ... import module

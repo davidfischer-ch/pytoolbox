@@ -14,7 +14,7 @@ BIT_RATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000**2, 'g': 1000**3}
 PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
 SIZE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
 SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
-WIDTH, HEIGHT = xrange(2)  # pylint:disable=undefined-variable
+WIDTH, HEIGHT = xrange(2)  # noqa
 
 
 def is_pipe(path):

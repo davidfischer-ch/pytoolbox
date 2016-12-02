@@ -140,11 +140,11 @@ class FecPacket(object):
     SNBE_SHIFT = 16
 
     DIRECTION_NAMES = ('COL', 'ROW')
-    DIRECTION_RANGE = xrange(len(DIRECTION_NAMES))  # pylint:disable=undefined-variable
+    DIRECTION_RANGE = xrange(len(DIRECTION_NAMES))  # noqa
     COL, ROW = DIRECTION_RANGE
 
     ALGORITHM_NAMES = ('XOR', 'Hamming', 'ReedSolomon')
-    ALGORITHM_RANGE = xrange(len(ALGORITHM_NAMES))  # pylint:disable=undefined-variable
+    ALGORITHM_RANGE = xrange(len(ALGORITHM_NAMES))  # noqa
     XOR, Hamming, ReedSolomon = ALGORITHM_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
