@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import math, os
 
 from pytoolbox.encoding import csv_reader
-from pytoolbox.filesystem import try_remove
+from pytoolbox.filesystem import remove
 from pytoolbox.serialization import PickleableObject
 
 from . import base
@@ -72,7 +72,7 @@ class TestSerialization(base.TestCase):
         with self.raises(ValueError):
             p2.write()
         os.remove('test2.pkl')
-        try_remove('test3.pkl')
+        remove('test3.pkl')
         p3 = MyPoint.read('test3.pkl', store_path=True, create_if_error=True, name='Default point', x=3, y=-6)
         self.dict_equal(p3.__dict__, {'x': 3, 'y': -6, '_pickle_path': 'test3.pkl', 'name': 'Default point'})
         os.remove('test3.pkl')

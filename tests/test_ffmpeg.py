@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime, os, tempfile, unittest, uuid
 from codecs import open
 
-from pytoolbox.filesystem import try_remove
+from pytoolbox.filesystem import remove
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
     to_bit_rate, to_frame_rate, to_size, AudioStream, EncodeState, Format, Media, VideoStream, HEIGHT
@@ -367,15 +367,15 @@ class TestFFmpeg(base.TestCase):
     @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
     def test_encode(self):
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.true(try_remove('ff_output.mp4'))
+        self.true(remove('ff_output.mp4'))
         self.equal(results[-1].state, EncodeState.SUCCESS)
 
         results = list(self.ffmpeg.encode(Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
-        self.false(try_remove('ff_output.mp4'))
+        self.false(remove('ff_output.mp4'))
         self.equal(results[-1].state, EncodeState.FAILURE)
 
         results = list(self.ffmpeg.encode([Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.false(try_remove('ff_output.mp4'))
+        self.false(remove('ff_output.mp4'))
         self.equal(results[-1].state, EncodeState.FAILURE)
 
     def test_get_arguments(self):
@@ -416,7 +416,7 @@ class TestFFmpeg(base.TestCase):
         encoder = RaiseFFmpeg()
         with self.raises(ValueError):
             list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
-        self.true(try_remove('ff_output.mp4'))
+        self.true(remove('ff_output.mp4'))
 
 
 class TestFFprobe(base.TestCase):
