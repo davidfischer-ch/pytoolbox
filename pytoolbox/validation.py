@@ -303,7 +303,7 @@ def validate_list(the_list, regexes):
     if len(the_list) != len(regexes):
         raise IndexError(to_bytes('{0} elements to validate with {1} regular expressions'.format(
                          len(the_list), len(regexes))))
-    for i in xrange(len(regexes)):
+    for i in xrange(len(regexes)):  # pylint:disable=undefined-variable
         if not re.match(regexes[i], text_type(the_list[i])):
             raise ValueError(to_bytes('N°{1} is invalid:{0}\telement: {2}{0}\tregex:   {3}'.format(
                              os.linesep, i+1, the_list[i], regexes[i])))

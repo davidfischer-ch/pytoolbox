@@ -33,7 +33,7 @@ def confirm(question=None, default=False, stream=sys.stdout):
     while True:
         stream.write(question)
         stream.flush()
-        answer = raw_input()
+        answer = raw_input()  # pylint:disable=undefined-variable
         if not answer:
             return default
         if answer.lower() in ('y', 'yes'):

@@ -323,7 +323,7 @@ class RtpPacket(object):
         self.timestamp = ((bytes[4]*256 + bytes[5])*256 + bytes[6])*256 + bytes[7]
         self.ssrc = ((bytes[8]*256 + bytes[9])*256 + bytes[10])*256 + bytes[11]
 
-        for i in xrange(cc):
+        for i in xrange(cc):  # pylint:disable=undefined-variable
             self.csrc.append(
                 ((bytes[offset]*256 + bytes[offset+1])*256 + bytes[offset+2])*256 + bytes[offset+3])
             offset += 4

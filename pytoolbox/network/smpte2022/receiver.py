@@ -122,7 +122,7 @@ class FecReceiver(object):
     ER_VALID_RTP = 'packet is not valid (expected RTP packet)'
 
     DELAY_NAMES = ['packets', 'seconds']
-    DELAY_RANGE = xrange(len(DELAY_NAMES))
+    DELAY_RANGE = xrange(len(DELAY_NAMES))  # pylint:disable=undefined-variable
     PACKETS, SECONDS = DELAY_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -196,7 +196,7 @@ class FecReceiver(object):
         elif self.delay_units == FecReceiver.SECONDS:
             raise NotImplementedError()
         raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(self.delay_units)))
-        #return medias.lastEntry().getValue().getTime() - medias.firstEntry().getValue().getTime()
+        # return medias.lastEntry().getValue().getTime() - medias.firstEntry().getValue().getTime()
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -292,8 +292,9 @@ class FecReceiver(object):
             return
         # FIXME check if 10*delay_value is a good way to avoid removing early fec packets !
         # The fec packet is useless if it needs an already output'ed media packet to do recovery
-        drop = not FecReceiver.validity_window(fec.snbase, self.position,
-                                              (self.position + 10 * self.delay_value) & RtpPacket.S_MASK)
+        drop = not FecReceiver.validity_window(
+            fec.snbase, self.position, (self.position + 10 * self.delay_value) & RtpPacket.S_MASK
+        )
         if fec.direction == FecPacket.COL:
             if drop:
                 self.col_dropped += 1
@@ -345,7 +346,7 @@ class FecReceiver(object):
         """Recover a missing media packet helped by a FEC packet, this method is also called to register an incoming
         media packet if it is registered as missing."""
 
-        recovered_by_fec = fec not is None
+        recovered_by_fec = fec is not None
 
         # Read and remove "cross" it from the buffer
         col_sequence = cross['col_sequence']
@@ -385,7 +386,7 @@ class FecReceiver(object):
                 media.timestamp ^= friend.timestamp
                 payload_size ^= friend.payload_size
                 # FIXME FIXME FIXME FIXME FIXME OPTIMIZATION FIXME FIXME FIXME FIXME
-                for no in xrange(min(len(media.payload), len(friend.payload))):
+                for no in xrange(min(len(media.payload), len(friend.payload))):  # pylint:disable=undefined-variable
                     media.payload[no] ^= friend.payload[no]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK
 
@@ -453,8 +454,9 @@ class FecReceiver(object):
         if units == FecReceiver.PACKETS:  # based on buffer size
             while len(self.medias) > value:
                 # Initialize or increment actual position (expected sequence number)
-                self.position = ((self.medias.iterkeys().next() if self.startup else (self.position + 1))
-                                 & RtpPacket.S_MASK)
+                self.position = (
+                    (self.medias.iterkeys().next() if self.startup else (self.position + 1)) & RtpPacket.S_MASK
+                )
                 self.startup = False
                 media = self.medias.get(self.position)
                 if media:

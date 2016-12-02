@@ -36,7 +36,7 @@ class Metadata(object):
     def tags(self):
         return {k: self[k] for k in self.exiv2.get_tags()}
 
-    def get_date(self, keys=['Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'], fail=True):
+    def get_date(self, keys=('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'), fail=True):
         for key in ([keys] if isinstance(keys, string_types) else keys):
             date = self[key].data
             if isinstance(date, datetime.datetime):

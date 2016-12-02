@@ -155,7 +155,7 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
         log_debug('Execute {0}{1}{2}'.format('' if input is None else 'echo {0}|'.format(repr(input)), args_string,
                   '' if cli_input is None else ' < {0}'.format(repr(cli_input))))
 
-    for trial in xrange(tries):
+    for trial in xrange(tries):  # pylint:disable=undefined-variable
         # create the sub-process
         try:
             process = Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,

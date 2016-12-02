@@ -146,7 +146,7 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
         progress_stream.write(os.linesep)
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None, sources=['query', 'form', 'json'],
+def get_request_data(request, accepted_keys=None, required_keys=None, sources=('query', 'form', 'json'),
                      qs_only_first_value=False, optional=False):
     """
     Return a python dictionary containing the values retrieved from various attributes (sources) of the request.

@@ -92,7 +92,7 @@ class FFprobe(object):
         info = self.get_media_info(media, fail)
         try:
             cls, the_format = self.format_class, info['format']
-            return cls(the_format) if cls and not isinstance(the_format, cls) else the_format
+            return cls(the_format) if cls and not isinstance(the_format, cls) else the_format  # pylint:disable=not-callable
         except:
             if fail:
                 raise

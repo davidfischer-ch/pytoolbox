@@ -18,7 +18,7 @@ class EventsTable(object):
         self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
-        for index in xrange(self.time_range):
+        for index in xrange(self.time_range):  # pylint:disable=undefined-variable
             event = sparse_events_table.get(index, previous_event)
             self.events[index] = event
             previous_event = event
@@ -122,7 +122,7 @@ class pygal_deque(collections.deque):
             pass
         if fill and self_list:
             previous = None
-            for index in xrange(len(self_list)):
+            for index in xrange(len(self_list)):  # pylint:disable=undefined-variable
                 if self_list[index] is None:
                     self_list[index] = previous
                 else:
