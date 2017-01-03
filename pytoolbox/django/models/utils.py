@@ -6,8 +6,6 @@ Some utilities related to the model layer.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from django.contrib.contenttypes import models as ct_models
-
 from ... import module
 
 _all = module.All(globals())
@@ -29,12 +27,14 @@ def get_related_model(cls_or_instance, field):
 
 def get_content_type_dict(instance):
     """Return a dictionary with the serialized content type and private key of given instance."""
+    from django.contrib.contenttypes import models as ct_models
     content_type = ct_models.ContentType.objects.get_for_model(instance.__class__)
     return {'app_label': content_type.app_label, 'model': content_type.model, 'pk': instance.pk}
 
 
 def get_instance(app_label, model, pk):
     """Return an instance given its app_label, model name and private key."""
+    from django.contrib.contenttypes import models as ct_models
     return ct_models.ContentType.objects.get(app_label=app_label, model=model).get_object_for_this_type(pk=pk)
 
 

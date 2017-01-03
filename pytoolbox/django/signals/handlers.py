@@ -41,7 +41,6 @@ import logging
 
 from django.conf import settings
 from django.db.models import fields
-from django.contrib.sites import models as site_app
 from django.db.models.fields.files import FileField
 
 from ... import module
@@ -79,6 +78,7 @@ def create_site(sender, **kwargs):
     * The application `django-defaultsite <https://github.com/oppian/django-defaultsite>`_
     * Other options discussed `here <https://groups.google.com/forum/#!topic/django-developers/X-ef0C0V8Rk>`_
     """
+    from django.contrib.sites import models as site_app
     site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}
     site = site_app.Site.objects.update_or_create(pk=settings.SITE_ID, defaults=site_fields)[0]
     logger.info('Updated settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
