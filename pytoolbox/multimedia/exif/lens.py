@@ -19,10 +19,7 @@ class Lens(equipment.Equipement):
 
     @property
     def _model(self):
-        try:
-            return next(t.data for t in self.tags.itervalues() if 'model' in t.label.lower())
-        except StopIteration:
-            return None
+        return next((t.data for t in self.tags.itervalues() if 'model' in t.label.lower()), default=None)
 
     @decorators.cached_property
     def tags(self):
