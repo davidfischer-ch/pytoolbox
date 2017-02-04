@@ -19,7 +19,7 @@ class Lens(equipment.Equipement):
 
     @property
     def _model(self):
-        return next((t.data for t in self.tags.itervalues() if 'model' in t.label.lower()), default=None)
+        return next((t.data for t in self.tags.itervalues() if 'model' in t.label.lower()), None)
 
     @decorators.cached_property
     def tags(self):
