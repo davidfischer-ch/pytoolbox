@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, hashlib, os
+import collections, hashlib, os, random, string
 
 from . import module
 from .encoding import string_types
@@ -43,6 +43,24 @@ def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sh
     for data in get_bytes(path_or_data, encoding, is_path, chunk_size):
         hasher.update(data)
     return hasher.hexdigest()
+
+
+def get_password_generator(characters=string.ascii_letters + string.digits, length=16):
+    """
+    Return a dead simple password generator in the form of a dictionary with missing keys generated on the fly.
+
+    **Example usage**
+
+    >>> import re
+    >>> from pytoolbox.unittest import asserts
+    >>> passwords = get_password_generator()
+    >>> passwords['redis'] = 'some-hardcoded-password'
+    >>> asserts.equal(passwords['redis'], 'some-hardcoded-password')
+    >>> asserts.true(re.match(r'[0-9a-zA-Z]{16}', passwords['db']))
+    >>> asserts.equal(passwords['db'], passwords['db'])
+    >>> asserts.not_equal(passwords['cache'], passwords['db'])
+    """
+    return collections.defaultdict(lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)))
 
 
 # FIXME implement githash class with interface: https://hg.python.org/cpython/file/3.4/Lib/hashlib.py
