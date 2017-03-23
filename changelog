@@ -3,6 +3,21 @@ changelog
 =========
 
 ------------------
+v11.5.0 -> v11.5.1
+------------------
+
+Fixes and enhancements
+======================
+
+* Fix syntax error in multimedia.exif.lens at line 22
+* Prevent AppRegistryNotReady when importing django.models.utils
+
+Features
+========
+
+* Add function crypto.get_password_generator
+
+------------------
 v11.4.3 -> v11.5.0
 ------------------
 
