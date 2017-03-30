@@ -88,19 +88,34 @@ def first_that_exist(*paths):
     return None
 
 
-def from_template(template, destination, values, jinja2=False, pre_func=None, post_func=None):
+def from_template(template, destination, values, is_file=True, jinja2=False, pre_func=None, post_func=None):
     """
-    Generate a `destination` file from a `template` file filled with `values`, method: string.format or jinja2!
+    Return a `template` rendered with `values` using string.format or jinja2 as the template engine.
+
+    * Set `destination` to a filename to write the output, set to a Falsey value to skip this feature.
+    * Set `is_file` to False to use value of `template` as the content and not a filename to read.
+    * Set `{pre,post}_func` to a callback function with the signature f(content, values, jinja2)
 
     **Example usage**
 
-    >>> open('config.template', 'w', 'utf-8').write('{{username={user}; password={pass}}}')
+    >>> template = '{{username={user}; password={pass}}}'
+    >>> values = {'user': 'tabby', 'pass': 'miaow', 'other': 10}
+    >>> open('config.template', 'w', 'utf-8').write(template)
 
     The behavior when all keys are given (and even more):
 
-    >>> from_template('config.template', 'config', {'user': 'tabby', 'pass': 'miaow', 'other': 10})
+    >>> _ = from_template('config.template', 'config', values)
     >>> print(open('config', 'r', 'utf-8').read())
     {username=tabby; password=miaow}
+
+    >>> _ = from_template(template, 'config', values, is_file=False)
+    >>> print(open('config', 'r', 'utf-8').read())
+    {username=tabby; password=miaow}
+
+    >>> def post_func(content, values, jinja2):
+    ...     return content.replace('tabby', 'tikky')
+    >>> print(from_template(template, None, values, is_file=False, post_func=post_func))
+    {username=tikky; password=miaow}
 
     The behavior if a value for a key is missing:
 
@@ -114,19 +129,20 @@ def from_template(template, destination, values, jinja2=False, pre_func=None, po
     >>> os.remove('config.template')
     >>> os.remove('config')
     """
-    with open(template, 'r', 'utf-8') as template_file:
-        with open(destination, 'w', 'utf-8') as destination_file:
-            content = template_file.read()
-            if pre_func:
-                content = pre_func(content, values=values, jinja2=jinja2)
-            if jinja2:
-                from jinja2 import Template
-                content = Template(content).render(**values)
-            else:
-                content = content.format(**values)
-            if post_func:
-                content = post_func(content, values=values, jinja2=jinja2)
-            destination_file.write(content)
+    content = open(template, 'r', 'utf-8').read() if is_file else template
+    if pre_func:
+        content = pre_func(content, values=values, jinja2=jinja2)
+    if jinja2:
+        from jinja2 import Template
+        content = Template(content).render(**values)
+    else:
+        content = content.format(**values)
+    if post_func:
+        content = post_func(content, values=values, jinja2=jinja2)
+    if destination:
+        with open(destination, 'w', 'utf-8') as f:
+            f.write(content)
+    return content
 
 
 def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
