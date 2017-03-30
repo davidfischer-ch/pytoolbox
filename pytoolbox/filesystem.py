@@ -124,7 +124,7 @@ def from_template(template, destination, values, is_file=True, jinja2=False, pre
         ...
     KeyError: ...'user'
     >>> print(open('config', 'r', 'utf-8').read())
-    <BLANKLINE>
+    {username=tabby; password=miaow}
 
     >>> os.remove('config.template')
     >>> os.remove('config')
