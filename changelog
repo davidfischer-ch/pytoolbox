@@ -3,7 +3,7 @@ changelog
 =========
 
 ------------------
-v11.5.0 -> v11.5.3
+v11.5.0 -> v11.5.4
 ------------------
 
 Fixes and enhancements
@@ -12,6 +12,7 @@ Fixes and enhancements
 * Fix syntax error in multimedia.exif.lens at line 22
 * Prevent AppRegistryNotReady when importing django.models.utils
 * Add {pre,post}_func arguments to filesystem.from_template
+* Function filesystem.from_template: Make destination optional + allow to set template to content
 
 Features
 ========
