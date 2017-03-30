@@ -88,7 +88,7 @@ def first_that_exist(*paths):
     return None
 
 
-def from_template(template, destination, values, jinja2=False):
+def from_template(template, destination, values, jinja2=False, pre_func=None, post_func=None):
     """
     Generate a `destination` file from a `template` file filled with `values`, method: string.format or jinja2!
 
@@ -117,11 +117,15 @@ def from_template(template, destination, values, jinja2=False):
     with open(template, 'r', 'utf-8') as template_file:
         with open(destination, 'w', 'utf-8') as destination_file:
             content = template_file.read()
+            if pre_func:
+                content = pre_func(content, variables=variables, jinja2=jinja2)
             if jinja2:
                 from jinja2 import Template
                 content = Template(content).render(**values)
             else:
                 content = content.format(**values)
+            if post_func:
+                content = post_func(content, variables=variables, jinja2=jinja2)
             destination_file.write(content)
 
 
