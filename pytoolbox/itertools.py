@@ -31,6 +31,26 @@ def chain(*objects, **kwargs):
     return itertools.chain.from_iterable(o if callback(o) else [o] for o in objects)
 
 
+def chunk(objects, length, of_type=list):
+    """
+    Yield successive chunks of defined `length` from `objects`. Last chunk may be smaller.
+
+    **Example usage**
+
+    >>> from pytoolbox.unittest import asserts
+    >>> iterable = iter(range(7))
+    >>> asserts.list_equal(list(chunk(iterable, 3)), [[0, 1, 2], [3, 4, 5], [6]])
+    >>> asserts.list_equal(list(chunk(iterable, 3)), [])
+    >>> asserts.list_equal(list(chunk((0, 1, (2, 3)), 1, of_type=set)), [{0}, {1}, {(2, 3)}])
+    """
+    iterable = iter(objects)
+    while True:
+        chunk = of_type(itertools.islice(iterable, 0, length))
+        if not chunk:
+            break
+        yield chunk
+
+
 def extract_single(objects):
     """
     Return the object from objects if there is only one object, else return objects unmodified.
