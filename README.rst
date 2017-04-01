@@ -26,7 +26,8 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library supports Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5 and PyPy.
+This library supports Python 2.7, 3.3, 3.4, 3.5, 3.6 and PyPy.
+And try to support 2.6 and 3.2, see Travis CI build matrix.
 
 ------------------------------------
 What the release number stands for ?
