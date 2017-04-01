@@ -17,6 +17,7 @@ class Brand(object):
         # maps the group of Exif.Group.Label
         'canoncs': 'Canon',
         'canoncf': 'Canon',
+        'lg electronics': 'LGE',
         'nikon3': 'Nikon',
         'nikonld2': 'Nikon',
         'nikonld3': 'Nikon',
