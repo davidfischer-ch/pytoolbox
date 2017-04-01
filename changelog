@@ -3,6 +3,22 @@ changelog
 =========
 
 ------------------
+v11.5.4 -> v11.6.0
+------------------
+
+Fixes and enhancements
+======================
+
+* Add method get_frames_md5_checksum to FFmpeg class
+* Update exif brands
+
+Features
+========
+
+* Support Python 3.6
+* Add function itertools.chunk
+
+------------------
 v11.5.0 -> v11.5.4
 ------------------
 
