@@ -2,9 +2,9 @@
 changelog
 =========
 
-------------------
-v11.5.4 -> v11.6.0
-------------------
+-------
+v11.6.0
+-------
 
 Fixes and enhancements
 ======================
@@ -18,9 +18,9 @@ Features
 * Support Python 3.6
 * Add function itertools.chunk
 
-------------------
-v11.5.0 -> v11.5.4
-------------------
+-------
+v11.5.4
+-------
 
 Fixes and enhancements
 ======================
@@ -35,9 +35,9 @@ Features
 
 * Add function crypto.get_password_generator
 
-------------------
-v11.4.3 -> v11.5.0
-------------------
+-------
+v11.5.0
+-------
 
 Fixes and enhancements
 ======================
@@ -45,9 +45,9 @@ Fixes and enhancements
 * Improve code quality
 * Remove try_ prefix from filesystem functions (retro compat: try_ functions still defined)
 
-------------------
-v11.4.0 -> v11.4.3
-------------------
+-------
+v11.4.3
+-------
 
 Features
 ========
@@ -61,9 +61,9 @@ Fixes and enhancements
 
 * Add bare argument to subprocess.git_clone_or_pull
 
-------------------
-v11.2.0 -> v11.4.0
-------------------
+-------
+v11.4.0
+-------
 
 Features
 ========
@@ -71,9 +71,9 @@ Features
 * Add module linux
 * Add module setuptools
 
-------------------
-v11.1.0 -> v11.2.0
-------------------
+-------
+v11.2.0
+-------
 
 Features
 ========
@@ -88,9 +88,9 @@ Fixes and enhancements
 * Fix django.forms.utils.get_instance
 * Update FromPrivateKeyMixin to fix call to fail with recent DRF
 
-------------------
-v11.0.0 -> v11.1.0
-------------------
+-------
+v11.1.0
+-------
 
 Minor compatibility breaks
 ==========================
@@ -114,9 +114,9 @@ Fixes and enhancements
 * network.http.download_ext: Pass kwargs to iter_download_to_file
 * django.views.mixins.AddRequestToFormKwargsMixin: Check form "handles" request as kwarg based on its class
 
-------------------
-v10.4.0 -> v11.0.0
-------------------
+-------
+v11.0.0
+-------
 
 Compatibility breaks
 ====================
@@ -145,9 +145,9 @@ Fixes and enhancements
 * Make django.views.mixins.ValidationErrorsMixin more "generic"
 * Too many to be listed here, https://github.com/davidfischer-ch/pytoolbox/compare/10.4.0...11.0.0
 
-------------------
-v10.3.0 -> v10.4.0
-------------------
+-------
+v10.4.0
+-------
 
 Features
 ========
@@ -183,9 +183,9 @@ Fixes and enhancements
 * Split module multimedia.ffmpeg
 * Fix ffmpeg mock class
 
-------------------
-v10.2.0 -> v10.3.0
-------------------
+-------
+v10.3.0
+-------
 
 Compatibility breaks
 ====================
@@ -234,9 +234,9 @@ Fixes and enhancements
 * Follow os.path import best practices
 * Make multimedia.ffmpeg private functions public
 
-------------------
-v10.0.0 -> v10.2.0
-------------------
+-------
+v10.2.0
+-------
 
 Compatibility breaks
 ====================
@@ -284,9 +284,9 @@ Fixes and enhancements
 * Module subprocess: Import Popen from psutil if available
 * Refactor function django.signals.create_site
 
------------------
-v9.7.2 -> v10.0.0
------------------
+-------
+v10.0.0
+-------
 
 Compatibility breaks
 ====================
@@ -303,9 +303,9 @@ Fixes and enhancements
 
 * Add class multimedia.ffmpeg.EncodingState
 
-----------------
-v9.4.2 -> v9.7.2
-----------------
+------
+v9.7.2
+------
 
 Minor compatibility breaks
 ==========================
@@ -334,9 +334,9 @@ Fixes and enhancements
 * Improve network.http.download_ext (Can download in chunks + progress callback)
 * Improve filesystem.get_bytes + crypto.* to read a file in chunks (if chunk_size is set)
 
----------------------
-v9.3.0-beta -> v9.4.2
----------------------
+------
+v9.4.2
+------
 
 Features
 ========
@@ -355,9 +355,9 @@ Fixes and enhancements
 * Refactor module humanize + add naturalfilesize
 * Improve humanize functions to handle [0-1] range + big numbers
 
---------------------------
-v8.6.1-beta -> v9.3.0-beta
---------------------------
+-----------
+v9.3.0-beta
+-----------
 
 Compatibility breaks
 ====================
@@ -389,18 +389,18 @@ Fixes and enhancements
 * Fix multimedia.ffmpeg.FFmpeg.encode: Create output directory before the subprocess
 * Improve multimedia.ffmpeg.FFmpeg.encode: Handle process missing + simplify mocking
 
---------------------------
-v8.6.0-beta -> v8.6.1-beta
---------------------------
+-----------
+v8.6.1-beta
+-----------
 
 Fixes and enhancements
 ======================
 
 * Add function multimedia.ffmpeg.get_subprocess
 
---------------------------
-v8.0.0-beta -> v8.6.0-beta
---------------------------
+-----------
+v8.6.0-beta
+-----------
 
 Minor compatibility breaks
 ==========================
@@ -438,9 +438,9 @@ Fixes and enhancements
 * Fix multimedia.ffmpeg.encode (skip broken out duration)
 * Improve multimedia.ffprobe.get_media_duration to handle media info dict
 
----------------------------
-v7.1.17-beta -> v8.0.0-beta
----------------------------
+-----------
+v8.0.0-beta
+-----------
 
 Compatibility breaks
 ====================
@@ -454,9 +454,9 @@ Features
 * Add module multimedia.ffprobe
 * Add function datetime.str2time
 
----------------------------
-v6.6.0-beta -> v7.1.17-beta
----------------------------
+------------
+v7.1.17-beta
+------------
 
 Compatibility breaks
 ====================
@@ -484,9 +484,9 @@ Fixes and enhancements
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
 * Add timeout to valid_uri
 
---------------------------
-v5.6.3-beta -> v6.6.0-beta
---------------------------
+-----------
+v6.6.0-beta
+-----------
 
 Compatibility breaks
 ====================
@@ -528,9 +528,9 @@ Fixes and enhancements
 * Add juju.Environment.wait_unit
 * Improve ffmpeg module
 
---------------------------
-v5.6.0-beta -> v5.6.3-beta
---------------------------
+-----------
+v5.6.3-beta
+-----------
 
 Fixes and enhancements
 ======================
@@ -539,9 +539,9 @@ Fixes and enhancements
 * Remove symlink first, to avoid boring exceptions
 * Add timeout to juju status !
 
---------------------------
-v5.5.0-beta -> v5.6.0-beta
---------------------------
+-----------
+v5.6.0-beta
+-----------
 
 Features
 ========
@@ -562,9 +562,9 @@ Fixes and enhancements
 * Function subprocess.cmd : Handle logging.Logger as log, improve docstring, add retry loop
 * Upgrade relation_ methods
 
----------------------------
-v5.4.19-beta -> v5.5.0-beta
----------------------------
+------------
+v5.5.0-beta
+------------
 
 Minor compatibility breaks
 ==========================
@@ -592,9 +592,9 @@ Fixes and enhancements
 * Enhance function ffmpeg.encode
 * Call log more often
 
----------------------------
-v5.0.0-beta -> v5.4.19-beta
----------------------------
+------------
+v5.4.19-beta
+------------
 
 Deprecated
 ==========
@@ -640,9 +640,9 @@ Example usage::
     sudo python setup.py install --help
     sudo python setup.py install --extra-flask
 
---------------------------
-v4.8.7-beta -> v5.0.0-beta
---------------------------
+-----------
+v5.0.0-beta
+-----------
 
 Compatibility breaks
 ====================
@@ -662,9 +662,9 @@ Fixes and enhancements
 * Update classifiers
 * Update README.rst
 
---------------------------
-v4.0.0-beta -> v4.8.7-beta
---------------------------
+-----------
+v4.8.7-beta
+-----------
 
 Minor compatibility breaks
 ==========================
@@ -693,9 +693,9 @@ Fixes and enhancements
 * Update function runtests
 * Update setup.py
 
----------------------------
-v3.10.7-beta -> v4.0.0-beta
----------------------------
+------------
+v4.0.0-beta
+------------
 
 Compatibility breaks
 ====================
@@ -716,9 +716,9 @@ Fixes and enhancements
 * Update cmd
 * Update rsync
 
----------------------------
-v2.1.2-beta -> v3.10.7-beta
----------------------------
+------------
+v3.10.7-beta
+------------
 
 Compatibility breaks
 ====================
