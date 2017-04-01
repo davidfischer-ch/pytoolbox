@@ -2,14 +2,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import errno, itertools, select, subprocess, sys, time
+import errno, itertools, re, select, subprocess, sys, time
+from codecs import open  # pylint:disable=redefined-builtin
 
 from . import encode, ffprobe
 from ... import module
 from ...encoding import string_types
+from ...filesystem import TempStorage
 from ...subprocess import kill, make_async, raw_cmd, to_args_list
 
 _all = module.All(globals())
+
+FRAME_MD5_REGEX = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
 
 class FFmpeg(object):
@@ -62,6 +66,13 @@ class FFmpeg(object):
             tb = sys.exc_info()[2]
             kill(process)
             raise exception.with_traceback(tb) if hasattr(exception, 'with_traceback') else exception
+
+    def get_frames_md5_checksum(self, filename):
+        with TempStorage() as tmp:
+            checksum_filename = tmp.create_tmp_file(return_file=False)
+            FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
+            match = FRAME_MD5_REGEX.search(open(checksum_filename, 'r', encoding='utf-8').read())
+            return match.group() if match else None
 
     def _clean_medias_argument(self, value):
         """
