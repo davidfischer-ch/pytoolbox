@@ -35,8 +35,7 @@ def setup_logging(name='', reset=False, path=None, console=False, level=logging.
 
     Setup a console output for logger with name *test*:
 
-    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
-    >>> log = logging.getLogger('test')
+    >>> log = setup_logging('test', reset=True, console=True, fmt=None, datefmt=None)
     >>> log.info('this is my info')
     this is my info
     >>> log.debug('this is my debug')
@@ -48,29 +47,28 @@ def setup_logging(name='', reset=False, path=None, console=False, level=logging.
 
     Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
 
-    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
-    >>> setup_logging(name='test', console=True, fmt=None, datefmt=None)
+    >>> _ = setup_logging('test', console=True, fmt=None, datefmt=None)
+    >>> _ = setup_logging('test', console=True, fmt=None, datefmt=None)
     >>> log.info('double message, tu radote pépé')
     double message, tu radote pépé
     double message, tu radote pépé
-    >>> setup_logging(name='test', reset=True, console=True, fmt=None, datefmt=None)
+    >>> _ = setup_logging('test', reset=True, console=True, fmt=None, datefmt=None)
     >>> log.info('single message')
     single message
     """
     if reset:
         logging.getLogger(name).handlers = []
+    log = logging.getLogger(name)
+    log.setLevel(level)
     if path:
-        log = logging.getLogger(name)
-        log.setLevel(level)
         handler = logging.FileHandler(path)
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(handler)
     if console:
-        log = logging.getLogger(name)
-        log.setLevel(level)
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(handler)
+    return log
 
 
 class ColorizeFilter(logging.Filter):
