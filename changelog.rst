@@ -3,6 +3,15 @@ changelog
 =========
 
 -------
+v11.6.1
+-------
+
+Fixes and enhancements
+======================
+
+* logging.setup_logging: Always setup log level and return logger
+
+-------
 v11.6.0
 -------
 
