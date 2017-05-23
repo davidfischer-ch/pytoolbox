@@ -1,3 +1,6 @@
+.. image:: https://badge.waffle.io/davidfischer-ch/pytoolbox.png?label=ready&title=Ready 
+ :target: https://waffle.io/davidfischer-ch/pytoolbox
+ :alt: 'Stories in Ready'
 =========
 pytoolbox
 =========
