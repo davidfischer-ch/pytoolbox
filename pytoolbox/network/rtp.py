@@ -331,7 +331,7 @@ class RtpPacket(object):
 
         if self.extension:  # Extension header (ignored for now)
             extensionLength = bytes[offset+2]*256 + bytes[offset+3]
-            offset += 4 + extensionLength
+            offset += 4 + (extensionLength*4)
             if length < offset:
                 self._errors = RtpPacket.ER_EXTENSION_LENGTH
                 return
