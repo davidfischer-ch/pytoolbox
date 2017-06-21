@@ -25,6 +25,10 @@ _all = module.All(globals())
 
 class Image(tag.TagSet):
 
+    def __init__(self, metadata, orientation=None):
+        super(Image, self).__init__(metadata)
+        self._orientation = orientation
+
     @property
     def copyright(self):
         return self.metadata['Iptc.Application2.Copyright'].data
@@ -39,6 +43,8 @@ class Image(tag.TagSet):
 
     @property
     def orientation(self):
+        if self._orientation is not None:
+            return self._orientation
         data = self.metadata['Exif.Image.Orientation'].data
         try:
             return Orientation(data)
