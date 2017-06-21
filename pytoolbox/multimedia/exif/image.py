@@ -52,6 +52,20 @@ class Image(tag.TagSet):
             return None
 
     @property
+    def rotation(self):
+        return {
+            None: 0,
+            Orientation.NORMAL: 0,
+            # 2 = Mirror horizontal
+            Orientation.ROT_180_CCW: 180,
+            # 4 = Mirror vertical
+            # 5 = Mirror horizontal and rotate 270 CW
+            Orientation.ROT_90_CW: -90,
+            # 7 = Mirror horizontal and rotate 90 CW
+            Orientation.ROT_270_CW: -270
+        }[self.orientation]
+
+    @property
     def width(self):
         return self.clean_number(self.metadata.exiv2.get_pixel_width())
 
