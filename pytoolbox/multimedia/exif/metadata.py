@@ -15,7 +15,9 @@ class Metadata(object):
 
     tag_class = tag.Tag
 
-    def __init__(self, path, orientation=None):
+    def __init__(self, path, orientation=None, gexiv2_version='0.10'):
+        import gi
+        gi.require_version('GExiv2', gexiv2_version)
         from gi.repository import GExiv2
         self.path = path
         self.exiv2 = GExiv2.Metadata()
