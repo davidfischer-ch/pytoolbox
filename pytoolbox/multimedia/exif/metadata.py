@@ -44,6 +44,17 @@ class Metadata(object):
             if isinstance(date, datetime.datetime):
                 return date
 
+    def rewrite(self, save=False):
+        """
+        Iterate over all tags and rewrite them to fix issues (e.g. GExiv2: Invalid ifdId 103 (23)).
+        """
+        tags = {k: str(v.data) for k, v in self.tags.items()}
+        self.exiv2.clear()
+        for key, value in tags.items():
+            self[key] = value
+        if save:
+            self.save_file()
+
     def save_file(self):
         return self.exiv2.save_file()
 
