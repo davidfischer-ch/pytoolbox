@@ -3,13 +3,17 @@ changelog
 =========
 
 -------
-v11.6.1
--------
+v11.6.2
 
 Fixes and enhancements
 ======================
 
 * logging.setup_logging: Always setup log level and return logger
+* Enhance module multimedia.exif:
+    - Add optional orientation override
+    - Add rotation property based on orientation
+    - Add rewrite method to fix issues with exif tags
+    - Allow to specify gexiv2 version
 
 -------
 v11.6.0
