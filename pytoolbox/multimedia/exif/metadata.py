@@ -48,9 +48,9 @@ class Metadata(object):
         """
         Iterate over all tags and rewrite them to fix issues (e.g. GExiv2: Invalid ifdId 103 (23)).
         """
-        tags = {k: str(v.data) for k, v in self.tags.items()}
+        tags = {k: str(v.data) for k, v in self.tags.iteritems()}
         self.exiv2.clear()
-        for key, value in tags.items():
+        for key, value in tags.iteritems():
             self[key] = value
         if save:
             self.save_file()
