@@ -12,7 +12,7 @@ _all = module.All(globals())
 
 
 def setup_logging(name='', reset=False, path=None, console=False, level=logging.DEBUG,
-                  fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
+                  colorize=False, fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
     """
     Setup logging (TODO).
 
@@ -26,6 +26,8 @@ def setup_logging(name='', reset=False, path=None, console=False, level=logging.
     :type console: bool
     :param level: TODO
     :type level: int
+    :param colorize: TODO
+    :type colorize: bool
     :param fmt: TODO
     :type fmt: str
     :param datefmt: TODO
@@ -60,6 +62,8 @@ def setup_logging(name='', reset=False, path=None, console=False, level=logging.
         logging.getLogger(name).handlers = []
     log = logging.getLogger(name)
     log.setLevel(level)
+    if colorize:
+        log.addFilter(ColorizeFilter())
     if path:
         handler = logging.FileHandler(path)
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
