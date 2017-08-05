@@ -27,7 +27,7 @@ class Image(tag.TagSet):
 
     def __init__(self, metadata, orientation=None):
         super(Image, self).__init__(metadata)
-        self._orientation = orientation
+        self._orientation = None if orientation is None else Orientation(orientation)
 
     @property
     def copyright(self):
