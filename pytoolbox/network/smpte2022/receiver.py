@@ -472,9 +472,9 @@ class FecReceiver(object):
                 cross = self.crosses.get(self.position)
                 if cross:
                     del self.crosses[self.position]
-                    if cross['col_sequence']:
+                    if cross['col_sequence'] and cross['col_sequence'] in self.cols:	
                         del self.cols[cross['col_sequence']]
-                    if cross['row_sequence']:
+                    if cross['row_sequence'] and cross['row_sequence'] in self.rows:
                         del self.rows[cross['row_sequence']]
         # Extract packets to output in order to keep a 'certain' amount of them in the buffer
         elif units == FecReceiver.SECONDS:  # based on time stamps
