@@ -285,7 +285,7 @@ class FecReceiver(object):
             media_test = (media_test + fec.offset) & RtpPacket.S_MASK
         if fec.L != 0:
             self.matrixL = fec.L
-        if fec.D != 0:
+        if fec.D != 0 and fec.D != None:
             self.matrixD = fec.D
         # [1] The fec packet is useless if none of the protected media packets is missing
         if len(fec.missing) == 0:
