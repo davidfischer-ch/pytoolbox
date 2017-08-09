@@ -472,7 +472,7 @@ class FecReceiver(object):
                 cross = self.crosses.get(self.position)
                 if cross:
                     del self.crosses[self.position]
-                    if cross['col_sequence'] and cross['col_sequence'] in self.cols:	
+                    if cross['col_sequence'] and cross['col_sequence'] in self.cols:
                         del self.cols[cross['col_sequence']]
                     if cross['row_sequence'] and cross['row_sequence'] in self.rows:
                         del self.rows[cross['row_sequence']]
