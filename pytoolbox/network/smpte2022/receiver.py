@@ -283,9 +283,9 @@ class FecReceiver(object):
                     raise ValueError(to_bytes(FecReceiver.ER_FEC_DIRECTION.format(fec.direction)))
                 fec.set_missing(media_test)
             media_test = (media_test + fec.offset) & RtpPacket.S_MASK
-        if fec.L != 0:
+        if fec.L:
             self.matrixL = fec.L
-        if fec.D != 0 and fec.D != None:
+        if fec.D:
             self.matrixD = fec.D
         # [1] The fec packet is useless if none of the protected media packets is missing
         if len(fec.missing) == 0:
