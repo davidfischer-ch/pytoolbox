@@ -22,7 +22,7 @@ SystemExit: 2
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import argparse, os
+import argparse, os, shutil
 
 from . import itertools, module
 from .encoding import to_bytes
@@ -53,6 +53,10 @@ def multiple(f):
     return _multiple
 
 
+def set_columns(value=None):
+    os.environ['COLUMNS'] = str(value or shutil.get_terminal_size().columns)
+
+
 class FullPaths(argparse.Action):
     """Expand user/relative paths."""
     def __call__(self, parser, namespace, values, option_string=None):
@@ -80,6 +84,7 @@ class Range(object):
 class HelpArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
+        set_columns(kwargs.pop('columns', None))
         super(HelpArgumentParser, self).__init__(*args, formatter_class=HelpFormatter, **kwargs)
 
 
