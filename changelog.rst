@@ -3,17 +3,24 @@ changelog
 =========
 
 -------
-v11.6.2
+v11.6.3
+-------
 
 Fixes and enhancements
 ======================
 
-* logging.setup_logging: Always setup log level and return logger
+* Module argparse: Set columns to a value or auto-detected
+* Module exif: Fix orientation is not value from Orientation
+* Module smpte2022: Various fixes by @AbdulTheProgrammer
+* Enhance function logging.setup_logging:
+    - Add optional colorized mode
+    - Always setup log level and return logger
 * Enhance module multimedia.exif:
     - Add optional orientation override
     - Add rotation property based on orientation
     - Add rewrite method to fix issues with exif tags
     - Allow to specify gexiv2 version
+* Use iteritems because its still a Python 2 (and 3) library
 
 -------
 v11.6.0
