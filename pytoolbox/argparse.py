@@ -53,8 +53,13 @@ def multiple(f):
     return _multiple
 
 
-def set_columns(value=None):
-    os.environ['COLUMNS'] = str(value or shutil.get_terminal_size().columns)
+def set_columns(value=None, default=120):
+    if value is None:
+        try:
+            value = shutil.get_terminal_size().columns
+        except AttributeError:
+            value = default
+    os.environ['COLUMNS'] = str(value)
 
 
 class FullPaths(argparse.Action):
