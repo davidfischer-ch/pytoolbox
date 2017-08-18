@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.6.3
+v11.6.4
 -------
 
 Fixes and enhancements
