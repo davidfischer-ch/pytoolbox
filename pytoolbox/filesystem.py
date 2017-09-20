@@ -18,12 +18,12 @@ from .encoding import string_types
 _all = module.All(globals())
 
 
-def chown(path, user=None, group=None, recursive=False):
+def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
     """Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
     uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
     gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
     if recursive:
-        for dirpath, dirnames, filenames in os.walk(path):
+        for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
             os.chown(dirpath, uid, gid)
             for filename in filenames:
                 os.chown(os.path.join(dirpath, filename), uid, gid)
@@ -31,7 +31,7 @@ def chown(path, user=None, group=None, recursive=False):
         os.chown(path, uid, gid)
 
 
-def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
+def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
     """
     Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions, if necessary.
 
@@ -56,7 +56,7 @@ def find_recursive(directory, patterns, unix_wildcards=True, **kwargs):
     patterns = [
         p if hasattr(p, 'match') else re.compile(fnmatch.translate(p) if unix_wildcards else p) for p in patterns
     ]
-    for dirpath, dirnames, filenames in os.walk(directory, **kwargs):
+    for dirpath, dirnames, filenames in os.walk(directory, **walk_kwargs):
         for filename in filenames:
             if any(p.match(filename) for p in patterns):
                 yield os.path.join(dirpath, filename)
@@ -165,7 +165,7 @@ def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
         yield path_or_data.encode(encoding) if isinstance(path_or_data, string_types) else path_or_data
 
 
-def get_size(path):
+def get_size(path, **walk_kwargs):
     """
     Returns the size of a file or directory.
 
@@ -175,7 +175,7 @@ def get_size(path):
     if os.path.isfile(path):
         return os.stat(path).st_size
     size = 0
-    for dirpath, dirnames, filenames in os.walk(path):
+    for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
         for filename in filenames:
             size += os.stat(os.path.join(dirpath, filename)).st_size
     return size
