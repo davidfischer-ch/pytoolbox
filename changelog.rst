@@ -3,6 +3,20 @@ changelog
 =========
 
 -------
+v11.7.0
+-------
+
+Minor compatibility breaks
+==========================
+
+* Remove unnecessary dependencies + put some as extra
+
+Fixes and enhancements
+======================
+
+* Module filesystem: Add walk_kwargs to some functions
+
+-------
 v11.6.4
 -------
 
