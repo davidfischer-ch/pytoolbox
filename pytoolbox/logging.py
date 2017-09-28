@@ -4,8 +4,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging, sys
 
-from termcolor import colored
-
 from . import module
 
 _all = module.All(globals())
@@ -87,7 +85,8 @@ class ColorizeFilter(logging.Filter):
         record.raw_msg = record.msg
         color = self.color_by_level.get(record.levelno)
         if color:
-            record.msg = colored(record.msg, color)
+            import termcolor
+            record.msg = termcolor.colored(record.msg, color)
         return True
 
 __all__ = _all.diff(globals())

@@ -40,17 +40,10 @@ except Exception as e:
 install_requires = [
     'argparse',
     'jinja2',
-    'mock',
-    'nose',
-    'passlib',
     'pyaml',
-    'pycallgraph',
-    'pygal',
     'python-magic',
     'pytz',
-    'six',
-    'termcolor',
-    'tldextract'
+    'six'
 ]
 
 extras_require = {
@@ -59,10 +52,13 @@ extras_require = {
     'django_filter':    ['django-filter'],
     'django_formtools': ['django-formtools'],
     'flask':            ['flask'],
-    'mongo':            ['celery', 'pymongo'],
+    'logging':          ['termcolor'],
+    'mongo':            ['celery', 'passlib', 'pymongo'],
+    'network':          ['tldextract'],
     'rest_framework':   ['django-oauth-toolkit', 'djangorestframework>=3'],
     'selenium':         ['selenium'],
     'smpte2022':        ['fastxor'],
+    'unittest':         ['mock', 'nose'],
     'voluptuous':       ['voluptuous']
 }
 

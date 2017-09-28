@@ -4,8 +4,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from urlparse import urlsplit, urlunsplit
 
-import tldextract
-
 from .. import string
 
 
@@ -20,6 +18,7 @@ def with_subdomain(url, subdomain=None):
     >>> asserts.equal(with_subdomain('http://app.website.com/page', 'help'), 'http://help.website.com/page')
     >>> asserts.equal(with_subdomain('https://app.website.com#d?page=1', 'help'), 'https://help.website.com#d?page=1')
     """
+    import tldextract
     components = list(urlsplit(url))
     components[1] = string.filterjoin((subdomain, ) + tldextract.extract(components[1])[1:], '.')
     return urlunsplit(components)

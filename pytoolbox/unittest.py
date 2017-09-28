@@ -3,9 +3,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import functools, inspect, io, itertools, os, pprint, time, unittest
-from mock import Mock
-
-import nose
 
 from . import module
 from .encoding import binary_type, string_types
@@ -17,11 +14,13 @@ _all = module.All(globals())
 
 
 def mock_cmd(stdout='', stderr='', returncode=0):
-    return Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
+    import mock
+    return mock.Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
 
 
 def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
     """Run tests and report coverage with nose and coverage."""
+    import nose
     from .encoding import configure_unicode
     configure_unicode()
     nose_options = filter(None, itertools.chain(
