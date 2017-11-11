@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.7.0
+v11.7.1
 -------
 
 Minor compatibility breaks
@@ -15,6 +15,7 @@ Fixes and enhancements
 ======================
 
 * Module filesystem: Add walk_kwargs to some functions
+* Function logging.setup_logging: make possible to setup an instance of logger
 
 -------
 v11.6.4
