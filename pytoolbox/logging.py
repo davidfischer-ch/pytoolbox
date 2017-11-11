@@ -5,17 +5,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging, sys
 
 from . import module
+from .encoding import string_types
 
 _all = module.All(globals())
 
 
-def setup_logging(name='', reset=False, path=None, console=False, level=logging.DEBUG,
+def setup_logging(name_or_log='', reset=False, path=None, console=False, level=logging.DEBUG,
                   colorize=False, fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
     """
     Setup logging (TODO).
 
-    :param name: TODO
-    :type name: str
+    :param name_or_log: TODO
     :param reset: Unregister all previously registered handlers ?
     :type reset: bool
     :param path: TODO
@@ -56,9 +56,9 @@ def setup_logging(name='', reset=False, path=None, console=False, level=logging.
     >>> log.info('single message')
     single message
     """
+    log = logging.getLogger(name_or_log) if isinstance(name_or_log, string_types) else name_or_log
     if reset:
-        logging.getLogger(name).handlers = []
-    log = logging.getLogger(name)
+        log.handlers = []
     log.setLevel(level)
     if colorize:
         log.addFilter(ColorizeFilter())
