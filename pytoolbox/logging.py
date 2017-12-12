@@ -5,13 +5,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging, sys
 
 from . import module
+from .collections import merge_dicts
 from .encoding import string_types
 
 _all = module.All(globals())
 
 
-def setup_logging(name_or_log='', reset=False, path=None, console=False, level=logging.DEBUG,
-                  colorize=False, fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
+def setup_logging(name_or_log='', reset=False, path=None, console=False, level=logging.DEBUG, colorize=False,
+                  color_by_level=None, fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
     """
     Setup logging (TODO).
 
@@ -26,6 +27,8 @@ def setup_logging(name_or_log='', reset=False, path=None, console=False, level=l
     :type level: int
     :param colorize: TODO
     :type colorize: bool
+    :param color_by_level: TODO
+    :type color_by_level: dict
     :param fmt: TODO
     :type fmt: str
     :param datefmt: TODO
@@ -76,10 +79,15 @@ def setup_logging(name_or_log='', reset=False, path=None, console=False, level=l
 class ColorizeFilter(logging.Filter):
 
     color_by_level = {
-        logging.DEBUG: 'yellow',
+        logging.DEBUG: 'cyan',
         logging.ERROR: 'red',
-        logging.INFO: 'white'
+        logging.INFO: 'white',
+        logging.WARNING: 'yellow'
     }
+
+    def __init__(self, *args, **kwargs):
+        self.color_by_level = merge_dicts(self.color_by_level, kwargs.pop('color_by_level', None) or {})
+        super(ColorizeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, record):
         record.raw_msg = record.msg
