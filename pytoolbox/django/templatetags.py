@@ -35,6 +35,16 @@ except ImportError:
         """
         return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
 
+string_if_invalid = ''  # Official default value
+try:  # Django >= 1.8
+    string_if_invalid = settings.TEMPLATES['OPTIONS']['string_if_invalid']
+except:
+    try:  # Django < 1.8
+        string_if_invalid = settings.TEMPLATE_STRING_IF_INVALID
+    except:
+        pass  # Use default
+
+
 # ====================   =====================   ===============   ===============   =====================
 # description            decorator               arguments         input             output
 # ====================   =====================   ===============   ===============   =====================
@@ -85,20 +95,20 @@ def getattribute(value, attribute):
         return value[attribute]
     elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
-    return settings.TEMPLATE_STRING_IF_INVALID
+    return string_if_invalid
 
 
 @register.filter(needs_autoescape=True, safe=True)
 @stringfilter
 def inline(filepath, msg=True, autoescape=True):
-    if filepath in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
+    if filepath in (None, string_if_invalid):
+        return string_if_invalid
     if _include_is_allowed(filepath):
         return open(filepath, encoding='utf-8').read()
     if settings.DEBUG and msg:
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
         return _("[Didn't have permission to include file {0}]").format(filepath_escaped)
-    return settings.TEMPLATE_STRING_IF_INVALID
+    return string_if_invalid
 
 
 @register.filter(is_safe=True)
@@ -116,8 +126,8 @@ def naturalbitrate(bps, kwargs_string=None):
         None|naturalbitrate -> (empty string)
         (empty string)|naturalbitrate -> (empty string)
     """
-    if bps in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
+    if bps in (None, string_if_invalid):
+        return string_if_invalid
     return humanize.naturalbitrate(bps, **_parse_kwargs_string(kwargs_string, format=str, scale=int))
 
 
@@ -137,8 +147,8 @@ def naturalfilesize(the_bytes, kwargs_string=None):
         None|naturalfilesize -> (empty string)
         (empty string)|naturalfilesize -> (empty string)
     """
-    if the_bytes in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
+    if the_bytes in (None, string_if_invalid):
+        return string_if_invalid
     return humanize.naturalfilesize(the_bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
 
 
@@ -176,7 +186,7 @@ def rst_title(value, level):
         return '{1}{0}{2}{0}'.format(os.linesep, value, '-' * length)
     elif level in ('5', 'subsection'):
         return '{1}{0}{2}{0}'.format(os.linesep, value, '~' * length)
-    return settings.TEMPLATE_STRING_IF_INVALID
+    return string_if_invalid
 
 
 @register.filter(is_safe=True)
@@ -191,7 +201,7 @@ def secs_to_time(value, defaults_to_zero=False):
         None|secs_to_time:True|time:"H:i:s.u"  -> 00:00:00.000000
     """
     value = _secs_to_time(value, defaults_to_zero=defaults_to_zero)
-    return value if value is not None else settings.TEMPLATE_STRING_IF_INVALID
+    return value if value is not None else string_if_invalid
 
 
 @register.filter(needs_autoescape=True)
@@ -231,8 +241,8 @@ def timedelta(value, digits=0):
         None|timedelta:10 -> (empty string)
         (empty string)|timedelta -> (empty string)
     """
-    if value in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
+    if value in (None, string_if_invalid):
+        return string_if_invalid
     seconds = value.total_seconds() if hasattr(value, 'total_seconds') else float(value)
     return force_text(datetime.timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
 
@@ -240,16 +250,16 @@ def timedelta(value, digits=0):
 @register.filter
 def verbose_name(instance):
     """Return the verbose name (singular) of a model."""
-    if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
+    if instance in (None, string_if_invalid):
+        return string_if_invalid
     return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
 
 
 @register.filter
 def verbose_name_plural(instance):
     """Return the verbose name (plural) of a model."""
-    if instance in (None, settings.TEMPLATE_STRING_IF_INVALID):
-        return settings.TEMPLATE_STRING_IF_INVALID
+    if instance in (None, string_if_invalid):
+        return string_if_invalid
     return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
 
 
