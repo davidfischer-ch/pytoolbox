@@ -11,7 +11,6 @@ import datetime, os, re
 from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
-from django.template.defaulttags import include_is_allowed
 from django.templatetags.static import PrefixNode, StaticNode
 from django.utils.html import conditional_escape
 from django.utils.encoding import force_text
@@ -25,6 +24,16 @@ from ..encoding import to_unicode
 from ..private import _parse_kwargs_string
 
 _all = module.All(globals())
+
+try:
+    from django.template.defaulttags import include_is_allowed as _include_is_allowed
+except ImportError:
+    def _include_is_allowed(filepath):
+        """
+        Removed since Django 1.10
+        See commit 04ee4059d71dbc6aa029907e251360eaf00e11bb#diff-45fa5fdd90e8a31a18a1e55ec2f94fa3
+        """
+        return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
 
 # ====================   =====================   ===============   ===============   =====================
 # description            decorator               arguments         input             output
@@ -84,7 +93,7 @@ def getattribute(value, attribute):
 def inline(filepath, msg=True, autoescape=True):
     if filepath in (None, settings.TEMPLATE_STRING_IF_INVALID):
         return settings.TEMPLATE_STRING_IF_INVALID
-    if include_is_allowed(filepath):
+    if _include_is_allowed(filepath):
         return open(filepath, encoding='utf-8').read()
     if settings.DEBUG and msg:
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
