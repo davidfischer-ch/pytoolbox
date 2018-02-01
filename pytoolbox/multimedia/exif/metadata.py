@@ -15,13 +15,18 @@ class Metadata(object):
 
     tag_class = tag.Tag
 
-    def __init__(self, path, orientation=None, gexiv2_version='0.10'):
+    def __init__(self, path=None, buf=None, orientation=None, gexiv2_version='0.10'):
         import gi
         gi.require_version('GExiv2', gexiv2_version)
         from gi.repository import GExiv2
         self.path = path
         self.exiv2 = GExiv2.Metadata()
-        self.exiv2.open_path(path)
+        if buf:
+            self.exiv2.open_buf(buf)
+        elif path:
+            self.exiv2.open_path(path)
+        else:
+            raise ValueError('buf or file is required')
         self.camera = camera.Camera(self)
         self.image = image.Image(self, orientation)
         self.lens = lens.Lens(self)
