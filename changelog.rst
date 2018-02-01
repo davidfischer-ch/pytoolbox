@@ -3,6 +3,20 @@ changelog
 =========
 
 -------
+v11.7.2
+-------
+
+Fixes and enhancements
+======================
+
+* Support more Python versions (3.5, 3.6)
+* Module logging: Update logging color scheme + make it overridable
+* Module django.templatetags:
+    - Implement TEMPLATE_STRING_IF_INVALID for Django >= 1.8
+    - Implement include_is_allowed for Django >= 1.10
+* Class multimedia.exif.Metadata: Can also read EXIF metadata from buffer
+
+-------
 v11.7.1
 -------
 
