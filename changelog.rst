@@ -3,13 +3,14 @@ changelog
 =========
 
 -------
-v11.7.2
+v11.7.3
 -------
 
 Fixes and enhancements
 ======================
 
 * Support more Python versions (3.5, 3.6)
+* Function filesystem.makedirs: Add parent argument
 * Module logging: Update logging color scheme + make it overridable
 * Module django.templatetags:
     - Implement TEMPLATE_STRING_IF_INVALID for Django >= 1.8
