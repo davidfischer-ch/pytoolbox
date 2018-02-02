@@ -181,7 +181,7 @@ def get_size(path, **walk_kwargs):
     return size
 
 
-def makedirs(path):
+def makedirs(path, parent=False):
     """
     Recursively make directories (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if directory found and re-raise any other type of exception.
@@ -195,6 +195,8 @@ def makedirs(path):
     True
     >>> shutil.rmtree('/tmp/salut/mec')
     """
+    if parent:
+        path = os.path.dirname(path)
     try:
         os.makedirs(path)
         return True
