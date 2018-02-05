@@ -24,8 +24,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import six
-from pytoolbox.unittest import Mock
+import mock, six
+
 from pytoolbox.subprocess import to_args_list, to_args_string, cmd, screen_launch, screen_list, screen_kill
 from pytoolbox.validation import validate_list
 
@@ -54,7 +54,7 @@ class TestSubprocess(base.TestCase):
         self.equal(to_args_string([10, None, 'string "salut"']), '10 None \'string "salut"\'')
 
     def test_cmd(self):
-        log = Mock()
+        log = mock.Mock()
         cmd(['echo', 'it seem to work'], log=log)
         self.equal(cmd('cat missing_file', fail=False, log=log)['returncode'], 1)
         validate_list(log.call_args_list, [

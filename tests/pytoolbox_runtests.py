@@ -29,6 +29,7 @@ import os, shutil, tarfile, tempfile
 
 import six
 from django.conf import settings
+
 from pytoolbox.exceptions import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
 from pytoolbox.unittest import runtests
