@@ -71,12 +71,12 @@ class TestSubprocess(base.TestCase):
         self.equal(cmd('hfuejnvwqkdivengz', fail=False)['returncode'], 2)
 
     def test_retry_first_try(self):
-        log = Mock()
+        log = mock.Mock()
         cmd('ls', log=log, tries=5, delay_min=1, delay_max=1)
         validate_list(log.call_args_list, [r"call\(u*'Execute ls'\)"])
 
     def test_retry_missing_binary_no_retry(self):
-        log = Mock()
+        log = mock.Mock()
         with self.raises(OSError):
             cmd('hfuejnvwqkdivengz', log=log, tries=5)
         validate_list(log.call_args_list, [
@@ -85,7 +85,7 @@ class TestSubprocess(base.TestCase):
         ])
 
     def test_retry_no_success(self):
-        log = Mock()
+        log = mock.Mock()
         cmd('ls hfuejnvwqkdivengz', log=log, fail=False, tries=5, delay_min=0.0, delay_max=0.95)
         validate_list(log.call_args_list, [
             r"call\(u*'Execute ls hfuejnvwqkdivengz'\)",
@@ -113,7 +113,7 @@ class TestSubprocess(base.TestCase):
             self.true(screens[0].endswith('my_2nd_screen'))
         finally:
             # Cleanup
-            log = Mock()
+            log = mock.Mock()
             screen_kill(name='my_1st_screen', log=log)
             screen_kill(name='my_2nd_screen', log=log)
             if log.call_args_list:
