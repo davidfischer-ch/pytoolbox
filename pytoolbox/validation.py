@@ -229,14 +229,6 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     False
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
     False
-
-    Only map network unreachable from :mod:`errno` to False (EADDRINUSE in Travis, ...):
-
-    >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080, timeout=0.2,
-    ...           excepted_errnos=[errno.ENETUNREACH, errno.EADDRINUSE])
-    False
-    >>> valid_uri('cloudncode.com/aaa', check_404=True, excepted_errnos=())
-    False
     """
     url = urlparse(uri)
     if not url.netloc or scheme_mandatory and not url.scheme or port_mandatory and not url.port:
