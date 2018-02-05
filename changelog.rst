@@ -3,8 +3,13 @@ changelog
 =========
 
 -------
-v11.7.3
+v11.7.4
 -------
+
+Minor compatibility breaks
+==========================
+
+* Remove jinja2 from packages installed by default
 
 Fixes and enhancements
 ======================
