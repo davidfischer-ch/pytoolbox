@@ -208,9 +208,9 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('domain_not_exist_404_404/index.htmlw', check_404=True)
     False
 
-    Set default value for port (using a crazy port number to ensure a 404) [time'd out request]:
+    Set default value for port [time'd out request]:
 
-    >>> valid_uri('//docs.python.org/2/library/httplib.html', check_404=True, default_port=88881, timeout=0.2)
+    >>> valid_uri('http://google.com/pytoolbox', check_404=True, default_port=80, timeout=0.2)
     False
 
     Following the syntax ... in RFC 1808, ... input is presumed ... a path component:
@@ -230,10 +230,10 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
     False
 
-    Only map network unreachable from :mod:`errno` to False:
+    Only map network unreachable from :mod:`errno` to False (EADDRINUSE in Travis, ...):
 
     >>> valid_uri('//docs.python.org/index.html', check_404=True, default_port=8080, timeout=0.2,
-    ...           excepted_errnos=[errno.ENETUNREACH])
+    ...           excepted_errnos=[errno.ENETUNREACH, errno.EADDRINUSE])
     False
     >>> valid_uri('cloudncode.com/aaa', check_404=True, excepted_errnos=())
     False
