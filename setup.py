@@ -39,7 +39,6 @@ except Exception as e:
 
 install_requires = [
     'argparse',
-    'jinja2',
     'pyaml',
     'python-magic',
     'pytz',
@@ -52,6 +51,7 @@ extras_require = {
     'django_filter':    ['django-filter'],
     'django_formtools': ['django-formtools'],
     'flask':            ['flask'],
+    'jinja2':           ['jinja2'],
     'logging':          ['termcolor'],
     'mongo':            ['celery', 'passlib', 'pymongo'],
     'network':          ['tldextract'],
