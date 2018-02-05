@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.7.4
+v11.7.5
 -------
 
 Minor compatibility breaks
