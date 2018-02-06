@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.7.5
+v11.7.6
 -------
 
 Minor compatibility breaks
@@ -21,6 +21,7 @@ Fixes and enhancements
     - Implement TEMPLATE_STRING_IF_INVALID for Django >= 1.8
     - Implement include_is_allowed for Django >= 1.10
 * Class multimedia.exif.Metadata: Can also read EXIF metadata from buffer
+* Function argparse.password: Add it
 
 -------
 v11.7.1
