@@ -22,7 +22,7 @@ SystemExit: 2
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import argparse, os, shutil
+import argparse, getpass, os, shutil
 
 from . import itertools, module
 from .encoding import to_bytes
@@ -51,6 +51,10 @@ def multiple(f):
     def _multiple(values):
         return [f(v) for v in values] if isinstance(values, (list, tuple)) else f(values)
     return _multiple
+
+
+def password(value):
+    return value or getpass.getpass('Password: ')
 
 
 def set_columns(value=None, default=120):
