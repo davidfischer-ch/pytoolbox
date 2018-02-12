@@ -1,6 +1,39 @@
 # -*- encoding: utf-8 -*-
 
-from PIL import Image
+import functools
+
+from ... import module
+from ...types import Missing
+
+_all = module.All(globals())
+
+from PIL import Image  # noqa
+
+
+TRANSPOSE_SEQUENCES = {
+    None: [],
+    1: [],
+    2: [Image.FLIP_LEFT_RIGHT],
+    3: [Image.ROTATE_180],
+    4: [Image.FLIP_TOP_BOTTOM],
+    5: [Image.FLIP_LEFT_RIGHT, Image.ROTATE_90],
+    6: [Image.ROTATE_270],
+    7: [Image.FLIP_TOP_BOTTOM, Image.ROTATE_90],
+    8: [Image.ROTATE_90]
+}
+
+
+def apply_orientation(image, orientation=Missing, sequences=TRANSPOSE_SEQUENCES):
+    """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
+    orientation = get_orientation(image) if orientation is Missing else orientation
+    return functools.reduce(lambda i, op: i.transpose(op), sequences[orientation], image)
+
+
+def get_orientation(image, orientation_tag=0x0112):
+    try:
+        return image._getexif()[orientation_tag]
+    except (AttributeError, KeyError):
+        return None
 
 
 def open(file_or_path):
@@ -35,3 +68,5 @@ def remove_transparency(image, background=(255, 255, 255)):
 def save(image, *args, **kwargs):
     kwargs.setdefault('exif', image.info.get('exif', b''))
     return image.save(*args, **kwargs)
+
+__all__ = _all.diff(globals())
