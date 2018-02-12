@@ -25,6 +25,18 @@ _all = module.All(globals())
 
 class Image(tag.TagSet):
 
+    ORIENTATION_TO_ROTATION = {
+        None: 0,
+        Orientation.NORMAL: 0,
+        # 2 = Mirror horizontal
+        Orientation.ROT_180_CCW: 180,
+        # 4 = Mirror vertical
+        # 5 = Mirror horizontal and rotate 270 CW
+        Orientation.ROT_90_CW: -90,
+        # 7 = Mirror horizontal and rotate 90 CW
+        Orientation.ROT_270_CW: -270
+    }
+
     def __init__(self, metadata, orientation=None):
         super(Image, self).__init__(metadata)
         self._orientation = None if orientation is None else Orientation(orientation)
@@ -53,17 +65,7 @@ class Image(tag.TagSet):
 
     @property
     def rotation(self):
-        return {
-            None: 0,
-            Orientation.NORMAL: 0,
-            # 2 = Mirror horizontal
-            Orientation.ROT_180_CCW: 180,
-            # 4 = Mirror vertical
-            # 5 = Mirror horizontal and rotate 270 CW
-            Orientation.ROT_90_CW: -90,
-            # 7 = Mirror horizontal and rotate 90 CW
-            Orientation.ROT_270_CW: -270
-        }[self.orientation]
+        return self.ORIENTATION_TO_ROTATION[self.orientation]
 
     @property
     def width(self):
