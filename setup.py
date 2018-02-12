@@ -37,6 +37,8 @@ try:
 except Exception as e:
     sys.stderr.write('WARNING importing pytoolbox_runtests raised the following error: {0}{1.linesep}'.format(e, os))
 
+PY2 = sys.version_info[0] < 3
+
 install_requires = [
     'argparse',
     'pyaml',
@@ -51,6 +53,7 @@ extras_require = {
     'django_filter':    ['django-filter'],
     'django_formtools': ['django-formtools'],
     'flask':            ['flask'],
+    'imaging':          ['pil' if PY2 else 'pillow'],
     'jinja2':           ['jinja2'],
     'logging':          ['termcolor'],
     'mongo':            ['celery', 'passlib', 'pymongo'],
@@ -67,7 +70,7 @@ extras_require = {
 # * hashlib, ipaddr: Part of python 3 standard library
 # * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
 
-if sys.version_info[0] < 3:
+if PY2:
     try:
         import hashlib
     except ImportError:
@@ -190,7 +193,7 @@ setuptools.setup(
     ],
     description='Toolbox for Python scripts',
     keywords=[
-        'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'rsync', 'rtp', 'selenium',
+        'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'pil', 'rsync', 'rtp', 'selenium',
         'smpte 2022-1', 'screen', 'subprocess'
     ],
     license='EUPL 1.1',
