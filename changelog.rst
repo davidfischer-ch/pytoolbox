@@ -3,6 +3,15 @@ changelog
 =========
 
 -------
+v11.8.0
+-------
+
+Features
+========
+
+* Add module multimedia.image.PIL
+
+-------
 v11.7.6
 -------
 
