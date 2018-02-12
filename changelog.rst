@@ -3,8 +3,14 @@ changelog
 =========
 
 -------
-v11.8.0
+v11.8.1
 -------
+
+Fixes and enhancements
+======================
+
+* Add functions multimedia.image.PIL.{apply,get}_orientation
+* Add constant ORIENTATION_TO_ROTATION to multimedia.exif.image.Image
 
 Features
 ========
