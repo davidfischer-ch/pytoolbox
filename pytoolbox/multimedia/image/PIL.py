@@ -3,12 +3,10 @@
 import functools
 
 from ... import module
-from ...types import Missing
 
 _all = module.All(globals())
 
 from PIL import Image  # noqa
-
 
 TRANSPOSE_SEQUENCES = {
     None: [],
@@ -23,17 +21,18 @@ TRANSPOSE_SEQUENCES = {
 }
 
 
-def apply_orientation(image, orientation=Missing, sequences=TRANSPOSE_SEQUENCES):
-    """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
-    orientation = get_orientation(image) if orientation is Missing else orientation
-    return functools.reduce(lambda i, op: i.transpose(op), sequences[orientation], image)
-
-
-def get_orientation(image, orientation_tag=0x0112):
+def get_orientation(image, orientation_tag=0x0112, no_exif_default=None, no_key_default=None):
+    exif = getattr(image, '_getexif', lambda: None)()
     try:
-        return image._getexif()[orientation_tag]
-    except (AttributeError, KeyError):
-        return None
+        return no_exif_default if exif is None else exif[orientation_tag]
+    except KeyError:
+        return no_key_default
+
+
+def apply_orientation(image, get_orientation=get_orientation, sequences=TRANSPOSE_SEQUENCES):
+    """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
+    orientation = get_orientation(image)
+    return functools.reduce(lambda i, op: i.transpose(op), sequences[orientation], image)
 
 
 def open(file_or_path):
