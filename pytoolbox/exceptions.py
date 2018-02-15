@@ -18,7 +18,7 @@ class MessageMixin(Exception):
         if message is not None:
             self.message = message
         self.__dict__.update(kwargs)
-        super(MessageMixin, self).__init__(self)
+        Exception.__init__(self)
 
     def __unicode__(self):
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
