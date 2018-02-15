@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.8.2
+v11.8.3
 -------
 
 Fixes and enhancements
@@ -13,6 +13,7 @@ Fixes and enhancements
 * Add constant ORIENTATION_TO_ROTATION to multimedia.exif.image.Image
 * Make function multimedia.image.PIL.apply_orientation more generic
 * Make function multimedia.image.PIL.get_orientation more robust
+* Class exceptions.MessageMixin: Fix pickle recursion error
 
 Features
 ========
