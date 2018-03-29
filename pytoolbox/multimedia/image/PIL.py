@@ -32,7 +32,7 @@ def get_orientation(image, orientation_tag=0x0112, no_exif_default=None, no_key_
 def apply_orientation(image, get_orientation=get_orientation, sequences=TRANSPOSE_SEQUENCES):
     """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
     orientation = get_orientation(image)
-    return functools.reduce(lambda i, op: i.transpose(op), sequences[orientation], image)
+    return functools.reduce(lambda i, op: i.transpose(op), sequences.get(orientation, []), image)
 
 
 def open(file_or_path):
