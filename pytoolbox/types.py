@@ -94,7 +94,7 @@ def isiterable(obj, blacklist=(binary_type, string_types)):
 def merge_bases_attribute(cls, attr_name, default, merge_func=lambda a, b: a + b):
     """
     Merge a `cls` attribute value with all values defined in all bases classes (using `__mro__`).
-    Return resulting value. Use default every time a class do not have given attribute.
+    Return resulting value. Use default every time a class does not have given attribute.
 
     Be careful, `merge_func` must be a pure function.
     """
