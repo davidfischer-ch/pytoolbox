@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.8.4
+v11.8.5
 -------
 
 Fixes and enhancements
@@ -20,6 +20,7 @@ Features
 ========
 
 * Add module multimedia.image.PIL
+* Add function types.merge_base_attribute
 
 -------
 v11.7.6
