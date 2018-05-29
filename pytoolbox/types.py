@@ -91,14 +91,14 @@ def isiterable(obj, blacklist=(binary_type, string_types)):
     return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
 
 
-def merge_bases_attribute(cls, attr_name, default, merge_func=lambda a, b: a + b):
+def merge_bases_attribute(cls, attr_name, init, default, merge_func=lambda a, b: a + b):
     """
-    Merge a `cls` attribute value with all values defined in all bases classes (using `__mro__`).
+    Merge all values of attribute defined in all bases classes (using `__mro__`).
     Return resulting value. Use default every time a class does not have given attribute.
 
     Be careful, `merge_func` must be a pure function.
     """
-    value = getattr(cls, attr_name, default)
+    value = init
     for base in cls.__mro__:
         value = merge_func(value, getattr(base, attr_name, default))
     return value
