@@ -48,10 +48,8 @@ def iter_download_to_file(url, path, code=200, chunk_size=102400, force=True, ha
                 if hash_algorithm:
                     file_hash = file_hash or crypto.new(hash_algorithm)
                     file_hash.update(chunk)
-                if file_hash:
-                    yield position, length, chunk, downloaded, file_hash.hexdigest()
-                else:
-                    yield None
+                file_hash_digest = file_hash.hexdigest() if file_hash else None
+                yield position, length, chunk, downloaded, file_hash_digest
                 file = file or open(path, 'wb')
                 file.write(chunk)
         finally:
