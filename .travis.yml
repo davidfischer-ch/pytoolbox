@@ -15,7 +15,7 @@ install:
   - travis_retry sudo pip install --user -U -e .[atlassian,flask,jinja2,logging,mongo,network,selenium,smpte2022,unittest,voluptuous]
   - travis_retry sudo pip install --user coveralls
 script:
-  # - rm -rf django* rest_framework  # Not maintained so not testable ...
+  - rm -rf django* rest_framework  # Not maintained so not testable ...
   - sudo python setup.py test
 matrix:
   allow_failures:
