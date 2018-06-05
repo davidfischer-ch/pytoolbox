@@ -126,6 +126,11 @@ How to check coverage ?
     python setup.py test
     xdg-open tests/cover/index.html
 
+Remarks:
+
+* All Django related modules are excluded from tests!
+* However I am using them with Django up to 1.11.8.
+
 ---------------
 How to use it ?
 ---------------
