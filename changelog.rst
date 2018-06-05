@@ -3,6 +3,20 @@ changelog
 =========
 
 -------
+v11.9.0
+-------
+
+Fix and enhancements
+====================
+
+* Set line size to 100 chars and cleanup code
+* Fix Travis build (remove django modules when testing)
+* Always install pillow when installing with -e imaging
+* Update README to reflect newer options
+
+* Class multimedia.exif.image.Orientation: Use standard Enum, or object if not available
+
+-------
 v11.8.6
 -------
 
