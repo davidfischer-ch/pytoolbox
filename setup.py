@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-#**********************************************************************************************************************#
+# ************************************************************************************************ #
 #                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
 #
-#**********************************************************************************************************************#
+# ************************************************************************************************ #
 #
 # This file is part of David Fischer's pytoolbox Project.
 #
-# This project is free software: you can redistribute it and/or modify it under the terms of the EUPL v. 1.1 as provided
-# by the European Commission. This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# This project is free software: you can redistribute it and/or modify it under the terms of the
+# EUPL v. 1.1 as provided by the European Commission. This project is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the European Union Public License for more details.
 #
@@ -32,10 +33,13 @@ from setuptools.command import develop, install, test
 import pytoolbox
 
 try:
-    # Check if import succeed and print the exception because setup() ciphered stack-trace is not useful
+    # Check if import succeed and print the exception because setup() ciphered stack-trace is not
+    # useful
     from tests import pytoolbox_runtests
 except Exception as e:
-    sys.stderr.write('WARNING importing pytoolbox_runtests raised the following error: {0}{1.linesep}'.format(e, os))
+    sys.stderr.write(
+        'WARNING importing pytoolbox_runtests raised the following error: {0}{1.linesep}'.format(
+            e, os))
 
 PY2 = sys.version_info[0] < 3
 
@@ -89,8 +93,10 @@ def get_command_with_extras(cls, extras_require):
         user_options = list(itertools.chain(cls.user_options, [
             ('extra-all', None, 'Install dependencies for all features.')
         ], [
-            ('extra-{0}'.format(e.replace('_', '-')), None, 'Install dependencies for the feature {0}.'.format(e))
-            for e in sorted(extras_require.keys())
+            (
+                'extra-{0}'.format(e.replace('_', '-')), None,
+                'Install dependencies for the feature {0}.'.format(e)
+            ) for e in sorted(extras_require.keys())
         ]))
         boolean_options = list(itertools.chain(
             getattr(cls, 'boolean_options', []), ['extra-all'], [o[0] for o in user_options]
@@ -105,9 +111,13 @@ def get_command_with_extras(cls, extras_require):
         def finalize_options(self):
             cls.finalize_options(self)
             for extra in extras_require.keys():
-                if (self.extra_all or getattr(self, 'extra_{0}'.format(extra))) and extra in extras_require:
+                if (
+                    (self.extra_all or getattr(self, 'extra_{0}'.format(extra))) and
+                    extra in extras_require
+                ):
                     print('Enable dependencies for feature/module {0}'.format(extra))
-                    self.distribution.install_requires.extend(self.distribution.extras_require[extra])
+                    self.distribution.install_requires.extend(
+                        self.distribution.extras_require[extra])
 
     return WithExtra
 
@@ -134,10 +144,14 @@ class docs(setuptools.Command):
         package_directory = os.path.join(os.path.dirname(__file__), 'pytoolbox')
 
         # Cleanup previously generated restructured files
-        for path in filesystem.find_recursive(source_directory, r'^pytoolbox.*\.rst$', unix_wildcards=False):
+        for path in filesystem.find_recursive(
+                source_directory, r'^pytoolbox.*\.rst$', unix_wildcards=False):
             os.remove(path)
 
-        cmd(['sphinx-apidoc', '--force', '--module-first', '--separate', '-o', source_directory, package_directory])
+        cmd([
+            'sphinx-apidoc', '--force', '--module-first', '--separate', '-o',
+            source_directory, package_directory
+        ])
         shutil.rmtree(os.path.join(docs_directory, 'build', 'html'), ignore_errors=True)
         result = cmd('make html', cwd=docs_directory, fail=False)
 
@@ -193,8 +207,8 @@ setuptools.setup(
     ],
     description='Toolbox for Python scripts',
     keywords=[
-        'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'pil', 'rsync', 'rtp', 'selenium',
-        'smpte 2022-1', 'screen', 'subprocess'
+        'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'pil', 'rsync',
+        'rtp', 'selenium', 'smpte 2022-1', 'screen', 'subprocess'
     ],
     license='EUPL 1.1',
     long_description=open('README.rst', 'r', encoding='utf-8').read(),
