@@ -25,12 +25,17 @@ def get_arguments_names(function):
 
 
 def get_properties(obj):
-    return ((n, getattr(obj, n)) for n, p in inspect.getmembers(obj.__class__, lambda m: isinstance(m, property)))
+    return (
+        (n, getattr(obj, n))
+        for n, p in inspect.getmembers(obj.__class__, lambda m: isinstance(m, property))
+    )
 
 
 def get_slots(obj):
     """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
-    return set(itertools.chain.from_iterable(getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__))
+    return set(itertools.chain.from_iterable(
+        getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__)
+    )
 
 
 def get_subclasses(obj, nested=True):
@@ -122,8 +127,9 @@ class DummyObject(object):
 
 class EchoObject(object):
     """
-    Object that return any missing attribute as an instance of :class:`EchoObject` with the name set to the Python
-    expression used to access it. Also implements __getitem__. Some examples are worth hundred words...
+    Object that return any missing attribute as an instance of :class:`EchoObject` with the name set
+    to the Python expression used to access it. Also implements __getitem__. Some examples are worth
+    hundred words...
 
     **Example usage**
 
@@ -170,8 +176,8 @@ class EchoObject(object):
 
 class EchoDict(dict):
     """
-    Dictionary that return any missing item as an instance of :class:`EchoObject` with the name set to the Python
-    expression used to access it. Some examples are worth hundred words...
+    Dictionary that return any missing item as an instance of :class:`EchoObject` with the name set
+    to the Python expression used to access it. Some examples are worth hundred words...
 
     **Example usage**
 

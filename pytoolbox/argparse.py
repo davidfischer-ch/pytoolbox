@@ -13,7 +13,8 @@ Module related to parsing arguments from the command-line.
 >>> x = parser.add_argument('directory', action=FullPaths, type=is_dir)
 >>> print(parser.parse_args(['/usr/lib']).directory)
 /usr/lib
->>> asserts.equal(parser.parse_args(['.']).directory, os.path.abspath(os.path.expanduser(os.getcwd())))
+>>> asserts.equal(
+...     parser.parse_args(['.']).directory, os.path.abspath(os.path.expanduser(os.getcwd())))
 >>> parser.parse_args(['/does_not_exist/'])
 Traceback (most recent call last):
     ...
@@ -70,7 +71,8 @@ class FullPaths(argparse.Action):
     """Expand user/relative paths."""
     def __call__(self, parser, namespace, values, option_string=None):
         fullpath = lambda p: os.path.abspath(os.path.expanduser(p))
-        setattr(namespace, self.dest, itertools.extract_single(list(fullpath(v) for v in itertools.chain(values))))
+        setattr(namespace, self.dest, itertools.extract_single(
+            list(fullpath(v) for v in itertools.chain(values))))
 
 
 class Range(object):

@@ -54,9 +54,12 @@ def remove_metadata(image, keys=('exif', ), inplace=False):
 
 
 def remove_transparency(image, background=(255, 255, 255)):
-    """Return a RGB image with an alpha mask applied to picture + background. Do nothing if alpha not found."""
+    """
+    Return a RGB image with an alpha mask applied to picture + background.
+    Do nothing if alpha not found.
+    """
     if image.mode in ('RGBA', 'LA') or (image.mode == 'P' and 'transparency' in image.info):
-        # Need to convert to RGBA if LA format due to a bug in PIL (http://stackoverflow.com/a/1963146)
+        # Need to convert to RGBA if LA format due to a bug http://stackoverflow.com/a/1963146
         alpha = (image.convert('RGBA') if image.mode == 'LA' else image).split()[-1]
         new_image = Image.new('RGB', image.size, background)
         new_image.paste(image, mask=alpha)

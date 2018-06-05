@@ -15,7 +15,10 @@ _all = module.All(globals())
 
 
 class ConvertEmailToTextMixin(object):
-    """Set email inputs as text to avoid the i18n issue (http://html5doctor.com/html5-forms-input-types#input-email)."""
+    """
+    Set email inputs as text to avoid the i18n issue
+    http://html5doctor.com/html5-forms-input-types#input-email.
+    """
 
     def __init__(self, *args, **kwargs):
         super(ConvertEmailToTextMixin, self).__init__(*args, **kwargs)
@@ -32,12 +35,23 @@ class EnctypeMixin(object):
 
 
 class HelpTextToPlaceholderMixin(object):
-    """Update the widgets of the form to copy (and remove) the field's help text to the widget's placeholder."""
+    """
+    Update the widgets of the form to copy (and remove) the field's help text to the widget's
+    placeholder.
+    """
 
     #: Add a placeholder to the type of fields listed here.
     placeholder_fields = (
-        fields.CharField, fields.DateField, fields.DateTimeField, fields.DecimalField, fields.EmailField,
-        fields.FloatField, fields.IntegerField, fields.RegexField, fields.SlugField, fields.TimeField
+        fields.CharField,
+        fields.DateField,
+        fields.DateTimeField,
+        fields.DecimalField,
+        fields.EmailField,
+        fields.FloatField,
+        fields.IntegerField,
+        fields.RegexField,
+        fields.SlugField,
+        fields.TimeField
     )
     #: Remove the help text after having copied it to the placeholder.
     placeholder_remove_help_text = True
@@ -55,7 +69,10 @@ class HelpTextToPlaceholderMixin(object):
 
 
 class MapErrorsMixin(object):
-    """Map errors based on field name. Mandatory when the form contains a field from a model named differently."""
+    """
+    Map errors based on field name. Mandatory when the form contains a field from a model named
+    differently.
+    """
 
     errors_map = {}
 
@@ -67,7 +84,8 @@ class MapErrorsMixin(object):
 class ModelBasedFormCleanupMixin(object):
     """
     Make possible the cleanup of the form by the model through a class method called `clean_form`.
-    Useful to cleanup the form based on complex conditions, e.g. if two fields are inter-related (start/end dates, ...).
+    Useful to cleanup the form based on complex conditions, e.g. if two fields are inter-related
+    (start/end dates, ...).
     """
 
     def clean(self):
@@ -80,7 +98,8 @@ class ModelBasedFormCleanupMixin(object):
 
 class RequestMixin(object):
     """
-    Accept request as a optional (default: None) argument of the constructor and set it as an attribute of the object.
+    Accept request as a optional (default: None) argument of the constructor and set it as an
+    attribute of the object.
     """
 
     def __init__(self, *args, **kwargs):
@@ -111,12 +130,13 @@ class StaffOnlyFieldsMixin(RequestMixin):
 
 class UpdateWidgetAttributeMixin(object):
     """
-    Update the widgets of the form based on a set of rules applied depending of the form field's class.
-    The rules can change the class of the widget and/or update the attributes of the widget with
-    :func:`pytoolbox.django.forms.utils.update_widget_attributes`.
+    Update the widgets of the form based on a set of rules applied depending of the form field's
+    class. The rules can change the class of the widget and/or update the attributes of the widget
+    with :func:`pytoolbox.django.forms.utils.update_widget_attributes`.
     """
 
-    #: Set of rules linking the form field's class to the replacement class and the attributes update list.
+    #: Set of rules linking the form field's class to the replacement class and the attributes
+    #  update list.
     widgets_rules = {
         fields.DateField: [widgets.CalendarDateInput, {'class': '+dateinput +input-small'}],
         fields.TimeField: [widgets.ClockTimeInput,    {'class': '+timeinput +input-small'}],

@@ -45,9 +45,11 @@ class TimeThrottle(object):
 
     def throttle_iterable(self, objects, callback=lambda o: None):
         """
-        Consume and skips some objects to yield them at defined `min_delay`. First and last objects are always returned.
+        Consume and skips some objects to yield them at defined `min_delay`. First and last objects
+        are always returned.
 
-        * Set `callback` to a callable with the signature ``is_throttled_args = callback(object)``. Used by subclasses.
+        * Set `callback` to a callable with the signature ``is_throttled_args = callback(object)``.
+          Used by subclasses.
         """
         current_object = Missing
         for obj in objects:
@@ -90,7 +92,11 @@ class TimeAndRatioThrottle(TimeThrottle):
             return False
         ratio_delta = ratio - self.previous_ratio
         time_delta = time.time() - self.previous_time
-        if ratio_delta > self.min_ratio_delta and time_delta > self.min_time_delta or time_delta > self.max_time_delta:
+        if (
+            ratio_delta > self.min_ratio_delta and
+            time_delta > self.min_time_delta or
+            time_delta > self.max_time_delta
+        ):
             self._update(ratio)
             return False
         return True

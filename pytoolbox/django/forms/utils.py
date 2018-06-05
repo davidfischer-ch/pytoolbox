@@ -18,7 +18,9 @@ _all = module.All(globals())
 
 
 def conditional_required(form, required_dict, data=None, cleanup=False):
-    """Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'."""
+    """
+    Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'.
+    """
     data = data or form.cleaned_data
     for name, value in data.iteritems():
         required = required_dict.get(name, None)
@@ -57,15 +59,16 @@ def set_disabled(form, field_name, value=False):
 
 def update_widget_attributes(widget, updates):
     """
-    Update attributes of a `widget` with content of `updates` handling classes addition [+], removal [-] and
-    toggle [^].
+    Update attributes of a `widget` with content of `updates` handling classes addition [+],
+    removal [-] and toggle [^].
 
     **Example usage**
 
     >>> from pytoolbox.unittest import asserts
     >>> widget = type(str(''), (), {})
     >>> widget.attrs = {'class': 'mondiale'}
-    >>> update_widget_attributes(widget, {'class': '+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
+    >>> update_widget_attributes(
+    ...     widget, {'class': '+pigeon +pigeon +voyage -mondiale -mondiale, ^voyage ^voyageur'})
     >>> asserts.dict_equal(widget.attrs, {'class': 'pigeon voyageur'})
     >>> update_widget_attributes(widget, {'class': '+le', 'cols': 100})
     >>> asserts.dict_equal(widget.attrs, {'class': 'le pigeon voyageur', 'cols': 100})
@@ -81,18 +84,23 @@ def update_widget_attributes(widget, updates):
                 class_set.discard(cls)
             else:
                 raise ValueError(to_bytes(
-                    'updates must be a valid string containing "<op>class <op>..." with op in [+-^].'))
+                    'updates must be a valid string with "<op>class <op>..." with op in [+-^].'))
         widget.attrs['class'] = ' '.join(sorted(class_set))
         del updates['class']
     widget.attrs.update(updates)
 
 
 def validate_start_end(form, data=None, start_name='start_date', end_name='end_date'):
-    """Check that the field containing the value of the start field (time, ...) is not bigger (>) than the stop."""
+    """
+    Check that the field containing the value of the start field (time, ...) is not bigger (>) than
+    the stop.
+    """
     data = data or form.cleaned_data
     start, end = data[start_name], data[end_name]
     if start and end and start > end:
-        form._errors[end_name] = ErrorList(['The {0} cannot be before the {1}.'.format(
-                                           start_name.replace('_', ' '), end_name.replace('_', ' '))])
+        form._errors[end_name] = ErrorList([
+            'The {0} cannot be before the {1}.'.format(
+                start_name.replace('_', ' '), end_name.replace('_', ' '))
+        ])
 
 __all__ = _all.diff(globals())

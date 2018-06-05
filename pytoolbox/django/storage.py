@@ -24,18 +24,23 @@ class ExpressTemporaryFileMixin(object):
         Save the temporary file to the storage.
         Set temporary file path to allow using rename instead of chunked copy when possible.
 
-        See what happens in super()._save(): https://github.com/django/django/blob/master/django/core/files/storage.py
+        See what happens in super()._save():
+            https://github.com/django/django/blob/master/django/core/files/storage.py
         """
         start_time = time.time()
         if hasattr(content.file, 'temporary_file_path'):
             content.temporary_file_path = lambda: content.file.temporary_file_path()
         result = super(ExpressTemporaryFileMixin, self)._save(name, content)
-        logger.debug('Saved protected file "{0}" in {1:.2g} seconds'.format(name, time.time() - start_time))
+        logger.debug('Saved protected file "{0}" in {1:.2g} seconds'.format(
+            name, time.time() - start_time))
         return result
 
 
 class OverwriteMixin(object):
-    """Update get_available_name to remove any previously stored file (if any) before returning the name."""
+    """
+    Update get_available_name to remove any previously stored file (if any) before returning the
+    name.
+    """
 
     def get_available_name(self, name):
         self.delete(name)

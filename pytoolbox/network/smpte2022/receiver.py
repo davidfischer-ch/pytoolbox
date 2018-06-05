@@ -16,7 +16,8 @@ _all = module.All(globals())
 class FecReceiver(object):
     """
     A SMPTE 2022-1 FEC streams receiver.
-    This receiver accept incoming RTP media and FEC packets and make available the recovered media stream.
+    This receiver accept incoming RTP media and FEC packets and make available the recovered media
+    stream.
 
     **Example usage (with a network capture)**
 
@@ -33,8 +34,9 @@ class FecReceiver(object):
         >> for ts, buf in dpkt.pcap.Reader(open('test.dump')):
         >>     udp = dpkt.ethernet.Ethernet(buf).data.data
         >>     if udp.dport == 3300:
-        >>         media_packet = RtpPacket.create(unpack('!h', udp.data[2:4])[0], unpack('!i', udp.data[4:8])[0],
-        >>                                         RtpPacket.MP2T_PT, bytearray(udp.data[12:]))
+        >>         media_packet = RtpPacket.create(
+        ..             unpack('!h', udp.data[2:4])[0], unpack('!i', udp.data[4:8])[0],
+        ..             RtpPacket.MP2T_PT, bytearray(udp.data[12:]))
         >>         fec_receiver.put_media(media_packet, onlyMP2TS=True)
         >>     elif udp.dport in (3302, 3304):
         >>         fec_data = bytearray(udp.data)
@@ -78,7 +80,8 @@ class FecReceiver(object):
     ...         if media.sequence != 0:
     ...             receiver.put_media(media, True)
     >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, L, D, [p[0] for p in matrix[0:]])
-    >>> print('dir={0} snbase={1} offset={2} na={3}'.format(fec.direction, fec.snbase, fec.offset, fec.na))
+    >>> print('dir={0} snbase={1} offset={2} na={3}'.format(
+    ...     fec.direction, fec.snbase, fec.offset, fec.na))
     dir=0 snbase=0 offset=4 na=5
     >>> receiver.put_fec(fec)
     >>> print(receiver)
@@ -103,7 +106,7 @@ class FecReceiver(object):
     True
     """
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     ER_DELAY_UNITS = "Unknown delay units '{0}'"
     ER_DIRECTION = 'FEC packet direction is neither COL nor ROW : {0}'
@@ -125,7 +128,7 @@ class FecReceiver(object):
     DELAY_RANGE = xrange(len(DELAY_NAMES))  # noqa
     PACKETS, SECONDS = DELAY_RANGE
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(self, output):
         """
@@ -182,9 +185,9 @@ class FecReceiver(object):
         self.max_col = 0       # Largest amount of stored elements in the columns buffer
         self.max_row = 0       # Largest amount of stored elements in the rows buffer
         self.lostogram = collections.defaultdict(int)  # Statistics about lost medias
-        self.lostogram_counter = 0                     # Incremented while there are lost media packets
+        self.lostogram_counter = 0  # Incremented while there are lost media packets
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
     def current_delay(self):
@@ -198,7 +201,7 @@ class FecReceiver(object):
         raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(self.delay_units)))
         # return medias.lastEntry().getValue().getTime() - medias.firstEntry().getValue().getTime()
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def set_delay(self, value, units):
         """Set desired size for the internal media buffer."""
@@ -238,7 +241,8 @@ class FecReceiver(object):
 
     def put_fec(self, fec):
         """
-        Put an incoming FEC packet, the algorithm will do the following according to these scenarios:
+        Put an incoming FEC packet, the algorithm will do the following according to these
+        scenarios:
 
         1. The fec packet is useless if none of the protected media packets is missing
         2. Only on media packet missing, fec packet is able to recover it now !
@@ -343,8 +347,10 @@ class FecReceiver(object):
         raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(self.delay_units)))
 
     def recover_media_packet(self, media_sequence, cross, fec):
-        """Recover a missing media packet helped by a FEC packet, this method is also called to register an incoming
-        media packet if it is registered as missing."""
+        """
+        Recover a missing media packet helped by a FEC packet, this method is also called to
+        register an incoming media packet if it is registered as missing.
+        """
 
         recovered_by_fec = fec is not None
 
@@ -358,14 +364,19 @@ class FecReceiver(object):
             if len(fec.missing) != 1:
                 raise NotImplementedError(FecReceiver.ER_MISSING_COUNT.format(len(fec.missing)))
             if fec.direction == FecPacket.COL and fec.sequence != col_sequence:
-                raise NotImplementedError(FecReceiver.ER_COL_MISMATCH.format(fec.sequence, col_sequence))
+                raise NotImplementedError(
+                    FecReceiver.ER_COL_MISMATCH.format(fec.sequence, col_sequence))
             if fec.direction == FecPacket.ROW and fec.sequence != row_sequence:
-                raise NotImplementedError(FecReceiver.ER_ROW_MISMATCH.format(fec.sequence, row_sequence))
+                raise NotImplementedError(
+                    FecReceiver.ER_ROW_MISMATCH.format(fec.sequence, row_sequence))
 
             # Media packet recovery
             # > Copy fec packet fields into the media packet
-            media = RtpPacket.create(media_sequence, fec.timestamp_recovery, fec.payload_type_recovery,
-                                     fec.payload_recovery)
+            media = RtpPacket.create(
+                media_sequence,
+                fec.timestamp_recovery,
+                fec.payload_type_recovery,
+                fec.payload_recovery)
             payload_size = fec.length_recovery
 
             # > recovered payload ^= all media packets linked to the fec packet
@@ -455,7 +466,8 @@ class FecReceiver(object):
             while len(self.medias) > value:
                 # Initialize or increment actual position (expected sequence number)
                 self.position = (
-                    (self.medias.iterkeys().next() if self.startup else (self.position + 1)) & RtpPacket.S_MASK
+                    (self.medias.iterkeys().next() if self.startup else (self.position + 1)) &
+                    RtpPacket.S_MASK
                 )
                 self.startup = False
                 media = self.medias.get(self.position)
@@ -502,7 +514,9 @@ class FecReceiver(object):
         FEC matrix size (LxD) : 0x0 = 0 packets
         """
         delayFormat = '%.0f' if self.delay_units == FecReceiver.PACKETS else '%.2f'
-        mDelay = (delayFormat % self.current_delay) + ' ' + FecReceiver.DELAY_NAMES[self.delay_units]
+        mDelay = '{0} {1}'.format(
+            delayFormat % self.current_delay, FecReceiver.DELAY_NAMES[self.delay_units])
+
         return ("Name  Received Buffered Maximum Dropped{0}"
                 "Media %8d%9d%8d{0}"
                 "Col   %8d%9d%8d%8d{0}"

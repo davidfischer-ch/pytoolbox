@@ -15,7 +15,8 @@ class EventsTable(object):
     """Scan a spare events table and replace missing entry by previous (non empty) entry."""
 
     def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
-        self.time_range, self.time_speedup, self.sleep_factor = time_range, time_speedup, sleep_factor
+        self.time_range, self.time_speedup, self.sleep_factor = \
+            time_range, time_speedup, sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
         for index in xrange(self.time_range):  # noqa
@@ -43,7 +44,8 @@ class EventsTable(object):
         # Test get_index with a speedup of 12 (maps 2 hours to 24 hours):
         # >>> test_get_index(24, 12)
         # """
-        index = int((total_seconds(time) * ((time_speedup or self.time_speedup) / 3600) % self.time_range))
+        index = int(
+            (total_seconds(time) * ((time_speedup or self.time_speedup) / 3600) % self.time_range))
         return index, self.events.get(index, default_value)
 
     def sleep_time(self, time, time_speedup=None, sleep_factor=None):
@@ -69,7 +71,8 @@ class EventsTable(object):
         >>> asserts.equal(table.sleep_time(1, time_speedup=1), 149)
         """
         # 150 = 3600 / 24
-        d = self.time_range * 150 / ((time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
+        d = self.time_range * 150 / (
+            (time_speedup or self.time_speedup) * (sleep_factor or self.sleep_factor))
         return math.ceil(d - (total_seconds(time) % d))
 
 
@@ -132,7 +135,8 @@ class pygal_deque(collections.deque):
 
 def flatten_dict(the_dict, key_template='{0}.{1}'):
     """
-    Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given `key_template`.
+    Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given
+    `key_template`.
 
     **Example usage**
 
@@ -193,7 +197,8 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=r
 
 def to_dict_of_values(iterable, type=list, method=list.append):  # pylint:disable=redefined-builtin
     """
-    Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as key -> values.
+    Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as
+    key -> values.
 
     **Example usage**
 
@@ -208,10 +213,11 @@ def to_dict_of_values(iterable, type=list, method=list.append):  # pylint:disabl
 
 def window(values, index, delta):
     """
-    Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with (items, left, right).
+    Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with
+    (items, left, right).
 
-    This function tries to simulate a physical slider, meaning the number of extracted elements is constant but the
-    centering at `index` is not guaranteed.
+    This function tries to simulate a physical slider, meaning the number of extracted elements is
+    constant but the centering at `index` is not guaranteed.
 
     A visual example with 6 `values` and ``delta=1``::
 

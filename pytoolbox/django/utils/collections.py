@@ -17,8 +17,9 @@ class FieldsToValuesLookupDict(object):
 
     Strange idea? Isn't it?
 
-    Here is a short example as an appetizer. Suppose you want to define your application's help texts into a centralized
-    registry, for keeping your wording DRY. And suppose you have some models like this:
+    Here is a short example as an appetizer. Suppose you want to define your application's help
+    texts into a centralized registry, for keeping your wording DRY. And suppose you have some
+    models like this:
 
     >> class Media(models.Model):
     ..     url = models.URLField()
@@ -43,7 +44,8 @@ class FieldsToValuesLookupDict(object):
     1. '<cls.__name__>.<field_name>'
     2. '<field_name>'
 
-    If given class have a _meta or Meta ("meta") attribute with a model attribute, then the following keys are tried:
+    If given class have a _meta or Meta ("meta") attribute with a model attribute, then the
+    following keys are tried:
 
     1. '<cls.__name__>.<field_name>'
     2. '<cls._meta.model>.<field_name>'
@@ -63,7 +65,8 @@ class FieldsToValuesLookupDict(object):
             meta = getattr(cls, '_meta', None) or getattr(cls, 'Meta', None)
             if meta and hasattr(meta, 'model'):
                 # cleanup model name when some fields are deferred (Media vs Media_Deffered_...)
-                keys.insert(1, '{0}.{1}'.format(DEFFERED_REGEX.sub('', meta.model.__name__), field_name))
+                keys.insert(1, '{0}.{1}'.format(
+                    DEFFERED_REGEX.sub('', meta.model.__name__), field_name))
         for key in keys:
             value = self.translations.get(key)
             if value:

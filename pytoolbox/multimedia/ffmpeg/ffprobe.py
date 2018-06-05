@@ -39,14 +39,15 @@ class FFprobe(object):
         """
         Returns the duration of a media as an instance of time or None in case of error.
 
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
-        If `media` is the path to a MPEG-DASH MPD, then duration will be parser from value of key
-        *mediaPresentationDuration*.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`. If `media` is the path to a MPEG-DASH MPD, then duration will be parser
+        from value of key *mediaPresentationDuration*.
         """
         if isinstance(media, string_types) and os.path.splitext(media)[1] == '.mpd':
             mpd = minidom.parse(media)
             if mpd.firstChild.nodeName == 'MPD':
-                match = self.duration_regex.search(mpd.firstChild.getAttribute('mediaPresentationDuration'))
+                match = self.duration_regex.search(
+                    mpd.firstChild.getAttribute('mediaPresentationDuration'))
                 if match is not None:
                     hours, minutes = int(match.group('hours')), int(match.group('minutes'))
                     microseconds, seconds = math.modf(float(match.group('seconds')))
@@ -55,7 +56,8 @@ class FFprobe(object):
         else:
             info = self.get_media_info(media, fail)
             try:
-                duration = secs_to_time(float(info['format']['duration']), as_delta=as_delta) if info else None
+                duration = secs_to_time(
+                    float(info['format']['duration']), as_delta=as_delta) if info else None
             except KeyError:
                 return None
             # ffmpeg may return this so strange value, 00:00:00.04, let it being None
@@ -74,8 +76,11 @@ class FFprobe(object):
         media = self.to_media(media)
         if not utils.is_pipe(media.path):  # Read media information from a PIPE not yet implemented
             try:
-                return json.loads(subprocess.check_output([self.executable, '-v', 'quiet', '-print_format', 'json',
-                                  '-show_format', '-show_streams', media.path]).decode('utf-8'))
+                return json.loads(
+                    subprocess.check_output([
+                        self.executable, '-v', 'quiet', '-print_format', 'json', '-show_format',
+                        '-show_streams', media.path
+                    ]).decode('utf-8'))
             except OSError as e:
                 # Executable does not exist
                 if fail or e.errno == errno.ENOENT:
@@ -87,12 +92,16 @@ class FFprobe(object):
     def get_media_format(self, media, fail=False):
         """
         Return information about the container (and file) or None in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
         info = self.get_media_info(media, fail)
         try:
             cls, the_format = self.format_class, info['format']
-            return cls(the_format) if cls and not isinstance(the_format, cls) else the_format  # pylint:disable=not-callable
+            if cls and not isinstance(the_format, cls):
+                return cls(the_format)  # pylint:disable=not-callable
+            else:
+                return the_format
         except:
             if fail:
                 raise
@@ -100,7 +109,8 @@ class FFprobe(object):
     def get_media_streams(self, media, condition=lambda stream: True, fail=False):
         """
         Return a list with the media streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
         info = self.get_media_info(media, fail)
         try:
@@ -112,38 +122,50 @@ class FFprobe(object):
         streams = []
         for stream in raw_streams:
             stream_class = self.stream_classes[stream['codec_type']]
-            streams.append(stream_class(stream) if stream_class and not isinstance(stream, stream_class) else stream)
+            streams.append(
+                stream_class(stream) if stream_class and not isinstance(stream, stream_class)
+                else stream)
         return streams
 
     def get_audio_streams(self, media, fail=False):
         """
         Return a list with the audio streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
-        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
+        return self.get_media_streams(
+            media, condition=lambda s: s['codec_type'] == 'audio', fail=fail)
 
     def get_subtitle_streams(self, media, fail=False):
         """
         Return a list with the subtitle streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
-        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
+        return self.get_media_streams(
+            media, condition=lambda s: s['codec_type'] == 'subtitle', fail=fail)
 
     def get_video_streams(self, media, fail=False):
         """
         Return a list with the video streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
-        return self.get_media_streams(media, condition=lambda s: s['codec_type'] == 'video', fail=fail)
+        return self.get_media_streams(
+            media, condition=lambda s: s['codec_type'] == 'video', fail=fail)
 
     def get_video_frame_rate(self, media, index=0, fail=False):
         """
         Return the frame rate of the video stream at `index` in `media` or None in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
         try:
             stream = self.get_video_streams(media)[index]
-            return utils.to_frame_rate(stream['avg_frame_rate']) if isinstance(stream, dict) else stream.avg_frame_rate
+            if isinstance(stream, dict):
+                return utils.to_frame_rate(stream['avg_frame_rate'])
+            else:
+                return stream.avg_frame_rate
         except:
             if fail:
                 raise
@@ -151,12 +173,16 @@ class FFprobe(object):
     def get_video_resolution(self, media, index=0, fail=False):
         """
         Return [width, height] of the video stream at `index` in `media` or None in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of `get_media_info()`.
+        Set `media` to an instance of `self.media_class`, a path or the output of
+        `get_media_info()`.
         """
         try:
             stream = self.get_video_streams(media)[index]
             is_dict = isinstance(stream, dict)
-            return [int(stream['width']), int(stream['height'])] if is_dict else [stream.width, stream.height]
+            if is_dict:
+                return [int(stream['width']), int(stream['height'])]
+            else:
+                return [stream.width, stream.height]
         except:
             if fail:
                 raise

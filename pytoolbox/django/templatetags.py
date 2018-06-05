@@ -128,7 +128,8 @@ def naturalbitrate(bps, kwargs_string=None):
     """
     if bps in (None, string_if_invalid):
         return string_if_invalid
-    return humanize.naturalbitrate(bps, **_parse_kwargs_string(kwargs_string, format=str, scale=int))
+    return humanize.naturalbitrate(
+        bps, **_parse_kwargs_string(kwargs_string, format=str, scale=int))
 
 
 @register.filter(is_safe=True)
@@ -149,7 +150,8 @@ def naturalfilesize(the_bytes, kwargs_string=None):
     """
     if the_bytes in (None, string_if_invalid):
         return string_if_invalid
-    return humanize.naturalfilesize(the_bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
+    return humanize.naturalfilesize(
+        the_bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
 
 
 @register.filter(is_safe=True)
@@ -192,7 +194,8 @@ def rst_title(value, level):
 @register.filter(is_safe=True)
 def secs_to_time(value, defaults_to_zero=False):
     """
-    Return an instance of time, taking value as the number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
+    Return an instance of time, taking value as the number of seconds + microseconds
+    (e.g. 10.3 = 10s 3000us).
 
     Output::
 
@@ -223,7 +226,8 @@ def status_label(value, autoescape=None, default=''):
     """
     esc = conditional_escape if autoescape else lambda x: x
     value = esc(value).upper()
-    return mark_safe('<span class="label {0}">{1}</span>'.format(LABEL_TO_CLASS.get(value, default), value))
+    return mark_safe('<span class="label {0}">{1}</span>'.format(
+        LABEL_TO_CLASS.get(value, default), value))
 
 
 @register.filter(is_safe=True)
@@ -263,7 +267,7 @@ def verbose_name_plural(instance):
     return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
 
 
-# TAGS -----------------------------------------------------------------------------------------------------------------
+# TAGS ---------------------------------------------------------------------------------------------
 
 class StaticPathNode(StaticNode):
 

@@ -48,7 +48,10 @@ def iter_download_to_file(url, path, code=200, chunk_size=102400, force=True, ha
                 if hash_algorithm:
                     file_hash = file_hash or crypto.new(hash_algorithm)
                     file_hash.update(chunk)
-                yield position, length, chunk, downloaded, file_hash.hexdigest() if file_hash else None
+                if file_hash:
+                    yield position, length, chunk, downloaded, file_hash.hexdigest()
+                else:
+                    yield None
                 file = file or open(path, 'wb')
                 file.write(chunk)
         finally:
@@ -57,27 +60,29 @@ def iter_download_to_file(url, path, code=200, chunk_size=102400, force=True, ha
         if file_hash:
             file_hash = file_hash.hexdigest()
     elif hash_algorithm:
-        file_hash = crypto.checksum(path, is_path=True, algorithm=hash_algorithm, chunk_size=chunk_size)
+        file_hash = crypto.checksum(
+            path, is_path=True, algorithm=hash_algorithm, chunk_size=chunk_size)
     if expected_hash and file_hash != expected_hash:
         raise CorruptedFileError(path=path, file_hash=file_hash, expected_hash=expected_hash)
     if not downloaded:
         yield position, length, chunk, downloaded, file_hash
 
 
-def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algorithm=None, expected_hash=None,
-                 progress_callback=None, **kwargs):
+def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algorithm=None,
+                 expected_hash=None, progress_callback=None, **kwargs):
     """
     Read the content of given `url` and save it as a file `path`, extended version.
 
     * Set `code` to expected response code.
     * Set `force` to False to avoid downloading the file if it already exists.
     * Set `hash_algorithm` to a string or a method from the :mod:`hashlib`.
-    * Set `expected_hash` to the expected hash value, warning: this will force computing the hash of the file.
+    * Set `expected_hash` to the expected hash value, warning: this will force computing the hash of
+      the file.
     * Set `kwargs` to any extra argument accepted by ``requests.get()``.
 
-    If `chunk_size` and `hash_algorithm` are both set then the hash algorithm will be called for every chunk of data,
-    this may optimize the performances. In any case, if a hash algorithm is defined then you will get a hash even if the
-    file is already downloaded.
+    If `chunk_size` and `hash_algorithm` are both set then the hash algorithm will be called for
+    every chunk of data, this may optimize the performances. In any case, if a hash algorithm is
+    defined then you will get a hash even if the file is already downloaded.
 
     **Example usage**
 
@@ -104,13 +109,17 @@ def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algori
     (383631, 383631)
     (True, True, None)
 
-    >>> asserts.raises(CorruptedFileError, download_ext, url, 'small.mp4', hash_algorithm=hashlib.md5,
-    ...                expected_hash='efac5df252145c2d07b73e8177d15c8d')
+    >>> asserts.raises(
+    ...     CorruptedFileError,
+    ...     download_ext, url, 'small.mp4', hash_algorithm=hashlib.md5,
+    ...     expected_hash='efac5df252145c2d07b73e8177d15c8d')
 
     >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
     (False, False, None)
 
-    >>> asserts.raises(BadHTTPResponseCodeError, download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
+    >>> asserts.raises(
+    ...     BadHTTPResponseCodeError,
+    ...     download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
     exists, start_time = os.path.exists(path), time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
@@ -122,7 +131,8 @@ def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algori
 
 
 def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=console.progress_bar,
-                       progress_stream=sys.stdout, progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'):
+                       progress_stream=sys.stdout,
+                       progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'):
     """
     Download resources, showing a progress bar by default.
 
@@ -132,12 +142,17 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
     for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
         kwargs, start_time = resource.copy(), time.time()
         url, path, name = kwargs.pop('url'), kwargs.pop('path'), kwargs.pop('name')
-        callback = functools.partial(progress_callback, stream=progress_stream, template=progress_template.format(
-                                     counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)))
+        callback = functools.partial(
+            progress_callback,
+            stream=progress_stream,
+            template=progress_template.format(
+                counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)))
         if not os.path.exists(path):
             makedirs(os.path.dirname(path))
             try:
-                for returned in iter_download_to_file(url, path, chunk_size=chunk_size, force=False, **kwargs):
+                for returned in iter_download_to_file(
+                    url, path, chunk_size=chunk_size, force=False, **kwargs
+                ):
                     callback(start_time, returned[0], returned[1])
             except:
                 remove(path)
@@ -146,13 +161,15 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
         progress_stream.write(os.linesep)
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None, sources=('query', 'form', 'json'),
-                     qs_only_first_value=False, optional=False):
+def get_request_data(request, accepted_keys=None, required_keys=None,
+                     sources=('query', 'form', 'json'), qs_only_first_value=False, optional=False):
     """
-    Return a python dictionary containing the values retrieved from various attributes (sources) of the request.
+    Return a python dictionary containing the values retrieved from various attributes (sources) of
+    the request.
 
-    This function is specifically implemented to retrieve data from an instance of `werkzeug.wrappers.Request` or
-    `django.http.request.HttpRequest` by only using `getattr` to respect the duck typing philosophy.
+    This function is specifically implemented to retrieve data from an instance of
+    `werkzeug.wrappers.Request` or `django.http.request.HttpRequest` by only using `getattr` to
+    respect the duck typing philosophy.
 
     FIXME : Add an example that have a JSON content ....
 
@@ -165,7 +182,8 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=('
     >>> d = 'key1=this+is+encoded+form+data&key2=another'
     >>> q = 'foo=bar&blah=blafasel'
     >>> c = 'application/x-www-form-urlencoded'
-    >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
+    >>> r = Request.from_values(
+    ...         query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
 
     >>> asserts.dict_equal(get_request_data(r), {
     ...     'blah': ['blafasel'],
@@ -201,7 +219,8 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=('
 
     >>> d = 'foo=bar+form+data'
     >>> q = 'foo=bar+query+string&it=works'
-    >>> r = Request.from_values(query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
+    >>> r = Request.from_values(
+    ...         query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
     >>> asserts.dict_equal(get_request_data(r, sources=['query', 'form']), {
     ...     'it': ['works'], 'foo': ['bar form data']
     ... })
@@ -227,8 +246,9 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=('
         elif source == 'json':
             data.update(getattr(request, 'get_json', lambda: {})() or {})  # werkzeug
         elif source == 'query':
-            query_dict = getattr(request, 'args',  # werkzeug
-                                 urlparse.parse_qs(getattr(request, 'META', {}).get('QUERY_STRING', '')))  # django
+            query_dict = getattr(
+                request, 'args',  # werkzeug
+                urlparse.parse_qs(getattr(request, 'META', {}).get('QUERY_STRING', '')))  # django
             if qs_only_first_value:
                 for key, value in query_dict.iteritems():
                     data[key] = value[0] if isinstance(value, list) else value
@@ -238,8 +258,8 @@ def get_request_data(request, accepted_keys=None, required_keys=None, sources=('
     if required_keys is not None:
         for key in required_keys:
             if key not in data:
-                raise ValueError(to_bytes('Missing key "{0} from the request, required: {1}.'.format(
-                                 key, required_keys)))
+                raise ValueError(to_bytes(
+                    'Missing key "{0} from the request, required: {1}.'.format(key, required_keys)))
     if accepted_keys is not None:
         for key in data:
             if key not in accepted_keys:

@@ -17,7 +17,8 @@ class FindMixin(object):
             raise exceptions.NoSuchElementException(criteria)
 
     def find_css(self, css_selector, *args, **kwargs):
-        return self.clean_elements(self.find_elements_by_css_selector(css_selector), css_selector, *args, **kwargs)
+        return self.clean_elements(
+            self.find_elements_by_css_selector(css_selector), css_selector, *args, **kwargs)
 
     def find_id(self, element_id, *args, **kwargs):
         return self.find_css('#{0}'.format(element_id), *args, **kwargs)

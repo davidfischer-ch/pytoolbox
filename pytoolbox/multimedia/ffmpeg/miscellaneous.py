@@ -23,7 +23,8 @@ class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     def _set_attribute(self, name, info):
         """Set attribute `name` value from the `info` or ``self.defaults`` dictionary."""
-        setattr(self, name, info.get(self.attr_name_template.format(name=name), self.defaults.get(name)))
+        setattr(self, name, info.get(
+            self.attr_name_template.format(name=name), self.defaults.get(name)))
 
 
 class Codec(BaseInfo):
@@ -37,8 +38,8 @@ class Codec(BaseInfo):
 class Format(BaseInfo):
 
     __slots__ = (
-        'bit_rate', 'duration', 'filename', 'format_name', 'format_long_name', 'nb_programs', 'nb_streams',
-        'probe_score', 'size', 'start_time'
+        'bit_rate', 'duration', 'filename', 'format_name', 'format_long_name', 'nb_programs',
+        'nb_streams', 'probe_score', 'size', 'start_time'
     )
 
     clean_bit_rate = clean_nb_programs = clean_nb_streams = clean_probe_score = clean_size = \
@@ -68,12 +69,13 @@ class Stream(BaseInfo):
 class AudioStream(Stream):
 
     __slots__ = (
-        'bit_rate', 'bits_per_sample', 'channel_layout', 'channels', 'duration', 'duration_ts', 'nb_frames',
-        'sample_fmt', 'sample_rate', 'start_pts', 'start_time', 'tags'
+        'bit_rate', 'bits_per_sample', 'channel_layout', 'channels', 'duration', 'duration_ts',
+        'nb_frames', 'sample_fmt', 'sample_rate', 'start_pts', 'start_time', 'tags'
     )
 
-    clean_bit_rate = clean_bits_per_sample = clean_channels = clean_duration_ts = clean_nb_frames = \
-        clean_sample_rate = clean_start_pts = lambda s, v: None if v is None else int(v)
+    clean_bit_rate = clean_bits_per_sample = clean_channels = clean_duration_ts = \
+        clean_nb_frames = clean_sample_rate = clean_start_pts = \
+        lambda s, v: None if v is None else int(v)
     clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
 
 
@@ -88,11 +90,12 @@ class SubtitleStream(Stream):
 class VideoStream(Stream):
 
     __slots__ = (
-        'display_aspect_ratio', 'has_b_frames', 'height', 'level', 'nb_frames', 'pix_fmt', 'sample_aspect_ratio',
-        'width'
+        'display_aspect_ratio', 'has_b_frames', 'height', 'level', 'nb_frames', 'pix_fmt',
+        'sample_aspect_ratio', 'width'
     )
 
-    clean_height = clean_level = clean_nb_frames = clean_width = lambda s, v: None if v is None else int(v)
+    clean_height = clean_level = clean_nb_frames = clean_width = \
+        lambda s, v: None if v is None else int(v)
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):

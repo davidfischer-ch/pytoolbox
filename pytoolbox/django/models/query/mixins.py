@@ -22,11 +22,13 @@ class AtomicGetUpdateOrCreateMixin(object):
 
     def get_or_create(self, defaults=None, **kwargs):
         with transaction.atomic(savepoint=self.savepoint):
-            return super(AtomicGetUpdateOrCreateMixin, self).get_or_create(defaults=defaults, **kwargs)
+            return super(AtomicGetUpdateOrCreateMixin, self).get_or_create(
+                defaults=defaults, **kwargs)
 
     def update_or_create(self, defaults=None, **kwargs):
         with transaction.atomic(savepoint=self.savepoint):
-            return super(AtomicGetUpdateOrCreateMixin, self).update_or_create(defaults=defaults, **kwargs)
+            return super(AtomicGetUpdateOrCreateMixin, self).update_or_create(
+                defaults=defaults, **kwargs)
 
 
 class AtomicGetRestoreOrCreateMixin(object):
@@ -49,9 +51,10 @@ class CreateModelMethodMixin(object):
 
 class StateMixin(object):
     """
-    Generate on the fly utility query-set filtering methods to a model using a :class:`pytoolbox.states.StateEnum` to
-    implement its own state machine. Then you can use something like ``Model.objects.ready_or_canceled(inverse=True)``
-    to exclude models in state READY or CANCELED.
+    Generate on the fly utility query-set filtering methods to a model using a
+    :class:`pytoolbox.states.StateEnum` to implement its own state machine. Then you can use
+    something like ``Model.objects.ready_or_canceled(inverse=True)`` to exclude models in state
+    READY or CANCELED.
 
     This mixin requires the following to work:
 
@@ -69,7 +72,8 @@ class StateMixin(object):
                 states = self.model.states.get(name)
                 if not states:
                     raise AttributeError
-                all_states.add(states) if isinstance(states, string_types) else all_states.update(states)
+                method = all_states.add if isinstance(states, string_types) else all_states.update
+                method(states)
             return functools.partial(self.in_states, all_states)
         raise AttributeError
 

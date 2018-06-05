@@ -111,7 +111,8 @@ class Tag(object):
                 date = str_to_datetime(cleaned_data, date_format, fail=False)
                 if date:
                     return date
-        assert not data or isinstance(data, self.type), '{0.key} {0.type} {1} {2}'.format(self, data, type(data))
+        assert not data or \
+            isinstance(data, self.type), '{0.key} {0.type} {1} {2}'.format(self, data, type(data))
         return data
 
     def get_type_hook(self):

@@ -58,8 +58,8 @@ def _to_camel(string, separator):
 
 def filterjoin(items, sep=' ', keep=lambda o: o):
     """
-    Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string and filter the items
-    using the `keep` function.
+    Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string
+    and filter the items using the `keep` function.
     """
     return sep.join(text_type(i) for i in items if keep(i))
 

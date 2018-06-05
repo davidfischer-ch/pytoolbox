@@ -12,10 +12,19 @@ _all = module.All(globals())
 
 
 def relocate(source_directory, destination_directory, encoding='utf-8'):
-    """Copy and relocate a Python virtual environment. Update the paths in `*.egg-link, *.pth, *.pyc`, etc."""
+    """
+    Copy and relocate a Python virtual environment.
+    Update the paths in `*.egg-link, *.pth, *.pyc`, etc.
+    """
 
     if not os.path.exists(destination_directory):
-        rsync(source_directory, destination_directory, destination_is_dir=True, makedest=True, recursive=True)
+        rsync(
+            source_directory,
+            destination_directory,
+            destination_is_dir=True,
+            makedest=True,
+            recursive=True
+        )
 
     b_source_directory = source_directory.encode(encoding)
     b_destination_directory = destination_directory.encode(encoding)

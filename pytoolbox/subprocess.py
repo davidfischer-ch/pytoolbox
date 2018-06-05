@@ -82,7 +82,7 @@ def to_args_string(args):
     return args if isinstance(args, string_types) else ' '.join(quote('%s' % a) for a in args)
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def raw_cmd(arguments, shell=False, **kwargs):
     """
@@ -94,14 +94,15 @@ def raw_cmd(arguments, shell=False, **kwargs):
     * subprocess.args is set to the arguments of the subprocess
     """
     arguments_list = to_args_list(arguments)
-    process = Popen(to_args_string(arguments_list) if shell else arguments_list, shell=shell, **kwargs)
+    process = Popen(
+        to_args_string(arguments_list) if shell else arguments_list, shell=shell, **kwargs)
     if not hasattr(process, 'args'):
         process.args = arguments_list
     return process
 
 
-def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True, timeout=None, fail=True,
-        log=None, tries=1, delay_min=5, delay_max=10, **kwargs):
+def cmd(command, user=None, input=None, cli_input=None, cli_output=False, communicate=True,
+        timeout=None, fail=True, log=None, tries=1, delay_min=5, delay_max=10, **kwargs):
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -117,9 +118,10 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     :type cli_output: bool
     :param fail: Set to False to avoid the exception `subprocess.CalledProcessError`.
     :type fail: bool
-    :param log: A function to log/print details about what is executed/any failure, can be a standard logger.
+    :param log: A function to log/print details about what is executed/any failure, can be a logger.
     :type log: callable, logging.Logger
-    :param communicate: Set to True to communicate with the process, this is a locking call (if timeout is None).
+    :param communicate: Set to True to communicate with the process, this is a locking call
+                        (if timeout is None).
     :type communicate: bool
     :param timeout: Time-out for the communication with the process, in seconds.
     :type timeout: float
@@ -131,7 +133,8 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     :type delay: float, int
 
     * Delay will be a random number in range (`delay_min`, `delay_max`)
-    * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting stdin, stdout and stderr.
+    * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting
+      stdin, stdout and stderr.
 
     """
     # convert log argument to logging functions
@@ -152,14 +155,19 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
         args_string = ' '.join([to_unicode(a) for a in command if a is not None])
     # log the execution
     if log_debug:
-        log_debug('Execute {0}{1}{2}'.format('' if input is None else 'echo {0}|'.format(repr(input)), args_string,
-                  '' if cli_input is None else ' < {0}'.format(repr(cli_input))))
+        log_debug('Execute {0}{1}{2}'.format(
+            '' if input is None else 'echo {0}|'.format(repr(input)),
+            args_string,
+            '' if cli_input is None else ' < {0}'.format(repr(cli_input))))
 
     for trial in xrange(tries):  # noqa
         # create the sub-process
         try:
-            process = Popen(args_list, stdin=subprocess.PIPE, stdout=None if cli_output else subprocess.PIPE,
-                            stderr=None if cli_output else subprocess.PIPE, **kwargs)
+            process = Popen(
+                args_list,
+                stdin=subprocess.PIPE,
+                stdout=None if cli_output else subprocess.PIPE,
+                stderr=None if cli_output else subprocess.PIPE, **kwargs)
         except OSError as e:
             # unable to execute the program (e.g. does not exist)
             if log_exception:
@@ -186,7 +194,8 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
                     process.terminate()
                     thread.join()
                 except OSError as e:
-                    # Manage race condition with process that may terminate just after the call to thread.is_alive() !
+                    # Manage race condition with process that may terminate just after the call to
+                    # thread.is_alive() !
                     if e.errno != errno.ESRCH:
                         raise
             stdout, stderr = data['stdout'], data['stderr']
@@ -194,7 +203,12 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
             # get a return code that may be None of course ...
             process.poll()
             stdout = stderr = None
-        result = {'process': process, 'stdout': stdout, 'stderr': stderr, 'returncode': process.returncode}
+        result = {
+            'process': process,
+            'stdout': stdout,
+            'stderr': stderr,
+            'returncode': process.returncode
+        }
         if process.returncode == 0:
             break
         # failed attempt, may retry
@@ -212,16 +226,18 @@ def cmd(command, user=None, input=None, cli_input=None, cli_output=False, commun
     return result
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
     if url is not None:
         config = open(os.path.join(directory, '.git', 'config')).read()
-        url = re.search(r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
+        url = re.search(
+            r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote), config, re.MULTILINE).group(1)
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
 
 
-def git_clone_or_pull(directory, url, bare=False, clone_depth=None, reset=True, fail=True, log=None, **kwargs):
+def git_clone_or_pull(directory, url, bare=False, clone_depth=None, reset=True, fail=True, log=None,
+                      **kwargs):
     if os.path.exists(directory):
         if reset and not bare:
             cmd(['git', 'reset', '--hard'], cwd=directory, fail=fail, log=log, **kwargs)
@@ -236,10 +252,11 @@ def git_clone_or_pull(directory, url, bare=False, clone_depth=None, reset=True, 
         cmd(command, fail=fail, log=log, **kwargs)
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-def make(archive, path=None, with_cmake=False, configure_options='', install=True, remove_temporary=True,
-         make_options='-j{0}'.format(multiprocessing.cpu_count()), fail=True, log=None, **kwargs):
+def make(archive, path=None, with_cmake=False, configure_options='', install=True,
+         remove_temporary=True, make_options='-j{0}'.format(multiprocessing.cpu_count()), fail=True,
+         log=None, **kwargs):
     results = {}
     here = os.getcwd()
     path = path or archive.split('.')[0]
@@ -251,7 +268,8 @@ def make(archive, path=None, with_cmake=False, configure_options='', install=Tru
         os.chdir('build')
         results['cmake'] = cmd('cmake -DCMAKE_BUILD_TYPE=RELEASE ..', fail=fail, log=log, **kwargs)
     else:
-        results['configure'] = cmd('./configure {0}'.format(configure_options), fail=fail, log=log, **kwargs)
+        results['configure'] = cmd(
+            './configure {0}'.format(configure_options), fail=fail, log=log, **kwargs)
     results['make'] = cmd('make {0}'.format(make_options), fail=fail, log=log, **kwargs)
     if install:
         results['make install'] = cmd('make install', fail=fail, log=log, **kwargs)
@@ -261,17 +279,19 @@ def make(archive, path=None, with_cmake=False, configure_options='', install=Tru
     return results
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-def rsync(source, destination, source_is_dir=False, destination_is_dir=False, makedest=False, archive=True,
-          delete=False, exclude_vcs=False, progress=False, recursive=False, simulate=False, excludes=None,
-          includes=None, rsync_path=None, size_only=False, extra=None, extra_args=None, fail=True, log=None, **kwargs):
+def rsync(source, destination, source_is_dir=False, destination_is_dir=False, makedest=False,
+          archive=True, delete=False, exclude_vcs=False, progress=False, recursive=False,
+          simulate=False, excludes=None, includes=None, rsync_path=None, size_only=False,
+          extra=None, extra_args=None, fail=True, log=None, **kwargs):
     if makedest and not os.path.exists(destination):
         # FIXME if dest = remote -> ssh to make dest else make dest
         if extra is None or 'ssh' not in extra:
             os.makedirs(destination)
     source = os.path.normpath(source) + (os.sep if os.path.isdir(source) or source_is_dir else '')
-    destination = os.path.normpath(destination) + (os.sep if os.path.isdir(destination) or destination_is_dir else '')
+    destination = os.path.normpath(destination) + \
+        (os.sep if os.path.isdir(destination) or destination_is_dir else '')
     command = ['rsync',
                '-a' if archive else None,
                '--delete' if delete else None,
@@ -303,8 +323,9 @@ def screen_kill(name=None, fail=True, log=None, **kwargs):
 
 def screen_launch(name, command, fail=True, log=None, **kwargs):
     """Launch a new named screen instance."""
-    return cmd(['screen', '-dmS', name] + (command if isinstance(command, list) else [command]), fail=fail, log=log,
-               **kwargs)
+    return cmd(
+        ['screen', '-dmS', name] + (command if isinstance(command, list) else [command]),
+        fail=fail, log=log, **kwargs)
 
 
 def screen_list(name=None, log=None, **kwargs):

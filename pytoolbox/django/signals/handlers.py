@@ -32,7 +32,8 @@
             '''Connect signal handlers to signals.'''
             dj_db_signals.connection_created.connect(setup_postgresql_hstore_extension)
             dj_signals.post_migrate.connect(create_site, sender=config)
-            dj_signals.pre_save.connect(strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
+            dj_signals.pre_save.connect(
+                strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -57,9 +58,12 @@ def clean_files_delete_handler(instance, signal, **kwargs):
 
     Simply use ``post_delete.connect(clean_files_delete_handler, sender=<your_model_class>)``
 
-    .. warning:: This function remove the file without worrying about any other instance using this file !
+    .. warning::
+        This function remove the file without worrying about any other instance using this file !
 
-    .. note:: Project `django-cleanup <https://github.com/un1t/django-cleanup>`_ is a more complete alternative.
+    .. note::
+        Project `django-cleanup <https://github.com/un1t/django-cleanup>`_
+        is a more complete alternative.
     """
     for field in kwargs['sender']._meta.fields:
         if isinstance(field, FileField):
@@ -81,7 +85,8 @@ def create_site(sender, **kwargs):
     from django.contrib.sites import models as site_app
     site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}
     site = site_app.Site.objects.update_or_create(pk=settings.SITE_ID, defaults=site_fields)[0]
-    logger.info('Updated settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
+    logger.info(
+        'Updated settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
 
 
 def setup_postgresql_hstore_extension(sender, connection, **kwargs):

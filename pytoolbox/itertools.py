@@ -14,7 +14,8 @@ def chain(*objects, **kwargs):
     """
     Chain the objects, handle non iterable objects gracefully.
 
-    * Set `callback` to a function checking if the object is iterable, defaults to :func:`isiterable`.
+    * Set `callback` to a function checking if the object is iterable, defaults to
+      :func:`isiterable`.
 
     **Example usage**
 
@@ -68,8 +69,9 @@ def extract_single(objects):
 
 def throttle(objects, min_delay):
     """
-    Consume and skips some objects to yield them at defined `min_delay`. First and last objects are always returned.
-    This function is a shortcut for ``throttles.TimeThrottle(min_delay).throttle_iterable(objects)``.
+    Consume and skips some objects to yield them at defined `min_delay`. First and last objects are
+    always returned. This function is a shortcut for
+    ``throttles.TimeThrottle(min_delay).throttle_iterable(objects)``.
 
     **Example usage**
 

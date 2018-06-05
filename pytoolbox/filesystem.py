@@ -54,7 +54,8 @@ def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
     if isinstance(patterns, string_types) or hasattr(patterns, 'match'):
         patterns = [patterns]
     patterns = [
-        p if hasattr(p, 'match') else re.compile(fnmatch.translate(p) if unix_wildcards else p) for p in patterns
+        p if hasattr(p, 'match') else re.compile(fnmatch.translate(p) if unix_wildcards else p)
+        for p in patterns
     ]
     for dirpath, dirnames, filenames in os.walk(directory, **walk_kwargs):
         for filename in filenames:
@@ -324,8 +325,9 @@ try_remove = remove
 
 def symlink(source, link_name):
     """
-    Symlink a file/directory (which may already exists) without throwing an exception. Returns True if
-    operation is successful, False if found & target is `link_name` and re-raise any other type of exception.
+    Symlink a file/directory (which may already exists) without throwing an exception. Returns True
+    if operation is successful, False if found & target is `link_name` and re-raise any other type
+    of exception.
 
     **Example usage**
 
@@ -432,8 +434,8 @@ class TempStorage(object):
         chown(directory, user, group, recursive=True)
         return directory
 
-    def create_tmp_file(self, path='tmp-{uuid}', extension=None, encoding='utf-8', key=None, user=None, group=None,
-                        return_file=True):
+    def create_tmp_file(self, path='tmp-{uuid}', extension=None, encoding='utf-8', key=None,
+                        user=None, group=None, return_file=True):
         """
         **Example usage**
 

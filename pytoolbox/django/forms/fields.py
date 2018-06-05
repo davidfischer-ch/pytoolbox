@@ -22,7 +22,7 @@ class StripCharField(forms.RegexField):
     def __init__(self, **kwargs):
         attrs = copy.deepcopy(self.default_widget_attrs)
         attrs.update(kwargs.pop('widget_attrs', None) or {})
-        super(StripCharField, self).__init__(r'\S+', max_length=self.max_length,
-                                             widget=forms.TextInput(attrs), **kwargs)
+        super(StripCharField, self).__init__(
+            r'\S+', max_length=self.max_length, widget=forms.TextInput(attrs), **kwargs)
 
 __all__ = _all.diff(globals())

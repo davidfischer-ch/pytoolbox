@@ -38,8 +38,8 @@ class FecPacket(object):
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
     The constructor will parse input bytes array to fill packet's fields.
-    In case of error (e.g. bad version number) the constructor will abort filling fields and un-updated fields are set
-    to their corresponding default value.
+    In case of error (e.g. bad version number) the constructor will abort filling fields and
+    un-updated fields are set to their corresponding default value.
 
     :param bytes: Input array of bytes to parse as a RTP packet with FEC payload
     :type bytes: bytearray
@@ -108,7 +108,7 @@ class FecPacket(object):
     missing               = []
     """
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     ER_PAYLOAD_TYPE = 'RTP Header : Payload type must be set to 96'
     ER_EXTENDED = 'SMPTE 2022-1 Header : Extended must be set to one'
@@ -147,7 +147,7 @@ class FecPacket(object):
     ALGORITHM_RANGE = xrange(len(ALGORITHM_NAMES))  # noqa
     XOR, Hamming, ReedSolomon = ALGORITHM_RANGE
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
     def valid(self):
@@ -313,7 +313,7 @@ class FecPacket(object):
     def bytes(self):
         return self.header_bytes + self.payload_recovery
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(self, bytes=None, length=0):
         # Fields default values
@@ -346,38 +346,38 @@ class FecPacket(object):
             self.snbase = (packet.payload[15]*256 + packet.payload[0])*256 + packet.payload[1]
             self.length_recovery = packet.payload[2]*256 + packet.payload[3]
             self.extended = (packet.payload[4] & FecPacket.E_MASK) != 0
-            #if not self.extended:
-            #    return
+            # if not self.extended:
+            #     return
             self.payload_type_recovery = packet.payload[4] & FecPacket.PT_MASK
             self.mask = (packet.payload[5]*256 + packet.payload[6])*256 + packet.payload[7]
-            #if self.mask != 0:
-            #    return
+            # if self.mask != 0:
+            #     return
             self.timestamp_recovery = (((packet.payload[8]*256 + packet.payload[9])*256 +
                                         packet.payload[10])*256 + packet.payload[11])
             self.n = (packet.payload[12] & FecPacket.N_MASK) != 0
-            #if self.n:
-            #    return
+            # if self.n:
+            #     return
             self.direction = (packet.payload[12] & FecPacket.D_MASK) >> 6
             self.algorithm = packet.payload[12] & FecPacket.T_MASK
             # if self.algorithm != FecPacket.XOR:
-            #    return
+            #     return
             self.index = packet.payload[12] & FecPacket.I_MASK
             # if self.index != 0:
-            #    return
+            #     return
             self.offset = packet.payload[13]
             self.na = packet.payload[14]
             self.snbase += packet.payload[15] << 16
             # And finally ... The payload !
             self.payload_recovery = packet.payload[FecPacket.HEADER_LENGTH:]
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @staticmethod
     def compute(sequence, algorithm, direction, L, D, packets):
         """
         This method will generate FEC packet's field by applying FEC algorithm to input packets.
-        In case of error (e.g. bad version number) the method will abort filling fields and un-updated fields are set to
-        their corresponding default value.
+        In case of error (e.g. bad version number) the method will abort filling fields and
+        un-updated fields are set to their corresponding default value.
 
         :param sequence: Sequence number of computed FEC packet
         :type sequence: int
@@ -510,7 +510,8 @@ class FecPacket(object):
             if len(packet.payload) < size:
                 payload = payload + bytearray(size - len(packet.payload))
             fast_xor_inplace(fec.payload_recovery, payload)
-            # NUMPY fec.payload_recovery = bytearray(numpy.bitwise_xor(fec.payload_recovery, payload))
+            # NUMPY fec.payload_recovery = bytearray(
+            #     numpy.bitwise_xor(fec.payload_recovery, payload))
             # XOR LOOP for i in xrange(min(size, len(packet.payload))):
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
@@ -521,10 +522,12 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> packets = [RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray('gaga', 'utf-8')),
-        ...            RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray('salut', 'utf-8')),
-        ...            RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray('12345', 'utf-8')),
-        ...            RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray('robot', 'utf-8'))]
+        >>> packets = [
+        ...     RtpPacket.create(65530, 65530, RtpPacket.MP2T_PT, bytearray('gaga', 'utf-8')),
+        ...     RtpPacket.create(65533, 65533, RtpPacket.MP2T_PT, bytearray('salut', 'utf-8')),
+        ...     RtpPacket.create(    1,     1, RtpPacket.MP2T_PT, bytearray('12345', 'utf-8')),
+        ...     RtpPacket.create(    4,     4, RtpPacket.MP2T_PT, bytearray('robot', 'utf-8'))
+        ... ]
         >>> fec = FecPacket.compute(4, FecPacket.XOR, FecPacket.COL, 3, 4, packets)
         >>> print(fec)
         errors                = []

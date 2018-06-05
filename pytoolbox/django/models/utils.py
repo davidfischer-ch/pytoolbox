@@ -35,7 +35,8 @@ def get_content_type_dict(instance):
 def get_instance(app_label, model, pk):
     """Return an instance given its app_label, model name and private key."""
     from django.contrib.contenttypes import models as ct_models
-    return ct_models.ContentType.objects.get(app_label=app_label, model=model).get_object_for_this_type(pk=pk)
+    model = ct_models.ContentType.objects.get(app_label=app_label, model=model)
+    return model.get_object_for_this_type(pk=pk)
 
 
 def try_get_field(instance, field_name):

@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 """
-Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_ powered
-API `views <http://www.django-rest-framework.org/tutorial/3-class-based-views/>`_.
+Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
+powered API `views <http://www.django-rest-framework.org/tutorial/3-class-based-views/>`_.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -52,8 +52,12 @@ class RedirectToLoginMixin(object):
     redirected_classes = (renderers.BrowsableAPIRenderer, )
 
     def finalize_response(self, request, response, *args, **kwargs):
-        response = super(RedirectToLoginMixin, self).finalize_response(request, response, *args, **kwargs)
-        if not request.user.is_authenticated() and isinstance(response.accepted_renderer, self.redirected_classes):
+        response = super(RedirectToLoginMixin, self).finalize_response(
+            request, response, *args, **kwargs)
+        if (
+            not request.user.is_authenticated() and
+            isinstance(response.accepted_renderer, self.redirected_classes)
+        ):
             response = redirect_to_login(request.path)
             response.data = {}
         return response

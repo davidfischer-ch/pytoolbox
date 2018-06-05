@@ -113,7 +113,8 @@ if PY2:
 
         >>> from pytoolbox.encoding import to_bytes
         >>> from pytoolbox.unittest import asserts
-        >>> asserts.equal(get_exception_with_traceback(ValueError(to_bytes('yé'))), 'ValueError: yé\\n')
+        >>> asserts.equal(
+        ...     get_exception_with_traceback(ValueError(to_bytes('yé'))), 'ValueError: yé\\n')
 
         If the exception was raised then there is a traceback:
 
@@ -150,7 +151,8 @@ else:
         ...     asserts.assert_in("raise RuntimeError('yé')", trace)
         """
         exception_io = io.StringIO()
-        traceback.print_exception(type(exception), exception, exception.__traceback__, file=exception_io)
+        traceback.print_exception(
+            type(exception), exception, exception.__traceback__, file=exception_io)
         return exception_io.getvalue()
 
 __all__ = _all.diff(globals())

@@ -15,7 +15,7 @@ class FecGenerator(object):
     This generator accept incoming RTP media packets and compute corresponding FEC packets.
     """
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
     def L(self):
@@ -41,7 +41,7 @@ class FecGenerator(object):
         """
         return self._D
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(self, L, D):
         """
@@ -60,7 +60,7 @@ class FecGenerator(object):
         self._medias = []
         self._invalid = self._total = 0
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def on_new_col(self, col, caller):
         """
@@ -137,7 +137,8 @@ class FecGenerator(object):
         Media seq=4 is out of sequence (expected 2) : FEC algorithm resetted !
         >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('python', 'utf-8')))
         Media seq=2 is out of sequence (expected 5) : FEC algorithm resetted !
-        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('Kuota Kharma Evo', 'utf-8')))
+        >>> g.put_media(
+        ...     RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('Kuota Kharma Evo', 'utf-8')))
         Media seq=2 is out of sequence (expected 3) : FEC algorithm resetted !
         >>> print(g)
         Matrix size L x D            = 4 x 5
@@ -213,7 +214,8 @@ class FecGenerator(object):
         if len(self._medias) % self._L == 0:
             row_medias = self._medias[-self._L:]
             assert(len(row_medias) == self._L)
-            row = FecPacket.compute(self._row_sequence, FecPacket.XOR, FecPacket.ROW, self._L, self._D, row_medias)
+            row = FecPacket.compute(
+                self._row_sequence, FecPacket.XOR, FecPacket.ROW, self._L, self._D, row_medias)
             self._row_sequence = (self._row_sequence + 1) % RtpPacket.S_MASK
             self.on_new_row(row, self)
         # Compute a new column FEC packet when a new column just filled with packets
@@ -221,7 +223,8 @@ class FecGenerator(object):
             first = len(self._medias) - self._L * (self._D - 1) - 1
             col_medias = self._medias[first::self._L]
             assert(len(col_medias) == self._D)
-            col = FecPacket.compute(self._col_sequence, FecPacket.XOR, FecPacket.COL, self._L, self._D, col_medias)
+            col = FecPacket.compute(
+                self._col_sequence, FecPacket.XOR, FecPacket.COL, self._L, self._D, col_medias)
             self._col_sequence = (self._col_sequence + 1) % RtpPacket.S_MASK
             self.on_new_col(col, self)
         if len(self._medias) == self._L * self._D:
@@ -243,13 +246,12 @@ class FecGenerator(object):
         Medias buffer (seq. numbers) = []
         """
         medias = [p.sequence for p in self._medias]
-        return ("""Matrix size L x D            = {0} x {1}
-Total invalid media packets  = {2}
-Total media packets received = {3}
-Column sequence number       = {4}
-Row    sequence number       = {5}
-Media  sequence number       = {6}
-Medias buffer (seq. numbers) = {7}""".format(self._L, self._D, self._invalid, self._total, self._col_sequence,
-                                             self._row_sequence, self._media_sequence, medias))
+        return ("""Matrix size L x D            = {0._L} x {0._D}
+Total invalid media packets  = {0._invalid}
+Total media packets received = {0._total}
+Column sequence number       = {0._col_sequence}
+Row    sequence number       = {0._row_sequence}
+Media  sequence number       = {0._media_sequence}
+Medias buffer (seq. numbers) = {1}""".format(self, medias))
 
 __all__ = _all.diff(globals())

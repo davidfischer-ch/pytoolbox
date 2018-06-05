@@ -63,7 +63,10 @@ class InspectMixin(object):
 
     @classmethod
     def get_test_methods(cls):
-        return ((n, m) for n, m in inspect.getmembers(cls) if n.startswith('test_') and hasattr(m, '__call__'))
+        return (
+            (n, m) for n, m in inspect.getmembers(cls)
+            if n.startswith('test_') and hasattr(m, '__call__')
+        )
 
 
 class AwareTearDownMixin(object):
@@ -79,7 +82,8 @@ class AwareTearDownMixin(object):
 
 class FilterByTagsMixin(InspectMixin):
     """
-    Allow to filter unit-tests by tags, including by default, the `TestCaseName` and `TestCaseName.method_name`.
+    Allow to filter unit-tests by tags, including by default, the `TestCaseName` and
+    `TestCaseName.method_name`.
     """
 
     tags = required_tags = ()
@@ -107,8 +111,12 @@ class FilterByTagsMixin(InspectMixin):
 
     @classmethod
     def fast_class_skip(cls):
-        r = functools.partial(cls.should_run, extra_tags=cls.get_extra_tags(), only_tags=cls.get_only_tags(),
-                              skip_tags=cls.get_skip_tags())
+        r = functools.partial(
+            cls.should_run,
+            extra_tags=cls.get_extra_tags(),
+            only_tags=cls.get_only_tags(),
+            skip_tags=cls.get_skip_tags()
+        )
         if not any(r(cls.get_tags(m), cls.get_required_tags(m)) for n, m in cls.get_test_methods()):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin.fast_class_skip')
 
@@ -127,15 +135,21 @@ class FilterByTagsMixin(InspectMixin):
     @classmethod
     def get_tags(cls, current_test):
         my_id = (cls.__name__, current_test.__name__)
-        return set(itertools.chain(cls.tags, getattr(current_test, 'tags', ()), (my_id[0], '.'.join(my_id))))
+        return set(itertools.chain(
+            cls.tags, getattr(current_test, 'tags', ()), (my_id[0], '.'.join(my_id))))
 
     @classmethod
     def get_required_tags(cls, current_test):
         return set(itertools.chain(cls.required_tags, getattr(current_test, 'required_tags', ())))
 
     def setUp(self):
-        if not self.should_run(self.get_tags(self.current_test), self.get_required_tags(self.current_test),
-                               self.get_extra_tags(), self.get_only_tags(), self.get_skip_tags()):
+        if not self.should_run(
+            self.get_tags(self.current_test),
+            self.get_required_tags(self.current_test),
+            self.get_extra_tags(),
+            self.get_only_tags(),
+            self.get_skip_tags()
+        ):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin.setUp')
         super(FilterByTagsMixin, self).setUp()
 
@@ -174,15 +188,16 @@ class FFmpegMixin(object):
 
     # Streams Asserts
 
-    def assertAudioStreamEqual(self, first_path, second_path, first_index, second_index, same_codec=True):
+    def assertAudioStreamEqual(self, first_path, second_path, first_index, second_index,
+                               same_codec=True):
         first = self.ffprobe.get_audio_streams(first_path)[first_index]
         second = self.ffprobe.get_audio_streams(second_path)[second_index]
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
 
-    def assertMediaFormatEqual(self, first_path, second_path, same_bit_rate=True, same_duration=True,
-                               same_size=True, same_start_time=True):
+    def assertMediaFormatEqual(self, first_path, second_path, same_bit_rate=True,
+                               same_duration=True, same_size=True, same_start_time=True):
         formats = [self.ffprobe.get_media_info(p)['format'] for p in (first_path, second_path)]
         bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
@@ -202,14 +217,17 @@ class FFmpegMixin(object):
             self.assertRelativeEqual(*start_times, msg='Start time mistmatch.')
         self.assertDictEqual(*formats)
 
-    def assertVideoStreamEqual(self, first_path, second_path, first_index, second_index, same_codec=True):
+    def assertVideoStreamEqual(self, first_path, second_path, first_index, second_index,
+                               same_codec=True):
         first = self.ffprobe.get_video_streams(first_path)[first_index]
         second = self.ffprobe.get_video_streams(second_path)[second_index]
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mismatch.')
-        self.assertRelativeEqual(first.avg_frame_rate, second.avg_frame_rate, msg='Average frame rate mismatch.')
+        self.assertRelativeEqual(
+            first.avg_frame_rate, second.avg_frame_rate, msg='Average frame rate mismatch.')
         if first.nb_frames:
-            self.assertRelativeEqual(first.nb_frames, second.nb_frames, msg='Number of frames mistmatch.')
+            self.assertRelativeEqual(
+                first.nb_frames, second.nb_frames, msg='Number of frames mistmatch.')
         self.assertEqual(first.height, second.height, msg='Height mismatch.')
         self.assertEqual(first.width, second.width, msg='Width mismatch.')
 
@@ -225,7 +243,8 @@ class FFmpegMixin(object):
         results = list(generator)
         result = io.StringIO()
         statistics = results[-1]
-        pprint.pprint({a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
+        pprint.pprint(
+            {a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
         self.assertEqual(statistics.state, state, result.getvalue())
         return results
 
@@ -243,7 +262,8 @@ class SnakeCaseMixin(object):
 
     def __getattr__(self, name):
         if name.lower() == name:
-            return getattr(self, snake_to_camel(name if name.startswith('assert_') else 'assert_{0}'.format(name)))
+            return getattr(self, snake_to_camel(
+                name if name.startswith('assert_') else 'assert_{0}'.format(name)))
         raise AttributeError
 
 

@@ -15,8 +15,8 @@ _all = module.All(globals())
 
 class CleanAttributesMixin(object):
     """
-    Put validation logic, cleanup code, ... into a method clean_<attribute_name> and this method will be called
-    every time the attribute is set.
+    Put validation logic, cleanup code, ... into a method clean_<attribute_name> and this method
+    will be called every time the attribute is set.
 
     **Example usage**
 
@@ -50,19 +50,22 @@ if sys.version_info[0] > 2:
 
     class StrongTypedMixin(object):
         """
-        Annotate arguments of the class __init__ with types and then you'll get a class with type checking.
+        Annotate arguments of the class __init__ with types and then you'll get a class with type
+        checking.
 
         **Example usage**
 
         >>> class Settings(StrongTypedMixin):
-        ...     def __init__(self, *, locale: (str, list), broker: dict=None, debug: bool=True, timezone=None):
+        ...     def __init__(self, *, locale: (str, list), broker: dict=None, debug: bool=True,
+        ...                  timezone=None):
         ...        self.locale = locale
         ...        self.broker = broker
         ...        self.debug = debug
         ...        self.timezone = timezone
         ...
         >>> settings = Settings(locale='fr', broker={}, debug=False)
-        >>> settings = Settings(locale='fr', broker={}, timezone='this argument is not type checked')
+        >>> settings = Settings(
+        ...     locale='fr', broker={}, timezone='this argument is not type checked')
         >>> settings = Settings(locale='fr')
         >>> print(settings.broker)
         None
@@ -225,7 +228,8 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
 
     Enforce the scheme or the port to being set:
 
-    >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, scheme_mandatory=True)
+    >>> valid_uri(
+    ...     '//domain_not_exist_404_404/index.html:80', check_404=False, scheme_mandatory=True)
     False
     >>> valid_uri('//domain_not_exist_404_404/index.html:80', check_404=False, port_mandatory=True)
     False
@@ -291,7 +295,10 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
 
 
 def validate_list(the_list, regexes):
-    """Validate every element of `the_list` with corresponding regular expression picked-in from `regexes`."""
+    """
+    Validate every element of `the_list` with corresponding regular expression picked-in from
+    `regexes`.
+    """
     if len(the_list) != len(regexes):
         raise IndexError(to_bytes('{0} elements to validate with {1} regular expressions'.format(
                          len(the_list), len(regexes))))

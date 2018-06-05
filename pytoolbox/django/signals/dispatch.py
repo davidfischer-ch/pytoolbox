@@ -19,10 +19,12 @@ class InstanceSignal(_dispatch.Signal):
         super(InstanceSignal, self).__init__(providing_args, use_caching)
 
     def send(self, sender=None, **named):
-        return super(InstanceSignal, self).send(_utils.get_base_model(sender or named['instance']), **named)
+        return super(InstanceSignal, self).send(
+            _utils.get_base_model(sender or named['instance']), **named)
 
     def send_robust(self, sender=None, **named):
-        return super(InstanceSignal, self).send(_utils.get_base_model(sender or named['instance']), **named)
+        return super(InstanceSignal, self).send(
+            _utils.get_base_model(sender or named['instance']), **named)
 
 post_state_transition = InstanceSignal(providing_args=['previous_state', 'args', 'kwargs'])
 

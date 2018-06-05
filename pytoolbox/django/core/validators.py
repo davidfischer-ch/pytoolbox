@@ -59,11 +59,11 @@ class KeysValidator(object):
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__)
-            and self.required_keys == other.required_keys
-            and self.optional_keys == other.optional_keys
-            and self.messages == other.messages
-            and self.strict == other.strict
+            isinstance(other, self.__class__) and
+            self.required_keys == other.required_keys and
+            self.optional_keys == other.optional_keys and
+            self.messages == other.messages and
+            self.strict == other.strict
         )
 
     def __ne__(self, other):

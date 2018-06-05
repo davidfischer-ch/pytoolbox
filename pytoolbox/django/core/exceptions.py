@@ -36,7 +36,8 @@ def has_code(validation_error, code):
     True
     """
     errors = getattr(validation_error, 'error_list', [])
-    errors.extend(itertools.chain.from_iterable(v for v in getattr(validation_error, 'error_dict', {}).itervalues()))
+    errors.extend(itertools.chain.from_iterable(
+        v for v in getattr(validation_error, 'error_dict', {}).itervalues()))
     return any(e.code == code for e in errors)
 
 
@@ -62,7 +63,8 @@ def iter_validation_errors(validation_error):
 
 
 class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
-    message = _('Row update request preconditions failed: A concurrent request changed the row in database.')
+    message = _('Row update request preconditions failed: '
+                'A concurrent request changed the row in database.')
 
 
 class InvalidStateError(exceptions.MessageMixin, Exception):

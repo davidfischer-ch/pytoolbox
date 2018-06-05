@@ -2,7 +2,8 @@
 
 """
 Mix-ins for building your own
-`Django Datatable View <https://github.com/pivotal-energy-solutions/django-datatable-view>`_ powered views.
+`Django Datatable View <https://github.com/pivotal-energy-solutions/django-datatable-view>`_
+powered views.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -16,13 +17,17 @@ class MultiTablesMixin(object):
     request_name_key = 'datatable-name'
 
     def get_ajax_url(self, name=None):
-        return (self.request.path + '?{0}={1}'.format(self.request_name_key, self.get_datatable_name(name)))
+        return (self.request.path + '?{0}={1}'.format(
+            self.request_name_key, self.get_datatable_name(name)))
 
     def get_context_data(self, **kwargs):
         context = super(MultiTablesMixin, self).get_context_data(**kwargs)
         default_table = context.pop('datatable')
         context['datatables'] = [
-            (name, label, (default_table if name == self.multi_default else self.get_datatable(name=name)))
+            (
+                name,
+                label,
+                (default_table if name == self.multi_default else self.get_datatable(name=name)))
             for name, label in self.multi_datatables
         ]
         return context
@@ -35,7 +40,8 @@ class MultiTablesMixin(object):
 
     def get_datatable_structure(self, name=None):
         options = self._get_datatable_options()
-        return self.datatable_structure_class(self.get_ajax_url(name=name), options, model=self.get_model())
+        return self.datatable_structure_class(
+            self.get_ajax_url(name=name), options, model=self.get_model())
 
     def get_queryset(self, name=None):
         qs = super(MultiTablesMixin, self).get_queryset()

@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 """
-Mix-ins for building your own `Django Form Tools <https://github.com/django/django-formtools>`_ powered views.
+Mix-ins for building your own `Django Form Tools <https://github.com/django/django-formtools>`_
+powered views.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -18,7 +19,8 @@ class CrispyFormsMixin(object):
         """Add the management form to the form for working with crispy forms."""
         from crispy_forms import layout
         context = super(CrispyFormsMixin, self).get_context_data(form=form, **kwargs)
-        context['wizard']['form'].helper.layout.append(layout.HTML(context['wizard']['management_form']))
+        context['wizard']['form'].helper.layout.append(
+            layout.HTML(context['wizard']['management_form']))
         context['form'] = context['wizard']['form']
         return context
 

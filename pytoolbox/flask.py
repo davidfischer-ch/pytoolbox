@@ -75,7 +75,8 @@ def map_exceptions(exception):
     elif isinstance(exception, NotImplementedError):
         abort(501, text_type(exception))
     else:
-        abort(500, '{0} {1} {2}'.format(exception.__class__.__name__, repr(exception), text_type(exception)))
+        abort(500, '{0} {1} {2}'.format(
+            exception.__class__.__name__, repr(exception), text_type(exception)))
 
 
 def json_response(status, value=None, include_properties=False):

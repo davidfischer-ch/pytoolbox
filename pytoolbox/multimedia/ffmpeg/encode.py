@@ -56,7 +56,8 @@ class EncodeStatistics(object):
         self.bit_rate = None
 
         # Retrieve input media duration and size, handle sub-clipping
-        duration = self.ffprobe_class().get_media_duration(self.input, as_delta=True) or self.default_in_duration
+        duration = self.ffprobe_class().get_media_duration(
+            self.input, as_delta=True) or self.default_in_duration
         self.input.duration, self.input.size = \
             self._get_subclip_duration_and_size(duration, self.input.size, options)
         self.output.duration = None
@@ -110,7 +111,8 @@ class EncodeStatistics(object):
         self.returncode = returncode
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
         self.frame_rate = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
-        self.output.duration = self.ffprobe_class().get_media_duration(self.output.path, as_delta=True)
+        self.output.duration = self.ffprobe_class().get_media_duration(
+            self.output.path, as_delta=True)
         self.output.size = None
         self._update_ratio()
         return self
@@ -170,7 +172,10 @@ class FrameBasedRatioMixin(object):
     def __init__(self, *args, **kwargs):
         super(FrameBasedRatioMixin, self).__init__(*args, **kwargs)
         fps = self.ffprobe_class().get_video_frame_rate(self.input)
-        self.input.frame = fps * self.input.duration.total_seconds() if fps and self.input.duration else None
+        if fps and self.input.duration:
+            self.input.frame = fps * self.input.duration.total_seconds()
+        else:
+            self.input.frame = None
 
     def _compute_ratio(self):
         if self.input.frame and self.frame is not None:

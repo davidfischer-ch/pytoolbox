@@ -83,9 +83,10 @@ class MoneyField(models.DecimalField):
 
     def __init__(self, max_value, **kwargs):
         self.max_value = max_value
-        super(MoneyField, self).__init__(decimal_places=2, max_digits=int(math.log10(max_value)) + 3, validators=[
-            dj_validators.MinValueValidator(0), dj_validators.MaxValueValidator(max_value)
-        ], **kwargs)
+        super(MoneyField, self).__init__(
+            decimal_places=2, max_digits=int(math.log10(max_value)) + 3, validators=[
+                dj_validators.MinValueValidator(0), dj_validators.MaxValueValidator(max_value)
+            ], **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super(MoneyField, self).deconstruct()

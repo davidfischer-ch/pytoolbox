@@ -40,6 +40,7 @@ def register_handler(signum, handler, append=True, reset=False):
 
 
 def register_callback(signum, callback, append=True, reset=False, args=None, kwargs=None):
-    return register_handler(signum, lambda s, f: callback(*(args or []), **(kwargs or {})), append, reset)
+    return register_handler(
+        signum, lambda s, f: callback(*(args or []), **(kwargs or {})), append, reset)
 
 __all__ = _all.diff(globals())

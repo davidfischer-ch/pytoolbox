@@ -13,12 +13,14 @@ _all = module.All(globals())
 
 def new(algorithm=hashlib.sha256):
     """
-    Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm` is a string else instantiate algorithm.
+    Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm` is a string else
+    instantiate algorithm.
     """
     return hashlib.new(algorithm) if isinstance(algorithm, string_types) else algorithm()
 
 
-def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sha256, chunk_size=None):
+def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sha256,
+             chunk_size=None):
     """
     Return the result of hashing `data` by given hash `algorithm`.
 
@@ -47,7 +49,8 @@ def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sh
 
 def get_password_generator(characters=string.ascii_letters + string.digits, length=16):
     """
-    Return a dead simple password generator in the form of a dictionary with missing keys generated on the fly.
+    Return a dead simple password generator in the form of a dictionary with missing keys generated
+    on the fly.
 
     **Example usage**
 
@@ -60,17 +63,18 @@ def get_password_generator(characters=string.ascii_letters + string.digits, leng
     >>> asserts.equal(passwords['db'], passwords['db'])
     >>> asserts.not_equal(passwords['cache'], passwords['db'])
     """
-    return collections.defaultdict(lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)))
+    return collections.defaultdict(
+        lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)))
 
 
-# FIXME implement githash class with interface: https://hg.python.org/cpython/file/3.4/Lib/hashlib.py
+# FIXME implement githash class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
 # FIXME add length optional argument to implement chunk'ed update()
 def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     """
     Return the blob of some data.
 
-    This is how Git `calculates <http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git>`_ the SHA1
-    for a file (or, in Git terms, a "blob")::
+    This is how Git `calculates <http://stackoverflow.com/questions/552659/assigning-git-sha1s-without-git>`_
+    the SHA1 for a file (or, in Git terms, a "blob")::
 
         sha1('blob ' + filesize + (the byte 0) + data)
 
@@ -129,7 +133,8 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
         try:
             algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
         except AttributeError:
-            raise NotImplementedError("Your version of hashlib doesn't implement algorithms_available")
+            raise NotImplementedError(
+                "Your version of hashlib doesn't implement algorithms_available")
     digest_size_to_algorithms = collections.defaultdict(set)
     for algorithm in algorithms:
         digest_size_to_algorithms[algorithm.digest_size].add(algorithm)

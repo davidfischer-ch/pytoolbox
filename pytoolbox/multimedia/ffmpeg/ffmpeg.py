@@ -18,14 +18,16 @@ FRAME_MD5_REGEX = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
 class FFmpeg(object):
     """
-    Encode a set of input files input to a set of output files and yields statistics about the encoding.
+    Encode a set of input files input to a set of output files and yields statistics about the
+    encoding.
     """
 
     executable = 'ffmpeg'
     ffprobe_class = ffprobe.FFprobe
     statistics_class = encode.EncodeStatistics
 
-    def __init__(self, executable=None, chunk_read_timeout=0.5, encode_poll_delay=0.5, encoding='utf-8'):
+    def __init__(self, executable=None, chunk_read_timeout=0.5, encode_poll_delay=0.5,
+                 encoding='utf-8'):
         self.executable = executable or self.executable
         self.chunk_read_timeout = chunk_read_timeout
         self.encode_poll_delay = encode_poll_delay
@@ -34,12 +36,15 @@ class FFmpeg(object):
 
     def __call__(self, *arguments):
         """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
-        return raw_cmd(itertools.chain([self.executable], arguments), stderr=subprocess.PIPE, universal_newlines=True)
+        return raw_cmd(
+            itertools.chain([self.executable], arguments),
+            stderr=subprocess.PIPE, universal_newlines=True)
 
-    def encode(self, inputs, outputs, options=None, create_directories=True, process_poll=True, process_kwargs=None,
-               statistics_kwargs=None):
+    def encode(self, inputs, outputs, options=None, create_directories=True, process_poll=True,
+               process_kwargs=None, statistics_kwargs=None):
         """
-        Encode a set of input files input to a set of output files and yields statistics about the encoding.
+        Encode a set of input files input to a set of output files and yields statistics about the
+        encoding.
         """
         arguments, inputs, outputs, options = self._get_arguments(inputs, outputs, options)
 
@@ -65,7 +70,8 @@ class FFmpeg(object):
         except Exception as exception:
             tb = sys.exc_info()[2]
             kill(process)
-            raise exception.with_traceback(tb) if hasattr(exception, 'with_traceback') else exception
+            raise exception.with_traceback(tb) \
+                if hasattr(exception, 'with_traceback') else exception
 
     def get_frames_md5_checksum(self, filename):
         with TempStorage() as tmp:
@@ -76,7 +82,8 @@ class FFmpeg(object):
 
     def _clean_medias_argument(self, value):
         """
-        Return a list of Media instances from passed value. Value can be one or multiple instances of string or Media.
+        Return a list of Media instances from passed value.
+        Value can be one or multiple instances of string or Media.
         """
         values = [value] if isinstance(value, (string_types, self.ffprobe.media_class)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
@@ -87,9 +94,11 @@ class FFmpeg(object):
 
         * Set inputs to one or multiple strings (paths) or Media instances (with options).
         * Set outputs to one or multiple strings (paths) or Media instances (with options).
-        * Set options to a string or a list with the options to put in-between the inputs and outputs (legacy API).
+        * Set options to a string or a list with the options to put in-between the inputs and
+          outputs (legacy API).
 
-        In return you will get a tuple with (arguments, inputs -> list Media, outputs -> list Media, options -> list).
+        In return you will get a tuple with (arguments, inputs -> list Media, outputs -> list Media,
+        options -> list).
         """
         inputs = self._clean_medias_argument(inputs)
         outputs = self._clean_medias_argument(outputs)
@@ -106,7 +115,10 @@ class FFmpeg(object):
         select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
             chunk = process.stderr.read()
-            return chunk if chunk is None or isinstance(chunk, string_types) else chunk.decode(self.encoding)
+            if chunk is None or isinstance(chunk, string_types):
+                return chunk
+            else:
+                return chunk.decode(self.encoding)
         except IOError as e:
             if e.errno != errno.EAGAIN:
                 raise

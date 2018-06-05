@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 """
-Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_ powered
-API `serializers <http://www.django-rest-framework.org/tutorial/1-serialization/>`_.
+Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
+powered API `serializers <http://www.django-rest-framework.org/tutorial/1-serialization/>`_.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -20,11 +20,15 @@ _all = module.All(globals())
 class BaseModelMixin(object):
 
     def build_url_field(self, field_name, model_class):
-        return super(BaseModelMixin, self).build_url_field(field_name, utils.get_base_model(model_class))
+        return super(BaseModelMixin, self).build_url_field(
+            field_name, utils.get_base_model(model_class))
 
 
 class FromPrivateKeyMixin(object):
-    """Allow to provide the PK of the model to retrieve it instead of creating a new instance with fields from data."""
+    """
+    Allow to provide the PK of the model to retrieve it instead of creating a new instance with
+    fields from data.
+    """
 
     default_error_messages = {
         'does_not_exist': _('Invalid pk "{pk_value}" - object does not exist.'),
@@ -51,7 +55,10 @@ class FromPrivateKeyMixin(object):
 class NestedWriteMixin(object):
 
     def to_internal_value(self, data):
-        """Return a tuple with (self, validate_data) to allow working on validated data with this serializer."""
+        """
+        Return a tuple with (self, validate_data) to allow working on validated data with this
+        serializer.
+        """
         return self, super(NestedWriteMixin, self).to_internal_value(data)
 
 

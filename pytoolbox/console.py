@@ -83,8 +83,8 @@ def print_error(message, exit_code=1, stream=sys.stderr):
 
     In following example stream is set to `sys.stdout` and exit is disabled (for :mod:`doctest`):
 
-    >>> print_error(u"It's not a bug - it's an undocumented feature.", exit_code=None, stream=sys.stdout)
-    [ERROR] It's not a bug - it's an undocumented feature.
+    >>> print_error(u"It's not a bug - it's an undoc. feature.", exit_code=None, stream=sys.stdout)
+    [ERROR] It's not a bug - it's an undoc. feature.
     """
     stream.write('[ERROR] {1}{0}'.format(os.linesep, message))
     stream.flush()
@@ -101,10 +101,11 @@ if __name__ == '__main__':
     print(choice('Select a language', ['Italian', 'French']))
 
 
-def progress_bar(start_time, current, total, size=50, done='=', todo=' ', template='\r[{done}{todo}]',
-                 stream=sys.stdout):
+def progress_bar(start_time, current, total, size=50, done='=', todo=' ',
+                 template='\r[{done}{todo}]', stream=sys.stdout):
     """
-    Show a progress bar. Default `template` string starts with a carriage return to update progress on same line.
+    Show a progress bar. Default `template` string starts with a carriage return to update progress
+    on same line.
 
     **Example usage**
 

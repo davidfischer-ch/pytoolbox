@@ -33,7 +33,8 @@ class LiveTestCaseMixin(object):
         self.assertElementIsEnabled(name) if enabled else self.assertElementIsDisabled(name)
         element = self.client.find_name(name)
         Select = self.client.web_driver.web_element_classes['select']
-        method = self.assertSelectOptions if isinstance(element, Select) else self.assertElementValue
+        method = \
+            self.assertSelectOptions if isinstance(element, Select) else self.assertElementValue
         method(name, value)
 
     def assertElementIsDisabled(self, name, *args, **kwargs):
@@ -48,11 +49,14 @@ class LiveTestCaseMixin(object):
     def assertElementValue(self, name, value, *args, **kwargs):
         element = self.client.find_name(name)
         operator = kwargs.pop('operator', lambda x: x)
-        self.assertEqual(operator(element.get_attribute('value')), element.clean_value(value), *args, **kwargs)
+        self.assertEqual(
+            operator(element.get_attribute('value')),
+            element.clean_value(value), *args, **kwargs)
 
     def assertSelectOptions(self, name, texts, *args, **kwargs):
-        self.assertListEqual(sorted(o.text for o in self.client.find_name(name).all_selected_options),
-                             sorted([texts] if isinstance(texts, str) else texts), *args, **kwargs)
+        self.assertListEqual(
+            sorted(o.text for o in self.client.find_name(name).all_selected_options),
+            sorted([texts] if isinstance(texts, str) else texts), *args, **kwargs)
 
 
 __all__ = _all.diff(globals())

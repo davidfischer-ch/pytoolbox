@@ -35,7 +35,8 @@ class JiraProject(object):
             count = len(issues)
             issues.update({
                 i.id: i for i in self.jira.search_issues(
-                    'project={0.project} AND issuetype="{0.feature_type}"'.format(self), startAt=count
+                    'project={0.project} AND issuetype="{0.feature_type}"'.format(self),
+                    startAt=count
                 )
             })
         return issues.itervalues()

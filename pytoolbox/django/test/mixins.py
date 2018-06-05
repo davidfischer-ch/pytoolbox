@@ -33,10 +33,10 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
         if exc_type is None:
             executed = len(self)
             self.test_case.assertIn(
-                executed, self.range, '{1} queries executed, {2.range} expected{0}Captured queries were:{0}{3}'.format(
-                    os.linesep, executed, self, os.linesep.join(query['sql'] for query in self.captured_queries)
-                )
-            )
+                executed, self.range,
+                '{1} queries executed, {2.range} expected{0}Captured queries were:{0}{3}'.format(
+                    os.linesep, executed, self, os.linesep.join(
+                        query['sql'] for query in self.captured_queries)))
 
 
 class ClearSiteCacheMixin(object):
@@ -56,11 +56,19 @@ class ClearSiteCacheMixin(object):
 class FixFlushMixin(object):
 
     def _fixture_teardown(self):
-        """Fix TransactionTestCase tear-down by enabling TRUNCATE CASCADE. Issue with Django 1.8a1."""
+        """
+        Fix TransactionTestCase tear-down by enabling TRUNCATE CASCADE. Issue with Django 1.8a1.
+        """
         assert isinstance(self, TransactionTestCase)
         for db_name in self._databases_names(include_mirrors=False):
-            call_command('flush', verbosity=0, interactive=False, database=db_name, reset_sequences=False,
-                         allow_cascade=True, inhibit_post_migrate=self.available_apps is not None)
+            call_command(
+                'flush',
+                verbosity=0,
+                interactive=False,
+                database=db_name,
+                reset_sequences=False,
+                allow_cascade=True,
+                inhibit_post_migrate=self.available_apps is not None)
 
 
 class FormWizardMixin(object):
@@ -103,8 +111,8 @@ class UrlMixin(object):
 
 class RestAPIMixin(UrlMixin):
 
-    def _call(self, method, url, data, status, qs=None, urlconf=None, args=None, kwargs=None, current_app=None,
-              msg=lambda r: getattr(r, 'data', r), **call_kwargs):
+    def _call(self, method, url, data, status, qs=None, urlconf=None, args=None, kwargs=None,
+              current_app=None, msg=lambda r: getattr(r, 'data', r), **call_kwargs):
         url = self.resolve(url, qs, urlconf, args, kwargs, current_app)
         response = getattr(self.client, method)(url, data, **call_kwargs)
         self.assertEqual(response.status_code, status, msg(response))

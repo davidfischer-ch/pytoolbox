@@ -13,12 +13,13 @@ from .types import get_slots
 _all = module.All(globals())
 
 
-# Data -> File ---------------------------------------------------------------------------------------------------------
+# Data -> File -------------------------------------------------------------------------------------
 
-def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=False, makedirs=False):
+def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=False,
+            makedirs=False):
     """
-    Write some data to a file, can be safe (tmp file -> rename), may create a backup before any write operation.
-    Return the name of the backup path or None.
+    Write some data to a file, can be safe (tmp file -> rename), may create a backup before any
+    write operation. Return the name of the backup path or None.
 
     **Example usage**
 
@@ -40,9 +41,12 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
     >>> asserts.equal(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'bonjour')
     >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'ça va ?')
 
-    The most secure, do a backup, write into a temporary file, and rename the temporary file to the destination:
+    The most secure, do a backup, write into a temporary file, and rename the temporary file to the
+    destination:
 
-    >>> asserts.equal(to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True), '/tmp/to_file.bkp')
+    >>> asserts.equal(
+    ...     to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True),
+    ...     '/tmp/to_file.bkp')
     >>> asserts.equal(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'ça va ?')
     >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
 
@@ -72,7 +76,7 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
     return backup_path if backup else None
 
 
-# Object <-> Pickle file -----------------------------------------------------------------------------------------------
+# Object <-> Pickle file ---------------------------------------------------------------------------
 
 class PickleableObject(object):
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
@@ -100,7 +104,8 @@ class PickleableObject(object):
         try:
             if pickle_path:
                 del self._pickle_path
-            to_file(path, pickle_data=self, binary=True, safe=safe, backup=backup, makedirs=makedirs)
+            to_file(
+                path, pickle_data=self, binary=True, safe=safe, backup=backup, makedirs=makedirs)
         finally:
             if store_path:
                 self._pickle_path = path
@@ -108,9 +113,9 @@ class PickleableObject(object):
                 self._pickle_path = pickle_path
 
 
-# Object <-> JSON string -----------------------------------------------------------------------------------------------
+# Object <-> JSON string ---------------------------------------------------------------------------
 
-## http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
+# http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
@@ -136,7 +141,8 @@ class SmartJSONEncoderV2(json.JSONEncoder):
 
 def object_to_json(obj, include_properties, **kwargs):
     """
-    Serialize an :class:`object` to a JSON string. Use one of the *smart* JSON encoder of this module.
+    Serialize an :class:`object` to a JSON string.
+    Use one of the *smart* JSON encoder of this module.
 
     * Set include_properties to True to also include the properties of `obj`.
     * Set kwargs with any argument of the function :mod:`json`.dumps excepting cls.
@@ -162,15 +168,16 @@ def object_to_json(obj, include_properties, **kwargs):
         "z": 11
     }
     """
-    return json.dumps(obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1), **kwargs)
+    return json.dumps(
+        obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1), **kwargs)
 
 
 def json_to_object(cls, json_string, inspect_constructor):
     """
     Deserialize the JSON string `json_string` to an instance of `cls`.
 
-    Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
-    constructor (`__init__`) of `cls`.
+    Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword
+    arguments to the constructor (`__init__`) of `cls`.
     """
     return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
@@ -181,7 +188,8 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
 
     .. warning::
 
-        Class constructor is responsible of converting attributes to instances of classes with `dict_to_object`.
+        Class constructor is responsible of converting attributes to instances of classes with
+        `dict_to_object`.
 
     **Example usage**
 
@@ -202,11 +210,15 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
 
     >>> p2 = jsonfile_to_object(Point, 'test.json', inspect_constructor=False)
     >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
-    >>> p2 = jsonfile_to_object(Point, open('test.json', 'r', encoding='utf-8'), inspect_constructor=False)
+    >>> p2 = jsonfile_to_object(
+    ...     Point, open('test.json', 'r', encoding='utf-8'), inspect_constructor=False)
     >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
     >>> os.remove('test.json')
     """
-    f = open(path_or_file, 'r', encoding='utf-8') if isinstance(path_or_file, string_types) else path_or_file
+    if isinstance(path_or_file, string_types):
+        f = open(path_or_file, 'r', encoding='utf-8')
+    else:
+        f = path_or_file
     return json_to_object(cls, f.read(), inspect_constructor)
 
 
@@ -216,7 +228,8 @@ class JsoneableObject(object):
 
     .. warning::
 
-        Class constructor is responsible of converting attributes to instances of classes with `dict_to_object`.
+        Class constructor is responsible of converting attributes to instances of classes with
+        `dict_to_object`.
 
     Convert-back from JSON strings containing extra parameters:
 
@@ -231,7 +244,8 @@ class JsoneableObject(object):
     >>>
     >>> class Media(JsoneableObject):
     ...     def __init__(self, author, title):
-    ...         self.author = dict_to_object(User, author, True) if isinstance(author, dict) else author
+    ...         self.author = dict_to_object(
+    ...             User, author, True) if isinstance(author, dict) else author
     ...         self.title = title
 
     Sounds good:
@@ -275,7 +289,8 @@ class JsoneableObject(object):
                 the_object._json_path = path
             return the_object
 
-    def write(self, path=None, include_properties=False, safe=False, backup=False, makedirs=False, **kwargs):
+    def write(self, path=None, include_properties=False, safe=False, backup=False, makedirs=False,
+              **kwargs):
         """Serialize `self` to a file, excluding the attribute `_json_path`."""
         if path is None and hasattr(self, '_json_path'):
             path = self._json_path
@@ -301,7 +316,7 @@ class JsoneableObject(object):
         return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
-# Object <-> Dictionary ------------------------------------------------------------------------------------------------
+# Object <-> Dictionary ----------------------------------------------------------------------------
 
 def object_to_dict(obj, include_properties):
     """
@@ -309,8 +324,8 @@ def object_to_dict(obj, include_properties):
 
     .. warning::
 
-        Current implementation serialize `obj` to a JSON string and then deserialize this JSON string to an instance
-        of :class:`dict`.
+        Current implementation serialize `obj` to a JSON string and then deserialize this JSON
+        string to an instance of :class:`dict`.
 
     **Example usage**
 
@@ -375,8 +390,8 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     """
     Convert a python dictionary to an instance of a class.
 
-    Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword arguments to the
-    constructor (`__init__`) of `cls`.
+    Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword
+    arguments to the constructor (`__init__`) of `cls`.
 
     **Example usage**
 
@@ -399,7 +414,10 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     ... })
     """
     if inspect_constructor:
-        the_dict = {arg: the_dict.get(arg, None) for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'}
+        the_dict = {
+            arg: the_dict.get(arg, None)
+            for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'
+        }
     return cls(**the_dict)
 
 

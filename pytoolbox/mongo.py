@@ -52,9 +52,15 @@ class TaskModel(Model):
         See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
-    ALL_STATUS = PENDING, RECEIVED, STARTED, PROGRESS, SUCCESS, FAILURE, REVOKING, REVOKED, RETRY, IGNORED, UNKNOWN = \
-        states.PENDING, states.RECEIVED, states.STARTED, 'PROGRESS', states.SUCCESS, states.FAILURE, 'REVOKING', \
-        states.REVOKED, states.RETRY, states.IGNORED, 'UNKNOWN'
+    ALL_STATUS = (
+        PENDING, RECEIVED, STARTED, PROGRESS, SUCCESS,
+        FAILURE, REVOKING, REVOKED, RETRY, IGNORED,
+        UNKNOWN
+    ) = (
+        states.PENDING, states.RECEIVED, states.STARTED, 'PROGRESS', states.SUCCESS,
+        states.FAILURE, 'REVOKING', states.REVOKED, states.RETRY, states.IGNORED,
+        'UNKNOWN'
+    )
 
     PENDING_STATUS = (PENDING, RECEIVED)
     RUNNING_STATUS = (STARTED, PROGRESS, RETRY)
@@ -107,7 +113,8 @@ class User(Model):
         See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
-    def __init__(self, first_name=None, last_name=None, mail=None, secret=None, admin_platform=False, _id=None):
+    def __init__(self, first_name=None, last_name=None, mail=None, secret=None,
+                 admin_platform=False, _id=None):
         super(User, self).__init__(_id)
         self.first_name = first_name
         self.last_name = last_name
@@ -137,7 +144,8 @@ class User(Model):
         if not valid_email(self.mail):
             self._E(raise_exception, 'mail is not a valid email address')
         if not self.is_secret_hashed and not valid_secret(self.secret, True):
-            self._E(raise_exception, 'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
+            self._E(raise_exception,
+                    'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
         # FIXME check admin_platform
         return True
 
@@ -191,7 +199,8 @@ def mongo_do(action, database=None, fail=True, log=None, **kwargs):
     action_file = tempfile.NamedTemporaryFile(mode='w', suffix='.js')
     action_file.write(action)
     try:
-        return cmd(filter(None, ['mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
+        return cmd(
+            filter(None, ['mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
     finally:
         action_file.close()
 

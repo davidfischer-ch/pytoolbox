@@ -57,10 +57,10 @@ def csv_reader(path, delimiter=';', quotechar='"', encoding='utf-8'):
         for line in f.readlines():
             line = line.strip()
             yield [cell for cell in line.split(delimiter)]
-    #import csv
-    #reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
-    #for row in reader:
+    # import csv
+    # reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
+    # for row in reader:
     #    yield [cell for cell in row]
-        #yield [text_type(cell, 'utf-8').encode('utf-8') for cell in row]
+    #    # yield [text_type(cell, 'utf-8').encode('utf-8') for cell in row]
 
 __all__ = _all.diff(globals())

@@ -42,7 +42,7 @@ def IPSocket(string):
     """
     try:
         (ip, port) = string.rsplit(':', 1)
-        #ip = ip.translate(None, '[]')
+        # ip = ip.translate(None, '[]')
         ip_address(ip)  # Seem not IPv6 ready
         port = int(port)
     except Exception:
