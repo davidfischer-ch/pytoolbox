@@ -11,12 +11,12 @@ python:
 install:
   - travis_retry sudo apt-get update -qq
   - travis_retry sudo apt-get install -qq screen
-  - travis_retry pip install --upgrade pip
-  - travis_retry pip install --user -U -e .[atlassian,flask,jinja2,logging,mongo,network,selenium,smpte2022,unittest,voluptuous]
-  - travis_retry pip install --user coveralls
+  - travis_retry sudo pip install --upgrade pip
+  - travis_retry sudo pip install --user -U -e .[atlassian,flask,jinja2,logging,mongo,network,selenium,smpte2022,unittest,voluptuous]
+  - travis_retry sudo pip install --user coveralls
 script:
   - rm -rf django* rest_framework  # Not maintained so not testable ...
-  - python setup.py test
+  - sudo python setup.py test
 matrix:
   allow_failures:
     - python: 2.6
