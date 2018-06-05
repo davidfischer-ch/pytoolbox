@@ -3,24 +3,26 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 try:
-    from ...enum import OrderedEnum
-
-    class Orientation(OrderedEnum):
-        NORMAL = 1
-        HOR_FLIP = 2
-        ROT_180_CCW = 3
-        VERT_FLIP = 4
-        HOR_FLIP_ROT_270_CW = 5
-        ROT_90_CW = 6
-        HOR_FLIP_ROT_90_CW = 7
-        ROT_270_CW = 8
+    import enum
+    _Enum = enum.Enum
 except ImportError:
-    Orientation = lambda x: xrange(1, 9)[x-1]  # noqa
+    _Enum = object
 
 from . import tag
 from ... import module
 
 _all = module.All(globals())
+
+
+class Orientation(_Enum):
+    NORMAL = 1
+    HOR_FLIP = 2
+    ROT_180_CCW = 3
+    VERT_FLIP = 4
+    HOR_FLIP_ROT_270_CW = 5
+    ROT_90_CW = 6
+    HOR_FLIP_ROT_90_CW = 7
+    ROT_270_CW = 8
 
 
 class Image(tag.TagSet):
