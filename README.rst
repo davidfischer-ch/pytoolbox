@@ -92,17 +92,44 @@ Example::
       --no-user-cfg   ignore pydistutils.cfg in your home directory
 
     Options for 'WithExtra' command:
-      ...
+      --prefix                             installation prefix
+      --exec-prefix                        (Unix only) prefix for platform-specific files
+      --home                               (Unix only) home directory to install under
+      --user                               install in user site-package '...'
+      --install-base                       base installation directory (instead of --prefix or --home)
+      --install-platbase                   base installation directory for platform-specific files (...)
+      --root                               install everything relative to this alternate root directory
+      --install-purelib                    installation directory for pure Python module distributions
+      --install-platlib                    installation directory for non-pure module distributions
+      --install-lib                        installation directory for all module distributions (...)
+      --install-headers                    installation directory for C/C++ headers
+      --install-scripts                    installation directory for Python scripts
+      --install-data                       installation directory for data files
+      --compile (-c)                       compile .py to .pyc [default]
+      --no-compile                         don't compile .py files
+      --optimize (-O)                      also compile with optimization: -O1 for "python -O", (...)
+      --force (-f)                         force installation (overwrite any existing files)
+      --skip-build                         skip rebuilding everything (for testing/debugging)
+      --record                             filename in which to record list of installed files
+      --install-layout                     installation layout to choose (known values: deb, unix)
+      --old-and-unmanageable               Try not to use this!
+      --single-version-externally-managed  used by system package builders to create 'flat' eggs
+
       --extra-all                          Install dependencies for all features.
       --extra-atlassian                    Install dependencies for the feature atlassian.
       --extra-django                       Install dependencies for the feature django.
       --extra-django-filter                Install dependencies for the feature django_filter.
       --extra-django-formtools             Install dependencies for the feature django_formtools.
       --extra-flask                        Install dependencies for the feature flask.
+      --extra-imaging                      Install dependencies for the feature imaging.
+      --extra-jinja2                       Install dependencies for the feature jinja2.
+      --extra-logging                      Install dependencies for the feature logging.
       --extra-mongo                        Install dependencies for the feature mongo.
+      --extra-network                      Install dependencies for the feature network.
       --extra-rest-framework               Install dependencies for the feature rest_framework.
       --extra-selenium                     Install dependencies for the feature selenium.
       --extra-smpte2022                    Install dependencies for the feature smpte2022.
+      --extra-unittest                     Install dependencies for the feature unittest.
       --extra-voluptuous                   Install dependencies for the feature voluptuous.
 
     usage: setup.py [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
