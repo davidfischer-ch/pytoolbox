@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, shutil, tarfile, tempfile
 
 import six
-from django.conf import settings
 
 from pytoolbox.exceptions import BadHTTPResponseCodeError
 from pytoolbox.network.http import download_ext
@@ -17,7 +16,11 @@ from . import constants
 
 def main():
     print('Configure Django')
-    settings.configure()
+    try:
+        from django.conf import settings
+        settings.configure()
+    except ImportError:
+        print('WARNING: Django not available for testing purposes')
 
     print('Download the test assets')
     for url, path in constants.TEST_ASSETS:
