@@ -19,7 +19,7 @@ def with_subdomain(url, subdomain=None):
     ...     with_subdomain('http://app.website.com/page'),
     ...     'http://website.com/page')
     >>> asserts.equal(
-    ... with_subdomain('http://app.website.com/page', 'help'),
+    ...     with_subdomain('http://app.website.com/page', 'help'),
     ...     'http://help.website.com/page')
     >>> asserts.equal(
     ...     with_subdomain('https://app.website.com#d?page=1', 'help'),
