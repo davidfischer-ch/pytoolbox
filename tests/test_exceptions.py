@@ -26,6 +26,7 @@ class TestExceptions(base.TestCase):
         self.equal('%s' % NewError(my_attr='instance'), 'The attribute from instance')
 
     def test_message_mixin_to_string_missing_key(self):
-        ex = exceptions.MessageMixin('Ten equals {ten} an empty dict {dict} a string is a {string}', ten=10, dict={})
+        ex = exceptions.MessageMixin(
+            'Ten equals {ten} an empty dict {dict} a string is a {string}', ten=10, dict={})
         with self.raises(KeyError):
             '%s' % ex

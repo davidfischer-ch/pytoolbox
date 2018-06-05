@@ -24,7 +24,9 @@ class TestSubprocess(base.TestCase):
         self.list_equal(to_args_list(''), [])
         self.list_equal(to_args_list([]), [])
         self.list_equal(to_args_list('tail -f "~/some file"'), ['tail', '-f', '~/some file'])
-        self.list_equal(to_args_list([10, None, 'string "salut"']), ['10', 'None', 'string "salut"'])
+        self.list_equal(
+            to_args_list([10, None, 'string "salut"']),
+            ['10', 'None', 'string "salut"'])
 
     def test_to_args_string(self):
         self.equal(to_args_string(None), '')

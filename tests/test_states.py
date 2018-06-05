@@ -74,19 +74,28 @@ class TestStateEnumWithMetaclass(base.TestCase):
 
     def test_get_transit_from(self):
         self.equal(MediaState.get_transit_from(MediaState.NEW), frozenset([MediaState.NEW]))
-        self.equal(MediaState.get_transit_from(MediaState.ANALYZING), frozenset([MediaState.QUEUED_ANALYZE]))
-        self.equal(MediaState.get_transit_from(MediaState.DELETED, auto_inverse=True), (
-            frozenset([MediaState.NEW, MediaState.REJECTED, MediaState.DELETED]), False
-        ))
-        self.equal(MediaState.get_transit_from(MediaState.REPAIRING, auto_inverse=True), (
-            frozenset([MediaState.ANALYZING]), True
-        ))
+        self.equal(
+            MediaState.get_transit_from(MediaState.ANALYZING),
+            frozenset([MediaState.QUEUED_ANALYZE]))
+        self.equal(
+            MediaState.get_transit_from(MediaState.DELETED, auto_inverse=True),
+            (frozenset([MediaState.NEW, MediaState.REJECTED, MediaState.DELETED]), False))
+        self.equal(
+            MediaState.get_transit_from(MediaState.REPAIRING, auto_inverse=True),
+            (frozenset([MediaState.ANALYZING]), True))
 
     def test_ALL_STATES(self):
-        self.equal(MediaState.ALL_STATES, frozenset([
-            MediaState.NEW, MediaState.QUEUED_ANALYZE, MediaState.ANALYZING, MediaState.REPAIRING, MediaState.REJECTED,
-            MediaState.READY, MediaState.DELETED
-        ]))
+        self.equal(
+            MediaState.ALL_STATES,
+            frozenset([
+                MediaState.NEW,
+                MediaState.QUEUED_ANALYZE,
+                MediaState.ANALYZING,
+                MediaState.REPAIRING,
+                MediaState.REJECTED,
+                MediaState.READY,
+                MediaState.DELETED
+            ]))
 
     def test_FINAL_STATES(self):
         self.equal(MediaState.FINAL_STATES, frozenset([MediaState.DELETED, MediaState.REJECTED]))
@@ -105,20 +114,27 @@ class TestStateEnumMergeWithMetaclass(base.TestCase):
     def test_get_transit_from(self):
         self.equal(MergeState.get_transit_from(MergeState.NEW), frozenset([MergeState.NEW]))
         self.equal(MergeState.get_transit_from(MergeState.PLAYING), frozenset([MergeState.STOPPED]))
-        self.equal(MergeState.get_transit_from(MergeState.DELETED, auto_inverse=True), (
-            frozenset([MergeState.NEW, MergeState.REJECTED, MergeState.DELETED]), False
-        ))
-        self.equal(MergeState.get_transit_from(MergeState.STOPPED, auto_inverse=True), (
-            frozenset([MergeState.NEW, MergeState.PLAYING]), True
-        ))
+        self.equal(
+            MergeState.get_transit_from(MergeState.DELETED, auto_inverse=True),
+            (frozenset([MergeState.NEW, MergeState.REJECTED, MergeState.DELETED]), False))
+        self.equal(
+            MergeState.get_transit_from(MergeState.STOPPED, auto_inverse=True),
+            (frozenset([MergeState.NEW, MergeState.PLAYING]), True))
 
     def test_ALL_STATES(self):
-        self.equal(MergeState.ALL_STATES, frozenset([
-            MergeState.NEW, MergeState.QUEUED_ANALYZE, MergeState.ANALYZING, MergeState.REPAIRING, MergeState.REJECTED,
-            MergeState.READY, MergeState.DELETED, MergeState.STOPPED, MergeState.PLAYING
-        ]))
+        self.equal(
+            MergeState.ALL_STATES,
+            frozenset([
+                MergeState.NEW,
+                MergeState.QUEUED_ANALYZE,
+                MergeState.ANALYZING,
+                MergeState.REPAIRING,
+                MergeState.REJECTED,
+                MergeState.READY,
+                MergeState.DELETED,
+                MergeState.STOPPED,
+                MergeState.PLAYING
+            ]))
 
     def test_FINAL_STATES(self):
-        self.equal(MergeState.FINAL_STATES, frozenset([
-            MergeState.DELETED, MergeState.REJECTED
-        ]))
+        self.equal(MergeState.FINAL_STATES, frozenset([MergeState.DELETED, MergeState.REJECTED]))

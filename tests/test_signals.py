@@ -68,5 +68,6 @@ class TestSignals(base.TestCase):
         self.name = 'test_callback_unauthorized_append'
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
         with self.assertRaises(exceptions.MultipleSignalHandlersError):
-            signals.register_callback(signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
+            signals.register_callback(
+                signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
         os.kill(os.getpid(), signal.SIGTERM)

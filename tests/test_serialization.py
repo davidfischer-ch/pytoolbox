@@ -34,7 +34,8 @@ class TestSerialization(base.TestCase):
         p1 = MyPoint(name='My point', x=6, y=-3)
         p1.write('test.pkl')
         p2 = MyPoint.read('test.pkl', store_path=True)
-        self.dict_equal(p2.__dict__, {'y': -3, 'x': 6, '_pickle_path': 'test.pkl', 'name': 'My point'})
+        self.dict_equal(
+            p2.__dict__, {'y': -3, 'x': 6, '_pickle_path': 'test.pkl', 'name': 'My point'})
         p2.write()
         p2.write('test2.pkl')
         os.remove('test.pkl')
@@ -51,8 +52,10 @@ class TestSerialization(base.TestCase):
             p2.write()
         os.remove('test2.pkl')
         remove('test3.pkl')
-        p3 = MyPoint.read('test3.pkl', store_path=True, create_if_error=True, name='Default point', x=3, y=-6)
-        self.dict_equal(p3.__dict__, {'x': 3, 'y': -6, '_pickle_path': 'test3.pkl', 'name': 'Default point'})
+        p3 = MyPoint.read(
+            'test3.pkl', store_path=True, create_if_error=True, name='Default point', x=3, y=-6)
+        self.dict_equal(
+            p3.__dict__, {'x': 3, 'y': -6, '_pickle_path': 'test3.pkl', 'name': 'Default point'})
         os.remove('test3.pkl')
         with self.raises(IOError):
             MyPoint.read('test3.pkl')

@@ -98,7 +98,9 @@ class TestFilterByTagsMixin(base.TestCase):
         test(7, True, extra_tags={'r'}, skip_tags={'TestCaseWithTags'})
         test(8, False, extra_tags={'r'}, skip_tags={'TestCaseWithTags.a'})
         test(9, False, extra_tags={'r'}, skip_tags={'TestCaseWithTags.test_1'})
-        test(10, True, extra_tags={'r'}, skip_tags={'TestCaseWithTags.test_1', 'TestCaseWithTags.test_2'})
+        test(10, True, extra_tags={'r'}, skip_tags={
+            'TestCaseWithTags.test_1', 'TestCaseWithTags.test_2'
+        })
         test(11, False, extra_tags={'r'}, skip_tags={'AnotherTestCase'})
 
     @with_tags(required='should-not-run')

@@ -40,21 +40,28 @@ class TestEnvironment(base.TestCase):
         import pytoolbox.juju
         from pytoolbox.juju import PENDING, STARTED, ERROR
         TEST_UNITS_SQL_5 = {
-            0: {'agent-state': STARTED}, 1: {'agent-state': PENDING}, 2: {'agent-state': ERROR}, 3: {},
+            0: {'agent-state': STARTED},
+            1: {'agent-state': PENDING},
+            2: {'agent-state': ERROR},
+            3: {},
             4: {'agent-state': ERROR}
         }
         environment = pytoolbox.juju.Environment('maas', release='raring', auto=True)
         environment.get_units = Mock(return_value=None)
         environment.get_unit = Mock(return_value=None)
         environment.__dict__.update(DEFAULT)
-        self.dict_equal(environment.ensure_num_units('mysql', 'my_mysql', num_units=2), {'deploy_units': None})
-        self.dict_equal(environment.ensure_num_units('lamp',  None,        num_units=4), {'deploy_units': None})
+        self.dict_equal(
+            environment.ensure_num_units('mysql', 'my_mysql', num_units=2), {'deploy_units': None})
+        self.dict_equal(
+            environment.ensure_num_units('lamp',  None,        num_units=4), {'deploy_units': None})
         with self.raises(ValueError):
             environment.ensure_num_units(None, 'salut')
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_2)
-        self.dict_equal(environment.ensure_num_units('mysql', 'my_mysql', num_units=5), {'add_units': None})
+        self.dict_equal(
+            environment.ensure_num_units('mysql', 'my_mysql', num_units=5), {'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_LAMP_4)
-        self.dict_equal(environment.ensure_num_units(None, 'lamp', num_units=5), {'add_units': None})
+        self.dict_equal(
+            environment.ensure_num_units(None, 'lamp', num_units=5), {'add_units': None})
         environment.get_units = Mock(return_value=TEST_UNITS_SQL_5)
         environment.get_unit = Mock(return_value={})
         environment.ensure_num_units('mysql', 'my_mysql', num_units=1, units_number_to_keep=[1])
@@ -64,13 +71,14 @@ class TestEnvironment(base.TestCase):
         eq = self.equal
         a = cmd.call_args_list
         self.equal(len(a), 9)
-        eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, '.', 'local:raring/mysql', 'my_mysql'], fail=False, log=None))
-        eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, '.', 'local:raring/lamp',  'lamp'],     fail=False, log=None))
-        eq(a[2], call(ADD_UNIT + [N, 3] + ['my_mysql'], fail=False, log=None))
-        eq(a[3], call(ADD_UNIT + [N, 1] + ['lamp'],     fail=False, log=None))
-        eq(a[4], call(DESTROY_UNIT + ['my_mysql/2'], fail=False, log=None))
-        eq(a[5], call(DESTROY_UNIT + ['my_mysql/3'], fail=False, log=None))
-        eq(a[6], call(DESTROY_UNIT + ['my_mysql/4'], fail=False, log=None))
-        eq(a[7], call(DESTROY_UNIT + ['my_mysql/0'], fail=False, log=None))
-        eq(a[8], call(DESTROY_SERVICE + ['my_mysql'], fail=False, log=None))
+        kwargs = {'fail': False, 'log': None}
+        eq(a[0], call(DEPLOY + [N, 2] + CFG + [R, '.', 'local:raring/mysql', 'my_mysql'], **kwargs))
+        eq(a[1], call(DEPLOY + [N, 4] + CFG + [R, '.', 'local:raring/lamp',  'lamp'], **kwargs))
+        eq(a[2], call(ADD_UNIT + [N, 3] + ['my_mysql'], **kwargs))
+        eq(a[3], call(ADD_UNIT + [N, 1] + ['lamp'],     **kwargs))
+        eq(a[4], call(DESTROY_UNIT + ['my_mysql/2'], **kwargs))
+        eq(a[5], call(DESTROY_UNIT + ['my_mysql/3'], **kwargs))
+        eq(a[6], call(DESTROY_UNIT + ['my_mysql/4'], **kwargs))
+        eq(a[7], call(DESTROY_UNIT + ['my_mysql/0'], **kwargs))
+        eq(a[8], call(DESTROY_SERVICE + ['my_mysql'], **kwargs))
         pytoolbox.subprocess.cmd = old_cmd
