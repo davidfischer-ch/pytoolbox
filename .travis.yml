@@ -13,7 +13,7 @@ install:
   - travis_retry sudo apt-get install -qq screen
   - travis_retry sudo pip install --upgrade pip six
   - travis_retry sudo pip install --user coveralls
-  - travis_retry sudo pip install --user -U -e .[atlassian,flask,jinja2,logging,mongo,network,selenium,smpte2022,unittest,voluptuous]
+  - travis_retry sudo pip install --user -U -e .[atlassian,flask,imaging,jinja2,logging,mongo,network,selenium,smpte2022,unittest,voluptuous]
 script:
   - rm -rf pytoolbox/django* pytoolbox/rest_framework  # Not maintained so not testable ...
   - sudo python setup.py test
