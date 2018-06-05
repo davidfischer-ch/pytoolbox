@@ -57,7 +57,7 @@ extras_require = {
     'django_filter':    ['django-filter'],
     'django_formtools': ['django-formtools'],
     'flask':            ['flask'],
-    'imaging':          ['pil' if PY2 else 'pillow'],
+    'imaging':          ['pillow'],
     'jinja2':           ['jinja2'],
     'logging':          ['termcolor'],
     'mongo':            ['celery', 'passlib', 'pymongo'],
