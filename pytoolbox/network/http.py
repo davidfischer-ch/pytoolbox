@@ -97,8 +97,8 @@ def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algori
     ...              expected_hash='a3ac7ddabb263c2d00b73e8177d15c8d')
     (True, False, 'a3ac7ddabb263c2d00b73e8177d15c8d')
 
-    >>> def progress(start_time, postion, length, chunk):
-    ...     print('(%d, %d)' % (postion, length))
+    >>> def progress(start_time, position, length, chunk):
+    ...     print('(%d, %d)' % (position, length))
 
     >>> download_ext(url, 'small.mp4', progress_callback=progress)
     (102400, 383631)
