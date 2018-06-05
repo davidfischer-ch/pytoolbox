@@ -12,9 +12,10 @@ install:
   - travis_retry sudo apt-get update -qq
   - travis_retry sudo apt-get install -qq screen
   - travis_retry sudo pip install --upgrade pip
-  - travis_retry sudo pip install -U -e .[atlassian,django,django_filter,django_formtools,flask,jinja2,logging,mongo,network,rest_framework,selenium,smpte2022,unittest,voluptuous]
+  - travis_retry sudo pip install -U -e .[atlassian,flask,jinja2,logging,mongo,network,selenium,smpte2022,unittest,voluptuous]
   - travis_retry sudo pip install coveralls
 script:
+  - rm -rf django* rest_framework  # Not maintained so not testable ...
   - sudo python setup.py test
 matrix:
   allow_failures:
