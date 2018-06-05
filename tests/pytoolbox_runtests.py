@@ -22,10 +22,6 @@ def main():
     except ImportError:
         print('WARNING: Django not available for testing purposes')
 
-    print('Download the test assets')
-    for url, path in constants.TEST_ASSETS:
-        download_ext(url, path, force=False)
-
     print('Download ffmpeg static binary')
     try:
         download_ext(constants.FFMPEG_URL, constants.FFMPEG_ARCHIVE, force=False)
