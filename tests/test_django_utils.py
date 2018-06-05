@@ -2,11 +2,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from pytoolbox.django.utils import collections
+import unittest
 
 from . import base
 
 
+@unittest.skip('Django modules testing disabled')
 class TestDjangoUtils(base.TestCase):
 
     tags = ('django', 'utils')
@@ -22,6 +23,7 @@ class TestDjangoUtils(base.TestCase):
             class Meta:
                 model = Media
 
+        from pytoolbox.django.utils import collections
         numbers = collections.FieldsToValuesLookupDict(
             'numbers', {'MediaForm.name': 1, 'Media.url': 2, 'url': 3})
         self.equal(numbers[(File, 'url')], 3)
