@@ -23,7 +23,7 @@ def with_subdomain(url, subdomain=None):
     ...     'http://help.website.com/page')
     >>> asserts.equal(
     ...     with_subdomain('https://app.website.com#d?page=1', 'help'),
-    ..      'https://help.website.com#d?page=1')
+    ...     'https://help.website.com#d?page=1')
     """
     import tldextract
     components = list(urlsplit(url))
