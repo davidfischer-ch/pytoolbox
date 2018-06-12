@@ -27,6 +27,7 @@ class Brand(object):
         'eastman kodak company': 'Kodak',
         'nikon corporation': 'Nikon',
         'olympus imaging corp.': 'Olympus',
+        'olympus optical co.,ltd': 'Olympus',
         'samsung techwin': 'Samsung',
         'semc': 'Sony Ericsson'
     })
