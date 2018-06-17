@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-# ************************************************************************************************ #
+# **************************************************************************************************
 #                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
 #  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
 #
-# ************************************************************************************************ #
+# **************************************************************************************************
 #
 # This file is part of David Fischer's pytoolbox Project.
 #
@@ -33,13 +33,12 @@ from setuptools.command import develop, install, test
 import pytoolbox
 
 try:
-    # Check if import succeed and print the exception because setup() ciphered stack-trace is not
-    # useful
-    from tests import pytoolbox_runtests
+    # Check if import succeed and print the exception because setup() stack-trace is useless
+    from tests import pytoolbox_runtests  # noqa
 except Exception as e:
     sys.stderr.write(
-        'WARNING importing pytoolbox_runtests raised the following error: {0}{1.linesep}'.format(
-            e, os))
+        'WARNING importing pytoolbox_runtests raised the following error: '
+        '{0}{1.linesep}'.format(e, os))
 
 PY2 = sys.version_info[0] < 3
 
@@ -52,21 +51,22 @@ install_requires = [
 ]
 
 extras_require = {
-    'atlassian':        ['jira'],
-    'django':           ['django'],
-    'django_filter':    ['django-filter'],
+    'atlassian': ['jira'],
+    'django': ['django'],
+    'django_filter': ['django-filter'],
     'django_formtools': ['django-formtools'],
-    'flask':            ['flask'],
-    'imaging':          ['pillow'],
-    'jinja2':           ['jinja2'],
-    'logging':          ['termcolor'],
-    'mongo':            ['celery', 'passlib', 'pymongo'],
-    'network':          ['tldextract'],
-    'rest_framework':   ['django-oauth-toolkit', 'djangorestframework>=3'],
-    'selenium':         ['selenium'],
-    'smpte2022':        ['fastxor'],
-    'unittest':         ['mock', 'nose'],
-    'voluptuous':       ['voluptuous']
+    'flask': ['flask'],
+    'imaging': ['pillow'],
+    'jinja2': ['jinja2'],
+    'logging': ['termcolor'],
+    'mongo': ['celery', 'passlib', 'pymongo'],
+    'network': ['tldextract'],
+    'rest_framework': ['django-oauth-toolkit', 'djangorestframework>=3'],
+    'selenium': ['selenium'],
+    'smpte2022': ['fastxor'],
+    'unittest': ['mock', 'nose'],
+    'vision': ['dlib', 'keras', 'numpy', 'opencv-python', 'tensorflow'],
+    'voluptuous': ['voluptuous']
 }
 
 # Why not installing following packages for python 3 ?
@@ -76,7 +76,7 @@ extras_require = {
 
 if PY2:
     try:
-        import hashlib
+        import hashlib  # noqa
     except ImportError:
         install_requires.append('hashlib')
     install_requires.extend([
@@ -145,7 +145,8 @@ class docs(setuptools.Command):
 
         # Cleanup previously generated restructured files
         for path in filesystem.find_recursive(
-                source_directory, r'^pytoolbox.*\.rst$', unix_wildcards=False):
+            source_directory, r'^pytoolbox.*\.rst$', unix_wildcards=False
+        ):
             os.remove(path)
 
         cmd([
@@ -160,6 +161,7 @@ class docs(setuptools.Command):
         )
         sys.exit(1 if result['stderr'] else 0)
 
+
 setuptools.setup(
     cmdclass={
         'docs': docs,
@@ -170,6 +172,10 @@ setuptools.setup(
     name='pytoolbox',
     version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
+    package_data={
+        'pytoolbox.ai.vision.face.detect': ['data/*'],
+        'pytoolbox.ai.vision.face.recognize': ['data/*']
+    },
     extras_require=extras_require,
     install_requires=install_requires,
     tests_require=[
