@@ -139,7 +139,7 @@ class DlibFaceDetector(object):
     def extract_largest_face(self, image, dimension=96, landmark_indices=OUTER_EYES_AND_NOSE,
                              skip_multi=False):
         box = self.get_largest_face_bounding_box(image, skip_multi=skip_multi)
-        return box, self.align(image, box, dimension, landmark_indices)
+        return box, (self.align(image, box, dimension, landmark_indices) if box else None)
 
     def get_all_faces_bounding_boxes(self, image):
         """
