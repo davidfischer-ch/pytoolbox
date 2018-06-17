@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v11.9.0
+v11.9.1
 -------
 
 Fix and enhancements
@@ -14,7 +14,13 @@ Fix and enhancements
 * Always install pillow when installing with -e imaging
 * Update README to reflect newer options
 
+* Class multimedia.exif.brand.Brand: Add more brands
 * Class multimedia.exif.image.Orientation: Use standard Enum, or object if not available
+
+Features
+========
+
+* Add module ai
 
 -------
 v11.8.6
