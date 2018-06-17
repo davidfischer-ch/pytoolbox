@@ -87,10 +87,10 @@ class DlibFaceDetector(object):
 
     def __init__(self, predictor=None):
         """
-        Instantiate an 'AlignDlib' object.
+        Instantiate a :class:`DlibFaceDetector` object.
 
-        :param face_predictor: The path to dlib's
-        :type face_predictor: str
+        :param predictor: The path to dlib's landmarks file.
+        :type predictor: str
         """
         predictor = predictor or self.DEFAULT_PREDICTOR
         if predictor.endswith('.bz2'):
@@ -110,10 +110,10 @@ class DlibFaceDetector(object):
         :type image: numpy.ndarray
         :param box: Bounding box around the face to align.
         :type box: dlib.rectangle
+        :type dimension: int
         :param landmark_indices: The indices to transform to.
         :type landmark_indices: list of ints
         :param dimension: The edge length in pixels of the square the image is resized to.
-        :type dimension: int
         :param landmarks: Detected landmark locations. \
                           Landmarks found on `box` if not provided.
         :type landmarks: list of (x,y) tuples
