@@ -123,4 +123,5 @@ def progress_bar(start_time, current, total, size=50, done='=', todo=' ',
         stream.write(template.format(done=done * progress, todo=todo * (size - progress)))
         stream.flush()
 
+
 __all__ = _all.diff(globals())

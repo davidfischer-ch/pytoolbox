@@ -63,4 +63,5 @@ class Metadata(object):
     def save_file(self):
         return self.exiv2.save_file()
 
+
 __all__ = _all.diff(globals())

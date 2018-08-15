@@ -436,4 +436,5 @@ class SlotsToDictMixin(object):
                 self_dict[attribute] = value
         return self_dict
 
+
 __all__ = _all.diff(globals())

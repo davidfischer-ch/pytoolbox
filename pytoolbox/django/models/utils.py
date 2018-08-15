@@ -46,4 +46,5 @@ def try_get_field(instance, field_name):
         if e.__class__.__name__ != 'RelatedObjectDoesNotExist':
             raise
 
+
 __all__ = _all.diff(globals())

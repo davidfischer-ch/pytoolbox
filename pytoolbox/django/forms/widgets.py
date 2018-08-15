@@ -29,4 +29,5 @@ class ClockTimeInput(widgets.TimeInput):
             '<div class="input-append bootstrap-timepicker">'
             '{0}<span class="add-on"><i class="icon-time"></i></span></div>'.format(html))
 
+
 __all__ = _all.diff(globals())

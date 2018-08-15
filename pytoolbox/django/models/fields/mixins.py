@@ -35,4 +35,5 @@ class StripMixin(object):
             setattr(model_instance, self.attname, value)
         return value
 
+
 __all__ = _all.diff(globals())

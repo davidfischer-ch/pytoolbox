@@ -21,4 +21,5 @@ class SlotsEqualityMixin(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 __all__ = _all.diff(globals())

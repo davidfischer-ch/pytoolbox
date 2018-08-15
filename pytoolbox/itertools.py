@@ -86,4 +86,5 @@ def throttle(objects, min_delay):
     """
     return throttles.TimeThrottle(min_delay).throttle_iterable(objects)
 
+
 __all__ = _all.diff(globals())

@@ -148,4 +148,5 @@ def natural_int_key(text):
     """
     return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
 
+
 __all__ = _all.diff(globals())

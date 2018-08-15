@@ -295,4 +295,5 @@ def static_abspath(parser, token):
     """
     return StaticPathNode.handle_token(parser, token)
 
+
 __all__ = _all.diff(globals())

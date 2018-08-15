@@ -48,4 +48,5 @@ def with_urls(base_url, *interface_actions, **kwargs):
         return model
     return _with_urls
 
+
 __all__ = _all.diff(globals())

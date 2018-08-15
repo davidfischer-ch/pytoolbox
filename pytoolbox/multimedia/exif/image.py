@@ -73,4 +73,5 @@ class Image(tag.TagSet):
     def width(self):
         return self.clean_number(self.metadata.exiv2.get_pixel_width())
 
+
 __all__ = _all.diff(globals())

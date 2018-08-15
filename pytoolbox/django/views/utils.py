@@ -19,4 +19,5 @@ def get_model_or_404(name, *models):
     except StopIteration:
         raise Http404()
 
+
 __all__ = _all.diff(globals())

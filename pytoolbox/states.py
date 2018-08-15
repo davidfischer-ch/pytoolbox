@@ -69,4 +69,5 @@ class StateEnum(object):
         not_valid = cls.ALL_STATES - valid
         return (not_valid, False) if len(valid) > len(not_valid) else (valid, True)
 
+
 __all__ = _all.diff(globals())

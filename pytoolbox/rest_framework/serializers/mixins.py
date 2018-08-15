@@ -74,4 +74,5 @@ class ReadOnlyMixin(object):
     def update(self, task, validated_data):
         raise AttributeError('Read-only serializer')
 
+
 __all__ = _all.diff(globals())

@@ -82,4 +82,5 @@ class StateMixin(object):
         method = self.exclude if inverse else self.filter
         return method(state__in={states} if isinstance(states, string_types) else states)
 
+
 __all__ = _all.diff(globals())

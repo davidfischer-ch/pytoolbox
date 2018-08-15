@@ -49,4 +49,5 @@ def IPSocket(string):
         raise ValueError('{0} is not a valid IP socket.'.format(string))
     return {'ip': ip, 'port': port}
 
+
 __all__ = _all.diff(globals())

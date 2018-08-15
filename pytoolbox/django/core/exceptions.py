@@ -74,4 +74,5 @@ class InvalidStateError(exceptions.MessageMixin, Exception):
 class TransitionNotAllowedError(exceptions.MessageMixin, Exception):
     message = _('Cannot change state of {instance} from {instance.state} to {state}.')
 
+
 __all__ = _all.diff(globals())

@@ -124,4 +124,5 @@ class FileField(models.FileField):
 
     attr_class = FieldFile
 
+
 __all__ = _all.diff(globals())

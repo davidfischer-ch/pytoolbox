@@ -46,6 +46,7 @@ class CleanAttributesMixin(object):
             value = cleanup_method(value)
         super(CleanAttributesMixin, self).__setattr__(name, value)
 
+
 if sys.version_info[0] > 2:
 
     class StrongTypedMixin(object):
@@ -306,5 +307,6 @@ def validate_list(the_list, regexes):
         if not re.match(regexes[i], text_type(the_list[i])):
             raise ValueError(to_bytes('N°{1} is invalid:{0}\telement: {2}{0}\tregex:   {3}'.format(
                              os.linesep, i+1, the_list[i], regexes[i])))
+
 
 __all__ = _all.diff(globals())

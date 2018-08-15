@@ -27,4 +27,5 @@ class RaiseOnUnhandledFieldClassMixin(object):
                 "with lookup type '{2}'".format(f, name, lookup_type))
         return value
 
+
 __all__ = _all.diff(globals())

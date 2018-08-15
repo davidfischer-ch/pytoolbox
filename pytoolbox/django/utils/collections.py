@@ -76,4 +76,5 @@ class FieldsToValuesLookupDict(object):
     def __setitem__(self, key, value):
         self.translations[key] = value
 
+
 __all__ = _all.diff(globals())

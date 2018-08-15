@@ -37,4 +37,5 @@ class WebElement(common.FindMixin, webelement.WebElement):
             'Unable to find a class implementing the component {0}.'.format(component)
         )
 
+
 __all__ = _all.diff(globals())

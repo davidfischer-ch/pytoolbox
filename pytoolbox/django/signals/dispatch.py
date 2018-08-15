@@ -26,6 +26,7 @@ class InstanceSignal(_dispatch.Signal):
         return super(InstanceSignal, self).send(
             _utils.get_base_model(sender or named['instance']), **named)
 
+
 post_state_transition = InstanceSignal(providing_args=['previous_state', 'args', 'kwargs'])
 
 __all__ = _all.diff(globals())

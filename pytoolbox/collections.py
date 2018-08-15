@@ -254,4 +254,5 @@ def window(values, index, delta):
     left, right = max(left, 0), min(right, length - 1)
     return values[left:right + 1], left, right
 
+
 __all__ = _all.diff(globals())

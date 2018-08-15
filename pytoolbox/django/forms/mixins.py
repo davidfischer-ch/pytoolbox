@@ -162,4 +162,5 @@ class UpdateWidgetAttributeMixin(object):
         except AttributeError:
             pass
 
+
 __all__ = _all.diff(globals())

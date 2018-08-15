@@ -343,4 +343,5 @@ def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):
         command += ['-n', remote_cmd]
     return cmd(filter(None, command), fail=fail, log=log, **kwargs)
 
+
 __all__ = _all.diff(globals())

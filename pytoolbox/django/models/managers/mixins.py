@@ -26,4 +26,5 @@ class RelatedModelMixin(object):
     def get_related_model(self, field):
         return utils.get_related_model(self.model, field)
 
+
 __all__ = _all.diff(globals())

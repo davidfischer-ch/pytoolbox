@@ -23,4 +23,5 @@ class IsAuthenticatedOrTokenHasReadWriteScope(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return any(p.has_object_permission(request, view, obj) for p in self.permissions)
 
+
 __all__ = _all.diff(globals())

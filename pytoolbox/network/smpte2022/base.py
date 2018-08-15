@@ -694,4 +694,5 @@ payload recovery size = {0.payload_size}
 missing               = {0.missing}""".format(self, FecPacket.ALGORITHM_NAMES[self.algorithm],
                                               FecPacket.DIRECTION_NAMES[self.direction]))
 
+
 __all__ = _all.diff(globals())

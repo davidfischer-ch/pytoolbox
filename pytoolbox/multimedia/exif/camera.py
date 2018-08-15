@@ -24,4 +24,5 @@ class Camera(equipment.Equipement):
     def tags(self):
         return {k: t for k, t in self.metadata.tags.iteritems() if 'camera' in t.label.lower()}
 
+
 __all__ = _all.diff(globals())

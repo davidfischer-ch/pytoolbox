@@ -36,4 +36,5 @@ class ExcludeRelatedChoicesMixin(object):
                 field.__class__ = field_class
         return super(ExcludeRelatedChoicesMixin, self).get_field_info(field)
 
+
 __all__ = _all.diff(globals())

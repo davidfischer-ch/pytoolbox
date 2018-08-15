@@ -62,4 +62,5 @@ class JiraProject(object):
         field_value = getattr(issue.fields, field_id) or default
         return getattr(field_value, 'value', field_value)
 
+
 __all__ = _all.diff(globals())

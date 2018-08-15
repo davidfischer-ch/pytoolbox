@@ -182,4 +182,5 @@ class FrameBasedRatioMixin(object):
             return self.frame / self.input.frame
         return super(FrameBasedRatioMixin, self)._compute_ratio()
 
+
 __all__ = _all.diff(globals())

@@ -73,4 +73,5 @@ def save(image, *args, **kwargs):
     kwargs.setdefault('exif', image.info.get('exif', b''))
     return image.save(*args, **kwargs)
 
+
 __all__ = _all.diff(globals())

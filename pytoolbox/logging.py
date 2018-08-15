@@ -99,4 +99,5 @@ class ColorizeFilter(logging.Filter):
             record.msg = termcolor.colored(record.msg, color)
         return True
 
+
 __all__ = _all.diff(globals())

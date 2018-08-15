@@ -25,4 +25,5 @@ class StripCharField(forms.RegexField):
         super(StripCharField, self).__init__(
             r'\S+', max_length=self.max_length, widget=forms.TextInput(attrs), **kwargs)
 
+
 __all__ = _all.diff(globals())

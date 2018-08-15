@@ -46,4 +46,5 @@ def findall_partial(string, regex_parts):
         if match:
             yield string, regex_parts, index
 
+
 __all__ = _all.diff(globals())

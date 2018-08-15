@@ -385,4 +385,5 @@ class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
             'validate_unique': False
         }
 
+
 __all__ = _all.diff(globals())

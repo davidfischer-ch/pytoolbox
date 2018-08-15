@@ -135,4 +135,5 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     def to_args(self, is_input):
         return self.options + (['-i', self.path] if is_input else [self.path])
 
+
 __all__ = _all.diff(globals())

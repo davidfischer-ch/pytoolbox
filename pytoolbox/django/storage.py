@@ -50,4 +50,5 @@ class OverwriteMixin(object):
 class OverwriteFileSystemStorage(OverwriteMixin, FileSystemStorage):
     """A file-system based storage that let overwrite files with the same name."""
 
+
 __all__ = _all.diff(globals())

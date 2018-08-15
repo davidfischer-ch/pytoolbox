@@ -133,4 +133,5 @@ class RestAPIMixin(UrlMixin):
     def put(self, url, data, status=200, **kwargs):
         return self._call('put', url, data, status, **kwargs)
 
+
 __all__ = _all.diff(globals())

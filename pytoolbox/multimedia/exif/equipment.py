@@ -52,4 +52,5 @@ class Equipement(object):
     def refresh(self):
         self.__dict__.pop('tags', None)
 
+
 __all__ = _all.diff(globals())

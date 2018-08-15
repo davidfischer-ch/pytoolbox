@@ -143,4 +143,5 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
         return possible_algorithms.pop() if len(possible_algorithms) == 1 else None
     return possible_algorithms
 
+
 __all__ = _all.diff(globals())

@@ -25,4 +25,5 @@ def get_named_patterns():
         if isinstance(k, string_types)
     )
 
+
 __all__ = _all.diff(globals())

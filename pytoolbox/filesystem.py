@@ -517,4 +517,5 @@ class TempStorage(object):
         for key in self._paths_by_key.copy().iterkeys():
             self.remove_by_key(key)
 
+
 __all__ = _all.diff(globals())

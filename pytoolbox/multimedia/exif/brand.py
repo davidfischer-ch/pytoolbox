@@ -43,4 +43,5 @@ class Brand(object):
             assert brand in cls.brands, 'Brand {1} not in {0.brands}'.format(cls, brand)
             return brand
 
+
 __all__ = _all.diff(globals())

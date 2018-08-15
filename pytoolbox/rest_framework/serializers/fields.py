@@ -26,4 +26,5 @@ class StripCharField(serializers.CharField):
         data = super(StripCharField, self).to_internal_value(data)
         return data.strip() if data else data
 
+
 __all__ = _all.diff(globals())

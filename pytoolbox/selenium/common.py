@@ -29,4 +29,5 @@ class FindMixin(object):
     def find_xpath(self, xpath, *args, **kwargs):
         return self.clean_elements(self.find_elements_by_xpath(xpath), xpath, *args, **kwargs)
 
+
 __all__ = _all.diff(globals())

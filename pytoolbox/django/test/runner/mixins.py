@@ -37,4 +37,5 @@ class TemporarySendfileRootMixin(object):
         super(TemporarySendfileRootMixin, self).setup_test_environment()
         settings.SENDFILE_ROOT = tempfile.mkdtemp()
 
+
 __all__ = _all.diff(globals())

@@ -52,4 +52,5 @@ class Photo(tag.TagSet):
     def white_balance(self):
         return self.metadata['Exif.Photo.WhiteBalance'].data
 
+
 __all__ = _all.diff(globals())

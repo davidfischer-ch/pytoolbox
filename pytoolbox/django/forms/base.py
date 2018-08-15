@@ -35,4 +35,5 @@ class SerializedInstanceForm(object):
         except:
             return False
 
+
 _all = module.All(globals())

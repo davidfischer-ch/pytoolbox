@@ -40,4 +40,5 @@ def relocate(source_directory, destination_directory, encoding='utf-8'):
             f.write(content)
             f.truncate()
 
+
 __all__ = _all.diff(globals())

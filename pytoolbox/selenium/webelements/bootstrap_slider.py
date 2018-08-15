@@ -32,4 +32,5 @@ class BootstrapSliderMixin(object):
             return
         raise NotImplementedError('Sending {0} not implemented.'.format(value))
 
+
 __all__ = _all.diff(globals())

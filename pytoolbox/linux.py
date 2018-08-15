@@ -46,4 +46,5 @@ def get_kernel_config(release=None, fail=True):
         return {}
     return {CONFIG_PREFIX.sub('', k): v for k, v in config.items('kernel')}
 
+
 __all__ = _all.diff(globals())

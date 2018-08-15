@@ -24,4 +24,5 @@ class Timestamped(models.Model):
     created_at = fields.CreatedAtField()
     updated_at = fields.UpdatedAtField()
 
+
 __all__ = _all.diff(globals())

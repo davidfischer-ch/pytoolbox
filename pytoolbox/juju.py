@@ -1125,4 +1125,5 @@ class SimulatedUnits(object):
             if unit.state == STOPPED:
                 del self.units[number]
 
+
 __all__ = _all.diff(globals())

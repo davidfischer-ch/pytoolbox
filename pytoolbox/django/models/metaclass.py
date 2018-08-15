@@ -28,4 +28,5 @@ class ABCModelMeta(abc.ABCMeta, type(models.Model)):
     ..     abstract = True
     """
 
+
 __all__ = _all.diff(globals())

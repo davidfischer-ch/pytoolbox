@@ -63,4 +63,5 @@ def csv_reader(path, delimiter=';', quotechar='"', encoding='utf-8'):
     #    yield [cell for cell in row]
     #    # yield [text_type(cell, 'utf-8').encode('utf-8') for cell in row]
 
+
 __all__ = _all.diff(globals())

@@ -86,4 +86,5 @@ def Version(digits=4, msg=None):
         raise VersionInvalid(msg or 'Incorrect version number')
     return f
 
+
 __all__ = _all.diff(globals())

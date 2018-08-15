@@ -53,4 +53,5 @@ def log_to_console(settings):
     for logger in settings.LOGGING['loggers']:
         settings.LOGGING['loggers'][logger]['handlers'] = ['console']
 
+
 __all__ = _all.diff(globals())

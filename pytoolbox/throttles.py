@@ -105,4 +105,5 @@ class TimeAndRatioThrottle(TimeThrottle):
         super(TimeAndRatioThrottle, self)._update()
         self.previous_ratio = ratio
 
+
 __all__ = _all.diff(globals())

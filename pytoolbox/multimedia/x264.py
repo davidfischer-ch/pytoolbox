@@ -41,4 +41,5 @@ class X264(FFmpeg):
         statistics.setdefault('eta_time', datetime.timedelta(seconds=total_seconds(stats['eta'])))
         return statistics
 
+
 __all__ = _all.diff(globals())
