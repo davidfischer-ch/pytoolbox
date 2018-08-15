@@ -12,6 +12,15 @@ from .... import collections, module
 _all = module.All(globals())
 
 
+class LowerCaseMixin(object):
+
+    def get_prep_value(self, value):
+        value = super(LowerCaseMixin, self).get_prep_value(value)
+        if value is not None:
+            value = value.lower()
+        return value
+
+
 class OptionsMixin(object):
 
     default_options = {}
