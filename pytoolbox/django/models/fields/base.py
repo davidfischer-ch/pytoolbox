@@ -81,10 +81,10 @@ class MD5ChecksumField(mixins.OptionsMixin, StripCharField):
 
 class MoneyField(models.DecimalField):
 
-    def __init__(self, max_value, **kwargs):
+    def __init__(self, max_value, decimal_places=2, **kwargs):
         self.max_value = max_value
         super(MoneyField, self).__init__(
-            decimal_places=2, max_digits=int(math.log10(max_value)) + 3, validators=[
+            decimal_places=decimal_places, max_digits=int(math.log10(max_value)) + 3, validators=[
                 dj_validators.MinValueValidator(0), dj_validators.MaxValueValidator(max_value)
             ], **kwargs)
 
