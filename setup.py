@@ -26,7 +26,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import itertools, os, setuptools, shutil, sys
+import itertools, os, setuptools, shutil, subprocess, sys
 from codecs import open  # pylint:disable=redefined-builtin
 from setuptools.command import develop, install, test
 
@@ -154,12 +154,7 @@ class docs(setuptools.Command):
             source_directory, package_directory
         ])
         shutil.rmtree(os.path.join(docs_directory, 'build', 'html'), ignore_errors=True)
-        result = cmd('make html', cwd=docs_directory, fail=False)
-
-        print('{0}Outputs{0}======={0}{1}{0}{0}Errors{0}======{0}{2}{0}'.format(
-            os.linesep, result['stdout'].decode('utf-8'), result['stderr'].decode('utf-8'))
-        )
-        sys.exit(1 if result['stderr'] else 0)
+        subprocess.check_call(['make', 'html'], cwd=docs_directory)
 
 
 setuptools.setup(

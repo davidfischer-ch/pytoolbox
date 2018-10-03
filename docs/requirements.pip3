@@ -1,3 +1,7 @@
+# Sphinx
+sphinx
+sphinx-rtd-theme
+# Core
 argparse
 jinja2
 mock
