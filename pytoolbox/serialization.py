@@ -8,7 +8,7 @@ from codecs import open  # pylint:disable=redefined-builtin
 from . import module
 from .encoding import string_types, text_type, to_bytes
 from .private import ObjectId
-from .types import get_slots
+from .types import get_slots, isiterable
 
 _all = module.All(globals())
 
@@ -384,6 +384,112 @@ def object_to_dictV2(obj, remove_underscore):
             something_dict[key] = object_to_dictV2(value, remove_underscore)
         return something_dict
     return obj
+
+
+def object_to_dictV3(obj, schema, schema_callback=lambda o, s: s):
+    """
+    Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
+    Schema callback makes it possible to dynamically adapt schema to objects!
+
+    **Example usage**
+
+    Define the sample class and convert some instances to a nested structure:
+
+    >>> from pytoolbox.unittest import asserts
+    >>>
+    >>> class Point(object):
+    ...     def __init__(self, name, x, y, p):
+    ...         self.name = name
+    ...         self.x = x
+    ...         self.y = y
+    ...         self.p = p
+    ...     @property
+    ...     def z(self):
+    ...         return self.x - self.y
+
+    Simple example:
+
+    >>> SCHEMA = {
+    ...     'name': 'name',
+    ...     'x': 'x',
+    ...     'zed': 'z',
+    ...     'p': {
+    ...         'name': 'name',
+    ...         'stuff': lambda p: 42,
+    ...         'p': {
+    ...             'name': 'name'
+    ...         }
+    ...     }
+    ... }
+    >>> asserts.dict_equal(
+    ...     object_to_dictV3(
+    ...         Point('p1', 5, 2, [
+    ...             Point('p2', 3, 4, None),
+    ...             Point('p3', 7, 0, Point('p4', 0, 0, None))
+    ...         ]), SCHEMA),
+    ...     {
+    ...         'name': 'p1', 'x': 5, 'zed': 3, 'p': [
+    ...             {'name': 'p2', 'stuff': 42, 'p': None},
+    ...             {'name': 'p3', 'stuff': 42, 'p': {'name': 'p4'}}
+    ...         ]
+    ...     }
+    ... )
+
+    This serializer can optionally adapt schema to objects:
+
+    >>> SCHEMA = {
+    ...     'n': 'name',
+    ...     'p': {
+    ...         'n': 'name',
+    ...         'p': {
+    ...             'n': 'name'
+    ...         }
+    ...     }
+    ... }
+    >>> seen = set()
+    >>> def reduce_seen(obj, schema):
+    ...     if obj in seen:
+    ...         return {'r': 'name'}
+    ...     seen.add(obj)
+    ...     return schema
+    >>> p1 = Point('p1', 0, 0, None)
+    >>> asserts.list_equal(
+    ...     object_to_dictV3([
+    ...         p1,
+    ...         Point('p2', 5, 2, Point('p3', 3, 4, p1)),
+    ...         Point('p4', 5, 2, Point('p5', 3, 4, p1)),
+    ...         Point('p6', 5, 2, p1)
+    ...     ], SCHEMA, schema_callback=reduce_seen),
+    ...     [
+    ...         {'n': 'p1', 'p': None},
+    ...         {'n': 'p2', 'p': {'n': 'p3', 'p': {'r': 'p1'}}},
+    ...         {'n': 'p4', 'p': {'n': 'p5', 'p': {'r': 'p1'}}},
+    ...         {'n': 'p6', 'p': {'r': 'p1'}}
+    ...     ]
+    ... )
+    """
+    if isiterable(obj):
+        return [_object_to_dictV3_item(i, schema, schema_callback) for i in obj]
+    return _object_to_dictV3_item(obj, schema, schema_callback)
+
+
+def _object_to_dictV3_item(obj, schema, schema_callback=lambda o, s: s):
+    if obj is None:
+        return None
+    obj_dict = {}
+    schema = schema_callback(obj, schema)
+    for key, value in schema.items():
+        # Direct
+        if isinstance(value, string_types):
+            obj_dict[key] = getattr(obj, value)
+        elif callable(value):
+            obj_dict[key] = value(obj)
+        # Nested
+        elif isinstance(value, dict):
+            obj_dict[key] = object_to_dictV3(getattr(obj, key), schema[key], schema_callback)
+        else:
+            raise NotImplementedError('Key {0} with value {1}'.format(repr(key), repr(value)))
+    return obj_dict
 
 
 def dict_to_object(cls, the_dict, inspect_constructor):
