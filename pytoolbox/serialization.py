@@ -318,10 +318,10 @@ class JsoneableObject(object):
 
 # Object <-> Dictionary ----------------------------------------------------------------------------
 
-def object_to_dict(obj, schema, schema_callback=lambda o, s: s):
+def object_to_dict(obj, schema, callback=lambda o, s: (o, s)):
     """
     Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
-    Schema callback makes it possible to dynamically adapt schema to objects!
+    Schema callback makes it possible to dynamically tweak obj and schema!
 
     **Example usage**
 
@@ -354,7 +354,7 @@ def object_to_dict(obj, schema, schema_callback=lambda o, s: s):
     ...     }
     ... }
     >>> asserts.dict_equal(
-    ...     object_to_dictV3(
+    ...     object_to_dict(
     ...         Point('p1', 5, 2, [
     ...             Point('p2', 3, 4, None),
     ...             Point('p3', 7, 0, Point('p4', 0, 0, None))
@@ -381,12 +381,12 @@ def object_to_dict(obj, schema, schema_callback=lambda o, s: s):
     >>> seen = set()
     >>> def reduce_seen(obj, schema):
     ...     if obj in seen:
-    ...         return {'r': 'name'}
+    ...         return obj, {'r': 'name'}
     ...     seen.add(obj)
-    ...     return schema
+    ...     return obj, schema
     >>> p1 = Point('p1', 0, 0, None)
     >>> asserts.list_equal(
-    ...     object_to_dictV3([
+    ...     object_to_dict([
     ...         p1,
     ...         Point('p2', 5, 2, Point('p3', 3, 4, p1)),
     ...         Point('p4', 5, 2, Point('p5', 3, 4, p1)),
@@ -401,15 +401,15 @@ def object_to_dict(obj, schema, schema_callback=lambda o, s: s):
     ... )
     """
     if isiterable(obj):
-        return [_object_to_dict_item(i, schema, schema_callback) for i in obj]
-    return _object_to_dict_item(obj, schema, schema_callback)
+        return [_object_to_dict_item(i, schema, callback) for i in obj]
+    return _object_to_dict_item(obj, schema, callback)
 
 
-def _object_to_dict_item(obj, schema, schema_callback=lambda o, s: s):
+def _object_to_dict_item(obj, schema, callback=lambda o, s: (o, s)):
     if obj is None:
         return None
     obj_dict = {}
-    schema = schema_callback(obj, schema)
+    obj, schema = callback(obj, schema)
     for key, value in schema.items():
         # Direct
         if isinstance(value, string_types):
@@ -418,7 +418,7 @@ def _object_to_dict_item(obj, schema, schema_callback=lambda o, s: s):
             obj_dict[key] = value(obj)
         # Nested
         elif isinstance(value, dict):
-            obj_dict[key] = object_to_dict(getattr(obj, key), schema[key], schema_callback)
+            obj_dict[key] = object_to_dict(getattr(obj, key), schema[key], callback)
         else:
             raise NotImplementedError('Key {0} with value {1}'.format(repr(key), repr(value)))
     return obj_dict
