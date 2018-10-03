@@ -99,14 +99,7 @@ class DlibFaceDetector(object):
         """
         if predictor is None:
             predictor = self.DEFAULT_PREDICTOR
-        predictor = utils.load_to_file(predictor)
-        if predictor.endswith('.bz2'):
-            decompressor = bz2.BZ2Decompressor()
-            with open(predictor, 'rb') as f, tempfile.NamedTemporaryFile('wb') as g:
-                g.write(decompressor.decompress(f.read()))
-                self.predictor = dlib.shape_predictor(g.name)
-        else:
-            self.predictor = dlib.shape_predictor(predictor)
+        self.predictor = self._load_predictor(predictor)
         self.detector = dlib.get_frontal_face_detector()
 
     def align(self, image, box, dimension=96, landmark_indices=None, landmarks=None):
@@ -193,3 +186,13 @@ class DlibFaceDetector(object):
         """
         points = self.predictor(image, box)
         return list(map(lambda p: (p.x, p.y), points.parts()))
+
+    def _load_predictor(self, predictor):
+        predictor = utils.load_to_file(predictor)
+        if predictor.endswith('.bz2'):
+            decompressor = bz2.BZ2Decompressor()
+            with open(predictor, 'rb') as f, tempfile.NamedTemporaryFile('wb') as g:
+                g.write(decompressor.decompress(f.read()))
+                return dlib.shape_predictor(g.name)
+        else:
+            return dlib.shape_predictor(predictor)
