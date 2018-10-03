@@ -318,75 +318,7 @@ class JsoneableObject(object):
 
 # Object <-> Dictionary ----------------------------------------------------------------------------
 
-def object_to_dict(obj, include_properties):
-    """
-    Convert an :class:`object` to a python dictionary.
-
-    .. warning::
-
-        Current implementation serialize `obj` to a JSON string and then deserialize this JSON
-        string to an instance of :class:`dict`.
-
-    **Example usage**
-
-    Define the sample class and convert some instances to a dictionary:
-
-    >>> from pytoolbox.unittest import asserts
-    >>>
-    >>> class Point(object):
-    ...     def __init__(self, name, x, y, p):
-    ...         self.name = name
-    ...         self.x = x
-    ...         self.y = y
-    ...         self.p = p
-    ...     @property
-    ...     def z(self):
-    ...         return self.x - self.y
-    >>>
-    >>> p1_dict = {'y': 2, 'x': 5, 'name': 'p1', 'p': {'y': 4, 'x': 3, 'name': 'p2', 'p': None}}
-    >>> asserts.dict_equal(
-    ...     object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=False),
-    ...     p1_dict
-    ... )
-    >>>
-    >>> p2_dict = {'y': 4, 'p': None, 'z': -1, 'name': 'p2', 'x': 3}
-    >>> p1_dict = {'y': 2, 'p': p2_dict, 'z': 3, 'name': 'p1', 'x': 5}
-    >>> asserts.dict_equal(
-    ...     object_to_dict(Point('p1', 5, 2, Point('p2', 3, 4, None)), include_properties=True),
-    ...     p1_dict
-    ... )
-    >>>
-    >>> p1, p2 = Point('p1', 5, 2, None), Point('p2', 3, 4, None)
-    >>> p1.p, p2.p = p2, p1
-    >>> print(object_to_dict(p1, True))
-    Traceback (most recent call last):
-        ...
-    ValueError: Circular reference detected
-    """
-    return json_to_object(dict, object_to_json(obj, include_properties), inspect_constructor=False)
-
-
-def object_to_dictV2(obj, remove_underscore):
-    if isinstance(obj, dict):
-        something_dict = {}
-        for key, value in obj.iteritems():
-            if remove_underscore and key[0] == '_':
-                key = key[1:]
-            something_dict[key] = object_to_dictV2(value, remove_underscore)
-        return something_dict
-    elif hasattr(obj, '__iter__'):
-        return [object_to_dictV2(value, remove_underscore) for value in obj]
-    elif hasattr(obj, '__dict__'):
-        something_dict = {}
-        for key, value in obj.__dict__.iteritems():
-            if remove_underscore and key[0] == '_':
-                key = key[1:]
-            something_dict[key] = object_to_dictV2(value, remove_underscore)
-        return something_dict
-    return obj
-
-
-def object_to_dictV3(obj, schema, schema_callback=lambda o, s: s):
+def object_to_dict(obj, schema, schema_callback=lambda o, s: s):
     """
     Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
     Schema callback makes it possible to dynamically adapt schema to objects!
@@ -469,11 +401,11 @@ def object_to_dictV3(obj, schema, schema_callback=lambda o, s: s):
     ... )
     """
     if isiterable(obj):
-        return [_object_to_dictV3_item(i, schema, schema_callback) for i in obj]
-    return _object_to_dictV3_item(obj, schema, schema_callback)
+        return [_object_to_dict_item(i, schema, schema_callback) for i in obj]
+    return _object_to_dict_item(obj, schema, schema_callback)
 
 
-def _object_to_dictV3_item(obj, schema, schema_callback=lambda o, s: s):
+def _object_to_dict_item(obj, schema, schema_callback=lambda o, s: s):
     if obj is None:
         return None
     obj_dict = {}
@@ -486,7 +418,7 @@ def _object_to_dictV3_item(obj, schema, schema_callback=lambda o, s: s):
             obj_dict[key] = value(obj)
         # Nested
         elif isinstance(value, dict):
-            obj_dict[key] = object_to_dictV3(getattr(obj, key), schema[key], schema_callback)
+            obj_dict[key] = object_to_dict(getattr(obj, key), schema[key], schema_callback)
         else:
             raise NotImplementedError('Key {0} with value {1}'.format(repr(key), repr(value)))
     return obj_dict

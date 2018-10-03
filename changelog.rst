@@ -2,6 +2,16 @@
 changelog
 =========
 
+-------
+v12.0.0
+-------
+
+Compatibility breaks
+====================
+
+* Remove object_to_dict and object_to_dictV2
+* Rename object_to_dictV3 to object_to_dict
+
 --------
 v11.10.0
 --------
