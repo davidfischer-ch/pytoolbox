@@ -1,5 +1,5 @@
-pytoolbox.rest_framework package
-================================
+pytoolbox.rest\_framework package
+=================================
 
 .. automodule:: pytoolbox.rest_framework
     :members:

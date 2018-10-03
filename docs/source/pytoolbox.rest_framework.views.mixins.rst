@@ -1,5 +1,5 @@
-pytoolbox.rest_framework.views.mixins module
-============================================
+pytoolbox.rest\_framework.views.mixins module
+=============================================
 
 .. automodule:: pytoolbox.rest_framework.views.mixins
     :members:

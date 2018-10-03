@@ -1,5 +1,5 @@
-pytoolbox.rest_framework.metadata package
-=========================================
+pytoolbox.rest\_framework.metadata package
+==========================================
 
 .. automodule:: pytoolbox.rest_framework.metadata
     :members:

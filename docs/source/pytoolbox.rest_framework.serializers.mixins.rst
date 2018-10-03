@@ -1,5 +1,5 @@
-pytoolbox.rest_framework.serializers.mixins module
-==================================================
+pytoolbox.rest\_framework.serializers.mixins module
+===================================================
 
 .. automodule:: pytoolbox.rest_framework.serializers.mixins
     :members:

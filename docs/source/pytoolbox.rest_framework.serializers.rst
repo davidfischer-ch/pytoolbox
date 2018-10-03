@@ -1,5 +1,5 @@
-pytoolbox.rest_framework.serializers package
-============================================
+pytoolbox.rest\_framework.serializers package
+=============================================
 
 .. automodule:: pytoolbox.rest_framework.serializers
     :members:

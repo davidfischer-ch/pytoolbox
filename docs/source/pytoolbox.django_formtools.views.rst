@@ -1,5 +1,5 @@
-pytoolbox.django_formtools.views package
-========================================
+pytoolbox.django\_formtools.views package
+=========================================
 
 .. automodule:: pytoolbox.django_formtools.views
     :members:

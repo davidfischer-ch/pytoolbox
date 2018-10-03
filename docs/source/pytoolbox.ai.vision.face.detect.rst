@@ -1,7 +1,7 @@
-pytoolbox.rest\_framework.views package
+pytoolbox.ai.vision.face.detect package
 =======================================
 
-.. automodule:: pytoolbox.rest_framework.views
+.. automodule:: pytoolbox.ai.vision.face.detect
     :members:
     :undoc-members:
     :show-inheritance:
@@ -11,5 +11,5 @@ Submodules
 
 .. toctree::
 
-   pytoolbox.rest_framework.views.mixins
+   pytoolbox.ai.vision.face.detect.dlib
 

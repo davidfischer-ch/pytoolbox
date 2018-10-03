@@ -1,5 +1,5 @@
-pytoolbox.rest_framework.serializers.fields module
-==================================================
+pytoolbox.rest\_framework.serializers.fields module
+===================================================
 
 .. automodule:: pytoolbox.rest_framework.serializers.fields
     :members:

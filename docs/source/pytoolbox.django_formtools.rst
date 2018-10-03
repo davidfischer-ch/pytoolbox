@@ -1,5 +1,5 @@
-pytoolbox.django_formtools package
-==================================
+pytoolbox.django\_formtools package
+===================================
 
 .. automodule:: pytoolbox.django_formtools
     :members:

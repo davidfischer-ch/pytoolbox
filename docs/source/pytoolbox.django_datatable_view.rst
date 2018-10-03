@@ -1,5 +1,5 @@
-pytoolbox.django_datatable_view package
-=======================================
+pytoolbox.django\_datatable\_view package
+=========================================
 
 .. automodule:: pytoolbox.django_datatable_view
     :members:

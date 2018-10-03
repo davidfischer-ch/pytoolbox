@@ -11,6 +11,7 @@ Subpackages
 
 .. toctree::
 
+    pytoolbox.ai
     pytoolbox.django
     pytoolbox.django_datatable_view
     pytoolbox.django_filter
@@ -41,12 +42,14 @@ Submodules
    pytoolbox.humanize
    pytoolbox.itertools
    pytoolbox.juju
+   pytoolbox.linux
    pytoolbox.logging
    pytoolbox.module
    pytoolbox.mongo
    pytoolbox.private
    pytoolbox.regex
    pytoolbox.serialization
+   pytoolbox.setuptools
    pytoolbox.signals
    pytoolbox.states
    pytoolbox.string

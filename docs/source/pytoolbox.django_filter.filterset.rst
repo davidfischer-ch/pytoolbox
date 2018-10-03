@@ -1,5 +1,5 @@
-pytoolbox.django_filter.filterset package
-=========================================
+pytoolbox.django\_filter.filterset package
+==========================================
 
 .. automodule:: pytoolbox.django_filter.filterset
     :members:

@@ -13,6 +13,7 @@ Subpackages
 
     pytoolbox.multimedia.exif
     pytoolbox.multimedia.ffmpeg
+    pytoolbox.multimedia.image
 
 Submodules
 ----------
