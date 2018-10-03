@@ -86,7 +86,7 @@ class PickleableObject(object):
         try:
             with open(path, 'rb') as f:
                 the_object = pickle.load(f)
-        except:
+        except Exception:
             if not create_if_error:
                 raise
             the_object = cls(**kwargs)
