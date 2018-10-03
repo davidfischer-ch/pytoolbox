@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import errno, inspect, json, os, pickle, shutil
 from codecs import open  # pylint:disable=redefined-builtin
 
-from . import module
+from . import filesystem, module
 from .encoding import string_types, text_type, to_bytes
 from .private import ObjectId
 from .types import get_slots, isiterable
@@ -56,7 +56,7 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
     >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
     """
     if makedirs:
-        makedirs(os.path.dirname(path))
+        filesystem.makedirs(os.path.dirname(path))
     if backup:
         backup_path = '{0}.bkp'.format(path)
         try:
