@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v12.0.0
+v12.1.0
 -------
 
 Compatibility breaks
@@ -11,6 +11,11 @@ Compatibility breaks
 
 * Remove object_to_dict and object_to_dictV2
 * Rename object_to_dictV3 to object_to_dict
+
+Fix and enhancements
+====================
+
+* Move AI data to S3 (own account).
 
 --------
 v11.10.0

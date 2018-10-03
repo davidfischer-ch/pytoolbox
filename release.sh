@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 
-#**********************************************************************************************************************#
-#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
+# **************************************************************************************************
+#                              PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
+#  Copyright      : Copyright (c) 2012-2018 David Fischer. All rights reserved.
 #
-#**********************************************************************************************************************#
+# **************************************************************************************************
 #
 # This file is part of David Fischer's pytoolbox Project.
 #
-# This project is free software: you can redistribute it and/or modify it under the terms of the EUPL v. 1.1 as provided
-# by the European Commission. This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# This project is free software: you can redistribute it and/or modify it under the terms of the
+# EUPL v. 1.1 as provided by the European Commission. This project is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the European Union Public License for more details.
 #
@@ -45,4 +46,5 @@ read a
 
 git push || error 'Unable to push to GitHub' 1
 git tag "$version" && git push origin "$version" || error 'Unable to add release tag' 2
-sudo python2 setup.py register && sudo python2 setup.py sdist upload
+
+python2 setup.py sdist bdist_wheel && twine upload dist/*
