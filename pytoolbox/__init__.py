@@ -2,4 +2,4 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '11.9.1'
+__version__ = '11.10.0'

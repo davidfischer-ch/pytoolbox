@@ -2,6 +2,22 @@
 changelog
 =========
 
+--------
+v11.10.0
+--------
+
+Fix and enhancements
+====================
+
+* Fix PEP-8 issue
+* Class django.models.fields.base.MoneyField: Make decimal_places tweakable
+
+Features
+========
+
+* Add class django.models.fields.mixins.LowercaseMixin
+* Add function serialization.object_to_dictV3
+
 -------
 v11.9.1
 -------
