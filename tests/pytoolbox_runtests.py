@@ -45,5 +45,6 @@ def main():
     print('Run the tests with nose')
     return runtests(__file__, cover_packages=['pytoolbox'], packages=['pytoolbox', 'tests'])
 
+
 if __name__ == '__main__':
     main()

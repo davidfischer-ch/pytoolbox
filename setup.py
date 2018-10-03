@@ -2,10 +2,10 @@
 # -*- encoding: utf-8 -*-
 
 # **************************************************************************************************
-#                                        PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
+#                              PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2015 David Fischer. All rights reserved.
+#  Copyright      : Copyright (c) 2012-2018 David Fischer. All rights reserved.
 #
 # **************************************************************************************************
 #
@@ -193,6 +193,7 @@ setuptools.setup(
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
+        'Framework :: Django',
         'Framework :: Flask',
         'License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)',
         'Natural Language :: English',

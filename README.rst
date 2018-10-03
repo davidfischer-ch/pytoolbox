@@ -1,5 +1,5 @@
 =========
-pytoolbox
+Pytoolbox
 =========
 
 .. image:: https://badge.fury.io/py/pytoolbox.png

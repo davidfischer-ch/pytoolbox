@@ -16,9 +16,11 @@
 
 # Original: https://github.com/krasserm/face-recognition/blob/master/align.py
 
-import bz2, os, tempfile
+import bz2, tempfile
 
 import cv2, dlib, numpy as np
+
+from ... import utils
 
 __all__ = ['DlibFaceDetector']
 
@@ -78,8 +80,11 @@ class DlibFaceDetector(object):
     """
 
     # Downloaded from http://dlib.net/files/
-    DEFAULT_PREDICTOR = os.path.join(
-        os.path.dirname(__file__), 'data', 'shape_predictor_68_face_landmarks.dat.bz2')
+    DEFAULT_PREDICTOR = (
+        'https://s3-eu-west-1.amazonaws.com/pytoolbox/ai/vision/face/detect/'
+        'shape_predictor_68_face_landmarks.dat.bz2')
+
+    PREDICTORS_DOWNLOAD_DIRECTORY = tempfile.gettempdir()
 
     #: Landmark indices.
     INNER_EYES_AND_BOTTOM_LIP = [39, 42, 57]
@@ -92,7 +97,9 @@ class DlibFaceDetector(object):
         :param predictor: The path to dlib's landmarks file.
         :type predictor: str
         """
-        predictor = predictor or self.DEFAULT_PREDICTOR
+        if predictor is None:
+            predictor = self.DEFAULT_PREDICTOR
+        predictor = utils.load_to_file(predictor)
         if predictor.endswith('.bz2'):
             decompressor = bz2.BZ2Decompressor()
             with open(predictor, 'rb') as f, tempfile.NamedTemporaryFile('wb') as g:
@@ -102,7 +109,7 @@ class DlibFaceDetector(object):
             self.predictor = dlib.shape_predictor(predictor)
         self.detector = dlib.get_frontal_face_detector()
 
-    def align(self, image, box, dimension=96, landmark_indices=OUTER_EYES_AND_NOSE, landmarks=None):
+    def align(self, image, box, dimension=96, landmark_indices=None, landmarks=None):
         """
         Transform and align a face in an image.
 
@@ -120,6 +127,8 @@ class DlibFaceDetector(object):
         :return: The aligned RGB image. Shape: (dimension, dimension, 3)
         :rtype: numpy.ndarray
         """
+        if landmark_indices is None:
+            landmark_indices = self.OUTER_EYES_AND_NOSE
         if landmarks is None:
             landmarks = self.find_landmarks(image, box)
 
@@ -132,12 +141,11 @@ class DlibFaceDetector(object):
 
         return cv2.warpAffine(image, H, (dimension, dimension))
 
-    def extract_all_faces(self, image, dimension=96, landmark_indices=OUTER_EYES_AND_NOSE):
+    def extract_all_faces(self, image, dimension=96, landmark_indices=None):
         for box in self.get_all_faces_bounding_boxes(image):
             yield box, self.align(image, box, dimension, landmark_indices)
 
-    def extract_largest_face(self, image, dimension=96, landmark_indices=OUTER_EYES_AND_NOSE,
-                             skip_multi=False):
+    def extract_largest_face(self, image, dimension=96, landmark_indices=None, skip_multi=False):
         box = self.get_largest_face_bounding_box(image, skip_multi=skip_multi)
         return box, (self.align(image, box, dimension, landmark_indices) if box else None)
 

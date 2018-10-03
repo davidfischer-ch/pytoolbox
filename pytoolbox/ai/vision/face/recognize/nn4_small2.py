@@ -2,8 +2,6 @@
 # Code taken from https://github.com/iwantooxxoox/Keras-OpenFace (with minor modifications)
 # --------------------------------------------------------------------------------------------------
 
-import os
-
 import tensorflow as tf
 from keras import backend as K
 from keras.layers import Conv2D, ZeroPadding2D, Activation, Input, concatenate
@@ -12,7 +10,11 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 from keras.models import Model
 
-WEIGHTS_FILENAME = os.path.join(os.path.dirname(__file__), 'data', 'nn4.small2.v1.h5')
+from ... import utils
+
+DEFAULT_WEIGHTS = (
+    'https://s3-eu-west-1.amazonaws.com/pytoolbox/ai/vision/face/recognize/'
+    'nn4.small2.v1.h5')
 
 E = 0.00001  # Epsilon
 
@@ -324,8 +326,8 @@ def create_model():
     return Model(inputs=[inputs], outputs=outputs)
 
 
-def load_model(weights_filename=WEIGHTS_FILENAME):
+def load_model(weights=DEFAULT_WEIGHTS):
     model = create_model()
-    if weights_filename:
-        model.load_weights(weights_filename)
+    if weights:
+        model.load_weights(utils.load_to_file(weights))
     return model
