@@ -391,7 +391,7 @@ def object_to_dict(obj, schema, callback=lambda o, s: (o, s)):
     ...         Point('p2', 5, 2, Point('p3', 3, 4, p1)),
     ...         Point('p4', 5, 2, Point('p5', 3, 4, p1)),
     ...         Point('p6', 5, 2, p1)
-    ...     ], SCHEMA, schema_callback=reduce_seen),
+    ...     ], SCHEMA, callback=reduce_seen),
     ...     [
     ...         {'n': 'p1', 'p': None},
     ...         {'n': 'p2', 'p': {'n': 'p3', 'p': {'r': 'p1'}}},
