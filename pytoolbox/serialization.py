@@ -318,7 +318,7 @@ class JsoneableObject(object):
 
 # Object <-> Dictionary ----------------------------------------------------------------------------
 
-def object_to_dict(obj, schema, callback=lambda o, s: (o, s)):
+def object_to_dict(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
     """
     Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
     Schema callback makes it possible to dynamically tweak obj and schema!
@@ -379,7 +379,7 @@ def object_to_dict(obj, schema, callback=lambda o, s: (o, s)):
     ...     }
     ... }
     >>> seen = set()
-    >>> def reduce_seen(obj, schema):
+    >>> def reduce_seen(obj, schema, depth):
     ...     if obj in seen:
     ...         return obj, {'r': 'name'}
     ...     seen.add(obj)
@@ -401,15 +401,15 @@ def object_to_dict(obj, schema, callback=lambda o, s: (o, s)):
     ... )
     """
     if isiterable(obj):
-        return [_object_to_dict_item(i, schema, callback) for i in obj]
-    return _object_to_dict_item(obj, schema, callback)
+        return [_object_to_dict_item(i, schema, depth, callback) for i in obj]
+    return _object_to_dict_item(obj, schema, depth, callback)
 
 
-def _object_to_dict_item(obj, schema, callback=lambda o, s: (o, s)):
+def _object_to_dict_item(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
     if obj is None:
         return None
     obj_dict = {}
-    obj, schema = callback(obj, schema)
+    obj, schema = callback(obj, schema, depth)
     for key, value in schema.items():
         # Direct
         if isinstance(value, string_types):
@@ -418,7 +418,7 @@ def _object_to_dict_item(obj, schema, callback=lambda o, s: (o, s)):
             obj_dict[key] = value(obj)
         # Nested
         elif isinstance(value, dict):
-            obj_dict[key] = object_to_dict(getattr(obj, key), schema[key], callback)
+            obj_dict[key] = object_to_dict(getattr(obj, key), schema[key], depth + 1, callback)
         else:
             raise NotImplementedError('Key {0} with value {1}'.format(repr(key), repr(value)))
     return obj_dict
