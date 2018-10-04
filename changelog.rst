@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v12.1.1
+v12.1.2
 -------
 
 Compatibility breaks
@@ -17,6 +17,7 @@ Fix and enhancements
 
 * Move AI data to S3 (own account).
 * Function serialization.object_to_dict: Also authorize to tweak obj (not only schema).
+* Function serialization.object_to_dict: Also add depth information.
 * Function serialization.to_file: Fix to_file ot using makedirs properly
 
 --------
