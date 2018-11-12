@@ -52,6 +52,7 @@ install_requires = [
 
 extras_require = {
     'atlassian': ['jira'],
+    'aws': ['boto3'],
     'django': ['django'],
     'django_filter': ['django-filter'],
     'django_formtools': ['django-formtools'],
