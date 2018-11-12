@@ -18,15 +18,16 @@ def get_object_url(bucket_name, location, key):
     return f'https://s3-{location}.amazonaws.com/{bucket_name}/{key}'
 
 
-def list_objects(s3, bucket_name, prefix=''):
+def list_objects(s3, bucket_name, prefix='', pattern=r'.*'):
     if prefix and prefix[-1] != '/':
         prefix += '/'
-    paginator = s3.get_paginator('list_objects').paginate(Bucket=bucket_name, Prefix=prefix)
-    for page in paginator:
+    pattern = re.compile(pattern)
+    for page in s3.get_paginator('list_objects').paginate(Bucket=bucket_name, Prefix=prefix):
         try:
-            yield from page['Contents']
+            objects = page['Contents']
         except KeyError:
             raise StopIteration
+        yield from (o for o in objects if pattern.match(o['Key']))
 
 
 def load_object_meta(s3, bucket_name, path, fail=True):
@@ -51,21 +52,17 @@ def read_object(s3, bucket_name, path, file=None):
 
 def remove_objects(s3, bucket_name, prefix='', pattern=r'.*', simulate=False):
     """Remove objects matching pattern, by chunks of 1000 to be efficient."""
-    pattern = re.compile(pattern)
     objects = []
-    removed = []
-    for obj in list_objects(s3, bucket_name, prefix):
+    for obj in list_objects(s3, bucket_name, prefix, pattern):
         key = obj['Key']
-        if pattern.match(key):
-            objects.append({'Key': key})
-            removed.append(obj)
-            if len(objects) == 1000 and not simulate:
-                s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-                objects = []
+        objects.append({'Key': key})
+        yield obj
+        if len(objects) == 1000 and not simulate:
+            s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
+            objects = []
     # Remove remaining objects
     if objects and not simulate:
         s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-    return removed
 
 
 def write_object(s3, bucket_name, path, file):
