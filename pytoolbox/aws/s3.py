@@ -1,4 +1,5 @@
-import re, tempfile
+import re
+from io import BytesIO
 
 from botocore.exceptions import ClientError
 
@@ -39,15 +40,20 @@ def load_object_meta(s3, bucket_name, path, fail=True):
         raise
 
 
-def read_object(s3, bucket_name, path, file=None):
-    if file:
-        s3.download_fileobj(bucket_name, path, file)
-        file.seek(0)
-    else:
-        with tempfile.TemporaryFile() as f:
-            s3.download_fileobj(bucket_name, path, f)
-            f.seek(0)
-            return f.read()
+def read_object(s3, bucket_name, path, file=None, fail=True):
+    try:
+        if file is None:
+            with BytesIO() as f:
+                s3.download_fileobj(bucket_name, path, f)
+                return f.getvalue()
+        else:
+            s3.download_fileobj(bucket_name, path, file)
+            file.seek(0)
+            return file
+    except ClientError as e:
+        if 'Not Found' in str(e) and not fail:
+            return None
+        raise
 
 
 def remove_objects(s3, bucket_name, prefix='', pattern=r'.*', simulate=False):
