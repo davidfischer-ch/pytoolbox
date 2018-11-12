@@ -16,7 +16,7 @@ def get_bucket_location(s3, bucket_name):
 
 
 def get_object_url(bucket_name, location, key):
-    return f'https://s3-{location}.amazonaws.com/{bucket_name}/{key}'
+    return 'https://s3-{1}.amazonaws.com/{0}/{2}'.format(bucket_name, location, key)
 
 
 def list_objects(s3, bucket_name, prefix='', pattern=r'.*'):
