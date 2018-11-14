@@ -94,11 +94,12 @@ def first_that_exist(*paths):
     return None
 
 
-def from_template(template, destination, values, is_file=True, jinja2=False, pre_func=None, post_func=None):
+def from_template(template, destination, values, is_file=True, jinja2=False, pre_func=None,
+                  post_func=None):
     """
     Return a `template` rendered with `values` using string.format or jinja2 as the template engine.
 
-    * Set `destination` to a filename to write the output, set to a Falsey value to skip this feature.
+    * Set `destination` to a filename to store the output, to a Falsy value to skip this feature.
     * Set `is_file` to False to use value of `template` as the content and not a filename to read.
     * Set `{pre,post}_func` to a callback function with the signature f(content, values, jinja2)
 
@@ -214,8 +215,8 @@ def makedirs(path, parent=False):
 try_makedirs = makedirs
 
 
-def recursive_copy(source_path, destination_path, progress_callback=None, ratio_delta=0.01, time_delta=1,
-                   check_size=True, remove_on_error=True):
+def recursive_copy(source_path, destination_path, progress_callback=None, ratio_delta=0.01,
+                   time_delta=1, check_size=True, remove_on_error=True):
     """
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
@@ -275,7 +276,9 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
         if check_size:
             dst_size = get_size(destination_path)
             if dst_size != src_size:
-                raise IOError('Destination size does not match source ({0} vs {1})'.format(src_size, dst_size))
+                raise IOError(
+                    'Destination size does not match source ({0} vs {1})'
+                    .format(src_size, dst_size))
 
         elapsed_time = time.time() - start_time
         return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
@@ -469,7 +472,9 @@ class TempStorage(object):
         >>> tmp.remove_all()
         """
         mode = 'w' if encoding else 'wb'
-        path = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
+        path = os.path.join(
+            self.root,
+            path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
         self._path_to_key[path] = key
         self._paths_by_key[key].add(path)
         with open(path, mode, encoding=encoding):
