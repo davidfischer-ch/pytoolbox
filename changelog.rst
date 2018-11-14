@@ -3,6 +3,30 @@ changelog
 =========
 
 -------
+v13.0.0
+-------
+
+Compatibility breaks
+====================
+
+* Remove fake bson ObjectId (private module) when library not available.
+* Function filesystem.find_recursive is now matching patterns against the whole path.
+* Function aws.s3.list_objects: Handle multiple patterns like filesystem.find_recursive.
+* Function aws.s3.remove_objects: Handle multiple patterns like filesystem.find_recursive.
+
+Features
+========
+
+* Add function filesystem.to_user_id
+* Add function filesystem.to_group_id
+* Add function regex.from_path_patterns
+
+Fix and enhancements
+====================
+
+* Replace relative imports of len(.) > 1 by absolute imports
+
+-------
 v12.2.3
 -------
 

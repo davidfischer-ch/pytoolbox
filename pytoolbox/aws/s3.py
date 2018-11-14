@@ -60,10 +60,10 @@ def read_object(s3, bucket_name, path, file=None, fail=True):
         raise
 
 
-def remove_objects(s3, bucket_name, prefix='', pattern=r'.*', simulate=False):
+def remove_objects(s3, bucket_name, prefix='', patterns=r'*', simulate=False, unix_wildcards=True):
     """Remove objects matching pattern, by chunks of 1000 to be efficient."""
     objects = []
-    for obj in list_objects(s3, bucket_name, prefix, pattern):
+    for obj in list_objects(s3, bucket_name, prefix, patterns, unix_wildcards=unix_wildcards):
         key = obj['Key']
         objects.append({'Key': key})
         yield obj
