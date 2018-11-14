@@ -4,9 +4,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime
 
+from pytoolbox import module
+from pytoolbox.encoding import string_types
+
 from . import camera, image, lens, photo, tag
-from ... import module
-from ...encoding import string_types
 
 _all = module.All(globals())
 

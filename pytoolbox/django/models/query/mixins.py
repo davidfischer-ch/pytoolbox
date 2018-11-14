@@ -10,8 +10,8 @@ import functools
 
 from django.db import transaction
 
-from .... import module
-from ....encoding import string_types
+from pytoolbox import module
+from pytoolbox.encoding import string_types
 
 _all = module.All(globals())
 

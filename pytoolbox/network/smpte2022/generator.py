@@ -2,9 +2,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from pytoolbox import module
+from pytoolbox.network.rtp import RtpPacket
+
 from .base import FecPacket
-from ..rtp import RtpPacket
-from ... import module
 
 _all = module.All(globals())
 

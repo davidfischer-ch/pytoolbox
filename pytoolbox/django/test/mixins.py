@@ -15,8 +15,8 @@ from django.db import connections, DEFAULT_DB_ALIAS
 from django.test import TransactionTestCase
 from django.test.utils import CaptureQueriesContext
 
-from ... import module
-from ...encoding import string_types
+from pytoolbox import module
+from pytoolbox.encoding import string_types
 
 _all = module.All(globals())
 

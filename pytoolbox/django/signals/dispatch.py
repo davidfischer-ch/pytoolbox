@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django import dispatch as _dispatch
 
-from ..models import utils as _utils
-from ... import module as _module
+from pytoolbox import module as _module
+from pytoolbox.django.models import utils as _utils
 
 _all = _module.All(globals())
 

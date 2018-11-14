@@ -9,7 +9,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import ugettext_lazy as _
 
-from ... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

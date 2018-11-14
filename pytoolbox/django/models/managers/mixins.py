@@ -6,9 +6,9 @@ Mix-ins for building your own model managers.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .. import utils
-from ..query import mixins as query_mixins
-from .... import module
+from pytoolbox import module
+from pytoolbox.django.models import utils
+from pytoolbox.django.models.query import mixins as query_mixins
 
 _all = module.All(globals())
 

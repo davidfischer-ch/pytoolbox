@@ -7,8 +7,9 @@ from urlparse import urljoin
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import ui
 
+from pytoolbox import module
+
 from . import common, exceptions, webdrivers
-from .. import module
 
 _all = module.All(globals())
 

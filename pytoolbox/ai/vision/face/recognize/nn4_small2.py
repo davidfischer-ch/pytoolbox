@@ -10,7 +10,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling2D, AveragePooling2D
 from keras.models import Model
 
-from ... import utils
+from pytoolbox.ai.vision import utils
 
 DEFAULT_WEIGHTS = (
     'https://s3-eu-west-1.amazonaws.com/pytoolbox/ai/vision/face/recognize/'

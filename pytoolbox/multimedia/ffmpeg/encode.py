@@ -4,9 +4,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime, re, time
 
+from pytoolbox import module
+from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
+
 from . import ffprobe, utils
-from ... import module
-from ...datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
 
 _all = module.All(globals())
 

@@ -6,9 +6,9 @@ Some utilities related to the URLs.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .. import module
-from ..encoding import string_types
-from ..regex import UUID_REGEX
+from pytoolbox import module
+from pytoolbox.encoding import string_types
+from pytoolbox.regex import UUID_REGEX
 
 _all = module.All(globals())
 

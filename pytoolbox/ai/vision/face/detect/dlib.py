@@ -20,7 +20,7 @@ import bz2, tempfile
 
 import cv2, dlib, numpy as np
 
-from ... import utils
+from pytoolbox.ai.vision import utils
 
 __all__ = ['DlibFaceDetector']
 

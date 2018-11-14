@@ -6,9 +6,9 @@ import struct
 
 from fastxor import fast_xor_inplace
 
-from ..rtp import RtpPacket
-from ... import module
-from ...encoding import to_bytes
+from pytoolbox import module
+from pytoolbox.encoding import to_bytes
+from pytoolbox.network.rtp import RtpPacket
 
 _all = module.All(globals())
 

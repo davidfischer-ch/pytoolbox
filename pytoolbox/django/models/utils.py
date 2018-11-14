@@ -6,7 +6,7 @@ Some utilities related to the model layer.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

@@ -2,8 +2,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from pytoolbox import module
+
 try:
-    from ...enum import OrderedEnum
+    from pytoolbox.enum import OrderedEnum
 
     class ExposureMode(OrderedEnum):
         AUTO = 0
@@ -13,7 +15,7 @@ except ImportError:
     ExposureMode = {0: 'auto', 1: 'manual', 2: 'bracket'}.get
 
 from . import tag
-from ... import module
+
 
 _all = module.All(globals())
 

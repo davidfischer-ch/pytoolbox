@@ -4,10 +4,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime, re, shlex
 
+from pytoolbox import module
+from pytoolbox.datetime import total_seconds
+from pytoolbox.encoding import string_types
+
 from .ffmpeg import FFmpeg
-from .. import module
-from ..datetime import total_seconds
-from ..encoding import string_types
 
 _all = module.All(globals())
 

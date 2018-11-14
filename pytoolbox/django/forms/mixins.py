@@ -8,8 +8,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.forms import fields
 
+from pytoolbox import module
+
 from . import utils, widgets
-from ... import module
 
 _all = module.All(globals())
 

@@ -17,11 +17,12 @@ from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
+from pytoolbox import humanize, module
+from pytoolbox.datetime import secs_to_time as _secs_to_time
+from pytoolbox.encoding import to_unicode
+from pytoolbox.private import _parse_kwargs_string
+
 from .core import constants
-from .. import humanize, module
-from ..datetime import secs_to_time as _secs_to_time
-from ..encoding import to_unicode
-from ..private import _parse_kwargs_string
 
 _all = module.All(globals())
 

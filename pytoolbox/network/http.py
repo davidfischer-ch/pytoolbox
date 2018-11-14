@@ -7,10 +7,10 @@ from codecs import open  # pylint:disable=redefined-builtin
 
 import requests
 
-from .. import console, crypto, module
-from ..encoding import to_bytes
-from ..exceptions import BadHTTPResponseCodeError, CorruptedFileError
-from ..filesystem import makedirs, remove
+from pytoolbox import console, crypto, module
+from pytoolbox.encoding import to_bytes
+from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
+from pytoolbox.filesystem import makedirs, remove
 
 _all = module.All(globals())
 

@@ -10,7 +10,7 @@ import tempfile
 
 from django.conf import settings
 
-from .... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

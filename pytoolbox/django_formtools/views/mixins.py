@@ -7,8 +7,8 @@ powered views.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ... import module
-from ...django import forms
+from pytoolbox import module
+from pytoolbox.django import forms
 
 _all = module.All(globals())
 

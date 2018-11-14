@@ -7,8 +7,9 @@ powered API.
 """
 
 from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope
-from pytoolbox import module
 from rest_framework import permissions
+
+from pytoolbox import module
 
 _all = module.All(globals())
 

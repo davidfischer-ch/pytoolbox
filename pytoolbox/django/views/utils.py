@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from django.http import Http404
 
-from ... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

@@ -11,8 +11,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
 
-from ... import module
-from ...django.models import utils
+from pytoolbox import module
+from pytoolbox.django.models import utils
 
 _all = module.All(globals())
 

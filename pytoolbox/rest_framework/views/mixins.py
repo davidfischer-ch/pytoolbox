@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from django.contrib.auth.views import redirect_to_login
 from rest_framework import renderers
 
-from ... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

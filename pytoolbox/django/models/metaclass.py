@@ -10,7 +10,7 @@ import abc
 
 from django.db import models
 
-from ... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

@@ -6,8 +6,8 @@ Mix-ins for building your own models fields.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ...core import validators
-from .... import collections, module
+from pytoolbox import collections, module
+from pytoolbox.django.core import validators
 
 _all = module.All(globals())
 

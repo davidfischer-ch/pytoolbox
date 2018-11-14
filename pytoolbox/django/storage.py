@@ -10,7 +10,7 @@ import logging, time
 
 from django.core.files.storage import FileSystemStorage
 
-from .. import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

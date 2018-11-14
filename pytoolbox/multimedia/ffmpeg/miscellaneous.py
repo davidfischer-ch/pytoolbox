@@ -4,10 +4,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
+from pytoolbox import comparison, filesystem, module, validation
+from pytoolbox.subprocess import to_args_list
+from pytoolbox.types import get_slots
+
 from . import utils
-from ... import comparison, filesystem, module, validation
-from ...subprocess import to_args_list
-from ...types import get_slots
 
 _all = module.All(globals())
 

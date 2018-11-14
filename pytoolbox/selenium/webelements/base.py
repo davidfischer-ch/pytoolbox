@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from selenium.webdriver.remote import webelement
 
-from .. import common, exceptions
-from ... import module
+from pytoolbox import module
+from pytoolbox.selenium import common, exceptions
 
 _all = module.All(globals())
 

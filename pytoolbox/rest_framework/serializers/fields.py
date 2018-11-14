@@ -10,8 +10,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from rest_framework import serializers
 
-from ... import module
-from ...django.core.validators import EmptyValidator
+from pytoolbox import module
+from pytoolbox.django.core.validators import EmptyValidator
 
 _all = module.All(globals())
 

@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from pytoolbox import module
+
 try:
     import enum
     _Enum = enum.Enum
@@ -9,7 +11,6 @@ except ImportError:
     _Enum = object
 
 from . import tag
-from ... import module
 
 _all = module.All(globals())
 

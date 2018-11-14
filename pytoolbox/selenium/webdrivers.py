@@ -4,8 +4,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from selenium import webdriver
 
+from pytoolbox import module
+
 from . import common, select, webelements
-from .. import module
 
 _all = module.All(globals())
 

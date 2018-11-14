@@ -11,8 +11,8 @@ from copy import copy
 from django.contrib import messages
 from django.forms.utils import ErrorList
 
-from ... import module
-from ...encoding import to_bytes
+from pytoolbox import module
+from pytoolbox.encoding import to_bytes
 
 _all = module.All(globals())
 

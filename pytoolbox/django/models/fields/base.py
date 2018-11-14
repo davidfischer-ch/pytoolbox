@@ -15,9 +15,10 @@ from django.db.models.fields import files
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from pytoolbox import module
+from pytoolbox.django.core import validators
+
 from . import mixins
-from ...core import validators
-from .... import module
 
 _all = module.All(globals())
 

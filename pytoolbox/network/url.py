@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from urlparse import urlsplit, urlunsplit
 
-from .. import string
+from pytoolbox import string
 
 
 def with_subdomain(url, subdomain=None):

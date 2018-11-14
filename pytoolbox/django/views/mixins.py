@@ -14,10 +14,10 @@ from django.db import models
 from django.shortcuts import redirect
 from django.views.generic import base as generic
 
-from ..core import exceptions
-from ..forms import mixins as forms_mixins
-from ..models import utils
-from ... import module
+from pytoolbox import module
+from pytoolbox.django.core import exceptions
+from pytoolbox.django.forms import mixins as forms_mixins
+from pytoolbox.django.models import utils
 
 _all = module.All(globals())
 

@@ -7,7 +7,7 @@ import itertools
 from django.db import DatabaseError
 from django.utils.translation import ugettext_lazy as _
 
-from ... import exceptions, module
+from pytoolbox import exceptions, module
 
 _all = module.All(globals())
 

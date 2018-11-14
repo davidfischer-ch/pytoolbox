@@ -44,8 +44,8 @@ from django.conf import settings
 from django.db.models import fields
 from django.db.models.fields.files import FileField
 
-from ... import module
-from ...encoding import PY2, string_types
+from pytoolbox import module
+from pytoolbox.encoding import PY2, string_types
 
 _all = module.All(globals())
 

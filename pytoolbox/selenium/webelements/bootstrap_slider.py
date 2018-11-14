@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .. import Keys
-from ... import module
+from pytoolbox import module
+from pytoolbox.selenium import Keys
 
 _all = module.All(globals())
 

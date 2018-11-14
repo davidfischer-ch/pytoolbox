@@ -10,7 +10,7 @@ import copy
 
 from django import forms
 
-from ... import module
+from pytoolbox import module
 
 _all = module.All(globals())
 

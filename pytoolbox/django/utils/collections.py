@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..core.constants import DEFFERED_REGEX
-from ... import module
+from pytoolbox import module
+from pytoolbox.django.core.constants import DEFFERED_REGEX
 
 _all = module.All(globals())
 

@@ -7,6 +7,7 @@ Decorators for enhancing your models.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from django.core.urlresolvers import reverse
+
 from pytoolbox import module
 
 _all = module.All(globals())
