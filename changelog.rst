@@ -3,6 +3,15 @@ changelog
 =========
 
 -------
+v13.0.1
+-------
+
+Fix and enhancements
+====================
+
+* Function aws.s3.remove_objects: Add callback argument to make it more flexible.
+
+-------
 v13.0.0
 -------
 
