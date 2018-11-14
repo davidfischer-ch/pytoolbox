@@ -5,17 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 try:
     from bson.objectid import InvalidId, ObjectId
 except:
-    import uuid
-
-    class ObjectId(uuid.UUID):
-        def __init__(self, value):
-            super(ObjectId, self).__init__(uuid.UUID('{{{0}}}'.format(value)))
-
-        def binary(self):
-            return self.hex
-
-    class InvalidId(ValueError):
-        pass
+    InvalidId = ObjectId = None
 
 
 def _parse_kwargs_string(kwargs_string, **types):

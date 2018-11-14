@@ -118,7 +118,7 @@ class PickleableObject(object):
 # http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, ObjectId):
+        if ObjectId is not None and isinstance(obj, ObjectId):
             return text_type(obj)
         if hasattr(obj, '__dict__'):
             return obj.__dict__

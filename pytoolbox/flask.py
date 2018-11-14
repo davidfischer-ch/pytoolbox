@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import logging
+import logging, uuid
 
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
@@ -20,8 +20,8 @@ STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: No
 
 def check_id(id):
     if valid_uuid(id, objectid_allowed=False, none_allowed=False):
-        return id
-    elif valid_uuid(id, objectid_allowed=True, none_allowed=False):
+        return uuid.UUID(id)
+    elif ObjectId is not None and valid_uuid(id, objectid_allowed=True, none_allowed=False):
         return ObjectId(id)
     raise ValueError('Wrong id format {0}'.format(id))
 

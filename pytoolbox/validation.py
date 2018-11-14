@@ -288,6 +288,8 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     except ValueError:
         if not objectid_allowed:
             return False
+        if ObjectId is None:
+            raise RuntimeError('bson library not installed')
         try:
             ObjectId(id)
         except InvalidId:
