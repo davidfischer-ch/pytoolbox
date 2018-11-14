@@ -214,7 +214,7 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> from ..rtp import RtpPacket
+        >>> from pytoolbox.network.rtp import RtpPacket
         >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
         ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(6, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
@@ -230,7 +230,7 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> from ..rtp import RtpPacket
+        >>> from pytoolbox.network.rtp import RtpPacket
         >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
         ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(1985, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
@@ -246,7 +246,7 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> from ..rtp import RtpPacket
+        >>> from pytoolbox.network.rtp import RtpPacket
         >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
         ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(27, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
@@ -262,7 +262,7 @@ class FecPacket(object):
 
         **Example usage**
 
-        >>> from ..rtp import RtpPacket
+        >>> from pytoolbox.network.rtp import RtpPacket
         >>> packets = [RtpPacket.create(10, 100, RtpPacket.MP2T_PT, bytearray(123)),
         ...            RtpPacket.create(11, 200, RtpPacket.MP2T_PT, bytearray(1234))]
         >>> fec = FecPacket.compute(26, FecPacket.XOR, FecPacket.ROW, 2, 1, packets)
@@ -396,7 +396,7 @@ class FecPacket(object):
 
         Testing invalid input collection of packets:
 
-        >>> from ..rtp import RtpPacket
+        >>> from pytoolbox.network.rtp import RtpPacket
         >>> packets = [RtpPacket.create(10, 10, RtpPacket.MP2T_PT, 'a'),
         ...            RtpPacket.create(22, 22, RtpPacket.MP2T_PT, 'b')]
         >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, 2, 2, packets)
@@ -432,7 +432,7 @@ class FecPacket(object):
 
         >>> from os import urandom
         >>> from random import randint
-        >>> from ..rtp import RtpPacket
+        >>> from pytoolbox.network.rtp import RtpPacket
         >>> L = 4
         >>> D = 5
         >>> OFF = 2
