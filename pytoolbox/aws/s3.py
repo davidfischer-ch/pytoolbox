@@ -60,16 +60,22 @@ def read_object(s3, bucket_name, path, file=None, fail=True):
         raise
 
 
-def remove_objects(s3, bucket_name, prefix='', patterns=r'*', simulate=False, unix_wildcards=True):
-    """Remove objects matching pattern, by chunks of 1000 to be efficient."""
+def remove_objects(s3, bucket_name, prefix='', patterns=r'*', callback=lambda obj: True,
+                   simulate=False, unix_wildcards=True):
+    """
+    Remove objects matching pattern, by chunks of 1000 to be efficient.
+
+    * Set `callback` to a function returning True if given object has to be removed.
+    """
     objects = []
     for obj in list_objects(s3, bucket_name, prefix, patterns, unix_wildcards=unix_wildcards):
-        key = obj['Key']
-        objects.append({'Key': key})
-        yield obj
-        if len(objects) == 1000 and not simulate:
-            s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-            objects = []
+        if callback(obj):
+            key = obj['Key']
+            objects.append({'Key': key})
+            yield obj
+            if len(objects) == 1000 and not simulate:
+                s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
+                objects = []
     # Remove remaining objects
     if objects and not simulate:
         s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
