@@ -1,7 +1,8 @@
-import re
 from io import BytesIO
 
 from botocore.exceptions import ClientError
+
+from pytoolbox.regex import from_path_patterns
 
 
 def copy_object(s3, bucket_name, source_key, target_key):
@@ -19,16 +20,19 @@ def get_object_url(bucket_name, location, key):
     return 'https://s3-{1}.amazonaws.com/{0}/{2}'.format(bucket_name, location, key)
 
 
-def list_objects(s3, bucket_name, prefix='', pattern=r'.*'):
+def list_objects(s3, bucket_name, prefix='', patterns='*', unix_wildcards=True):
     if prefix and prefix[-1] != '/':
         prefix += '/'
-    pattern = re.compile(pattern)
+    patterns = from_path_patterns(patterns, unix_wildcards=unix_wildcards)
     for page in s3.get_paginator('list_objects').paginate(Bucket=bucket_name, Prefix=prefix):
         try:
             objects = page['Contents']
         except KeyError:
             raise StopIteration
-        yield from (o for o in objects if pattern.match(o['Key']))
+        for obj in objects:
+            key = obj['Key']
+            if any(p.match(key) for p in patterns):
+                yield obj
 
 
 def load_object_meta(s3, bucket_name, path, fail=True):

@@ -6,7 +6,7 @@ Module related to file system and path operations.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, copy, errno, fnmatch, grp, pwd, os, re, shutil, tempfile, time, uuid
+import collections, copy, errno, grp, pwd, os, shutil, tempfile, time, uuid
 from codecs import open  # pylint:disable=redefined-builtin
 
 import magic
@@ -14,7 +14,6 @@ import magic
 from . import module
 from .datetime import datetime_now
 from .encoding import string_types
-from .itertools import chain
 from .regex import from_path_patterns
 
 _all = module.All(globals())
@@ -38,34 +37,35 @@ def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
 
 def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
     """
-    Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions, if necessary.
+    Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions,
+    if necessary.
 
-    If `unix_wildcards` is set to True, then any string pattern will be converted from the unix-style wildcard to the
-    regular expression equivalent using :func:`fnatmch.translate`.
+    If `unix_wildcards` is set to True, then any string pattern will be converted from
+    the unix-style wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
 
     **Example usage**
 
-    >>> print(next(find_recursive('/etc', 'interfaces')))
+    >>> import re
+    >>> print(next(find_recursive('/etc', '*/interfaces*')))
     /etc/network/interfaces
-    >>> filenames = list(find_recursive('/etc/network', ['interfaces', 'inter*aces', '*.jpg']))
-    >>> filenames.count('/etc/network/interfaces')
-    1
-
-    >>> a = set(find_recursive('/etc/network', re.compile('inter?aces')))
-    >>> b = set(find_recursive('/etc/network', ['inter?aces'], unix_wildcards=False))
+    >>> filenames = list(find_recursive('/etc/network', ['*/interfaces*', '*/*.jpg']))
+    >>> '/etc/network/interfaces' in filenames
+    True
+    >>> '/etc/network/interfaces.d' in filenames  # Its a directory
+    False
+    >>> a = set(find_recursive('/etc', re.compile('.*/host.*')))
+    >>> b = set(find_recursive('/etc', ['.*/host.*'], unix_wildcards=False))
+    >>> len(a) > 0
+    True
     >>> a == b
     True
     """
-    if isinstance(patterns, string_types) or hasattr(patterns, 'match'):
-        patterns = [patterns]
-    patterns = [
-        p if hasattr(p, 'match') else re.compile(fnmatch.translate(p) if unix_wildcards else p)
-        for p in patterns
-    ]
+    patterns = from_path_patterns(patterns, unix_wildcards=unix_wildcards)
     for dirpath, dirnames, filenames in os.walk(directory, **walk_kwargs):
         for filename in filenames:
+            filename = os.path.join(dirpath, filename)
             if any(p.match(filename) for p in patterns):
-                yield os.path.join(dirpath, filename)
+                yield filename
 
 
 def file_mime(path, mime=True):
