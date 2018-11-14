@@ -14,14 +14,19 @@ import magic
 from . import module
 from .datetime import datetime_now
 from .encoding import string_types
+from .itertools import chain
+from .regex import from_path_patterns
 
 _all = module.All(globals())
 
 
 def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
-    """Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it unchanged."""
-    uid = pwd.getpwnam(user).pw_uid if isinstance(user, string_types) else (-1 if user is None else user)
-    gid = grp.getgrnam(group).gr_gid if isinstance(group, string_types) else (-1 if group is None else group)
+    """
+    Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it
+    unchanged.
+    """
+    uid = to_user_id(user)
+    gid = to_group_id(group)
     if recursive:
         for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
             os.chown(dirpath, uid, gid)
@@ -388,6 +393,18 @@ def symlink(source, link_name):
                 raise
         raise  # Re-raise exception if a different error occurred
 try_symlink = symlink
+
+
+def to_user_id(user):
+    if isinstance(user, string_types):
+        return pwd.getpwnam(user).pw_uid
+    return -1 if user is None else user
+
+
+def to_group_id(group):
+    if isinstance(group, string_types):
+        return grp.getgrnam(group).gr_gid
+    return -1 if group is None else group
 
 
 class TempStorage(object):
