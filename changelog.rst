@@ -3,6 +3,15 @@ changelog
 =========
 
 -------
+v13.0.2
+-------
+
+Fix and enhancements
+====================
+
+* Function multimedia.image.remove_transparency: Add force_rgb argument + enhance code.
+
+-------
 v13.0.1
 -------
 
