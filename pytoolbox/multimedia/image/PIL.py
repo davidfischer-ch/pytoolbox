@@ -55,19 +55,16 @@ def remove_metadata(image, keys=('exif', ), inplace=False):
     return image
 
 
-def remove_transparency(image, background=(255, 255, 255), force_rgb=False):
+def remove_transparency(image, background=(255, 255, 255)):
     """
     Return a RGB image with an alpha mask applied to picture + background.
-    If alpha not found, then convert to RGB if forced else do nothing.
+    If image is already in RGB, then its a no-op.
     """
-    try:
-        alpha = image.getchannel('A')
-    except ValueError as e:
-        if 'has no channel' in str(e):
-            return image.convert('RGB') if force_rgb else image
-        raise
+    if image.mode == 'RGB':
+        return image  # No-op
+    alpha = image.convert('RGBA').getchannel('A')
     new_image = Image.new('RGB', image.size, background)
-    new_image.paste(image, mask=alpha)
+    new_image.paste(image.convert('RGB'), mask=alpha)
     return new_image
 
 

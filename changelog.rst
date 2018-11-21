@@ -3,22 +3,14 @@ changelog
 =========
 
 -------
-v13.0.2
--------
-
-Fix and enhancements
-====================
-
-* Function multimedia.image.remove_transparency: Add force_rgb argument + enhance code.
-
--------
-v13.0.1
+v13.0.3
 -------
 
 Fix and enhancements
 ====================
 
 * Function aws.s3.remove_objects: Add callback argument to make it more flexible.
+* Function multimedia.image.remove_transparency: Enhance code (remove force_rgb arg from 13.0.2).
 
 -------
 v13.0.0
