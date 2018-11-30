@@ -318,10 +318,16 @@ class JsoneableObject(object):
 
 # Object <-> Dictionary ----------------------------------------------------------------------------
 
-def object_to_dict(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
+def object_to_dict(
+    obj, schema, depth=0,
+    callback=lambda o, s, d: (o, s),
+    iterable_callback=lambda o, s, d: list
+):
     """
     Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
-    Schema callback makes it possible to dynamically tweak obj and schema!
+
+    * Schema callback makes it possible to dynamically tweak obj and schema!
+    * Iterable callback makes it possible to dynamically tweak iterable objects container type!
 
     **Example usage**
 
@@ -367,6 +373,54 @@ def object_to_dict(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
     ...     }
     ... )
 
+    This serializer can optionally adapt container type and do a lot more:
+
+    >>> SCHEMA = {
+    ...     'name': 'name',
+    ...     'x': 'x',
+    ...     'zed': 'z',
+    ...     'p': {
+    ...         '_container': tuple,
+    ...         'name': 'name',
+    ...         'stuff': lambda p: 42,
+    ...         'p': {
+    ...             '_container': tuple,
+    ...             'name': 'name'
+    ...         }
+    ...     }
+    ... }
+    ...
+    >>> def use_container_defined_in_schema(obj, schema, depth):
+    ...    return schema.get('_container', list)
+    ...
+    >>> def ignore_private_schema_keys(obj, schema, depth):
+    ...     return obj, {k: v for k, v in schema.items() if k[0] != '_'}
+    ...
+    >>> asserts.dict_equal(
+    ...     object_to_dict(
+    ...         Point('p1', 5, 2, {
+    ...             Point('p2', 3, 4, None),
+    ...             Point('p3', 7, 0, [
+    ...                 Point('p4', 0, 0, None),
+    ...                 Point('p5', 0, 0, None)
+    ...             ])
+    ...         }),
+    ...         schema=SCHEMA,
+    ...         callback=ignore_private_schema_keys,
+    ...         iterable_callback=use_container_defined_in_schema),
+    ...     {
+    ...         'name': 'p1', 'x': 5, 'zed': 3, 'p': (
+    ...             {'name': 'p2', 'stuff': 42, 'p': None},
+    ...             {
+    ...                 'name': 'p3', 'stuff': 42, 'p': (
+    ...                     {'name': 'p4'},
+    ...                     {'name': 'p5'}
+    ...                 )
+    ...             }
+    ...         )
+    ...     }
+    ... )
+
     This serializer can optionally adapt schema to objects:
 
     >>> SCHEMA = {
@@ -378,12 +432,14 @@ def object_to_dict(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
     ...         }
     ...     }
     ... }
+    ...
     >>> seen = set()
     >>> def reduce_seen(obj, schema, depth):
     ...     if obj in seen:
     ...         return obj, {'r': 'name'}
     ...     seen.add(obj)
     ...     return obj, schema
+    ...
     >>> p1 = Point('p1', 0, 0, None)
     >>> asserts.list_equal(
     ...     object_to_dict([
@@ -401,11 +457,19 @@ def object_to_dict(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
     ... )
     """
     if isiterable(obj):
-        return [_object_to_dict_item(i, schema, depth, callback) for i in obj]
-    return _object_to_dict_item(obj, schema, depth, callback)
+        container_type = iterable_callback(obj, schema, depth)
+        return container_type(
+            _object_to_dict_item(i, schema, depth, callback, iterable_callback)
+            for i in obj
+        )
+    return _object_to_dict_item(obj, schema, depth, callback, iterable_callback)
 
 
-def _object_to_dict_item(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
+def _object_to_dict_item(
+    obj, schema, depth=0,
+    callback=lambda o, s, d: (o, s),
+    iterable_callback=lambda o, s, d: list
+):
     if obj is None:
         return None
     obj_dict = {}
@@ -418,7 +482,12 @@ def _object_to_dict_item(obj, schema, depth=0, callback=lambda o, s, d: (o, s)):
             obj_dict[key] = value(obj)
         # Nested
         elif isinstance(value, dict):
-            obj_dict[key] = object_to_dict(getattr(obj, key), schema[key], depth + 1, callback)
+            obj_dict[key] = object_to_dict(
+                getattr(obj, key),
+                schema[key],
+                depth + 1,
+                callback,
+                iterable_callback)
         else:
             raise NotImplementedError('Key {0} with value {1}'.format(repr(key), repr(value)))
     return obj_dict
