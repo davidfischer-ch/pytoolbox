@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v13.0.3
+v13.0.4
 -------
 
 Fix and enhancements
@@ -11,6 +11,7 @@ Fix and enhancements
 
 * Function aws.s3.remove_objects: Add callback argument to make it more flexible.
 * Function multimedia.image.remove_transparency: Enhance code (remove force_rgb arg from 13.0.2).
+* Function serialization.object_to_dict: Add iterable_callback to customize container type of iterables.
 
 -------
 v13.0.0
