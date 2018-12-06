@@ -3,6 +3,15 @@ changelog
 =========
 
 -------
+v13.1.0
+-------
+
+Minor compatibility breaks
+==========================
+
+* Function serialization.object_to_dict: Rely almost only on schema to produce output structure (hint: use list in schema)
+
+-------
 v13.0.4
 -------
 
