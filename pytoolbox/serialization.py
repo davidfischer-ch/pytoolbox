@@ -351,13 +351,13 @@ def object_to_dict(
     ...     'name': 'name',
     ...     'x': 'x',
     ...     'zed': 'z',
-    ...     'p': {
+    ...     'p': [{
     ...         'name': 'name',
     ...         'stuff': lambda p: 42,
     ...         'p': {
     ...             'name': 'name'
     ...         }
-    ...     }
+    ...     }]
     ... }
     >>> asserts.dict_equal(
     ...     object_to_dict(
@@ -379,15 +379,15 @@ def object_to_dict(
     ...     'name': 'name',
     ...     'x': 'x',
     ...     'zed': 'z',
-    ...     'p': {
+    ...     'p': [{
     ...         '_container': tuple,
     ...         'name': 'name',
     ...         'stuff': lambda p: 42,
-    ...         'p': {
+    ...         'p': [{
     ...             '_container': tuple,
     ...             'name': 'name'
-    ...         }
-    ...     }
+    ...         }]
+    ...     }]
     ... }
     ...
     >>> def use_container_defined_in_schema(obj, schema, depth):
@@ -399,7 +399,7 @@ def object_to_dict(
     >>> asserts.dict_equal(
     ...     object_to_dict(
     ...         Point('p1', 5, 2, {
-    ...             Point('p2', 3, 4, None),
+    ...             Point('p2', 3, 4, []),
     ...             Point('p3', 7, 0, [
     ...                 Point('p4', 0, 0, None),
     ...                 Point('p5', 0, 0, None)
@@ -410,7 +410,7 @@ def object_to_dict(
     ...         iterable_callback=use_container_defined_in_schema),
     ...     {
     ...         'name': 'p1', 'x': 5, 'zed': 3, 'p': (
-    ...             {'name': 'p2', 'stuff': 42, 'p': None},
+    ...             {'name': 'p2', 'stuff': 42, 'p': ()},
     ...             {
     ...                 'name': 'p3', 'stuff': 42, 'p': (
     ...                     {'name': 'p4'},
@@ -423,7 +423,7 @@ def object_to_dict(
 
     This serializer can optionally adapt schema to objects:
 
-    >>> SCHEMA = {
+    >>> SCHEMA = [{
     ...     'n': 'name',
     ...     'p': {
     ...         'n': 'name',
@@ -431,7 +431,7 @@ def object_to_dict(
     ...             'n': 'name'
     ...         }
     ...     }
-    ... }
+    ... }]
     ...
     >>> seen = set()
     >>> def reduce_seen(obj, schema, depth):
@@ -456,7 +456,11 @@ def object_to_dict(
     ...     ]
     ... )
     """
-    if isiterable(obj):
+    if isinstance(schema, list):
+        count = len(schema)
+        if count != 1:
+            raise NotImplementedError('List containing {0} items.'.format(count))
+        schema = schema[0]
         container_type = iterable_callback(obj, schema, depth)
         return container_type(
             _object_to_dict_item(i, schema, depth, callback, iterable_callback)
@@ -475,13 +479,13 @@ def _object_to_dict_item(
     obj_dict = {}
     obj, schema = callback(obj, schema, depth)
     for key, value in schema.items():
-        # Direct
+        # Direct access to object
         if isinstance(value, string_types):
             obj_dict[key] = getattr(obj, value)
         elif callable(value):
             obj_dict[key] = value(obj)
-        # Nested
-        elif isinstance(value, dict):
+        # Nested object(s)
+        elif isinstance(value, (dict, list)):
             obj_dict[key] = object_to_dict(
                 getattr(obj, key),
                 schema[key],
