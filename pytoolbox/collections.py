@@ -178,8 +178,16 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=r
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
     This algorithm expect that the values are a container with objects, not a single object.
+    Set type to None if values are unique and you want keys to be the values.
 
     **Example usage**
+
+    Simple swap:
+
+    >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2)}, type=None)
+    >>> assert result == {0: 'even', 1: 'odd', 2: 'even', 3: 'odd'}
+
+    Complex swap:
 
     >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
     >>> assert ({k: sorted(v) for k, v in result.iteritems()} ==
@@ -187,11 +195,17 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=r
     >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
     >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
     """
-    method = getattr(type, method) if isinstance(method, string_types) else method
-    reversed_dict = collections.defaultdict(type)
-    for key, values in the_dict.iteritems():
-        for value in values:
-            method(reversed_dict[value], key)
+    if type is None:
+        reversed_dict = {}
+        for key, values in the_dict.iteritems():
+            for value in values:
+                reversed_dict[value] = key
+    else:
+        method = getattr(type, method) if isinstance(method, string_types) else method
+        reversed_dict = collections.defaultdict(type)
+        for key, values in the_dict.iteritems():
+            for value in values:
+                method(reversed_dict[value], key)
     return reversed_dict
 
 

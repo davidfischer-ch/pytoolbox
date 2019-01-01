@@ -3,13 +3,18 @@ changelog
 =========
 
 -------
-v13.1.0
+v13.1.1
 -------
 
 Minor compatibility breaks
 ==========================
 
 * Function serialization.object_to_dict: Rely almost only on schema to produce output structure (hint: use list in schema)
+
+Fix and enhancements
+====================
+
+* Function collections.swap_dict_of_values: Implement simple key-value swap.
 
 -------
 v13.0.4
