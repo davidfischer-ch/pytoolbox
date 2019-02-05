@@ -3,6 +3,17 @@ changelog
 =========
 
 -------
+v13.1.2
+-------
+
+Fix and enhancements
+====================
+
+* Module smpte2022: Fixed wraparound sequence number calculations for RTP and FEC.
+
+Thanks to @TobbeEdgeware!
+
+-------
 v13.1.1
 -------
 
