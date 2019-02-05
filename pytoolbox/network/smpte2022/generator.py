@@ -205,7 +205,7 @@ class FecGenerator(object):
         # - Looped VLC broadcast session restarted media
         # - Some media packet are really lost between the emitter and this software
         # - An unknown feature (aka bug) makes this beautiful tool crazy !
-        if self._media_sequence and media.sequence == self._media_sequence:
+        if self._media_sequence is not None and media.sequence == self._media_sequence:
             self._medias.append(media)
         else:
             self._medias = [media]
@@ -217,7 +217,7 @@ class FecGenerator(object):
             assert(len(row_medias) == self._L)
             row = FecPacket.compute(
                 self._row_sequence, FecPacket.XOR, FecPacket.ROW, self._L, self._D, row_medias)
-            self._row_sequence = (self._row_sequence + 1) % RtpPacket.S_MASK
+            self._row_sequence = (self._row_sequence + 1) & RtpPacket.S_MASK
             self.on_new_row(row, self)
         # Compute a new column FEC packet when a new column just filled with packets
         if len(self._medias) > self._L * (self._D - 1):
@@ -226,7 +226,7 @@ class FecGenerator(object):
             assert(len(col_medias) == self._D)
             col = FecPacket.compute(
                 self._col_sequence, FecPacket.XOR, FecPacket.COL, self._L, self._D, col_medias)
-            self._col_sequence = (self._col_sequence + 1) % RtpPacket.S_MASK
+            self._col_sequence = (self._col_sequence + 1) & RtpPacket.S_MASK
             self.on_new_col(col, self)
         if len(self._medias) == self._L * self._D:
             self._medias = []

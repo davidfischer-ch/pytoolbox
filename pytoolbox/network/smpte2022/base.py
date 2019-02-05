@@ -493,7 +493,7 @@ class FecPacket(object):
         for packet in packets:
             if not packet.validMP2T:
                 raise ValueError(to_bytes(FecPacket.ER_VALID_MP2T))
-            if packet.sequence != (fec.snbase + i*fec.offset) % RtpPacket.S_MASK:
+            if packet.sequence != (fec.snbase + i*fec.offset) & RtpPacket.S_MASK:
                 raise ValueError(to_bytes(FecPacket.ER_SEQUENCE))
             size = max(size, packet.payload_size)
             i += 1
@@ -620,7 +620,7 @@ class FecPacket(object):
         """
         delta = media_sequence - self.snbase
         if delta < 0:
-            delta = RtpPacket.S_MASK + delta
+            delta += RtpPacket.S_MASK + 1
         if delta % self.offset != 0:
             return None
         return int(delta / self.offset)
