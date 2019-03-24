@@ -14,6 +14,10 @@ _all = module.All(globals())
 
 class Metadata(object):
 
+    camera_class = camera.Camera
+    image_class = image.Image
+    lens_class = lens.Lens
+    photo_class = photo.Photo
     tag_class = tag.Tag
 
     def __init__(self, path=None, buf=None, orientation=None, gexiv2_version='0.10'):
@@ -28,10 +32,10 @@ class Metadata(object):
             self.exiv2.open_path(path)
         else:
             raise ValueError('buf or file is required')
-        self.camera = camera.Camera(self)
-        self.image = image.Image(self, orientation)
-        self.lens = lens.Lens(self)
-        self.photo = photo.Photo(self)
+        self.camera = self.camera_class(self)
+        self.image = self.image_class(self, orientation)
+        self.lens = self.lens_class(self)
+        self.photo = self.photo_class(self)
 
     def __getitem__(self, key):
         # FIXME make it more strict and re-implement less strict self.get(key)
