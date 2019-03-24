@@ -3,12 +3,13 @@ changelog
 =========
 
 -------
-v13.1.2
+v13.1.3
 -------
 
 Fix and enhancements
 ====================
 
+* Module mutlimedia.exif: Make classes swappable + importable from exif module.
 * Module smpte2022: Fixed wraparound sequence number calculations for RTP and FEC.
 
 Thanks to @TobbeEdgeware!
