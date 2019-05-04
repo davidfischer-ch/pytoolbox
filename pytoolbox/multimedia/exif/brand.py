@@ -10,13 +10,30 @@ _all = module.All(globals())
 class Brand(object):
 
     brands = frozenset([
-        'Apple', 'Asus', 'Canon', 'Fujifilm', 'HP', 'HTC', 'GoPro', 'Hewlett-Packard', 'Kodak',
-        'LGE', 'Nikon', 'Olympus', 'Pentax', 'Samsung', 'Sigma', 'Sony', 'Sony Ericsson'
+        'Apple',
+        'Asus',
+        'Canon',
+        'Fujifilm',
+        'HP',
+        'HTC',
+        'Huawei',
+        'GoPro',
+        'Hewlett-Packard',
+        'Kodak',
+        'LGE',
+        'Nikon',
+        'Olympus',
+        'Pentax',
+        'Samsung',
+        'Sigma',
+        'Sony',
+        'Sony Ericsson'
     ])
     clean_map = collections.merge_dicts({b.lower(): b for b in brands}, {
         # maps the group of Exif.Group.Label
         'canoncs': 'Canon',
         'canoncf': 'Canon',
+        'HUAWEI': 'Huawei',
         'lg electronics': 'LGE',
         'nikon3': 'Nikon',
         'nikonld2': 'Nikon',
