@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, sys
+import atexit, code, os, sys
 
 from . import module
 
@@ -91,6 +91,7 @@ def print_error(message, exit_code=1, stream=sys.stderr):
     if exit_code is not None:
         sys.exit(exit_code)
 
+
 if __name__ == '__main__':
 
     if confirm('Please confirm this'):
@@ -122,6 +123,27 @@ def progress_bar(start_time, current, total, size=50, done='=', todo=' ',
         progress = int(size * current / total)
         stream.write(template.format(done=done * progress, todo=todo * (size - progress)))
         stream.flush()
+
+
+def shell(banner=None, history_filename='~/.python_history', history_length=1000, imported=None):
+    """Execute an interactive shell with auto-completion and history (if available)."""
+    # Setup auto-completion and file history, credits to @kyouko-taiga!
+    try:
+        import readline
+    except ImportError:
+        pass
+    else:
+        import rlcompleter
+        readline.set_completer(rlcompleter.Completer(imported).complete)
+        readline.parse_and_bind("tab:complete")
+        history_filename = os.path.abspath(os.path.expanduser(history_filename))
+        try:
+            readline.read_history_file(history_filename)
+            readline.set_history_length(history_length)
+        except FileNotFoundError:
+            pass
+        atexit.register(readline.write_history_file, history_filename)
+    return code.interact(banner=banner, local=imported)
 
 
 __all__ = _all.diff(globals())
