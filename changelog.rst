@@ -3,6 +3,20 @@ changelog
 =========
 
 -------
+v13.2.0
+-------
+
+Fix and enhancements
+====================
+
+* Module multimedia.exif: Add Huawei.
+
+Features
+========
+
+* Add function console.shell
+
+-------
 v13.1.3
 -------
 
