@@ -4,7 +4,7 @@ import ezodf, pandas as pd
 def map_dict(df, key_column, value_column, dropna=True):
     df = df[[key_column, value_column]]
     if dropna:
-        df.dropna(inplace=True)
+        df = df.dropna()
     return df.set_index(key_column)[value_column].to_dict()
 
 
