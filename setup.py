@@ -62,7 +62,7 @@ extras_require = {
     'logging': ['termcolor'],
     'mongo': ['celery', 'passlib', 'pymongo'],
     'network': ['tldextract'],
-    'pandas': ['ezodf'],
+    'pandas': ['ezodf', 'pandas'],
     'rest_framework': ['django-oauth-toolkit', 'djangorestframework>=3'],
     'selenium': ['selenium'],
     'smpte2022': ['fastxor'],
