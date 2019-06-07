@@ -3,6 +3,22 @@ changelog
 =========
 
 -------
+v13.3.0
+-------
+
+Fix and enhancements
+====================
+
+* Function filesystem.file_mime: Convert to unicode only if required.
+
+Features
+========
+
+* Add module pandas
+
+
+
+-------
 v13.2.0
 -------
 
