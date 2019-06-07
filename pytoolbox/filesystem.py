@@ -13,7 +13,7 @@ import magic
 
 from . import module
 from .datetime import datetime_now
-from .encoding import string_types
+from .encoding import string_types, to_unicode
 from .regex import from_path_patterns
 
 _all = module.All(globals())
@@ -70,7 +70,7 @@ def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
 
 def file_mime(path, mime=True):
     try:
-        return magic.from_file(path, mime=mime).decode('utf-8')
+        return to_unicode(magic.from_file(path, mime=mime))
     except OSError:
         return None
 
