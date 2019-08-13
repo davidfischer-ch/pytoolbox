@@ -3,6 +3,15 @@ changelog
 =========
 
 -------
+v13.3.1
+-------
+
+Fix and enhancements
+====================
+
+* Class django.models.fields.URLField: Set max_length to 8000 by default
+
+-------
 v13.3.0
 -------
 
