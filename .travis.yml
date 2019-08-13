@@ -17,7 +17,7 @@ install:
   - travis_retry sudo pip install --user -U -e .[atlassian,aws,flask,imaging,jinja2,logging,mongo,network,selenium,smpte2022,unittest,vision,voluptuous]
 script:
   - rm -rf pytoolbox/django* pytoolbox/rest_framework  # Not maintained so not testable ...
-  - sudo python setup.py test
+  - python setup.py test
 matrix:
   allow_failures:
     - python: 2.6
