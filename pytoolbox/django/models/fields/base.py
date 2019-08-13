@@ -25,11 +25,11 @@ _all = module.All(globals())
 
 # Char & Text
 
-class StripCharField(mixins.StripMixin, models.CharField):
+class StripCharField(mixins.OptionsMixin, mixins.StripMixin, models.CharField):
     pass
 
 
-class StripTextField(mixins.StripMixin, models.TextField):
+class StripTextField(mixins.OptionsMixin, mixins.StripMixin, models.TextField):
     pass
 
 
@@ -80,7 +80,7 @@ class MD5ChecksumField(mixins.OptionsMixin, StripCharField):
     default_validators = [validators.MD5ChecksumValidator()]
 
 
-class MoneyField(models.DecimalField):
+class MoneyField(mixins.OptionsMixin, models.DecimalField):
 
     def __init__(self, max_value, decimal_places=2, **kwargs):
         self.max_value = max_value
@@ -121,7 +121,7 @@ class FieldFile(files.FieldFile):
         return bool(self) and self.storage.exists(self.name)
 
 
-class FileField(models.FileField):
+class FileField(mixins.OptionsMixin, models.FileField):
 
     attr_class = FieldFile
 
