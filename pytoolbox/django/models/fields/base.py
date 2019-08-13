@@ -99,7 +99,7 @@ class MoneyField(models.DecimalField):
 
 class URLField(StripCharField, models.URLField):
 
-    default_kwargs = {'max_length': 8000}  # http://tools.ietf.org/html/rfc7230#section-3.1.1
+    default_options = {'max_length': 8000}  # http://tools.ietf.org/html/rfc7230#section-3.1.1
 
 
 # Storage
