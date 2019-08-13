@@ -73,7 +73,7 @@ class CreatedByField(mixins.OptionsMixin, models.ForeignKey):
     default_options = {'to': settings.AUTH_USER_MODEL, 'editable': False}
 
 
-class MD5ChecksumField(mixins.OptionsMixin, StripCharField):
+class MD5ChecksumField(StripCharField):
 
     default_error_messages = {'invalid': _('Enter a valid MD5 checksum')}
     default_options = {'max_length': 32}
