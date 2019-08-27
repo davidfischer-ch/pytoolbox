@@ -3,7 +3,7 @@ changelog
 =========
 
 -------
-v13.3.3
+v13.3.4
 -------
 
 Fix and enhancements
@@ -11,6 +11,7 @@ Fix and enhancements
 
 * Class django.models.fields.URLField: Set max_length to 8000 by default
 * Class django.models.fields.*: Use OptionsMixin on all fields
+* Add requests to requirements
 
 -------
 v13.3.0
