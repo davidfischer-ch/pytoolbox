@@ -47,6 +47,7 @@ install_requires = [
     'pyaml',
     'python-magic',
     'pytz',
+    'requests',
     'six'
 ]
 
