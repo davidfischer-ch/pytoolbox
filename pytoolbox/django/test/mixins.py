@@ -10,10 +10,15 @@ import os
 
 from django.contrib.sites.models import Site
 from django.core.management import call_command
-from django.core.urlresolvers import resolve, reverse
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.test import TransactionTestCase
 from django.test.utils import CaptureQueriesContext
+
+try:
+    from django.urls import resolve, reverse
+except ImportError:
+    # For Django < 2.0
+    from django.core.urlresolvers import resolve, reverse
 
 from pytoolbox import module
 from pytoolbox.encoding import string_types
