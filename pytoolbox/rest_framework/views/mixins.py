@@ -54,8 +54,9 @@ class RedirectToLoginMixin(object):
     def finalize_response(self, request, response, *args, **kwargs):
         response = super(RedirectToLoginMixin, self).finalize_response(
             request, response, *args, **kwargs)
+        logged = request.user.is_authenticated
         if (
-            not request.user.is_authenticated() and
+            not (logged if isinstance(logged, bool) else logged()) and
             isinstance(response.accepted_renderer, self.redirected_classes)
         ):
             response = redirect_to_login(request.path)

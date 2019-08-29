@@ -104,7 +104,8 @@ class LoggedCookieMixin(object):
 
     def post(self, *args, **kwargs):
         response = super(LoggedCookieMixin, self).post(*args, **kwargs)
-        response.set_cookie('logged', self.request.user.is_authenticated())
+        logged = self.request.user.is_authenticated
+        response.set_cookie('logged', logged if isinstance(logged, bool) else logged())
         return response
 
 
