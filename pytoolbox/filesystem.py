@@ -6,7 +6,7 @@ Module related to file system and path operations.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections, copy, errno, grp, pwd, os, shutil, tempfile, time, uuid
+import collections, copy, errno, os, shutil, tempfile, time, uuid
 from codecs import open  # pylint:disable=redefined-builtin
 
 import magic
@@ -406,16 +406,20 @@ def symlink(source, link_name):
 try_symlink = symlink
 
 
-def to_user_id(user):
-    if isinstance(user, string_types):
-        return pwd.getpwnam(user).pw_uid
-    return -1 if user is None else user
+try:
+    import pwd, grp
+except ImportError:
+    pass
+else:
+    def to_user_id(user):
+        if isinstance(user, string_types):
+            return pwd.getpwnam(user).pw_uid
+        return -1 if user is None else user
 
-
-def to_group_id(group):
-    if isinstance(group, string_types):
-        return grp.getgrnam(group).gr_gid
-    return -1 if group is None else group
+    def to_group_id(group):
+        if isinstance(group, string_types):
+            return grp.getgrnam(group).gr_gid
+        return -1 if group is None else group
 
 
 class TempStorage(object):
