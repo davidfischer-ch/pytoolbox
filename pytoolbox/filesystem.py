@@ -16,6 +16,11 @@ from .datetime import datetime_now
 from .encoding import string_types, to_unicode
 from .regex import from_path_patterns
 
+try:
+    PermissionError
+except NameError:
+    PermissionError = None
+
 _all = module.All(globals())
 
 
@@ -317,9 +322,12 @@ def remove(path, recursive=False):
         try:
             os.remove(path)
             return True
-        except OSError as e:
+        except Exception as e:
             # Is a directory and recursion is allowed
-            if e.errno == errno.EISDIR and recursive:
+            if recursive and (
+                isinstance(e, OSError) and e.errno == errno.EISDIR or
+                PermissionError is not None and isinstance(e, PermissionError)
+            ):
                 shutil.rmtree(path)
                 return True
             raise  # Re-raise exception if a different error occurred
