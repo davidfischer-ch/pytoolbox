@@ -46,6 +46,7 @@ install_requires = [
     'argparse',
     'pyaml',
     'python-magic',
+    'python-magic-bin',
     'pytz',
     'requests',
     'six'
