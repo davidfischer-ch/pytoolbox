@@ -46,11 +46,16 @@ install_requires = [
     'argparse',
     'pyaml',
     'python-magic',
-    'python-magic-bin',
     'pytz',
     'requests',
     'six'
 ]
+
+try:
+    import grp  # noqa
+except ImportError:
+    # Required on Windows
+    install_requires.append('python-magic-bin')
 
 extras_require = {
     'atlassian': ['jira'],
