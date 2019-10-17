@@ -3,12 +3,14 @@ changelog
 =========
 
 -------
-v13.3.4
+v13.3.5
 -------
 
 Fix and enhancements
 ====================
 
+* Module django: Django 2.0 compatibility
+* Module filesystem: Windows compatbility
 * Class django.models.fields.URLField: Set max_length to 8000 by default
 * Class django.models.fields.*: Use OptionsMixin on all fields
 * Add requests to requirements
@@ -26,8 +28,6 @@ Features
 ========
 
 * Add module pandas
-
-
 
 -------
 v13.2.0
