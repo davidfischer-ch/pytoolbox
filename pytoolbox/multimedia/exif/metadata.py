@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime
 
-from pytoolbox import module
+from pytoolbox import exceptions, module
 from pytoolbox.encoding import string_types
 
 from . import camera, image, lens, photo, tag
@@ -54,7 +54,7 @@ class Metadata(object):
             if isinstance(date, datetime.datetime):
                 return date
 
-    def rewrite(self, save=False):
+    def rewrite(self, path=None, save=False):
         """
         Iterate over all tags and rewrite them to fix issues (e.g. GExiv2: Invalid ifdId 103 (23)).
         """
@@ -63,10 +63,12 @@ class Metadata(object):
         for key, value in tags.iteritems():
             self[key] = value
         if save:
-            self.save_file()
+            self.save_file(path=path)
 
-    def save_file(self):
-        return self.exiv2.save_file()
+    def save_file(self, path=None):
+        if not path and not self.path:
+            raise exceptions.UndefinedPathError()
+        return self.exiv2.save_file(path=path or self.path)
 
 
 __all__ = _all.diff(globals())

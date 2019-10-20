@@ -49,6 +49,10 @@ class TimeoutError(Exception):
     pass
 
 
+class UndefinedPathError(Exception):
+    pass
+
+
 def assert_raises_item(exception_cls, something, index, value=None, delete=False):
     """
 
