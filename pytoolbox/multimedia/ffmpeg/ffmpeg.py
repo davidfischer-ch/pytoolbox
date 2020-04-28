@@ -27,8 +27,13 @@ class FFmpeg(object):
     ffprobe_class = ffprobe.FFprobe
     statistics_class = encode.EncodeStatistics
 
-    def __init__(self, executable=None, chunk_read_timeout=0.5, encode_poll_delay=0.5,
-                 encoding='utf-8'):
+    def __init__(
+        self,
+        executable=None,
+        chunk_read_timeout=0.5,
+        encode_poll_delay=0.5,
+        encoding='utf-8'
+    ):
         self.executable = executable or self.executable
         self.chunk_read_timeout = chunk_read_timeout
         self.encode_poll_delay = encode_poll_delay
@@ -41,20 +46,32 @@ class FFmpeg(object):
             itertools.chain([self.executable], arguments),
             stderr=subprocess.PIPE, universal_newlines=True)
 
-    def encode(self, inputs, outputs, options=None, create_directories=True, process_poll=True,
-               process_kwargs=None, statistics_kwargs=None):
+    def encode(
+        self,
+        inputs,
+        outputs,
+        in_options=None,
+        out_options=None,
+        create_directories=True,
+        process_poll=True,
+        process_kwargs=None,
+        statistics_kwargs=None
+    ):
         """
         Encode a set of input files input to a set of output files and yields statistics about the
         encoding.
         """
-        arguments, inputs, outputs, options = self._get_arguments(inputs, outputs, options)
+        arguments, inputs, outputs, in_options, out_options = \
+            self._get_arguments(inputs, outputs, in_options, out_options)
 
         # Create outputs directories
         if create_directories:
             for output in outputs:
                 output.create_directory()
 
-        statistics = self.statistics_class(inputs, outputs, options, **(statistics_kwargs or {}))
+        statistics = self.statistics_class(
+            inputs, outputs, in_options, out_options, **(statistics_kwargs or {}))
+
         process = self._get_process(arguments, **(process_kwargs or {}))
         try:
             yield statistics.start(process)
@@ -89,7 +106,7 @@ class FFmpeg(object):
         values = [value] if isinstance(value, (string_types, self.ffprobe.media_class)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
 
-    def _get_arguments(self, inputs, outputs, options=None):
+    def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
         """
         Return the arguments for the encoding process.
 
@@ -103,14 +120,16 @@ class FFmpeg(object):
         """
         inputs = self._clean_medias_argument(inputs)
         outputs = self._clean_medias_argument(outputs)
-        options = to_args_list(options)
+        in_options = to_args_list(in_options)
+        out_options = to_args_list(out_options)
         args = [self.executable, '-y']
+        args.extend(in_options)
         for the_input in inputs:
             args.extend(the_input.to_args(is_input=True))
-        args.extend(options)
+        args.extend(out_options)
         for output in outputs:
             args.extend(output.to_args(is_input=False))
-        return args, inputs, outputs, options
+        return args, inputs, outputs, in_options, out_options
 
     def _get_chunk(self, process):
         select.select([process.stderr], [], [], self.chunk_read_timeout)
