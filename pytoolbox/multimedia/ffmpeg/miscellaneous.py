@@ -40,11 +40,12 @@ class Format(BaseInfo):
 
     __slots__ = (
         'bit_rate', 'duration', 'filename', 'format_name', 'format_long_name', 'nb_programs',
-        'nb_streams', 'probe_score', 'size', 'start_time'
+        'nb_streams', 'probe_score', 'size', 'start_time', 'tags'
     )
 
     clean_bit_rate = clean_nb_programs = clean_nb_streams = clean_probe_score = clean_size = \
         lambda s, v: None if v is None else int(v)
+
     clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
 
 
@@ -61,9 +62,9 @@ class Stream(BaseInfo):
             else:
                 self._set_attribute(attr, info)
 
-    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = (
+    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = \
         lambda s, v: None if v is None else utils.to_frame_rate(v)
-    )
+
     clean_index = lambda s, v: None if v is None else int(v)
 
 
@@ -77,6 +78,7 @@ class AudioStream(Stream):
     clean_bit_rate = clean_bits_per_sample = clean_channels = clean_duration_ts = \
         clean_nb_frames = clean_sample_rate = clean_start_pts = \
         lambda s, v: None if v is None else int(v)
+
     clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
 
 
@@ -91,12 +93,22 @@ class SubtitleStream(Stream):
 class VideoStream(Stream):
 
     __slots__ = (
-        'display_aspect_ratio', 'has_b_frames', 'height', 'level', 'nb_frames', 'pix_fmt',
-        'sample_aspect_ratio', 'width'
+        'bit_rate', 'bit_per_raw_sample', 'display_aspect_ratio', 'duration', 'duration_ts',
+        'has_b_frames', 'height', 'level', 'nb_frames', 'pix_fmt', 'profile', 'sample_aspect_ratio',
+        'width', 'tags'
     )
+
+    clean_bit_rate = clean_bit_per_raw_sample = clean_duration_ts = \
+        lambda s, v: None if v is None else int(v)
+
+    clean_duration = lambda s, v: None if v is None else float(v)
 
     clean_height = clean_level = clean_nb_frames = clean_width = \
         lambda s, v: None if v is None else int(v)
+
+    @property
+    def rotate(self):
+        return int(0 if self.tags is None else self.tags.get('rotate', 0))
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
