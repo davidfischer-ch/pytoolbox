@@ -35,10 +35,11 @@ class EncodeStatistics(object):
     ffprobe_class = ffprobe.FFprobe
     states = EncodeState
 
-    def __init__(self, inputs, outputs, options, in_base_index=0, out_base_index=0):
+    def __init__(self, inputs, outputs, in_options, out_options, in_base_index=0, out_base_index=0):
         self.inputs = inputs
         self.outputs = outputs
-        self.options = options
+        self.in_options = in_options
+        self.out_options = out_options
         self.in_base_index = in_base_index
         self.out_base_index = out_base_index
 
@@ -60,7 +61,7 @@ class EncodeStatistics(object):
         duration = self.ffprobe_class().get_media_duration(
             self.input, as_delta=True) or self.default_in_duration
         self.input.duration, self.input.size = \
-            self._get_subclip_duration_and_size(duration, self.input.size, options)
+            self._get_subclip_duration_and_size(duration, self.input.size, self.out_options)
         self.output.duration = None
 
     @property
@@ -79,7 +80,8 @@ class EncodeStatistics(object):
     def output(self):
         return self.outputs[self.out_base_index]
 
-    def get_now(self):
+    @staticmethod
+    def get_now():
         return datetime_now()
 
     def start(self, process):
@@ -129,16 +131,17 @@ class EncodeStatistics(object):
         if self.input.duration and self.output.duration is not None:
             return time_ratio(self.output.duration, self.input.duration)
 
-    def _get_subclip_duration_and_size(self, duration, size, options):
+    @staticmethod
+    def _get_subclip_duration_and_size(duration, size, out_options):
         """Adjust duration and size if we only encode a sub-clip."""
         def to_time(t):
             return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
         try:
-            sub_pos = to_time(options[options.index('-ss') + 1]) or datetime.timedelta(0)
+            sub_pos = to_time(out_options[out_options.index('-ss') + 1]) or datetime.timedelta(0)
         except (IndexError, ValueError):
             sub_pos = datetime.timedelta(0)
         try:
-            sub_dur = to_time(options[options.index('-t') + 1])
+            sub_dur = to_time(out_options[out_options.index('-t') + 1])
         except (IndexError, ValueError):
             sub_dur = duration
         if sub_dur is not None:
