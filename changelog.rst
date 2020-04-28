@@ -3,6 +3,22 @@ changelog
 =========
 
 -------
+v13.4.0
+-------
+
+Minor compatibility breaks
+==========================
+
+- Drop Python 2.6 + Python 3.2 support (remove from Travis CI build)
+- Module multimedia.ffmpeg: Allow to pass input options (encoding)
+
+Fix and enhancements
+====================
+
+- Module multimedia.ffmpeg: Refresh metadata classes
+- Class multimedia.exif.Metadata: Allow to define path to save EXIF metadata
+
+-------
 v13.3.5
 -------
 
