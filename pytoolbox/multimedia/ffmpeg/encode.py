@@ -79,7 +79,8 @@ class EncodeStatistics(object):
     def output(self):
         return self.outputs[self.out_base_index]
 
-    def get_now(self):
+    @staticmethod
+    def get_now():
         return datetime_now()
 
     def start(self, process):
@@ -129,7 +130,8 @@ class EncodeStatistics(object):
         if self.input.duration and self.output.duration is not None:
             return time_ratio(self.output.duration, self.input.duration)
 
-    def _get_subclip_duration_and_size(self, duration, size, options):
+    @staticmethod
+    def _get_subclip_duration_and_size(duration, size, options):
         """Adjust duration and size if we only encode a sub-clip."""
         def to_time(t):
             return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
