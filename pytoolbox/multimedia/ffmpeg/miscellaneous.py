@@ -107,7 +107,7 @@ class VideoStream(Stream):
         lambda s, v: None if v is None else int(v)
 
     @property
-    def rotate(self):
+    def rotation(self):
         return int(0 if self.tags is None else self.tags.get('rotate', 0))
 
 
