@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
 from pytoolbox.selenium import Keys
 
-_all = module.All(globals())
+__all__ = ['BootstrapSliderMixin']
 
 
 class BootstrapSliderMixin(object):
@@ -30,7 +25,4 @@ class BootstrapSliderMixin(object):
             elif delta < 0:
                 slider.send_keys([Keys.LEFT] * -delta)
             return
-        raise NotImplementedError('Sending {0} not implemented.'.format(value))
-
-
-__all__ = _all.diff(globals())
+        raise NotImplementedError(f'Sending {value} not implemented.')

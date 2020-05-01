@@ -1,12 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import struct
 
-from pytoolbox import module
-
-_all = module.All(globals())
+__all__ = ['RtpPacket']
 
 
 class RtpPacket(object):
@@ -323,7 +317,7 @@ class RtpPacket(object):
         self.timestamp = ((bytes[4]*256 + bytes[5])*256 + bytes[6])*256 + bytes[7]
         self.ssrc = ((bytes[8]*256 + bytes[9])*256 + bytes[10])*256 + bytes[11]
 
-        for i in xrange(cc):  # noqa
+        for i in range(cc):  # noqa
             self.csrc.append(
                 ((bytes[offset]*256 + bytes[offset+1])*256 + bytes[offset+2])*256 + bytes[offset+3])
             offset += 4
@@ -352,8 +346,8 @@ class RtpPacket(object):
 #        if (this.sequence > pPacket.sequence) return AFTER
 #        return EQUAL
 
-    @staticmethod
-    def create(sequence, timestamp, payload_type, payload):
+    @classmethod
+    def create(cls, sequence, timestamp, payload_type, payload):
         """
         Create a valid RTP packet with a given payload.
 
@@ -373,7 +367,7 @@ class RtpPacket(object):
         >>> r = RtpPacket.create(11, 1028, RtpPacket.DYNAMIC_PT, bytearray.fromhex('cc aa ff ee'))
         >>> assert(p.validMP2T and q.validMP2T and r.valid)
         """
-        rtp = RtpPacket(None, 0)
+        rtp = cls(None, 0)
         rtp.version = 2
         rtp.padding = False
         rtp.extension = False
@@ -395,8 +389,11 @@ class RtpPacket(object):
             Test equality only on some fields (not all) !
         """
         if isinstance(other, self.__class__):
-            return (self.sequence == other.sequence and self.timestamp == other.timestamp and
-                    self.payload_type == other.payload_type and self.payload == other.payload)
+            return (
+                self.sequence == other.sequence and
+                self.timestamp == other.timestamp and
+                self.payload_type == other.payload_type and
+                self.payload == other.payload)
 
     def __str__(self):
         """
@@ -420,19 +417,16 @@ class RtpPacket(object):
         csrc count   = 0
         payload size = 17
         """
-        return ("""version      = {0.version}
-errors       = {0.errors}
-padding      = {0.padding}
-extension    = {0.extension}
-marker       = {0.marker}
-payload type = {0.payload_type}
-sequence     = {0.sequence}
-timestamp    = {0.timestamp}
-clock rate   = {0.clock_rate}
-time         = {0.time:.0f}
-ssrc         = {0.ssrc}
-csrc count   = {1}
-payload size = {0.payload_size}""".format(self, len(self.csrc)))
-
-
-__all__ = _all.diff(globals())
+        return f"""version      = {self.version}
+errors       = {self.errors}
+padding      = {self.padding}
+extension    = {self.extension}
+marker       = {self.marker}
+payload type = {self.payload_type}
+sequence     = {self.sequence}
+timestamp    = {self.timestamp}
+clock rate   = {self.clock_rate}
+time         = {self.time:.0f}
+ssrc         = {self.ssrc}
+csrc count   = {len(self.csrc)}
+payload size = {self.payload_size}"""

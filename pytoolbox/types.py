@@ -1,16 +1,7 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import inspect
-try:
-    from collections import abc
-except ImportError:
-    import collections as abc
-import itertools
+import inspect, itertools
+from collections import abc
 
 from . import module
-from .encoding import binary_type, string_types
 
 _all = module.All(globals())
 
@@ -34,7 +25,8 @@ def get_properties(obj):
 def get_slots(obj):
     """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
     return set(itertools.chain.from_iterable(
-        getattr(cls, '__slots__', ()) for cls in obj.__class__.__mro__)
+        getattr(cls, '__slots__', ())
+        for cls in obj.__class__.__mro__)
     )
 
 
@@ -80,16 +72,16 @@ def get_subclasses(obj, nested=True):
                 yield subclass
 
 
-def isiterable(obj, blacklist=(binary_type, string_types)):
+def isiterable(obj, blacklist=(bytes, str)):
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 
     **Example usage**
 
     >>> from pytoolbox.unittest import asserts
-    >>> for obj in 'text', b'binary', u'unicode', 42:
+    >>> for obj in b'binary', 'unicode', 42:
     ...     asserts.false(isiterable(obj), obj)
-    >>> for obj in [], (), set(), {}.iteritems():
+    >>> for obj in [], (), set(), iter({}.items()):
     ...     asserts.true(isiterable(obj), obj)
     >>> asserts.false(isiterable({}, dict))
     """
@@ -133,17 +125,16 @@ class EchoObject(object):
 
     **Example usage**
 
-    >>> from pytoolbox.encoding import text_type
     >>> from pytoolbox.unittest import asserts
     >>> something = EchoObject('something', language='Python')
     >>> asserts.equal(something._name, 'something')
     >>> asserts.equal(something.language, 'Python')
     >>> asserts.true(hasattr(something, 'everything'))
     >>> asserts.is_instance(something.user.email, EchoObject)
-    >>> asserts.equal(text_type(something.user.first_name), 'something.user.first_name')
-    >>> asserts.equal(text_type(something[0][None]['bar']).replace("[u'", "['"), "something[0][None]['bar']")
-    >>> asserts.equal(text_type(something[0].node['foo'].x).replace("[u'", "['"), "something[0].node['foo'].x")
-    >>> asserts.equal(text_type(something), 'something')
+    >>> asserts.equal(str(something.user.first_name), 'something.user.first_name')
+    >>> asserts.equal(str(something[0][None]['bar']).replace("[u'", "['"), "something[0][None]['bar']")
+    >>> asserts.equal(str(something[0].node['foo'].x).replace("[u'", "['"), "something[0].node['foo'].x")
+    >>> asserts.equal(str(something), 'something')
 
     You can also define the class for the generated attributes:
 
@@ -165,10 +156,10 @@ class EchoObject(object):
         self._name = name
 
     def __getattr__(self, name):
-        return (self.attr_class or self.__class__)('{0._name}.{1}'.format(self, name))
+        return (self.attr_class or self.__class__)(f'{self._name}.{name}')
 
     def __getitem__(self, key):
-        return (self.attr_class or self.__class__)('{0._name}[{1}]'.format(self, repr(key)))
+        return (self.attr_class or self.__class__)(f'{self._name}[{repr(key)}]')
 
     def __unicode__(self):
         return self._name
@@ -181,15 +172,14 @@ class EchoDict(dict):
 
     **Example usage**
 
-    >>> from pytoolbox.encoding import text_type
     >>> from pytoolbox.unittest import asserts
     >>> context = EchoDict('context', language='Python')
     >>> asserts.equal(context._name, 'context')
     >>> asserts.equal(context['language'], 'Python')
     >>> asserts.true('anything' in context)
-    >>> asserts.equal(text_type(context['user'].first_name).replace("[u'", "['"), "context['user'].first_name")
-    >>> asserts.equal(text_type(context[0][None]['bar']).replace("[u'", "['"), "context[0][None]['bar']")
-    >>> asserts.equal(text_type(context[0].node['foo'].x).replace("[u'", "['"), "context[0].node['foo'].x")
+    >>> asserts.equal(str(context['user'].first_name).replace("[u'", "['"), "context['user'].first_name")
+    >>> asserts.equal(str(context[0][None]['bar']).replace("[u'", "['"), "context[0][None]['bar']")
+    >>> asserts.equal(str(context[0].node['foo'].x).replace("[u'", "['"), "context[0].node['foo'].x")
 
     You can also define the class for the generated items:
 
@@ -200,7 +190,7 @@ class EchoDict(dict):
 
     def __init__(self, name, **items):
         assert '_name' not in items
-        super(EchoDict, self).__init__(**items)
+        super().__init__(**items)
         self._name = name
 
     def __contains__(self, key):
@@ -209,9 +199,9 @@ class EchoDict(dict):
 
     def __getitem__(self, key):
         try:
-            return super(EchoDict, self).__getitem__(key)
+            return super().__getitem__(key)
         except KeyError:
-            return self.item_class('{0._name}[{1}]'.format(self, repr(key)))
+            return self.item_class(f'{self._name}[{repr(key)}]')
 
 
 class MissingType(object):
@@ -222,7 +212,7 @@ class MissingType(object):
     def __deepcopy__(self, memo):
         return self
 
-    def __nonzero__(self):
+    def __bool__(self):
         return False
 
     def __repr__(self):

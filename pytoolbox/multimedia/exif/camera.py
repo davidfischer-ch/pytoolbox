@@ -1,12 +1,7 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import decorators, module
-
+from pytoolbox import decorators
 from . import brand, equipment
 
-_all = module.All(globals())
+__all__ = ['Camera']
 
 
 class Camera(equipment.Equipement):
@@ -23,7 +18,4 @@ class Camera(equipment.Equipement):
 
     @decorators.cached_property
     def tags(self):
-        return {k: t for k, t in self.metadata.tags.iteritems() if 'camera' in t.label.lower()}
-
-
-__all__ = _all.diff(globals())
+        return {k: t for k, t in self.metadata.tags.items() if 'camera' in t.label.lower()}

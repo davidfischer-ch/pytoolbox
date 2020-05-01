@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
+from pytoolbox import collections
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import collections, module
-
-_all = module.All(globals())
+__all__ = ['Brand']
 
 
 class Brand(object):
@@ -59,8 +55,5 @@ class Brand(object):
         brand = brand.strip() if brand else brand
         if brand:
             brand = cls.clean_map.get(brand.lower(), brand)
-            assert brand in cls.brands, 'Brand {1} not in {0.brands}'.format(cls, brand)
+            assert brand in cls.brands, f'Brand {brand} not in {cls.brands}'
             return brand
-
-
-__all__ = _all.diff(globals())

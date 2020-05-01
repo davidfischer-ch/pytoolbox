@@ -1,16 +1,10 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import struct
 
 from fastxor import fast_xor_inplace
 
-from pytoolbox import module
-from pytoolbox.encoding import to_bytes
 from pytoolbox.network.rtp import RtpPacket
 
-_all = module.All(globals())
+__all__ = ['FecPacket']
 
 
 class FecPacket(object):
@@ -140,11 +134,11 @@ class FecPacket(object):
     SNBE_SHIFT = 16
 
     DIRECTION_NAMES = ('COL', 'ROW')
-    DIRECTION_RANGE = xrange(len(DIRECTION_NAMES))  # noqa
+    DIRECTION_RANGE = range(len(DIRECTION_NAMES))  # noqa
     COL, ROW = DIRECTION_RANGE
 
     ALGORITHM_NAMES = ('XOR', 'Hamming', 'ReedSolomon')
-    ALGORITHM_RANGE = xrange(len(ALGORITHM_NAMES))  # noqa
+    ALGORITHM_RANGE = range(len(ALGORITHM_NAMES))  # noqa
     XOR, Hamming, ReedSolomon = ALGORITHM_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -343,17 +337,17 @@ class FecPacket(object):
             if packet.payload_type != RtpPacket.DYNAMIC_PT:
                 self._errors.add(FecPacket.ER_PAYLOAD_TYPE)
                 return
-            self.snbase = (packet.payload[15]*256 + packet.payload[0])*256 + packet.payload[1]
-            self.length_recovery = packet.payload[2]*256 + packet.payload[3]
+            self.snbase = (packet.payload[15] * 256 + packet.payload[0]) * 256 + packet.payload[1]
+            self.length_recovery = packet.payload[2] * 256 + packet.payload[3]
             self.extended = (packet.payload[4] & FecPacket.E_MASK) != 0
             # if not self.extended:
             #     return
             self.payload_type_recovery = packet.payload[4] & FecPacket.PT_MASK
-            self.mask = (packet.payload[5]*256 + packet.payload[6])*256 + packet.payload[7]
+            self.mask = (packet.payload[5] * 256 + packet.payload[6]) * 256 + packet.payload[7]
             # if self.mask != 0:
             #     return
-            self.timestamp_recovery = (((packet.payload[8]*256 + packet.payload[9])*256 +
-                                        packet.payload[10])*256 + packet.payload[11])
+            self.timestamp_recovery = (((packet.payload[8] * 256 + packet.payload[9]) * 256 +
+                                        packet.payload[10]) * 256 + packet.payload[11])
             self.n = (packet.payload[12] & FecPacket.N_MASK) != 0
             # if self.n:
             #     return
@@ -439,7 +433,7 @@ class FecPacket(object):
         >>> # Generate a [D][L] matrix of randomly generated RTP packets
         >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50),
         ...           RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100))))
-        ...           for i in xrange(L)] for j in xrange(D)]
+        ...           for i in range(L)] for j in range(D)]
         >>> assert(len(matrix) == D and len(matrix[0]) == L)
         >>> # Retrieve the OFF'th column of the matrix
         >>> expected_payload_type_recovery = 0
@@ -447,14 +441,14 @@ class FecPacket(object):
         >>> expected_lenght_recovery = 0
         >>> expected_payload_recovery = bytearray(100)
         >>> packets = []
-        >>> for i in xrange(D):
+        >>> for i in range(D):
         ...     packet = matrix[i][OFF]
         ...     packets.append(packet)
         ...     # Compute expected recovery fields values
         ...     expected_payload_type_recovery ^= packet.payload_type
         ...     expected_timestamp_recovery ^= packet.timestamp
         ...     expected_lenght_recovery ^= packet.payload_size
-        ...     for j in xrange(packet.payload_size):
+        ...     for j in range(packet.payload_size):
         ...         expected_payload_recovery[j] ^= packet.payload[j]
         >>> fec = FecPacket.compute(15, FecPacket.XOR, FecPacket.COL, L, D, packets)
         >>> assert(fec.valid)
@@ -463,7 +457,7 @@ class FecPacket(object):
         >>> assert(fec.payload_type_recovery == expected_payload_type_recovery)
         >>> assert(fec.timestamp_recovery == expected_timestamp_recovery)
         >>> assert(fec.length_recovery == expected_lenght_recovery)
-        >>> for i in xrange(fec.payload_size):
+        >>> for i in range(fec.payload_size):
         ...     if fec.payload_recovery[i] != expected_payload_recovery[i]:
         ...         print('Payload recovery test failed with i = ' + i)
         """
@@ -471,9 +465,9 @@ class FecPacket(object):
         fec = FecPacket()
         fec.sequence = sequence
         if algorithm not in FecPacket.ALGORITHM_RANGE:
-            raise ValueError(to_bytes('algorithm is not a valid FEC algorithm'))
+            raise ValueError('algorithm is not a valid FEC algorithm')
         if direction not in FecPacket.DIRECTION_RANGE:
-            raise ValueError(to_bytes('direction is not a valid FEC direction'))
+            raise ValueError('direction is not a valid FEC direction')
         fec.algorithm = algorithm
         fec.direction = direction
         if fec.direction == FecPacket.COL:
@@ -483,18 +477,18 @@ class FecPacket(object):
             fec.na = L
             fec.offset = 1
         if fec.algorithm != FecPacket.XOR:
-            raise NotImplementedError(to_bytes(FecPacket.ER_ALGORITHM))
+            raise NotImplementedError(FecPacket.ER_ALGORITHM)
         if len(packets) != fec.na:
-            raise ValueError(to_bytes('packets must contain exactly {0} packets'.format(fec.na)))
+            raise ValueError(f'packets must contain exactly {fec.na} packets')
         fec.snbase = packets[0].sequence
         # Detect maximum length of packets payload and check packets validity
         size = 0
         i = 0
         for packet in packets:
             if not packet.validMP2T:
-                raise ValueError(to_bytes(FecPacket.ER_VALID_MP2T))
-            if packet.sequence != (fec.snbase + i*fec.offset) & RtpPacket.S_MASK:
-                raise ValueError(to_bytes(FecPacket.ER_SEQUENCE))
+                raise ValueError(FecPacket.ER_VALID_MP2T)
+            if packet.sequence != (fec.snbase + i * fec.offset) & RtpPacket.S_MASK:
+                raise ValueError(FecPacket.ER_SEQUENCE)
             size = max(size, packet.payload_size)
             i += 1
         # Create payload recovery field according to size/length
@@ -679,20 +673,16 @@ class FecPacket(object):
         payload recovery size = 10
         missing               = []
         """
-        return ("""errors                = {0.errors}
-sequence              = {0.sequence}
-algorithm             = {1}
-direction             = {2}
-snbase                = {0.snbase}
-offset                = {0.offset}
-na                    = {0.na}
-L x D                 = {0.L} x {0.D}
-payload type recovery = {0.payload_type_recovery}
-timestamp recovery    = {0.timestamp_recovery}
-length recovery       = {0.length_recovery}
-payload recovery size = {0.payload_size}
-missing               = {0.missing}""".format(self, FecPacket.ALGORITHM_NAMES[self.algorithm],
-                                              FecPacket.DIRECTION_NAMES[self.direction]))
-
-
-__all__ = _all.diff(globals())
+        return f"""errors                = {self.errors}
+sequence              = {self.sequence}
+algorithm             = {FecPacket.ALGORITHM_NAMES[self.algorithm]}
+direction             = {FecPacket.DIRECTION_NAMES[self.direction]}
+snbase                = {self.snbase}
+offset                = {self.offset}
+na                    = {self.na}
+L x D                 = {self.L} x {self.D}
+payload type recovery = {self.payload_type_recovery}
+timestamp recovery    = {self.timestamp_recovery}
+length recovery       = {self.length_recovery}
+payload recovery size = {self.payload_size}
+missing               = {self.missing}"""

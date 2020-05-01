@@ -1,19 +1,18 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime, re, time
 
-from pytoolbox import module
 from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
-
 from . import ffprobe, utils
 
-_all = module.All(globals())
+__all__ = ['ENCODING_REGEX', 'EncodeState', 'EncodeStatistics', 'FrameBasedRatioMixin']
 
-ENCODING_REGEX = re.compile(  # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
-    r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<frame_rate>\d+\.?\d*)\s+q=\s*(?P<qscale>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
-    r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bit_rate>\S+)'
+ENCODING_REGEX = re.compile(
+    # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
+    r'frame=\s*(?P<frame>\d+)\s+'
+    r'fps=\s*(?P<frame_rate>\d+\.?\d*)\s+'
+    r'q=\s*(?P<qscale>\S+)\s+\S*.*'
+    r'size=\s*(?P<size>\S+)\s+'
+    r'time=\s*(?P<time>\S+)\s+'
+    r'bitrate=\s*(?P<bit_rate>\S+)'
 )
 
 
@@ -58,8 +57,8 @@ class EncodeStatistics(object):
         self.bit_rate = None
 
         # Retrieve input media duration and size, handle sub-clipping
-        duration = self.ffprobe_class().get_media_duration(
-            self.input, as_delta=True) or self.default_in_duration
+        duration = self.ffprobe_class().get_media_duration(self.input, as_delta=True)
+        duration = duration or self.default_in_duration
         self.input.duration, self.input.size = \
             self._get_subclip_duration_and_size(duration, self.input.size, self.out_options)
         self.output.duration = None
@@ -174,7 +173,7 @@ class FrameBasedRatioMixin(object):
     """
 
     def __init__(self, *args, **kwargs):
-        super(FrameBasedRatioMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         fps = self.ffprobe_class().get_video_frame_rate(self.input)
         if fps and self.input.duration:
             self.input.frame = fps * self.input.duration.total_seconds()
@@ -184,7 +183,4 @@ class FrameBasedRatioMixin(object):
     def _compute_ratio(self):
         if self.input.frame and self.frame is not None:
             return self.frame / self.input.frame
-        return super(FrameBasedRatioMixin, self)._compute_ratio()
-
-
-__all__ = _all.diff(globals())
+        return super()._compute_ratio()

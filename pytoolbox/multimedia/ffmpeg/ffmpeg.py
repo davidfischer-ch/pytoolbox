@@ -1,18 +1,10 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import errno, itertools, re, select, subprocess, sys, time
-from codecs import open  # pylint:disable=redefined-builtin
 
-from pytoolbox import module
-from pytoolbox.encoding import string_types
-from pytoolbox.filesystem import TempStorage
+from pytoolbox import filesystem
 from pytoolbox.subprocess import kill, make_async, raw_cmd, to_args_list
-
 from . import encode, ffprobe
 
-_all = module.All(globals())
+__all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
 
 FRAME_MD5_REGEX = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
@@ -92,10 +84,10 @@ class FFmpeg(object):
                 if hasattr(exception, 'with_traceback') else exception
 
     def get_frames_md5_checksum(self, filename):
-        with TempStorage() as tmp:
+        with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
-            match = FRAME_MD5_REGEX.search(open(checksum_filename, 'r', encoding='utf-8').read())
+            match = FRAME_MD5_REGEX.search(open(checksum_filename, 'r').read())
             return match.group() if match else None
 
     def _clean_medias_argument(self, value):
@@ -103,7 +95,7 @@ class FFmpeg(object):
         Return a list of Media instances from passed value.
         Value can be one or multiple instances of string or Media.
         """
-        values = [value] if isinstance(value, (string_types, self.ffprobe.media_class)) else value
+        values = [value] if isinstance(value, (str, self.ffprobe.media_class)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
 
     def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
@@ -135,7 +127,7 @@ class FFmpeg(object):
         select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
             chunk = process.stderr.read()
-            if chunk is None or isinstance(chunk, string_types):
+            if chunk is None or isinstance(chunk, str):
                 return chunk
             else:
                 return chunk.decode(self.encoding)
@@ -148,6 +140,3 @@ class FFmpeg(object):
         process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
         make_async(process.stderr)
         return process
-
-
-__all__ = _all.diff(globals())

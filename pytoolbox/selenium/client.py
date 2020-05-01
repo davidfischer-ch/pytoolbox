@@ -1,17 +1,11 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import ui
 
-from pytoolbox import module
-
 from . import common, exceptions, webdrivers
 
-_all = module.All(globals())
+__all__ = ['LiveClient']
 
 
 class LiveClient(common.FindMixin):
@@ -37,7 +31,7 @@ class LiveClient(common.FindMixin):
     def find_css(self, css_selector, prefix=True, force_list=False, fail=True):
         """Shortcut to find elements by CSS. Returns either a list or singleton."""
         if prefix and self.css_prefix:
-            css_selector = '{0.css_prefix} {1}'.format(self, css_selector)
+            css_selector = f'{self.css_prefix} {css_selector}'
         return self.web_driver.find_css(css_selector, force_list=force_list, fail=fail)
 
     def find_xpath(self, xpath, force_list=False, fail=True):
@@ -79,11 +73,7 @@ class LiveClient(common.FindMixin):
                 raise
 
     def wait_for_id(self, element_id, inverse=False, prefix=True, timeout=5, fail=True):
-        return self.wait_for_css('#{0}'.format(element_id), inverse, prefix, timeout, fail)
+        return self.wait_for_css(f'#{element_id}', inverse, prefix, timeout, fail)
 
     def wait_for_name(self, element_name, inverse=False, prefix=True, timeout=5, fail=True):
-        return self.wait_for_css(
-            '[name="{0}"]'.format(element_name), inverse, prefix, timeout, fail)
-
-
-__all__ = _all.diff(globals())
+        return self.wait_for_css(f'[name="{element_name}"]', inverse, prefix, timeout, fail)

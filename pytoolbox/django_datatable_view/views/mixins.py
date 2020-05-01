@@ -1,12 +1,10 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own
 `Django Datatable View <https://github.com/pivotal-energy-solutions/django-datatable-view>`_
 powered views.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+__all__ = ['MultiTablesMixin']
 
 
 class MultiTablesMixin(object):
@@ -17,11 +15,10 @@ class MultiTablesMixin(object):
     request_name_key = 'datatable-name'
 
     def get_ajax_url(self, name=None):
-        return (self.request.path + '?{0}={1}'.format(
-            self.request_name_key, self.get_datatable_name(name)))
+        return self.request.path + f'?{self.request_name_key}={self.get_datatable_name(name)}'
 
     def get_context_data(self, **kwargs):
-        context = super(MultiTablesMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         default_table = context.pop('datatable')
         context['datatables'] = [
             (
@@ -41,11 +38,13 @@ class MultiTablesMixin(object):
     def get_datatable_structure(self, name=None):
         options = self._get_datatable_options()
         return self.datatable_structure_class(
-            self.get_ajax_url(name=name), options, model=self.get_model())
+            self.get_ajax_url(name=name),
+            options,
+            model=self.get_model())
 
     def get_queryset(self, name=None):
-        qs = super(MultiTablesMixin, self).get_queryset()
+        qs = super().get_queryset()
         name = self.get_datatable_name(name)
         if name not in set(n for n, l in self.multi_datatables):
             return qs.none()  # Bad name, returns nothing!
-        return getattr(self, 'get_{0}_queryset'.format(name))(qs)
+        return getattr(self, f'get_{name}_queryset')(qs)

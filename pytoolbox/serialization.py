@@ -1,22 +1,23 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import errno, inspect, json, os, pickle, shutil
-from codecs import open  # pylint:disable=redefined-builtin
 
 from . import filesystem, module
-from .encoding import string_types, text_type, to_bytes
 from .private import ObjectId
-from .types import get_slots, isiterable
+from .types import get_slots
 
 _all = module.All(globals())
 
 
 # Data -> File -------------------------------------------------------------------------------------
 
-def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=False,
-            makedirs=False):
+def to_file(
+    path,
+    data=None,
+    pickle_data=None,
+    binary=False,
+    safe=False,
+    backup=False,
+    makedirs=False
+):
     """
     Write some data to a file, can be safe (tmp file -> rename), may create a backup before any
     write operation. Return the name of the backup path or None.
@@ -31,8 +32,8 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
 
     No backup is created if the destination file does not exist:
 
-    >>> from pytoolbox.filesystem import remove
-    >>> _ = remove('/tmp/to_file')
+    >>> from pytoolbox import filesystem
+    >>> _ = filesystem.remove('/tmp/to_file')
     >>> asserts.is_none(to_file('/tmp/to_file', data='bonjour', backup=True))
 
     In-place write operation after having copied the file into a backup:
@@ -58,15 +59,15 @@ def to_file(path, data=None, pickle_data=None, binary=False, safe=False, backup=
     if makedirs:
         filesystem.makedirs(os.path.dirname(path))
     if backup:
-        backup_path = '{0}.bkp'.format(path)
+        backup_path = f'{path}.bkp'
         try:
             shutil.copy2(path, backup_path)
         except IOError as e:
             if e.errno != errno.ENOENT:
                 raise
             backup_path = None
-    write_path = '{0}.tmp'.format(path) if safe else path
-    with open(write_path, 'wb' if binary else 'w', None if binary else 'utf-8') as f:
+    write_path = f'{path}.tmp' if safe else path
+    with open(write_path, 'wb' if binary else 'w') as f:
         if data is not None:
             f.write(data)
         if pickle_data is not None:
@@ -100,12 +101,17 @@ class PickleableObject(object):
         pickle_path = getattr(self, '_pickle_path', None)
         path = path or pickle_path
         if path is None:
-            raise ValueError(to_bytes('A path must be specified'))
+            raise ValueError('A path must be specified')
         try:
             if pickle_path:
                 del self._pickle_path
             to_file(
-                path, pickle_data=self, binary=True, safe=safe, backup=backup, makedirs=makedirs)
+                path,
+                pickle_data=self,
+                binary=True,
+                safe=safe,
+                backup=backup,
+                makedirs=makedirs)
         finally:
             if store_path:
                 self._pickle_path = path
@@ -119,16 +125,16 @@ class PickleableObject(object):
 class SmartJSONEncoderV1(json.JSONEncoder):
     def default(self, obj):
         if ObjectId is not None and isinstance(obj, ObjectId):
-            return text_type(obj)
+            return str(obj)
         if hasattr(obj, '__dict__'):
             return obj.__dict__
-        return super(SmartJSONEncoderV1, self).default(obj)
+        return super().default(obj)
 
 
 class SmartJSONEncoderV2(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ObjectId):
-            return text_type(obj)
+            return str(obj)
         attributes = {}
         for a in inspect.getmembers(obj):
             if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith('__'):
@@ -215,8 +221,8 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
     >>> os.remove('test.json')
     """
-    if isinstance(path_or_file, string_types):
-        f = open(path_or_file, 'r', encoding='utf-8')
+    if isinstance(path_or_file, str):
+        f = open(path_or_file, 'r')
     else:
         f = path_or_file
     return json_to_object(cls, f.read(), inspect_constructor)
@@ -283,7 +289,7 @@ class JsoneableObject(object):
     @classmethod
     def read(cls, path, store_path=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
-        with open(path, 'r', 'utf-8') as f:
+        with open(path, 'r') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
             if store_path:
                 the_object._json_path = path
@@ -296,13 +302,23 @@ class JsoneableObject(object):
             path = self._json_path
             try:
                 del self._json_path
-                to_file(path, data=object_to_json(self, include_properties, **kwargs),
-                        binary=False, safe=safe, backup=backup, makedirs=makedirs)
+                to_file(
+                    path,
+                    data=object_to_json(self, include_properties, **kwargs),
+                    binary=False,
+                    safe=safe,
+                    backup=backup,
+                    makedirs=makedirs)
             finally:
                 self._json_path = path
         elif path is not None:
-            to_file(path, data=object_to_json(self, include_properties, **kwargs),
-                    binary=False, safe=safe, backup=backup, makedirs=makedirs)
+            to_file(
+                path,
+                data=object_to_json(self, include_properties, **kwargs),
+                binary=False,
+                safe=safe,
+                backup=backup,
+                makedirs=makedirs)
         else:
             raise ValueError('A path must be specified')
 
@@ -394,7 +410,7 @@ def object_to_dict(
     ...    return schema.get('_container', list)
     ...
     >>> def ignore_private_schema_keys(obj, schema, depth):
-    ...     return obj, {k: v for k, v in schema.items() if k[0] != '_'}
+    ...     return obj, {k: v for k, v in list(schema.items()) if k[0] != '_'}
     ...
     >>> asserts.dict_equal(
     ...     object_to_dict(
@@ -459,7 +475,7 @@ def object_to_dict(
     if isinstance(schema, list):
         count = len(schema)
         if count != 1:
-            raise NotImplementedError('List containing {0} items.'.format(count))
+            raise NotImplementedError(f'List containing {count} items.')
         schema = schema[0]
         container_type = iterable_callback(obj, schema, depth)
         return container_type(
@@ -476,14 +492,18 @@ def _object_to_dict_item(
 ):
     if obj is None:
         return None
+
     obj_dict = {}
     obj, schema = callback(obj, schema, depth)
-    for key, value in schema.items():
+
+    for key, value in list(schema.items()):
+
         # Direct access to object
-        if isinstance(value, string_types):
+        if isinstance(value, str):
             obj_dict[key] = getattr(obj, value)
         elif callable(value):
             obj_dict[key] = value(obj)
+
         # Nested object(s)
         elif isinstance(value, (dict, list)):
             obj_dict[key] = object_to_dict(
@@ -493,7 +513,8 @@ def _object_to_dict_item(
                 callback,
                 iterable_callback)
         else:
-            raise NotImplementedError('Key {0} with value {1}'.format(repr(key), repr(value)))
+            raise NotImplementedError(f'Key {repr(key)} with value {repr(value)}')
+
     return obj_dict
 
 
@@ -526,8 +547,8 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     """
     if inspect_constructor:
         the_dict = {
-            arg: the_dict.get(arg, None)
-            for arg in inspect.getargspec(cls.__init__)[0] if arg != 'self'
+            a: the_dict.get(a, None)
+            for a in inspect.getargspec(cls.__init__)[0] if a != 'self'
         }
     return cls(**the_dict)
 

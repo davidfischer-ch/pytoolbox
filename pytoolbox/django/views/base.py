@@ -1,13 +1,11 @@
-# -*- encoding: utf-8 -*-
-
 """
 Extra views.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from django.http import HttpResponseRedirect
 from django.views.generic.edit import DeleteView
+
+__all__ = ['CancellableDeleteView']
 
 
 class CancellableDeleteView(DeleteView):
@@ -16,4 +14,4 @@ class CancellableDeleteView(DeleteView):
     def post(self, request, *args, **kwargs):
         if 'cancel' in request.POST:
             return HttpResponseRedirect(self.success_url)
-        return super(CancellableDeleteView, self).post(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)

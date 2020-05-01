@@ -1,13 +1,6 @@
-# -*- encoding: utf-8 -*-
+import configparser, os, re
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import ConfigParser, os, re
-from codecs import open  # pylint:disable=redefined-builtin
-
-from . import module
-
-_all = module.All(globals())
+__all__ = ['CONFIG_PREFIX', 'DRIVER_IN_KERNEL', 'DRIVER_HAS_MODULE', 'get_kernel_config']
 
 CONFIG_PREFIX = re.compile(r'^config_')
 DRIVER_IN_KERNEL = 'y'
@@ -32,19 +25,16 @@ def get_kernel_config(release=None, fail=True):
     """
     # On Python<2.3.3 os.uname returns a tuple, so we stuck with it
     try:
-        with open('/boot/config-{0}'.format(release or os.uname()[2])) as f:
-            config = ConfigParser.ConfigParser()
-            config_string = '[kernel]' + f.read()
+        with open(f'/boot/config-{release or os.uname()[2]}') as f:
+            config = configparser.ConfigParser()
+            config_string = f'[kernel]{f.read()}'
             try:
                 config.read_string(config_string)
             except AttributeError:
-                import StringIO
-                config.readfp(StringIO.StringIO(config_string))
+                import io
+                config.readfp(io.StringIO(config_string))
     except IOError:
         if fail:
             raise
         return {}
     return {CONFIG_PREFIX.sub('', k): v for k, v in config.items('kernel')}
-
-
-__all__ = _all.diff(globals())

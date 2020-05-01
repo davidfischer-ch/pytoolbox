@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import os, re
 
 from . import module
-from .encoding import text_type
 
 _all = module.All(globals())
 
@@ -61,7 +56,7 @@ def filterjoin(items, sep=' ', keep=lambda o: o):
     Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string
     and filter the items using the `keep` function.
     """
-    return sep.join(text_type(i) for i in items if keep(i))
+    return sep.join(str(i) for i in items if keep(i))
 
 
 def to_lines(items, limit=80, start='\t', line='{0} '):

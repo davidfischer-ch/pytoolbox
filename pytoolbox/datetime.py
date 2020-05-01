@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime, numbers
 from calendar import timegm
 from time import mktime
@@ -9,15 +5,14 @@ from time import mktime
 import pytz
 
 from . import module
-from .encoding import string_types
 
 _all = module.All(globals())
 
 
 def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):  # noqa
     """
-    Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a timezone. If `format` is
-    not None, the date will be returned in a formatted string.
+    Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a
+    timezone. If `format` is not None, the date will be returned in a formatted string.
 
     :param format: Output date string formatting
     :type format: str
@@ -65,7 +60,8 @@ def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):  #
 def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):  # pylint:disable=redefined-builtin
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
-    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5 minutes.
+    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5
+    minutes.
 
     **Example usage**
 
@@ -85,8 +81,8 @@ def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):  # pylint:disa
 
 def multiply_time(value, factor, as_delta=False):
     """
-    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` corresponding to `value` multiplied by a
-    `factor`.
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` corresponding to
+    `value` multiplied by a `factor`.
 
     **Example usage**
 
@@ -114,14 +110,18 @@ def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):
     datetime.timedelta(0, 83707, 3500)
     """
     if as_delta:
-        return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+        return datetime.timedelta(
+            hours=hours,
+            minutes=minutes,
+            seconds=seconds,
+            microseconds=microseconds)
     return datetime.time(hours, minutes, seconds, microseconds)
 
 
 def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     """
-    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the number of seconds +
-    microseconds (e.g. 10.3 = 10s 3000us).
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the
+    number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
 
     **Example usage**
 
@@ -227,7 +227,7 @@ def total_seconds(time):
             return time.total_seconds()
         elif isinstance(time, numbers.Number):
             return time
-        elif isinstance(time, string_types):
+        elif isinstance(time, str):
             hours, minutes, seconds = time.split(':')
         else:
             hours, minutes, seconds = time.hour, time.minute, time.second
@@ -238,8 +238,8 @@ def total_seconds(time):
 
 def datetime_to_epoch(date_time, utc=True, factor=1):
     """
-    Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch. Default `factor` means
-    that the result is in seconds.
+    Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch.
+    Default `factor` means that the result is in seconds.
 
     **Example usage**
 
@@ -262,15 +262,16 @@ def datetime_to_epoch(date_time, utc=True, factor=1):
         -3600
     """
     if utc:
-        time_tuple = date_time.utctimetuple() if hasattr(date_time, 'utctimetuple') else date_time.timetuple()
+        has_it = hasattr(date_time, 'utctimetuple')
+        time_tuple = date_time.utctimetuple() if has_it else date_time.timetuple()
         return int(timegm(time_tuple) * factor)
     return int(mktime(date_time.timetuple()) * factor)
 
 
 def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     """
-    Return the Unix epoch converted to a :class:`datetime.datetime`. Default `factor` means that the `unix_epoch` is in
-    seconds.
+    Return the Unix epoch converted to a :class:`datetime.datetime`.
+    Default `factor` means that the `unix_epoch` is in seconds.
 
     **Example usage**
 

@@ -1,13 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
 from pytoolbox.network.rtp import RtpPacket
 
 from .base import FecPacket
 
-_all = module.All(globals())
+__all__ = ['FecGenerator']
 
 
 class FecGenerator(object):
@@ -78,8 +73,12 @@ class FecGenerator(object):
         :param caller: The generator that fired this method / event
         :type caller: FecGenerator
         """
-        print('New COL FEC packet seq={0} snbase={1} LxD={2}x{3} trec={4}'.format(
-              col.sequence, col.snbase, col.L, col.D, col.timestamp_recovery))
+        print(
+            f'New COL FEC packet '
+            f'seq={col.sequence} '
+            f'snbase={col.snbase} '
+            f'LxD={col.L}x{col.D} '
+            f'trec={col.timestamp_recovery}')
 
     def on_new_row(self, row, caller):
         """
@@ -96,12 +95,16 @@ class FecGenerator(object):
         :param caller: The generator that fired this method / event
         :type caller: FecGenerator
         """
-        print('New ROW FEC packet seq={0} snbase={1} LxD={2}x{3} trec={4}'.format(
-              row.sequence, row.snbase, row.L, row.D, row.timestamp_recovery))
+        print(
+            f'New ROW FEC packet '
+            f'seq={row.sequence} '
+            f'snbase={row.snbase} '
+            f'LxD={row.L}x{row.D} '
+            f'trec={row.timestamp_recovery}')
 
     def on_reset(self, media, caller):
         """
-        Called by FecGenerator when the algorithm is resetted (an incoming media is out of sequence).
+        Called by FecGenerator when the algorithm is reseted (an incoming media is out of sequence).
 
         By default this method only print a message to `stdout`.
 
@@ -114,8 +117,9 @@ class FecGenerator(object):
         :param caller: The generator that fired this method / event
         :type caller: FecGenerator
         """
-        print('Media seq={0} is out of sequence (expected {1}) : FEC algorithm resetted !'.format(
-              media.sequence, self._media_sequence))
+        print(
+            f'Media seq={media.sequence} is out of sequence '
+            f'(expected {self._media_sequence}) : FEC algorithm reseted !')
 
     def put_media(self, media):
         """
@@ -131,16 +135,16 @@ class FecGenerator(object):
         >>> from pytoolbox.unittest import asserts
         >>> g = FecGenerator(4, 5)
         >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('Tabby', 'utf-8')))
-        Media seq=1 is out of sequence (expected None) : FEC algorithm resetted !
+        Media seq=1 is out of sequence (expected None) : FEC algorithm reseted !
         >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('1234', 'utf-8')))
-        Media seq=1 is out of sequence (expected 2) : FEC algorithm resetted !
+        Media seq=1 is out of sequence (expected 2) : FEC algorithm reseted !
         >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray('abcd', 'utf-8')))
-        Media seq=4 is out of sequence (expected 2) : FEC algorithm resetted !
+        Media seq=4 is out of sequence (expected 2) : FEC algorithm reseted !
         >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('python', 'utf-8')))
-        Media seq=2 is out of sequence (expected 5) : FEC algorithm resetted !
+        Media seq=2 is out of sequence (expected 5) : FEC algorithm reseted !
         >>> g.put_media(
         ...     RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('Kuota Kharma Evo', 'utf-8')))
-        Media seq=2 is out of sequence (expected 3) : FEC algorithm resetted !
+        Media seq=2 is out of sequence (expected 3) : FEC algorithm reseted !
         >>> print(g)
         Matrix size L x D            = 4 x 5
         Total invalid media packets  = 0
@@ -158,7 +162,7 @@ class FecGenerator(object):
 
         >>> g = FecGenerator(3, 4)
         >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('Tabby', 'utf-8')))
-        Media seq=1 is out of sequence (expected None) : FEC algorithm resetted !
+        Media seq=1 is out of sequence (expected None) : FEC algorithm reseted !
         >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('1234', 'utf-8')))
         >>> g.put_media(RtpPacket.create(3, 300, RtpPacket.MP2T_PT, bytearray('abcd', 'utf-8')))
         New ROW FEC packet seq=1 snbase=1 LxD=3xNone trec=384
@@ -198,8 +202,10 @@ class FecGenerator(object):
         if not media.valid:
             self._invalid += 1
             return
+
         # Compute expected media sequence number for next packet
         sequence = (media.sequence + 1) & RtpPacket.S_MASK
+
         # Ensure that protected media packets are not out of sequence to generate valid FEC
         # packets. If media packet sequence number is not at attended value, it may mean :
         # - Looped VLC broadcast session restarted media
@@ -211,6 +217,7 @@ class FecGenerator(object):
             self._medias = [media]
             self.on_reset(media, self)
         self._media_sequence = sequence
+
         # Compute a new row FEC packet when a new row just filled with packets
         if len(self._medias) % self._L == 0:
             row_medias = self._medias[-self._L:]
@@ -219,6 +226,7 @@ class FecGenerator(object):
                 self._row_sequence, FecPacket.XOR, FecPacket.ROW, self._L, self._D, row_medias)
             self._row_sequence = (self._row_sequence + 1) & RtpPacket.S_MASK
             self.on_new_row(row, self)
+
         # Compute a new column FEC packet when a new column just filled with packets
         if len(self._medias) > self._L * (self._D - 1):
             first = len(self._medias) - self._L * (self._D - 1) - 1
@@ -228,6 +236,7 @@ class FecGenerator(object):
                 self._col_sequence, FecPacket.XOR, FecPacket.COL, self._L, self._D, col_medias)
             self._col_sequence = (self._col_sequence + 1) & RtpPacket.S_MASK
             self.on_new_col(col, self)
+
         if len(self._medias) == self._L * self._D:
             self._medias = []
 
@@ -247,13 +256,10 @@ class FecGenerator(object):
         Medias buffer (seq. numbers) = []
         """
         medias = [p.sequence for p in self._medias]
-        return ("""Matrix size L x D            = {0._L} x {0._D}
-Total invalid media packets  = {0._invalid}
-Total media packets received = {0._total}
-Column sequence number       = {0._col_sequence}
-Row    sequence number       = {0._row_sequence}
-Media  sequence number       = {0._media_sequence}
-Medias buffer (seq. numbers) = {1}""".format(self, medias))
-
-
-__all__ = _all.diff(globals())
+        return f"""Matrix size L x D            = {self._L} x {self._D}
+Total invalid media packets  = {self._invalid}
+Total media packets received = {self._total}
+Column sequence number       = {self._col_sequence}
+Row    sequence number       = {self._row_sequence}
+Media  sequence number       = {self._media_sequence}
+Medias buffer (seq. numbers) = {medias}"""

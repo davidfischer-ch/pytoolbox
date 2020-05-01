@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-
 # Copyright 2015-2016 Carnegie Mellon University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,12 +65,13 @@ MINMAX_TEMPLATE = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
 
 class DlibFaceDetector(object):
     """
-    Use `dlib's landmark estimation <http://blog.dlib.net/2014/08/real-time-face-pose-estimation.html>`_
+    Use `dlib's landmark estimation
+    <http://blog.dlib.net/2014/08/real-time-face-pose-estimation.html>`_
     to align faces.
 
     The alignment pre-process faces for input into a neural network.
-    Faces are resized to the same size (such as 96x96) and transformed to make landmarks (such as
-    the eyes and nose) appear at the same location on every image.
+    Faces are resized to the same size (such as 96x96) and transformed to make landmarks
+    (such as the eyes and nose) appear at the same location on every image.
 
     Normalized landmarks:
 
@@ -154,7 +153,7 @@ class DlibFaceDetector(object):
         try:
             return self.detector(image, 1)
         except Exception as e:
-            print("Warning: {0}".format(e))
+            print(f"Warning: {e}")
             # In rare cases, exceptions are thrown.
             return []
 
@@ -185,7 +184,7 @@ class DlibFaceDetector(object):
         :rtype: list of (x,y) tuples
         """
         points = self.predictor(image, box)
-        return list(map(lambda p: (p.x, p.y), points.parts()))
+        return [(p.x, p.y) for p in points.parts()]
 
     def _load_predictor(self, predictor):
         predictor = utils.load_to_file(predictor)

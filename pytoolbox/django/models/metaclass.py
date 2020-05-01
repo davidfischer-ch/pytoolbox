@@ -1,18 +1,12 @@
-# -*- encoding: utf-8 -*-
-
 """
 Meta-classes for enhancing your models.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import abc
 
 from django.db import models
 
-from pytoolbox import module
-
-_all = module.All(globals())
+_all__ = ['ABCModelMeta']
 
 
 class ABCModelMeta(abc.ABCMeta, type(models.Model)):
@@ -27,6 +21,3 @@ class ABCModelMeta(abc.ABCMeta, type(models.Model)):
     .. class Meta:
     ..     abstract = True
     """
-
-
-__all__ = _all.diff(globals())

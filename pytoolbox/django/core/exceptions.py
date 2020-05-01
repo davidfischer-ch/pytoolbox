@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import itertools
 
 from django.db import DatabaseError
@@ -36,8 +32,8 @@ def has_code(validation_error, code):
     True
     """
     errors = getattr(validation_error, 'error_list', [])
-    errors.extend(itertools.chain.from_iterable(
-        v for v in getattr(validation_error, 'error_dict', {}).itervalues()))
+    errors_dicts = getattr(validation_error, 'error_dict', {})
+    errors.extend(itertools.chain.from_iterable(errors_dicts.values()))
     return any(e.code == code for e in errors)
 
 
@@ -54,7 +50,7 @@ def iter_validation_errors(validation_error):
     >>> eq(iter_validation_errors(ValidationError([bad, boy])), [(None, bad), (None, boy)])
     """
     if hasattr(validation_error, 'error_dict'):
-        for field, errors in validation_error.error_dict.iteritems():
+        for field, errors in validation_error.error_dict.items():
             for error in errors:
                 yield field, error
     else:

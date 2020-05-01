@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import copy, re
 
 from django.core import validators
@@ -9,9 +5,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import ugettext_lazy as _
 
-from pytoolbox import module
-
-_all = module.All(globals())
+__all__ = ['EmptyValidator', 'KeysValidator', 'MD5ChecksumValidator']
 
 
 class EmptyValidator(validators.RegexValidator):
@@ -45,17 +39,21 @@ class KeysValidator(object):
             self.messages.update(messages)
 
     def __call__(self, value):
-        keys = set(value.iterkeys())
+        keys = set(value.keys())
         if self.required_keys:
             missing_keys = self.required_keys - keys
             if missing_keys:
-                raise ValidationError(self.messages['missing_keys'], code='missing_keys',
-                                      params={'keys': ', '.join(missing_keys)})
+                raise ValidationError(
+                    self.messages['missing_keys'],
+                    code='missing_keys',
+                    params={'keys': ', '.join(missing_keys)})
         if self.strict:
             extra_keys = keys - self.required_keys - self.optional_keys
             if extra_keys:
-                raise ValidationError(self.messages['extra_keys'], code='extra_keys',
-                                      params={'keys': ', '.join(extra_keys)})
+                raise ValidationError(
+                    self.messages['extra_keys'],
+                    code='extra_keys',
+                    params={'keys': ', '.join(extra_keys)})
 
     def __eq__(self, other):
         return (
@@ -72,6 +70,3 @@ class KeysValidator(object):
 
 class MD5ChecksumValidator(validators.RegexValidator):
     regex = re.compile(r'[0-9a-f]{32}')
-
-
-__all__ = _all.diff(globals())

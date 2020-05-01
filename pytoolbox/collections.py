@@ -1,12 +1,7 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import collections, math
 
 from . import module
 from .datetime import total_seconds
-from .encoding import string_types
 
 _all = module.All(globals())
 
@@ -15,11 +10,12 @@ class EventsTable(object):
     """Scan a spare events table and replace missing entry by previous (non empty) entry."""
 
     def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
-        self.time_range, self.time_speedup, self.sleep_factor = \
-            time_range, time_speedup, sleep_factor
+        self.time_range = time_range
+        self.time_speedup = time_speedup
+        self.sleep_factor = sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
-        for index in xrange(self.time_range):  # noqa
+        for index in range(self.time_range):  # noqa
             event = sparse_events_table.get(index, previous_event)
             self.events[index] = event
             previous_event = event
@@ -103,7 +99,7 @@ class pygal_deque(collections.deque):
         if value != self.last and value is not None:
             try:
                 self[-1] = self.last
-            except:
+            except Exception:
                 pass
             self.last = value
         else:
@@ -112,7 +108,7 @@ class pygal_deque(collections.deque):
             first = self[0]
         except IndexError:
             first = None
-        super(pygal_deque, self).append(value)
+        super().append(value)
         if self[0] is None:
             self[0] = first
 
@@ -121,11 +117,11 @@ class pygal_deque(collections.deque):
         try:
             if self.last is not None:
                 self_list[-1] = self.last
-        except:
+        except Exception:
             pass
         if fill and self_list:
             previous = None
-            for index in xrange(len(self_list)):  # noqa
+            for index in range(len(self_list)):  # noqa
                 if self_list[index] is None:
                     self_list[index] = previous
                 else:
@@ -148,10 +144,13 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
     """
     def expand_item(key, value):
         if isinstance(value, dict):
-            return [(key_template.format(key, k), v) for k, v in flatten_dict(value, key_template).iteritems()]
+            return [
+                (key_template.format(key, k), v)
+                for k, v in flatten_dict(value, key_template).items()
+            ]
         else:
             return [(key, value)]
-    return dict(item for k, v in the_dict.iteritems() for item in expand_item(k, v))
+    return {item for k, v in the_dict.items() for item in expand_item(k, v)}
 
 
 def merge_dicts(*dicts):
@@ -169,7 +168,8 @@ def merge_dicts(*dicts):
     >>> asserts.dict_equal(merge_dicts({'c': 5}, {'b': 3, 'c': 4}, {'a': 1, 'b': 2}), {'a': 1, 'b': 2, 'c': 4})
     """
     merged_dict = {}
-    set(merged_dict.update(d) for d in dicts)
+    for the_dict in dicts:
+        merged_dict.update(the_dict)
     return merged_dict
 
 
@@ -190,20 +190,20 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=r
     Complex swap:
 
     >>> result = swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'fib': {1, 2, 3}}, type=list, method=list.append)
-    >>> assert ({k: sorted(v) for k, v in result.iteritems()} ==
+    >>> assert ({k: sorted(v) for k, v in result.items()} ==
     ...         {0: ['even'], 1: ['fib', 'odd'], 2: ['even', 'fib'], 3: ['fib', 'odd']})
     >>> assert swap_dict_of_values({'odd': [1, 3], 'even': (0, 2), 'f': {1, 2, 3}}, method='add')[2] == {'even', 'f'}
     >>> assert swap_dict_of_values({'bad': 'ab', 'example': 'ab'})['a'] == {'bad', 'example'}
     """
     if type is None:
         reversed_dict = {}
-        for key, values in the_dict.iteritems():
+        for key, values in the_dict.items():
             for value in values:
                 reversed_dict[value] = key
     else:
-        method = getattr(type, method) if isinstance(method, string_types) else method
+        method = getattr(type, method) if isinstance(method, str) else method
         reversed_dict = collections.defaultdict(type)
-        for key, values in the_dict.iteritems():
+        for key, values in the_dict.items():
             for value in values:
                 method(reversed_dict[value], key)
     return reversed_dict
@@ -254,10 +254,10 @@ def window(values, index, delta):
     >>> eq(window(['a', 'b', 'c', 'd', 'e'], 3, 1), (['c', 'd', 'e'], 2, 4))
     >>> eq(window(['a', 'b', 'c', 'd', 'e'], 4, 1), (['c', 'd', 'e'], 2, 4))
     >>> eq(window(['a', 'b', 'c', 'd', 'e'], 3, 6), (['a', 'b', 'c', 'd', 'e'], 0, 4))
-    >>> eq(window(range(20), 6, 6), ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12))
-    >>> eq(window(range(20), 7, 6), ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13))
-    >>> eq(window(range(20), 10, 6), ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16))
-    >>> eq(window(range(20), 19, 6), ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19))
+    >>> eq(window(list(range(20)), 6, 6), ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12))
+    >>> eq(window(list(range(20)), 7, 6), ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13))
+    >>> eq(window(list(range(20)), 10, 6), ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16))
+    >>> eq(window(list(range(20)), 19, 6), ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19))
     """
     length = len(values)
     left, right = index - delta, index + delta

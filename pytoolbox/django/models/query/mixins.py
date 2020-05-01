@@ -1,17 +1,12 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own query-sets.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import functools
 
 from django.db import transaction
 
 from pytoolbox import module
-from pytoolbox.encoding import string_types
 
 _all = module.All(globals())
 
@@ -22,13 +17,11 @@ class AtomicGetUpdateOrCreateMixin(object):
 
     def get_or_create(self, defaults=None, **kwargs):
         with transaction.atomic(savepoint=self.savepoint):
-            return super(AtomicGetUpdateOrCreateMixin, self).get_or_create(
-                defaults=defaults, **kwargs)
+            return super().get_or_create(defaults=defaults, **kwargs)
 
     def update_or_create(self, defaults=None, **kwargs):
         with transaction.atomic(savepoint=self.savepoint):
-            return super(AtomicGetUpdateOrCreateMixin, self).update_or_create(
-                defaults=defaults, **kwargs)
+            return super().update_or_create(defaults=defaults, **kwargs)
 
 
 class AtomicGetRestoreOrCreateMixin(object):
@@ -37,7 +30,7 @@ class AtomicGetRestoreOrCreateMixin(object):
 
     def get_restore_or_create(self, *args, **kwargs):
         with transaction.atomic(savepoint=self.savepoint):
-            return super(AtomicGetRestoreOrCreateMixin, self).get_restore_or_create(*args, **kwargs)
+            return super().get_restore_or_create(*args, **kwargs)
 
 
 class CreateModelMethodMixin(object):
@@ -45,7 +38,7 @@ class CreateModelMethodMixin(object):
     def create(self, *args, **kwargs):
         if hasattr(self.model, 'create'):
             return self.model.create(*args, **kwargs)
-        return super(CreateModelMethodMixin, self).create(*args, **kwargs)
+        return super().create(*args, **kwargs)
     create.alters_data = True
 
 
@@ -72,7 +65,7 @@ class StateMixin(object):
                 states = self.model.states.get(name)
                 if not states:
                     raise AttributeError
-                method = all_states.add if isinstance(states, string_types) else all_states.update
+                method = all_states.add if isinstance(states, str) else all_states.update
                 method(states)
             return functools.partial(self.in_states, all_states)
         raise AttributeError
@@ -80,7 +73,7 @@ class StateMixin(object):
     def in_states(self, states, inverse=False):
         """Filter query set to include instances in `states`."""
         method = self.exclude if inverse else self.filter
-        return method(state__in={states} if isinstance(states, string_types) else states)
+        return method(state__in={states} if isinstance(states, str) else states)
 
 
 __all__ = _all.diff(globals())

@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import functools, inspect, io, itertools, os, pprint, time, unittest
 
 from . import module
-from .encoding import binary_type, string_types
 from .multimedia import ffmpeg
 from .string import snake_to_camel
 from .types import Missing
@@ -21,14 +16,12 @@ def mock_cmd(stdout='', stderr='', returncode=0):
 def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
     """Run tests and report coverage with nose and coverage."""
     import nose
-    from .encoding import configure_unicode
-    configure_unicode()
-    nose_options = filter(None, itertools.chain(
+    nose_options = [_f for _f in itertools.chain(
         [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'],
         ['--cover-package={0}'.format(package) for package in cover_packages],
         ['--cover-html', '-vv', '-w', os.path.dirname(test_file)],
         packages, extra_options or []
-    ))
+    ) if _f]
     if ignore:
         nose_options += ['-I', ignore]
     os.chdir(os.path.abspath(os.path.dirname(test_file)))
@@ -37,8 +30,8 @@ def runtests(test_file, cover_packages, packages, ignore=None, extra_options=Non
 
 def with_tags(tags=None, required=None):
     def _with_tags(f):
-        f.tags = set([tags] if isinstance(tags, string_types) else tags or [])
-        f.required_tags = set([required] if isinstance(required, string_types) else required or [])
+        f.tags = set([tags] if isinstance(tags, str) else tags or [])
+        f.required_tags = set([required] if isinstance(required, str) else required or [])
         return f
     return _with_tags
 
@@ -46,13 +39,13 @@ def with_tags(tags=None, required=None):
 class InMixin(object):
 
     def assert_in_hook(self, b):
-        return b if isinstance(b, (string_types, binary_type)) else sorted(b)
+        return b if isinstance(b, (str, bytes)) else sorted(b)
 
     def assertIn(self, a, b, msg=None):
-        assert a in b, '{0} not in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
+        assert a in b, f"{a} not in {self.assert_in_hook(b)}: {msg or ''}"
 
     def assertNotIn(self, a, b, msg=None):
-        assert a not in b, '{0} in {1}: {2}'.format(a, self.assert_in_hook(b), msg or '')
+        assert a not in b, f"{a} in {self.assert_in_hook(b)}: {msg or ''}"
 
 
 class InspectMixin(object):
@@ -75,7 +68,7 @@ class AwareTearDownMixin(object):
         pass  # de bleu, c'est fantastique !
 
     def run(self, result=None):
-        result = super(AwareTearDownMixin, self).run(result)
+        result = super().run(result)
         self.awareTearDown(result)
         return result
 
@@ -107,7 +100,7 @@ class FilterByTagsMixin(InspectMixin):
     def setUpClass(cls):
         if cls.fast_class_skip_enabled:
             cls.fast_class_skip()
-        super(FilterByTagsMixin, cls).setUpClass()
+        super().setUpClass()
 
     @classmethod
     def fast_class_skip(cls):
@@ -136,7 +129,10 @@ class FilterByTagsMixin(InspectMixin):
     def get_tags(cls, current_test):
         my_id = (cls.__name__, current_test.__name__)
         return set(itertools.chain(
-            cls.tags, getattr(current_test, 'tags', ()), (my_id[0], '.'.join(my_id))))
+            cls.tags,
+            getattr(current_test, 'tags', ()),
+            (my_id[0], '.'.join(my_id)))
+        )
 
     @classmethod
     def get_required_tags(cls, current_test):
@@ -151,7 +147,7 @@ class FilterByTagsMixin(InspectMixin):
             self.get_skip_tags()
         ):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin.setUp')
-        super(FilterByTagsMixin, self).setUp()
+        super().setUp()
 
 
 class FFmpegMixin(object):
@@ -160,22 +156,22 @@ class FFmpegMixin(object):
 
     @classmethod
     def setUpClass(cls):
-        for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.iteritems():
+        for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
             assert stream_class is not None, name
             assert stream_class.codec_class is not None, name
-        super(FFmpegMixin, cls).setUpClass()
+        super().setUpClass()
 
     def setUp(self):
-        super(FFmpegMixin, self).setUp()
+        super().setUp()
         self.ffmpeg = self.ffmpeg_class()
         self.ffprobe = self.ffmpeg.ffprobe_class()
 
     # Codecs Asserts
 
     def assertMediaCodecEqual(self, path, stream_type, index, **codec_attrs):
-        codec = getattr(self.ffprobe, 'get_{0}_streams'.format(stream_type))(path)[index].codec
-        for attr, value in codec_attrs.iteritems():
-            self.assertEqual(getattr(codec, attr), value, msg='Codec attribute {0}'.format(attr))
+        codec = getattr(self.ffprobe, f'get_{stream_type}_streams')(path)[index].codec
+        for attr, value in codec_attrs.items():
+            self.assertEqual(getattr(codec, attr), value, msg=f'Codec attribute {attr}')
 
     def assertAudioCodecEqual(self, path, index, **codec_attrs):
         self.assertMediaCodecEqual(path, 'audio', index, **codec_attrs)
@@ -188,16 +184,29 @@ class FFmpegMixin(object):
 
     # Streams Asserts
 
-    def assertAudioStreamEqual(self, first_path, second_path, first_index, second_index,
-                               same_codec=True):
+    def assertAudioStreamEqual(
+        self,
+        first_path,
+        second_path,
+        first_index,
+        second_index,
+        same_codec=True
+    ):
         first = self.ffprobe.get_audio_streams(first_path)[first_index]
         second = self.ffprobe.get_audio_streams(second_path)[second_index]
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
 
-    def assertMediaFormatEqual(self, first_path, second_path, same_bit_rate=True,
-                               same_duration=True, same_size=True, same_start_time=True):
+    def assertMediaFormatEqual(
+        self,
+        first_path,
+        second_path,
+        same_bit_rate=True,
+        same_duration=True,
+        same_size=True,
+        same_start_time=True
+    ):
         formats = [self.ffprobe.get_media_info(p)['format'] for p in (first_path, second_path)]
         bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
@@ -217,8 +226,14 @@ class FFmpegMixin(object):
             self.assertRelativeEqual(*start_times, msg='Start time mistmatch.')
         self.assertDictEqual(*formats)
 
-    def assertVideoStreamEqual(self, first_path, second_path, first_index, second_index,
-                               same_codec=True):
+    def assertVideoStreamEqual(
+        self,
+        first_path,
+        second_path,
+        first_index,
+        second_index,
+        same_codec=True
+    ):
         first = self.ffprobe.get_video_streams(first_path)[first_index]
         second = self.ffprobe.get_video_streams(second_path)[second_index]
         if same_codec:
@@ -244,7 +259,8 @@ class FFmpegMixin(object):
         result = io.StringIO()
         statistics = results[-1]
         pprint.pprint(
-            {a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'}, stream=result)
+            {a: getattr(statistics, a) for a in dir(statistics) if a[0] != '_'},
+            stream=result)
         self.assertEqual(statistics.state, state, result.getvalue())
         return results
 
@@ -262,8 +278,8 @@ class SnakeCaseMixin(object):
 
     def __getattr__(self, name):
         if name.lower() == name:
-            return getattr(self, snake_to_camel(
-                name if name.startswith('assert_') else 'assert_{0}'.format(name)))
+            attribute = snake_to_camel(name if name.startswith('assert_') else f'assert_{name}')
+            return getattr(self, attribute)
         raise AttributeError
 
 
@@ -273,12 +289,12 @@ class TimingMixin(object):
 
     def setUp(self):
         self.start_time = time.time()
-        super(TimingMixin, self).setUp()
+        super().setUp()
 
     def tearDown(self):
-        super(TimingMixin, self).tearDown()
+        super().tearDown()
         if self.timing_logger:
-            self.timing_logger.info('{0}: {1:.3f}'.format(self.id(), time.time() - self.start_time))
+            self.timing_logger.info(f'{self.id()}: {time.time() - self.start_time:.3f}')
 
 
 class Asserts(InMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):

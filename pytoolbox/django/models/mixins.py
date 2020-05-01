@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own models.
 
@@ -24,8 +22,6 @@ Order for these does not matter:
 - SaveInstanceFilesMixin
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import collections, itertools, re
 
 from django.core.exceptions import ValidationError
@@ -37,7 +33,6 @@ from django.utils.functional import cached_property
 from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
 from pytoolbox import itertools as py_itertools, module  # pylint:disable=reimported
-
 from . import utils
 
 _all = module.All(globals())
@@ -54,7 +49,7 @@ class AlwaysUpdateFieldsMixin(object):
             update_fields = set(update_fields or [])
             update_fields.update(self.always_update_fields)
             kwargs['update_fields'] = update_fields
-        super(AlwaysUpdateFieldsMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class AutoForceInsertMixin(object):
@@ -62,7 +57,7 @@ class AutoForceInsertMixin(object):
     def save(self, *args, **kwargs):
         if kwargs.get('force_insert') is None:
             kwargs['force_insert'] = self._state.adding
-        super(AutoForceInsertMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class AutoRemovePKFromUpdateFieldsMixin(object):
@@ -77,7 +72,7 @@ class AutoRemovePKFromUpdateFieldsMixin(object):
     own default options for save.
     """
     def __init__(self, *args, **kwargs):
-        super(AutoRemovePKFromUpdateFieldsMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.previous_pk = self.pk
 
     def save(self, **kwargs):
@@ -89,7 +84,7 @@ class AutoRemovePKFromUpdateFieldsMixin(object):
                 # This is probably the model duplication pattern
                 for argument in 'force_insert', 'force_update', 'update_fields':
                     kwargs.pop(argument, None)
-        super(AutoRemovePKFromUpdateFieldsMixin, self).save(**kwargs)
+        super().save(**kwargs)
         self.previous_pk = self.pk
 
 
@@ -123,7 +118,7 @@ class AutoUpdateFieldsMixin(object):
         # Check the instance is both initialized and already stored in DB
         if name in getattr(self, '_fields_names', set()) and not self._state.adding:
             self._setted_fields.add(name)
-        return super(AutoUpdateFieldsMixin, self).__setattr__(name, value)
+        return super().__setattr__(name, value)
 
     def save(self, *args, **kwargs):
         if not self._state.adding and not kwargs.get('force_insert'):
@@ -131,7 +126,7 @@ class AutoUpdateFieldsMixin(object):
                 kwargs['force_update'] = self.default_force_update
             if kwargs.get('update_fields') is None:
                 kwargs['update_fields'] = set(self._setted_fields)
-        super(AutoUpdateFieldsMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         self._setted_fields = set()
 
 
@@ -149,7 +144,7 @@ class BetterUniquenessErrorsMixin(object):
 
     Case: Sometimes the form submit may raise an integrity error (concurrency, [yes] crazy
           unexpected usage of Django).
-    Issue: Those integrity errors are unfortunately returned as Internal Server Error (HTTP 500 page).
+    Issue: Those integrity errors are unfortunately returned as Internal Server Error (HTTP 500).
     Solution: Convert the uniqueness integrity errors to validation errors and return an awesome
               form with errors.
     Implementation: Set `unique_from_integrity_error` to True. And subclass
@@ -160,7 +155,7 @@ class BetterUniquenessErrorsMixin(object):
 
     def save(self, *args, **kwargs):
         try:
-            super(BetterUniquenessErrorsMixin, self).save(*args, **kwargs)
+            super().save(*args, **kwargs)
         except IntegrityError as e:
             if self.unique_from_integrity_error:
                 match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
@@ -181,14 +176,12 @@ class BetterUniquenessErrorsMixin(object):
         raise e
 
     def _perform_unique_checks(self, unique_checks):
-        errors_by_field = super(BetterUniquenessErrorsMixin, self)._perform_unique_checks(
-            unique_checks)
-
+        errors_by_field = super()._perform_unique_checks(unique_checks)
         hidden_fields = set(self.unique_together_hide_fields)
         if not hidden_fields:
             return errors_by_field
         filtered_errors_by_field = collections.defaultdict(list)
-        for field, errors in errors_by_field.iteritems():
+        for field, errors in errors_by_field.items():
             for error in errors:
                 # only process the uniqueness errors related to multiple fields
                 if len(error.params.get('unique_check', [])) > 1:
@@ -213,7 +206,7 @@ class CallFieldsPreSaveMixin(object):
         non_pk_fields = (f for f in self._meta.local_concrete_fields if not f.primary_key)
         for field in non_pk_fields:
             field.pre_save(self, self._state.adding)
-        super(CallFieldsPreSaveMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class PublicMetaMixin(object):
@@ -254,11 +247,11 @@ class SaveInstanceFilesMixin(object):
                 if isinstance(field, FileField):
                     saved_fields[field.name] = getattr(self, field.name)
                     setattr(self, field.name, None)
-            super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
-            for name, value in saved_fields.iteritems():
+            super().save(*args, **kwargs)
+            for name, value in saved_fields.items():
                 setattr(self, name, value)
             kwargs['force_insert'] = False  # Do not force because we already saved the instance
-        super(SaveInstanceFilesMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class UpdatePreconditionsMixin(object):
@@ -291,7 +284,7 @@ class UpdatePreconditionsMixin(object):
     def _do_update(self, base_qs, using, pk_val, values, update_fields, force_update):
         # FIXME _do_update is called once for each model in the inheritance hierarchy: Handle this!
         args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
-        updated = super(UpdatePreconditionsMixin, self)._do_update(*args)
+        updated = super()._do_update(*args)
         if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
             raise self.precondition_error_class()
         return updated
@@ -300,7 +293,7 @@ class UpdatePreconditionsMixin(object):
 class StateTransitionEventsMixin(object):
 
     def __init__(self, *args, **kwargs):
-        super(StateTransitionEventsMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.previous_state = self.state
 
     def on_post_state_transition(self, args, kwargs):
@@ -308,7 +301,7 @@ class StateTransitionEventsMixin(object):
             instance=self, previous_state=self.previous_state, args=args, kwargs=kwargs)
 
     def save(self, *args, **kwargs):
-        super(StateTransitionEventsMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         if 'state' in kwargs.get('update_fields', ['state']):
             self.on_post_state_transition(args, kwargs)
             self.previous_state = self.state
@@ -346,8 +339,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         """
         Add state precondition if state will be saved and state is not enforced by preconditions.
         """
-        args, kwargs, has_preconditions = \
-            super(StateTransitionPreconditionMixin, self).pop_preconditions(*args, **kwargs)
+        args, kwargs, has_preconditions = super().pop_preconditions(*args, **kwargs)
         if (
             kwargs.pop('check_state', self.check_state) and
             'state' in kwargs.get('update_fields', ['state'])
@@ -371,7 +363,7 @@ class ValidateOnSaveMixin(object):
     def save(self, *args, **kwargs):
         if kwargs.pop('validate', self.validate_on_save):
             self.full_clean(**self.validate_on_save_kwargs)
-        super(ValidateOnSaveMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class FasterValidateOnSaveMixin(ValidateOnSaveMixin):

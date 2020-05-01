@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pytoolbox import module
 from pytoolbox.unittest import asserts
 
@@ -27,6 +23,6 @@ class _PrivateClass(_validation.CleanAttributesMixin):
     pass
 
 
-asserts.equal(_all.diff(globals(), to_type=set), {
-    'public_variable', 'public_function', 'PublicClass', 'types'
-})
+asserts.equal(
+    _all.diff(globals(), to_type=set),
+    {'public_variable', 'public_function', 'PublicClass', 'types'})

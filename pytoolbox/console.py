@@ -1,12 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import atexit, code, os, sys
 
-from . import module
-
-_all = module.All(globals())
+__all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell']
 
 
 def confirm(question=None, default=False, stream=sys.stdout):
@@ -29,18 +23,18 @@ def confirm(question=None, default=False, stream=sys.stdout):
     """
     if question is None:
         question = 'Confirm'
-    question = '{0} ? [{1}]: '.format(question, 'Y/n' if default else 'y/N')
+    question = f"{question} ? [{'Y/n' if default else 'y/N'}]: "
     while True:
         stream.write(question)
         stream.flush()
-        answer = raw_input()  # noqa
+        answer = input()
         if not answer:
             return default
         if answer.lower() in ('y', 'yes'):
             return True
         elif answer.lower() in ('n', 'no'):
             return False
-        stream.write('please enter y(es) or n(o).' + os.linesep)
+        stream.write(f'please enter y(es) or n(o).{os.linesep}')
         stream.flush()
 
 
@@ -63,16 +57,16 @@ def choice(question='', choices=[], stream=sys.stdout):
     # generate question and choices list
     choices_string = ', '.join(choices)
     if question is None:
-        question = '[{0}]? '.format(choices_string)
+        question = f'[{choices_string}]? '
     else:
-        question = '{0} [{1}]: '.format(question, choices_string)
+        question = f'{question} [{choices_string}]: '
 
     # loop until an acceptable choice has been answered
     while True:
-        ans = raw_input(question)  # noqa
+        ans = input(question)
         if ans in choices:
             return ans
-        stream.write('Please choose between {1}.{0}'.format(os.linesep, choices_string))
+        stream.write(f'Please choose between {choices_string}.{os.linesep}')
 
 
 def print_error(message, exit_code=1, stream=sys.stderr):
@@ -83,27 +77,25 @@ def print_error(message, exit_code=1, stream=sys.stderr):
 
     In following example stream is set to `sys.stdout` and exit is disabled (for :mod:`doctest`):
 
-    >>> print_error(u"It's not a bug - it's an undoc. feature.", exit_code=None, stream=sys.stdout)
+    >>> print_error("It's not a bug - it's an undoc. feature.", exit_code=None, stream=sys.stdout)
     [ERROR] It's not a bug - it's an undoc. feature.
     """
-    stream.write('[ERROR] {1}{0}'.format(os.linesep, message))
+    stream.write(f'[ERROR] {message}{os.linesep}')
     stream.flush()
     if exit_code is not None:
         sys.exit(exit_code)
 
 
-if __name__ == '__main__':
-
-    if confirm('Please confirm this'):
-        print('You confirmed')
-    else:
-        print('You do not like my question')
-
-    print(choice('Select a language', ['Italian', 'French']))
-
-
-def progress_bar(start_time, current, total, size=50, done='=', todo=' ',
-                 template='\r[{done}{todo}]', stream=sys.stdout):
+def progress_bar(
+    start_time,
+    current,
+    total,
+    size=50,
+    done='=',
+    todo=' ',
+    template='\r[{done}{todo}]',
+    stream=sys.stdout
+):
     """
     Show a progress bar. Default `template` string starts with a carriage return to update progress
     on same line.
@@ -146,4 +138,11 @@ def shell(banner=None, history_filename='~/.python_history', history_length=1000
     return code.interact(banner=banner, local=imported)
 
 
-__all__ = _all.diff(globals())
+if __name__ == '__main__':
+
+    if confirm('Please confirm this'):
+        print('You confirmed')
+    else:
+        print('You do not like my question')
+
+    print(choice('Select a language', ['Italian', 'French']))

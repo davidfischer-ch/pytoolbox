@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Throttling classes implementing various throttling policies.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import time
 
@@ -22,11 +18,11 @@ class TimeThrottle(object):
     >>> import datetime
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
-    ...     for i in xrange(*args):
+    ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> t1, t2 = (TimeThrottle(t) for t in (datetime.timedelta(minutes=1), 0.2))
-    >>> asserts.list_equal(list(t1.throttle_iterable((i, i) for i in xrange(10))), [(0, 0), (9, 9)])
+    >>> asserts.list_equal(list(t1.throttle_iterable((i, i) for i in range(10))), [(0, 0), (9, 9)])
     >>> asserts.list_equal(list(t2.throttle_iterable(slow_range(3))), [0, 1, 2])
     """
     def __init__(self, min_time_delta):
@@ -72,15 +68,15 @@ class TimeAndRatioThrottle(TimeThrottle):
     >>> import datetime
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
-    ...     for i in xrange(*args):
+    ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> t1, t2 = (TimeAndRatioThrottle(0.3, t, 10*t) for t in (datetime.timedelta(minutes=1), 0.4))
-    >>> asserts.list_equal(list(t1.throttle_iterable(range(9), lambda i: [i/9])), [0, 8])
+    >>> asserts.list_equal(list(t1.throttle_iterable(list(range(9)), lambda i: [i/9])), [0, 8])
     >>> asserts.list_equal(list(t2.throttle_iterable(slow_range(9), lambda i: [i/9])), [0, 3, 6, 8])
     """
     def __init__(self, min_ratio_delta, min_time_delta, max_time_delta):
-        super(TimeAndRatioThrottle, self).__init__(min_time_delta)
+        super().__init__(min_time_delta)
         self.min_ratio_delta = total_seconds(min_ratio_delta)
         self.max_time_delta = total_seconds(max_time_delta)
         self.previous_ratio = 0
@@ -102,7 +98,7 @@ class TimeAndRatioThrottle(TimeThrottle):
         return True
 
     def _update(self, ratio):
-        super(TimeAndRatioThrottle, self)._update()
+        super()._update()
         self.previous_ratio = ratio
 
 

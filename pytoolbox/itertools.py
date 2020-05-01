@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import itertools
 
 from . import module, throttles
@@ -28,7 +24,7 @@ def chain(*objects, **kwargs):
     """
     callback = kwargs.pop('callback', isiterable)
     if kwargs:
-        raise TypeError('Invalid arguments for {0} {1}'.format(chain, kwargs.iterkeys()))
+        raise TypeError(f'Invalid arguments for {chain} {kwargs.keys()}')
     return itertools.chain.from_iterable(o if callback(o) else [o] for o in objects)
 
 
@@ -39,7 +35,7 @@ def chunk(objects, length, of_type=list):
     **Example usage**
 
     >>> from pytoolbox.unittest import asserts
-    >>> iterable = iter(range(7))
+    >>> iterable = iter(list(range(7)))
     >>> asserts.list_equal(list(chunk(iterable, 3)), [[0, 1, 2], [3, 4, 5], [6]])
     >>> asserts.list_equal(list(chunk(iterable, 3)), [])
     >>> asserts.list_equal(list(chunk((0, 1, (2, 3)), 1, of_type=set)), [{0}, {1}, {(2, 3)}])
@@ -78,10 +74,10 @@ def throttle(objects, min_delay):
     >>> import datetime, time
     >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
-    ...     for i in xrange(*args):
+    ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
-    >>> asserts.list_equal(list(throttle(range(10), datetime.timedelta(minutes=1))), [0, 9])
+    >>> asserts.list_equal(list(throttle(list(range(10)), datetime.timedelta(minutes=1))), [0, 9])
     >>> asserts.list_equal(list(throttle(slow_range(3), '00:00:00.2')), [0, 1, 2])
     """
     return throttles.TimeThrottle(min_delay).throttle_iterable(objects)

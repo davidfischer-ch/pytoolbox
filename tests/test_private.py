@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pytoolbox.private import _parse_kwargs_string
 
 from . import base

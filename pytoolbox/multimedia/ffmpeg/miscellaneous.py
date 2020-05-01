@@ -1,13 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import os
 
 from pytoolbox import comparison, filesystem, module, validation
 from pytoolbox.subprocess import to_args_list
 from pytoolbox.types import get_slots
-
 from . import utils
 
 _all = module.All(globals())
@@ -25,7 +20,8 @@ class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     def _set_attribute(self, name, info):
         """Set attribute `name` value from the `info` or ``self.defaults`` dictionary."""
         setattr(self, name, info.get(
-            self.attr_name_template.format(name=name), self.defaults.get(name)))
+            self.attr_name_template.format(name=name),
+            self.defaults.get(name)))
 
 
 class Codec(BaseInfo):

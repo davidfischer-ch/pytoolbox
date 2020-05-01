@@ -1,11 +1,7 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import math, os
 
+from pytoolbox import filesystem
 from pytoolbox.encoding import csv_reader
-from pytoolbox.filesystem import remove
 from pytoolbox.serialization import PickleableObject
 
 from . import base
@@ -23,7 +19,7 @@ class MyPoint(PickleableObject):
 
     @property
     def length(self):
-        return math.sqrt(self.x*self.x + self.y*self.y)
+        return math.sqrt(self.x * self.x + self.y * self.y)
 
 
 class TestSerialization(base.TestCase):
@@ -35,7 +31,8 @@ class TestSerialization(base.TestCase):
         p1.write('test.pkl')
         p2 = MyPoint.read('test.pkl', store_path=True)
         self.dict_equal(
-            p2.__dict__, {'y': -3, 'x': 6, '_pickle_path': 'test.pkl', 'name': 'My point'})
+            p2.__dict__,
+            {'y': -3, 'x': 6, '_pickle_path': 'test.pkl', 'name': 'My point'})
         p2.write()
         p2.write('test2.pkl')
         os.remove('test.pkl')
@@ -44,6 +41,7 @@ class TestSerialization(base.TestCase):
         self.false(os.path.exists('test2.pkl'))
         self.equal(p2._pickle_path, 'test.pkl')
         os.remove('test.pkl')
+
         p2.write('test2.pkl', store_path=True)
         self.false(os.path.exists('test.pkl'))
         self.equal(p2._pickle_path, 'test2.pkl')
@@ -51,11 +49,19 @@ class TestSerialization(base.TestCase):
         with self.raises(ValueError):
             p2.write()
         os.remove('test2.pkl')
-        remove('test3.pkl')
+        filesystem.remove('test3.pkl')
+
         p3 = MyPoint.read(
-            'test3.pkl', store_path=True, create_if_error=True, name='Default point', x=3, y=-6)
+            'test3.pkl',
+            store_path=True,
+            create_if_error=True,
+            name='Default point',
+            x=3,
+            y=-6)
         self.dict_equal(
-            p3.__dict__, {'x': 3, 'y': -6, '_pickle_path': 'test3.pkl', 'name': 'Default point'})
+            p3.__dict__,
+            {'x': 3, 'y': -6, '_pickle_path': 'test3.pkl', 'name': 'Default point'})
+
         os.remove('test3.pkl')
         with self.raises(IOError):
             MyPoint.read('test3.pkl')

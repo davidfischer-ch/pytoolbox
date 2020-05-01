@@ -1,18 +1,12 @@
-# -*- encoding: utf-8 -*-
-
 """
 Abstract models for building your own models.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from django.db import models
-
-from pytoolbox import module
 
 from . import fields
 
-_all = module.All(globals())
+__all__ = ['Timestamped']
 
 
 class Timestamped(models.Model):
@@ -24,6 +18,3 @@ class Timestamped(models.Model):
 
     created_at = fields.CreatedAtField()
     updated_at = fields.UpdatedAtField()
-
-
-__all__ = _all.diff(globals())

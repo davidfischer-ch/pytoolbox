@@ -1,14 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import collections, hashlib, os, random, string
 
-from . import module
-from .encoding import string_types
-from .filesystem import get_bytes
+from . import filesystem
 
-_all = module.All(globals())
+__all__ = ['checksum', 'new', 'get_password_generator', 'githash', 'guess_algorithm']
 
 
 def new(algorithm=hashlib.sha256):
@@ -16,11 +10,16 @@ def new(algorithm=hashlib.sha256):
     Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm` is a string else
     instantiate algorithm.
     """
-    return hashlib.new(algorithm) if isinstance(algorithm, string_types) else algorithm()
+    return hashlib.new(algorithm) if isinstance(algorithm, str) else algorithm()
 
 
-def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sha256,
-             chunk_size=None):
+def checksum(
+    path_or_data,
+    encoding='utf-8',
+    is_path=False,
+    algorithm=hashlib.sha256,
+    chunk_size=None
+):
     """
     Return the result of hashing `data` by given hash `algorithm`.
 
@@ -42,7 +41,7 @@ def checksum(path_or_data, encoding='utf-8', is_path=False, algorithm=hashlib.sh
     1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859
     """
     hasher = new(algorithm)
-    for data in get_bytes(path_or_data, encoding, is_path, chunk_size):
+    for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
         hasher.update(data)
     return hasher.hexdigest()
 
@@ -94,10 +93,10 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     s = hashlib.sha1()
     if is_path:
         s.update(('blob %d\0' % os.path.getsize(path_or_data)).encode('utf-8'))
-        for data_bytes in get_bytes(path_or_data, encoding, is_path, chunk_size):
+        for data_bytes in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
             s.update(data_bytes)
     else:
-        data_bytes = next(get_bytes(path_or_data, encoding, is_path, chunk_size=None))
+        data_bytes = next(filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size=None))
         s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
         s.update(data_bytes)
     return s.hexdigest()
@@ -128,7 +127,7 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
     """
     digest_size = len(checksum) / 2
     if algorithms:
-        algorithms = [hashlib.new(a) if isinstance(a, string_types) else a for a in algorithms]
+        algorithms = [hashlib.new(a) if isinstance(a, str) else a for a in algorithms]
     else:
         try:
             algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
@@ -142,6 +141,3 @@ def guess_algorithm(checksum, algorithms=None, unique=False):
     if unique:
         return possible_algorithms.pop() if len(possible_algorithms) == 1 else None
     return possible_algorithms
-
-
-__all__ = _all.diff(globals())

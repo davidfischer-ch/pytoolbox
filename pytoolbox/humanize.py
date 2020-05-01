@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import math, re
 
 from . import module
@@ -58,8 +54,13 @@ def naturalbitrate(bps, format='{sign}{value:.3g} {unit}', scale=None, units=DEF
     return _naturalnumber(bps, base=1000, format=format, scale=scale, units=units)
 
 
-def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', scale=None,
-                    args=DEFAULT_FILESIZE_ARGS):
+def naturalfilesize(
+    bytes,
+    system='nist',
+    format='{sign}{value:.3g} {unit}',
+    scale=None,
+    args=DEFAULT_FILESIZE_ARGS
+):
     """
     Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
 
@@ -101,8 +102,12 @@ def naturalfilesize(bytes, system='nist', format='{sign}{value:.3g} {unit}', sca
     return _naturalnumber(bytes, format=format, scale=scale, **(args[system] if system else args))
 
 
-def naturalfrequency(hz, format='{sign}{value:.3g} {unit}', scale=None,
-                     units=DEFAULT_FREQUENCY_UNITS):
+def naturalfrequency(
+    hz,
+    format='{sign}{value:.3g} {unit}',
+    scale=None,
+    units=DEFAULT_FREQUENCY_UNITS
+):
     """
     Return a human readable representation of a frequency taking `hz` as the frequency in Hz.
 

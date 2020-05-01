@@ -1,12 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import collections, inspect, signal
 
-from . import exceptions, module
+from . import exceptions
 
-_all = module.All(globals())
+__all__ = ['handlers_by_signal', 'propagate_handler', 'register_handler', 'register_callback']
 
 handlers_by_signal = collections.defaultdict(list)
 
@@ -41,7 +37,7 @@ def register_handler(signum, handler, append=True, reset=False):
 
 def register_callback(signum, callback, append=True, reset=False, args=None, kwargs=None):
     return register_handler(
-        signum, lambda s, f: callback(*(args or []), **(kwargs or {})), append, reset)
-
-
-__all__ = _all.diff(globals())
+        signum,
+        lambda s, f: callback(*(args or []), **(kwargs or {})),
+        append,
+        reset)

@@ -1,16 +1,9 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import functools, os, sys, time, urllib2, urlparse
-from codecs import open  # pylint:disable=redefined-builtin
+import functools, os, sys, time, urllib.request, urllib.error, urllib.parse
 
 import requests
 
-from pytoolbox import console, crypto, module
-from pytoolbox.encoding import to_bytes
+from pytoolbox import console, crypto, filesystem, module
 from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
-from pytoolbox.filesystem import makedirs, remove
 
 _all = module.All(globals())
 
@@ -18,7 +11,7 @@ _all = module.All(globals())
 def download(url, path):
     """Read the content of given `url` and save it as a file `path`."""
     with open(path, 'wb') as f:
-        f.write(urllib2.urlopen(url).read())
+        f.write(urllib.request.urlopen(url).read())
 
 
 def iter_download_core(url, code=200, chunk_size=102400, **kwargs):
@@ -37,9 +30,19 @@ def iter_download_core(url, code=200, chunk_size=102400, **kwargs):
             yield len(chunk), len(chunk), chunk
 
 
-def iter_download_to_file(url, path, code=200, chunk_size=102400, force=True, hash_algorithm=None,
-                          expected_hash=None, **kwargs):
-    position, length, chunk, downloaded, file_hash = 0, 0, None, False, None
+def iter_download_to_file(
+    url,
+    path,
+    code=200,
+    chunk_size=102400,
+    force=True,
+    hash_algorithm=None,
+    expected_hash=None,
+    **kwargs
+):
+    position = length = 0
+    chunk = file_hash = None
+    downloaded = False
     if force or not os.path.exists(path):
         file = None
         try:
@@ -57,17 +60,32 @@ def iter_download_to_file(url, path, code=200, chunk_size=102400, force=True, ha
                 file.close()
         if file_hash:
             file_hash = file_hash.hexdigest()
+
     elif hash_algorithm:
         file_hash = crypto.checksum(
-            path, is_path=True, algorithm=hash_algorithm, chunk_size=chunk_size)
+            path,
+            is_path=True,
+            algorithm=hash_algorithm,
+            chunk_size=chunk_size)
+
     if expected_hash and file_hash != expected_hash:
         raise CorruptedFileError(path=path, file_hash=file_hash, expected_hash=expected_hash)
+
     if not downloaded:
         yield position, length, chunk, downloaded, file_hash
 
 
-def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algorithm=None,
-                 expected_hash=None, progress_callback=None, **kwargs):
+def download_ext(
+    url,
+    path,
+    code=200,
+    chunk_size=102400,
+    force=True,
+    hash_algorithm=None,
+    expected_hash=None,
+    progress_callback=None,
+    **kwargs
+):
     """
     Read the content of given `url` and save it as a file `path`, extended version.
 
@@ -117,7 +135,8 @@ def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algori
 
     >>> asserts.raises(
     ...     BadHTTPResponseCodeError,
-    ...     download_ext, 'http://techslides.com/monkey.mp4', 'monkey.mp4')
+    ...     download_ext,
+    ...     'http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
     exists, start_time = os.path.exists(path), time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
@@ -128,9 +147,13 @@ def download_ext(url, path, code=200, chunk_size=102400, force=True, hash_algori
     return exists, downloaded, file_hash
 
 
-def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=console.progress_bar,
-                       progress_stream=sys.stdout,
-                       progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'):
+def download_ext_multi(
+    resources,
+    chunk_size=1024 * 1024,
+    progress_callback=console.progress_bar,
+    progress_stream=sys.stdout,
+    progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'
+):
     """
     Download resources, showing a progress bar by default.
 
@@ -140,27 +163,40 @@ def download_ext_multi(resources, chunk_size=1024 * 1024, progress_callback=cons
     for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
         kwargs, start_time = resource.copy(), time.time()
         url, path, name = kwargs.pop('url'), kwargs.pop('path'), kwargs.pop('name')
+
         callback = functools.partial(
             progress_callback,
             stream=progress_stream,
             template=progress_template.format(
-                counter=counter, done='{done}', name=name, todo='{todo}', total=len(resources)))
+                counter=counter,
+                done='{done}',
+                name=name,
+                todo='{todo}',
+                total=len(resources)))
+
         if not os.path.exists(path):
-            makedirs(os.path.dirname(path))
+            filesystem.makedirs(os.path.dirname(path))
             try:
                 for returned in iter_download_to_file(
                     url, path, chunk_size=chunk_size, force=False, **kwargs
                 ):
                     callback(start_time, returned[0], returned[1])
-            except:
-                remove(path)
+            except Exception:
+                filesystem.remove(path)
                 raise
+
         callback(start_time, 1, 1)
         progress_stream.write(os.linesep)
 
 
-def get_request_data(request, accepted_keys=None, required_keys=None,
-                     sources=('query', 'form', 'json'), qs_only_first_value=False, optional=False):
+def get_request_data(
+    request,
+    accepted_keys=None,
+    required_keys=None,
+    sources=('query', 'form', 'json'),
+    qs_only_first_value=False,
+    optional=False
+):
     """
     Return a python dictionary containing the values retrieved from various attributes (sources) of
     the request.
@@ -173,7 +209,7 @@ def get_request_data(request, accepted_keys=None, required_keys=None,
 
     **Example usage**
 
-    >>> from cStringIO import StringIO
+    >>> import io
     >>> from pytoolbox.unittest import asserts
     >>> from werkzeug.wrappers import Request
 
@@ -181,7 +217,10 @@ def get_request_data(request, accepted_keys=None, required_keys=None,
     >>> q = 'foo=bar&blah=blafasel'
     >>> c = 'application/x-www-form-urlencoded'
     >>> r = Request.from_values(
-    ...         query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
+    ...     query_string=q,
+    ...     content_length=len(d),
+    ...     input_stream=io.StringIO(d),
+    ...     content_type=c)
 
     >>> asserts.dict_equal(get_request_data(r), {
     ...     'blah': ['blafasel'],
@@ -218,23 +257,26 @@ def get_request_data(request, accepted_keys=None, required_keys=None,
     >>> d = 'foo=bar+form+data'
     >>> q = 'foo=bar+query+string&it=works'
     >>> r = Request.from_values(
-    ...         query_string=q, content_length=len(d), input_stream=StringIO(d), content_type=c)
-    >>> asserts.dict_equal(get_request_data(r, sources=['query', 'form']), {
-    ...     'it': ['works'], 'foo': ['bar form data']
-    ... })
-    >>> asserts.dict_equal(get_request_data(r, sources=['form', 'query']), {
-    ...     'it': ['works'], 'foo': ['bar query string']
-    ... })
+    ...         query_string=q,
+    ...         content_length=len(d),
+    ...         input_stream=io.StringIO(d),
+    ...         content_type=c)
+    >>> asserts.dict_equal(
+    ...     get_request_data(r, sources=['query', 'form']),
+    ...     {'it': ['works'], 'foo': ['bar form data']})
+    >>> asserts.dict_equal(
+    ...     get_request_data(r, sources=['form', 'query']),
+    ...     {'it': ['works'], 'foo': ['bar query string']})
 
     Retrieve only the first value of the keys (Query string):
 
     >>> r = Request.from_values(query_string='foo=bar+1&foo=bar+2&foo=bar+3', content_type=c)
-    >>> asserts.dict_equal(get_request_data(r, sources=['query']), {
-    ...     'foo': ['bar 1', 'bar 2', 'bar 3']
-    ... })
-    >>> asserts.dict_equal(get_request_data(r, sources=['query'], qs_only_first_value=True), {
-    ...     'foo': 'bar 1'
-    ... })
+    >>> asserts.dict_equal(
+    ...     get_request_data(r, sources=['query']),
+    ...     {'foo': ['bar 1', 'bar 2', 'bar 3']})
+    >>> asserts.dict_equal(
+    ...     get_request_data(r, sources=['query'], qs_only_first_value=True),
+    ...     {'foo': 'bar 1'})
 
     """
     data = {}
@@ -246,9 +288,9 @@ def get_request_data(request, accepted_keys=None, required_keys=None,
         elif source == 'query':
             query_dict = getattr(
                 request, 'args',  # werkzeug
-                urlparse.parse_qs(getattr(request, 'META', {}).get('QUERY_STRING', '')))  # django
+                urllib.parse.parse_qs(getattr(request, 'META', {}).get('QUERY_STRING', '')))  # django
             if qs_only_first_value:
-                for key, value in query_dict.iteritems():
+                for key, value in query_dict.items():
                     data[key] = value[0] if isinstance(value, list) else value
             else:
                 data.update(query_dict)
@@ -256,15 +298,16 @@ def get_request_data(request, accepted_keys=None, required_keys=None,
     if required_keys is not None:
         for key in required_keys:
             if key not in data:
-                raise ValueError(to_bytes(
-                    'Missing key "{0} from the request, required: {1}.'.format(key, required_keys)))
+                raise ValueError(f'Missing key "{key} from the request, required: {required_keys}.')
+
     if accepted_keys is not None:
         for key in data:
             if key not in accepted_keys:
-                raise ValueError(to_bytes('Invalid key "{0}" from the request, valid: {1}.'.format(
-                                 key, accepted_keys)))
+                raise ValueError('Invalid key "{key}" from the request, valid: {accepted_keys}.')
+
     if not data and not optional:
-        raise ValueError(to_bytes('Unable to retrieve any data from the request.'))
+        raise ValueError('Unable to retrieve any data from the request.')
+
     return data or {}
 
 

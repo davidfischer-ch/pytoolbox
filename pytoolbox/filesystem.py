@@ -1,25 +1,14 @@
-# -*- encoding: utf-8 -*-
-
 """
 Module related to file system and path operations.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import collections, copy, errno, os, shutil, tempfile, time, uuid
-from codecs import open  # pylint:disable=redefined-builtin
+import collections, copy, errno, grp, os, pwd, shutil, tempfile, time, uuid
 
 import magic
 
 from . import module
 from .datetime import datetime_now
-from .encoding import string_types, to_unicode
 from .regex import from_path_patterns
-
-try:
-    PermissionError
-except NameError:
-    PermissionError = None
 
 _all = module.All(globals())
 
@@ -40,13 +29,13 @@ def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
         os.chown(path, uid, gid)
 
 
-def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
+def find_recursive(directory, patterns, regex=False, **walk_kwargs):
     """
     Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions,
     if necessary.
 
-    If `unix_wildcards` is set to True, then any string pattern will be converted from
-    the unix-style wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
+    If `regex` is set to True, then any string pattern will be converted from the unix-style
+    wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
 
     **Example usage**
 
@@ -59,13 +48,13 @@ def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
     >>> '/etc/network/interfaces.d' in filenames  # Its a directory
     False
     >>> a = set(find_recursive('/etc', re.compile('.*/host.*')))
-    >>> b = set(find_recursive('/etc', ['.*/host.*'], unix_wildcards=False))
+    >>> b = set(find_recursive('/etc', ['.*/host.*'], regex=True))
     >>> len(a) > 0
     True
     >>> a == b
     True
     """
-    patterns = from_path_patterns(patterns, unix_wildcards=unix_wildcards)
+    patterns = from_path_patterns(patterns, regex=regex)
     for dirpath, dirnames, filenames in os.walk(directory, **walk_kwargs):
         for filename in filenames:
             filename = os.path.join(dirpath, filename)
@@ -75,7 +64,7 @@ def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
 
 def file_mime(path, mime=True):
     try:
-        return to_unicode(magic.from_file(path, mime=mime))
+        return magic.from_file(path, mime=mime)
     except OSError:
         return None
 
@@ -99,8 +88,15 @@ def first_that_exist(*paths):
     return None
 
 
-def from_template(template, destination, values, is_file=True, jinja2=False, pre_func=None,
-                  post_func=None):
+def from_template(
+    template,
+    destination,
+    values,
+    is_file=True,
+    jinja2=False,
+    pre_func=None,
+    post_func=None
+):
     """
     Return a `template` rendered with `values` using string.format or jinja2 as the template engine.
 
@@ -127,7 +123,7 @@ def from_template(template, destination, values, is_file=True, jinja2=False, pre
     >>> def post_func(content, values, jinja2):
     ...     return content.replace('tabby', 'tikky')
     >>> print(from_template(template, None, values, is_file=False, post_func=post_func))
-    {username=tikky; password=miaow}
+    {username=tikky; password=miaow}q
 
     The behavior if a value for a key is missing:
 
@@ -141,7 +137,7 @@ def from_template(template, destination, values, is_file=True, jinja2=False, pre
     >>> os.remove('config.template')
     >>> os.remove('config')
     """
-    content = open(template, 'r', 'utf-8').read() if is_file else template
+    content = open(template, 'r').read() if is_file else template
     if pre_func:
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
@@ -152,7 +148,7 @@ def from_template(template, destination, values, is_file=True, jinja2=False, pre
     if post_func:
         content = post_func(content, values=values, jinja2=jinja2)
     if destination:
-        with open(destination, 'w', 'utf-8') as f:
+        with open(destination, 'w') as f:
             f.write(content)
     return content
 
@@ -174,7 +170,7 @@ def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
             else:
                 yield f.read()
     else:
-        yield path_or_data.encode(encoding) if isinstance(path_or_data, string_types) else path_or_data
+        yield path_or_data.encode(encoding) if isinstance(path_or_data, str) else path_or_data
 
 
 def get_size(path, **walk_kwargs):
@@ -217,21 +213,28 @@ def makedirs(path, parent=False):
         if e.errno == errno.EEXIST:
             return False
         raise  # Re-raise exception if a different error occurred
-try_makedirs = makedirs
 
 
-def recursive_copy(source_path, destination_path, progress_callback=None, ratio_delta=0.01,
-                   time_delta=1, check_size=True, remove_on_error=True):
+def recursive_copy(
+    source_path,
+    destination_path,
+    progress_callback=None,
+    ratio_delta=0.01,
+    time_delta=1,
+    check_size=True,
+    remove_on_error=True
+):
     """
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
 
-    Given `progress_callback` will be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
-    *ratio*. Set `remove_on_error` to remove the destination directory in case of error.
+    Given `progress_callback` will be called with *start_date*, *elapsed_time*, *eta_time*,
+    *src_size*, *dst_size* and *ratio*. Set `remove_on_error` to remove the destination directory
+    in case of error.
 
     This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
-    At the end of the copy, if the size of the destination directory is not equal to the source then a `IOError` is
-    raised.
+    At the end of the copy, if the size of the destination directory is not equal to the source
+    then a `IOError` is raised.
     """
     try:
         start_date, start_time = datetime_now(), time.time()
@@ -260,19 +263,33 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
                     except ZeroDivisionError:
                         ratio = 1.0
                     elapsed_time = time.time() - start_time
+
                     # Update status of job only if delta time or delta ratio is sufficient
-                    if progress_callback is not None and \
-                            ratio - prev_ratio > ratio_delta and elapsed_time - prev_time > time_delta:
+                    if (
+                        progress_callback is not None and
+                        ratio - prev_ratio > ratio_delta and
+                        elapsed_time - prev_time > time_delta
+                    ):
                         prev_ratio = ratio
                         prev_time = elapsed_time
                         eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
-                        progress_callback(start_date, elapsed_time, eta_time, src_size, dst_size, ratio)
+                        progress_callback(
+                            start_date,
+                            elapsed_time,
+                            eta_time,
+                            src_size,
+                            dst_size,
+                            ratio)
+
                     block_length = len(block)
                     block_pos += block_length
                     dst_size += block_length
+
                     if not block:
                         break  # End of input reached
+
                     dst_file.write(block)
+
                 # FIXME maybe a finally block for that
                 src_file.close()
                 dst_file.close()
@@ -281,13 +298,11 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
         if check_size:
             dst_size = get_size(destination_path)
             if dst_size != src_size:
-                raise IOError(
-                    'Destination size does not match source ({0} vs {1})'
-                    .format(src_size, dst_size))
+                raise IOError(f'Destination size does not match source ({src_size} vs {dst_size})')
 
         elapsed_time = time.time() - start_time
         return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
-    except:
+    except Exception:
         if remove_on_error:
             shutil.rmtree(destination_path, ignore_errors=True)
         raise
@@ -336,7 +351,6 @@ def remove(path, recursive=False):
         if e.errno == errno.ENOENT:
             return False
         raise  # Re-raise exception if a different error occurred
-try_remove = remove
 
 
 def symlink(source, link_name):
@@ -403,23 +417,18 @@ def symlink(source, link_name):
                         raise OSError(errno.EEXIST, 'File exists')
                 raise
         raise  # Re-raise exception if a different error occurred
-try_symlink = symlink
 
 
-try:
-    import pwd, grp
-except ImportError:
-    pass
-else:
-    def to_user_id(user):
-        if isinstance(user, string_types):
-            return pwd.getpwnam(user).pw_uid
-        return -1 if user is None else user
+def to_user_id(user):
+    if isinstance(user, str):
+        return pwd.getpwnam(user).pw_uid
+    return -1 if user is None else user
 
-    def to_group_id(group):
-        if isinstance(group, string_types):
-            return grp.getgrnam(group).gr_gid
-        return -1 if group is None else group
+
+def to_group_id(group):
+    if isinstance(group, str):
+        return grp.getgrnam(group).gr_gid
+    return -1 if group is None else group
 
 
 class TempStorage(object):
@@ -466,8 +475,16 @@ class TempStorage(object):
         chown(directory, user, group, recursive=True)
         return directory
 
-    def create_tmp_file(self, path='tmp-{uuid}', extension=None, encoding='utf-8', key=None,
-                        user=None, group=None, return_file=True):
+    def create_tmp_file(
+        self,
+        path='tmp-{uuid}',
+        extension=None,
+        encoding='utf-8',
+        key=None,
+        user=None,
+        group=None,
+        return_file=True
+    ):
         """
         **Example usage**
 
@@ -486,12 +503,17 @@ class TempStorage(object):
         mode = 'w' if encoding else 'wb'
         path = os.path.join(
             self.root,
-            path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
+            path.format(uuid=uuid.uuid4().hex) +
+            ('.%s' % extension if extension else ''))
+
         self._path_to_key[path] = key
         self._paths_by_key[key].add(path)
+
         with open(path, mode, encoding=encoding):
             pass
+
         chown(path, user, group)
+
         return open(path, mode, encoding=encoding) if return_file else path
 
     def remove_by_path(self, path):
@@ -548,7 +570,7 @@ class TempStorage(object):
         >>> asserts.false(os.path.isdir(d2))
         >>> tmp.remove_all()
         """
-        for key in self._paths_by_key.copy().iterkeys():
+        for key in self._paths_by_key.copy().keys():
             self.remove_by_key(key)
 
 

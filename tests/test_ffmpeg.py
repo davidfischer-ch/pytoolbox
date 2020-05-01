@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime, os, tempfile, unittest, uuid
-from codecs import open  # pylint:disable=redefined-builtin
 
-from pytoolbox.filesystem import remove
+from pytoolbox import filesystem
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
     to_bit_rate, to_frame_rate, to_size, AudioStream, EncodeState, Format, Media, VideoStream,
@@ -352,17 +347,17 @@ class TestFFmpeg(base.TestCase):
     def test_encode(self):
         results = list(self.ffmpeg.encode(
             Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.true(remove('ff_output.mp4'))
+        self.true(filesystem.remove('ff_output.mp4'))
         self.equal(results[-1].state, EncodeState.SUCCESS)
 
         results = list(self.ffmpeg.encode(
             Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
-        self.false(remove('ff_output.mp4'))
+        self.false(filesystem.remove('ff_output.mp4'))
         self.equal(results[-1].state, EncodeState.FAILURE)
 
         results = list(self.ffmpeg.encode(
             [Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.false(remove('ff_output.mp4'))
+        self.false(filesystem.remove('ff_output.mp4'))
         self.equal(results[-1].state, EncodeState.FAILURE)
 
     def test_get_arguments(self):
@@ -413,7 +408,7 @@ class TestFFmpeg(base.TestCase):
         encoder = RaiseFFmpeg()
         with self.raises(ValueError):
             list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
-        self.true(remove('ff_output.mp4'))
+        self.true(filesystem.remove('ff_output.mp4'))
 
 
 class TestFFprobe(base.TestCase):

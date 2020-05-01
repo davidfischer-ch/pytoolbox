@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from . import module
 from .types import get_slots
 
-_all = module.All(globals())
+__all__ = ['SlotsEqualityMixin']
 
 
 class SlotsEqualityMixin(object):
@@ -15,11 +10,9 @@ class SlotsEqualityMixin(object):
     """
 
     def __eq__(self, other):
-        return get_slots(self) == get_slots(other) and \
-            all(getattr(self, attr) == getattr(other, attr) for attr in get_slots(self))
+        return (
+            get_slots(self) == get_slots(other) and
+            all(getattr(self, a) == getattr(other, a) for a in get_slots(self)))
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-
-__all__ = _all.diff(globals())

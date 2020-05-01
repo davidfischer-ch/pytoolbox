@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import uuid, tempfile
 
 from celery import states
@@ -9,13 +5,11 @@ from celery.result import AsyncResult
 from passlib.hash import pbkdf2_sha512
 from passlib.utils import consteq
 
-from . import module
-from .encoding import text_type, to_bytes, to_unicode
 from .serialization import JsoneableObject
 from .subprocess import cmd
 from .validation import valid_email, valid_secret, valid_uuid
 
-_all = module.All(globals())
+__all__ = ['Model', 'TaskModel', 'User']
 
 
 class Model(JsoneableObject):
@@ -25,11 +19,12 @@ class Model(JsoneableObject):
 
     .. seealso::
 
-        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
+        See the project called
+        `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
     def __init__(self, _id=None):
-        self._id = _id or text_type(uuid.uuid4())
+        self._id = _id or str(uuid.uuid4())
 
     def is_valid(self, raise_exception):
         if not valid_uuid(self._id, none_allowed=False):
@@ -38,7 +33,7 @@ class Model(JsoneableObject):
 
     def _E(self, raise_exception, message):
         if raise_exception:
-            raise TypeError(to_bytes('{0} : {1}'.format(self.__class__.__name__, message)))
+            raise TypeError(f'{self.__class__.__name__} : {message}')
         return False
 
 
@@ -49,7 +44,8 @@ class TaskModel(Model):
 
     .. seealso::
 
-        See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
+        See the project called
+        `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
     ALL_STATUS = (
@@ -72,12 +68,12 @@ class TaskModel(Model):
     WORK_IN_PROGRESS_STATUS = PENDING_STATUS + RUNNING_STATUS
 
     def __init__(self, _id=None, statistic=None, status=UNKNOWN):
-        super(TaskModel, self).__init__(_id)
+        super().__init__(_id)
         self.statistic = statistic or {}
         self.status = status
 
     def is_valid(self, raise_exception):
-        if not super(TaskModel, self).is_valid(raise_exception):
+        if not super().is_valid(raise_exception):
             return False
         # FIXME check statistic
         # FIXME check status
@@ -86,7 +82,7 @@ class TaskModel(Model):
     def get_hostname(self):
         try:
             return AsyncResult(self._id).result['hostname']
-        except:
+        except Exception:
             return None
 
     def append_async_result(self):
@@ -97,8 +93,8 @@ class TaskModel(Model):
                     self.status = async_result.status
                 try:
                     self.statistic.update(async_result.result)
-                except:
-                    self.statistic['error'] = to_unicode(async_result.result)
+                except Exception:
+                    self.statistic['error'] = str(async_result.result)
             except NotImplementedError:
                 self.status = TaskModel.UNKNOWN
         else:
@@ -113,14 +109,21 @@ class User(Model):
         See the project called `OSCIED <https://github.com/ebu/OSCIED/blob/master/library/oscied_lib/models.py>`.
     """
 
-    def __init__(self, first_name=None, last_name=None, mail=None, secret=None,
-                 admin_platform=False, _id=None):
-        super(User, self).__init__(_id)
+    def __init__(
+        self,
+        first_name=None,
+        last_name=None,
+        mail=None,
+        secret=None,
+        admin_platform=False,
+        _id=None
+    ):
+        super().__init__(_id)
         self.first_name = first_name
         self.last_name = last_name
         self.mail = mail
         self.secret = secret
-        self.admin_platform = (to_unicode(admin_platform).lower() == 'true')
+        self.admin_platform = (str(admin_platform).lower() == 'true')
 
     @property
     def credentials(self):
@@ -129,7 +132,7 @@ class User(Model):
     @property
     def name(self):
         if self.first_name and self.last_name:
-            return '{0} {1}'.format(self.first_name, self.last_name)
+            return f'{self.first_name} {self.last_name}'
         return 'anonymous'
 
     @property
@@ -137,15 +140,16 @@ class User(Model):
         return self.secret is not None and self.secret.startswith('$pbkdf2-sha512$')
 
     def is_valid(self, raise_exception):
-        if not super(User, self).is_valid(raise_exception):
+        if not super().is_valid(raise_exception):
             return False
         # FIXME check first_name
         # FIXME check last_name
         if not valid_email(self.mail):
             self._E(raise_exception, 'mail is not a valid email address')
         if not self.is_secret_hashed and not valid_secret(self.secret, True):
-            self._E(raise_exception,
-                    'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
+            self._E(
+                raise_exception,
+                'secret is not safe (8+ characters, upper/lower + numbers eg. StrongP6s)')
         # FIXME check admin_platform
         return True
 
@@ -200,9 +204,9 @@ def mongo_do(action, database=None, fail=True, log=None, **kwargs):
     action_file.write(action)
     try:
         return cmd(
-            filter(None, ['mongo', database, action_file.name]), fail=fail, log=log, **kwargs)
+            [_f for _f in ['mongo', database, action_file.name] if _f],
+            fail=fail,
+            log=log,
+            **kwargs)
     finally:
         action_file.close()
-
-
-__all__ = _all.diff(globals())

@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import functools, os, warnings
 
-from . import module
-from .console import confirm
+from . import console, module
 from .subprocess import cmd
 
 _all = module.All(globals())
@@ -13,7 +8,8 @@ _all = module.All(globals())
 
 class cached_property(object):
     """
-    Decorator that converts a method with a single self argument into a property cached on the instance.
+    Decorator that converts a method with a single self argument into a property cached on the
+    instance.
 
     Optional ``name`` argument allows you to make cached properties of other methods.
     For example ``url=cached_property(get_absolute_url, name='url')``.
@@ -34,13 +30,16 @@ class cached_property(object):
 
 def deprecated(func):
     """
-    Decorator that can be used to mark functions as deprecated. It will result in a warning being emitted when the
-    function is used. Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
+    Decorator that can be used to mark functions as deprecated. It will result in a warning being
+    emitted when the function is used. Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
     """
     @functools.wraps(func)
     def _deprecated(*args, **kwargs):
-        warnings.warn_explicit('Call to deprecated function {0.__name__}.'.format(func), category=DeprecationWarning,
-                               filename=func.func_code.co_filename, lineno=func.func_code.co_firstlineno + 1)
+        warnings.warn_explicit(
+            f'Call to deprecated function {func.__name__}.',
+            category=DeprecationWarning,
+            filename=func.__code__.co_filename,
+            lineno=func.__code__.co_firstlineno + 1)
         return func(*args, **kwargs)
     return _deprecated
 
@@ -78,8 +77,8 @@ class hybridmethod(object):
             return self.func(context, *args, **kwargs)
 
         # optional, mimic methods some more
-        hybrid.__func__ = hybrid.im_func = self.func
-        hybrid.__self__ = hybrid.im_self = context
+        hybrid.__func__ = self.func
+        hybrid.__self__ = context
         return hybrid
 
 
@@ -88,7 +87,7 @@ def confirm_it(message, default=False, abort_message='Operation aborted by the u
     def _confirm_it(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if confirm(message, default=default):
+            if console.confirm(message, default=default):
                 return f(*args, **kwargs)
             print(abort_message)
         return wrapper
@@ -97,8 +96,8 @@ def confirm_it(message, default=False, abort_message='Operation aborted by the u
 
 def disable_iptables(f):
     """
-    Stop the iptables service if necessary, execute the decorated function and then reactivate iptables if it was
-    previously stopped.
+    Stop the iptables service if necessary, execute the decorated function and then reactivate
+    iptables if it was previously stopped.
     """
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
@@ -107,7 +106,7 @@ def disable_iptables(f):
                 cmd('sudo service iptables stop', shell=True)
                 print('Disable iptables')
                 has_iptables = True
-            except:
+            except Exception:
                 has_iptables = False
             return f(*args, **kwargs)
         finally:

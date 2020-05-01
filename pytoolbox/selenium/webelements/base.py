@@ -1,26 +1,21 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from selenium.webdriver.remote import webelement
 
-from pytoolbox import module
 from pytoolbox.selenium import common, exceptions
 
-_all = module.All(globals())
+__all__ = ['WebElement']
 
 
 class WebElement(common.FindMixin, webelement.WebElement):
 
     def __init__(self, *args, **kwargs):
-        super(WebElement, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._specialize()
 
     def clean_value(self, value):
         return value
 
     def get_attribute(self, name):
-        value = super(WebElement, self).get_attribute(name)
+        value = super().get_attribute(name)
         return self.clean_value(value) if name == 'value' else value
 
     def _specialize(self):
@@ -34,8 +29,4 @@ class WebElement(common.FindMixin, webelement.WebElement):
 
     def _specialize_default(self, component):
         raise exceptions.NoSuchSpecializedElementException(
-            'Unable to find a class implementing the component {0}.'.format(component)
-        )
-
-
-__all__ = _all.diff(globals())
+            f'Unable to find a class implementing the component {component}.')

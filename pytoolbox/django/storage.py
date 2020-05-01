@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Extra storages and mix-ins for building your own storages.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging, time
 
@@ -30,9 +26,8 @@ class ExpressTemporaryFileMixin(object):
         start_time = time.time()
         if hasattr(content.file, 'temporary_file_path'):
             content.temporary_file_path = lambda: content.file.temporary_file_path()
-        result = super(ExpressTemporaryFileMixin, self)._save(name, content)
-        logger.debug('Saved protected file "{0}" in {1:.2g} seconds'.format(
-            name, time.time() - start_time))
+        result = super()._save(name, content)
+        logger.debug(f'Saved protected file "{name}" in {time.time() - start_time:.2g} seconds')
         return result
 
 

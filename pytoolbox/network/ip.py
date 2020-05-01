@@ -1,22 +1,6 @@
-# -*- encoding: utf-8 -*-
+from ipaddress import ip_address
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import sys
-
-from pytoolbox import module
-
-_all = module.All(globals())
-
-if sys.version_info[0] > 2:
-    from ipaddress import ip_address
-else:
-    try:
-        from ipaddr import IP as ip_address
-    except ImportError:  # previously IPAddress ...
-        from ipaddr import IPAddress as ip_address
-
-__all__ = ('ip_address', 'IPSocket')
+__all__ = ['ip_address', 'IPSocket']
 
 
 def IPSocket(string):
@@ -32,9 +16,9 @@ def IPSocket(string):
     ValueError: gaga:gogo is not a valid IP socket.
     >>>
     >>> from pytoolbox.unittest import asserts
-    >>> asserts.dict_equal(IPSocket('239.232.0.222:5004'), {
-    ...     'ip': '239.232.0.222', 'port': 5004
-    ... })
+    >>> asserts.dict_equal(
+    ...     IPSocket('239.232.0.222:5004'),
+    ...     {'ip': '239.232.0.222', 'port': 5004})
 
     .. warning::
 
@@ -46,8 +30,5 @@ def IPSocket(string):
         ip_address(ip)  # Seem not IPv6 ready
         port = int(port)
     except Exception:
-        raise ValueError('{0} is not a valid IP socket.'.format(string))
+        raise ValueError(f'{string} is not a valid IP socket.')
     return {'ip': ip, 'port': port}
-
-
-__all__ = _all.diff(globals())

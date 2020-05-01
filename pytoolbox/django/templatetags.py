@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Pytoolbox's Template tag and filters.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime, os, re
 
@@ -19,9 +15,7 @@ from django.utils.translation import ugettext as _
 
 from pytoolbox import humanize, module
 from pytoolbox.datetime import secs_to_time as _secs_to_time
-from pytoolbox.encoding import to_unicode
 from pytoolbox.private import _parse_kwargs_string
-
 from .core import constants
 
 _all = module.All(globals())
@@ -39,10 +33,10 @@ except ImportError:
 string_if_invalid = ''  # Official default value
 try:  # Django >= 1.8
     string_if_invalid = settings.TEMPLATES['OPTIONS']['string_if_invalid']
-except:
+except Exception:
     try:  # Django < 1.8
         string_if_invalid = settings.TEMPLATE_STRING_IF_INVALID
-    except:
+    except Exception:
         pass  # Use default
 
 
@@ -62,16 +56,16 @@ except:
 
 register = template.Library()
 
-NUMERIC_TEST = re.compile('^\d+$')
+NUMERIC_TEST = re.compile(r'^\d+$')
 LABEL_TO_CLASS = {
-    'ERROR':    'label-important',
-    'FAILURE':  'label-important',
-    'PENDING':  'label-warning',
-    'STARTED':  'label-info',
+    'ERROR': 'label-important',
+    'FAILURE': 'label-important',
+    'PENDING': 'label-warning',
+    'STARTED': 'label-info',
     'PROGRESS': 'label-info',
-    'RETRY':    'label-warning',
-    'REVOKED':  'label-inverse',
-    'SUCCESS':  'label-success'
+    'RETRY': 'label-warning',
+    'REVOKED': 'label-inverse',
+    'SUCCESS': 'label-success'
 }
 LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
 
@@ -92,7 +86,7 @@ def getattribute(value, attribute):
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
-    elif hasattr(value, 'has_key') and value.has_key(attribute):
+    elif hasattr(value, 'has_key') and attribute in value:
         return value[attribute]
     elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
@@ -177,18 +171,18 @@ def rst_title(value, level):
         {% load pytoolbox_tags %}
         {{ 'My chapter'|rst_title:'chapter' }}
     """
-    value, level = to_unicode(value), to_unicode(level)
+    value, level = str(value), str(level)
     length = len(value)
     if level in ('1', 'document'):
-        return '{1}{0}{2}{0}{3}{0}'.format(os.linesep, '=' * length, value, '=' * length)
+        return f"{'=' * length}{os.linesep}{value}{os.linesep}{'=' * length}{os.linesep}"
     elif level in ('2', 'subtitle'):
-        return '{1}{0}{2}{0}{3}{0}'.format(os.linesep, '-' * length, value, '-' * length)
+        return f"{'-' * length}{os.linesep}{value}{os.linesep}{'-' * length}{os.linesep}"
     elif level in ('3', 'chapter'):
-        return '{1}{0}{2}{0}'.format(os.linesep, value, '=' * length)
+        return f"{value}{os.linesep}{'=' * length}{os.linesep}"
     elif level in ('4', 'section'):
-        return '{1}{0}{2}{0}'.format(os.linesep, value, '-' * length)
+        return f"{value}{os.linesep}{'-' * length}{os.linesep}"
     elif level in ('5', 'subsection'):
-        return '{1}{0}{2}{0}'.format(os.linesep, value, '~' * length)
+        return f"{value}{os.linesep}{'~' * length}{os.linesep}"
     return string_if_invalid
 
 
@@ -227,8 +221,7 @@ def status_label(value, autoescape=None, default=''):
     """
     esc = conditional_escape if autoescape else lambda x: x
     value = esc(value).upper()
-    return mark_safe('<span class="label {0}">{1}</span>'.format(
-        LABEL_TO_CLASS.get(value, default), value))
+    return mark_safe(f'<span class="label {LABEL_TO_CLASS.get(value, default)}">{value}</span>')
 
 
 @register.filter(is_safe=True)

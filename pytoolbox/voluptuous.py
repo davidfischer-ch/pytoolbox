@@ -1,17 +1,13 @@
-# -*- encoding: utf-8 -*-
-
 """
-Module containing extensions to validate data with `voluptuous <https://github.com/alecthomas/voluptuous>`_.
+Module containing extensions to validate data with
+`voluptuous <https://github.com/alecthomas/voluptuous>`_.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import functools, re
 
 import voluptuous
 
-from . import module
-from .validation import valid_email
+from . import module, validation
 
 _all = module.All(globals())
 
@@ -31,7 +27,7 @@ class VersionInvalid(voluptuous.Invalid):
 @voluptuous.message('Incorrect e-mail address')
 def Email(value):
     value = str(value)
-    if not valid_email(value):
+    if not validation.valid_email(value):
         raise ValueError
     return value
 
@@ -41,7 +37,7 @@ def EmailSet(values):
     emails = set()
     for value in values or []:
         email = str(value)
-        if not valid_email(email):
+        if not validation.valid_email(email):
             raise ValueError
         emails.add(email)
     return emails
@@ -77,7 +73,7 @@ def SHA256(value):
 
 
 def Version(digits=4, msg=None):
-    assert digits in xrange(1, 5)  # noqa
+    assert 1 <= digits <= 4
 
     @functools.wraps(Version)
     def f(value):

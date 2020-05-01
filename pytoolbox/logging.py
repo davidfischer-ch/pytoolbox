@@ -1,19 +1,21 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import logging, sys
 
-from . import module
 from .collections import merge_dicts
-from .encoding import string_types
 
-_all = module.All(globals())
+__all__ = ['setup_logging', 'ColorizeFilter']
 
 
-def setup_logging(name_or_log='', reset=False, path=None, console=False, level=logging.DEBUG,
-                  colorize=False, color_by_level=None,
-                  fmt='%(asctime)s %(levelname)-8s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S'):
+def setup_logging(
+    name_or_log='',
+    reset=False,
+    path=None,
+    console=False,
+    level=logging.DEBUG,
+    colorize=False,
+    color_by_level=None,
+    fmt='%(asctime)s %(levelname)-8s - %(message)s',
+    datefmt='%d/%m/%Y %H:%M:%S'
+):
     """
     Setup logging (TODO).
 
@@ -60,7 +62,7 @@ def setup_logging(name_or_log='', reset=False, path=None, console=False, level=l
     >>> log.info('single message')
     single message
     """
-    log = logging.getLogger(name_or_log) if isinstance(name_or_log, string_types) else name_or_log
+    log = logging.getLogger(name_or_log) if isinstance(name_or_log, str) else name_or_log
     if reset:
         log.handlers = []
     log.setLevel(level)
@@ -88,8 +90,9 @@ class ColorizeFilter(logging.Filter):
 
     def __init__(self, *args, **kwargs):
         self.color_by_level = merge_dicts(
-            self.color_by_level, kwargs.pop('color_by_level', None) or {})
-        super(ColorizeFilter, self).__init__(*args, **kwargs)
+            self.color_by_level,
+            kwargs.pop('color_by_level', None) or {})
+        super().__init__(*args, **kwargs)
 
     def filter(self, record):
         record.raw_msg = record.msg
@@ -98,6 +101,3 @@ class ColorizeFilter(logging.Filter):
             import termcolor
             record.msg = termcolor.colored(record.msg, color)
         return True
-
-
-__all__ = _all.diff(globals())

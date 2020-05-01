@@ -1,8 +1,4 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import mock, six
+import mock
 
 from pytoolbox.subprocess import (
     to_args_list, to_args_string, cmd, screen_launch, screen_list, screen_kill

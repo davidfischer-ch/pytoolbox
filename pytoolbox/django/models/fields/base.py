@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Extra fields for your models.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import math, os
 
@@ -17,7 +13,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from pytoolbox import module
 from pytoolbox.django.core import validators
-
 from . import mixins
 
 _all = module.All(globals())
@@ -37,7 +32,7 @@ class ExtraChoicesField(StripCharField):
 
     def __init__(self, verbose_name=None, extra_choices=None, **kwargs):
         self.extra_choices = extra_choices or []
-        super(ExtraChoicesField, self).__init__(verbose_name=verbose_name, **kwargs)
+        super().__init__(verbose_name=verbose_name, **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super(ExtraChoicesField, self).deconstruct()
@@ -84,10 +79,14 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
 
     def __init__(self, max_value, decimal_places=2, **kwargs):
         self.max_value = max_value
-        super(MoneyField, self).__init__(
-            decimal_places=decimal_places, max_digits=int(math.log10(max_value)) + 3, validators=[
-                dj_validators.MinValueValidator(0), dj_validators.MaxValueValidator(max_value)
-            ], **kwargs)
+        super().__init__(
+            decimal_places=decimal_places,
+            max_digits=int(math.log10(max_value)) + 3,
+            validators=[
+                dj_validators.MinValueValidator(0),
+                dj_validators.MaxValueValidator(max_value)
+            ],
+            **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super(MoneyField, self).deconstruct()
