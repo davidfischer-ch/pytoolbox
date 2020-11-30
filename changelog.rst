@@ -3,6 +3,20 @@ changelog
 =========
 
 -------
+v13.5.0
+-------
+
+Minor compatibility breaks
+==========================
+
+- Class multimedia.exif.miscellaneous.VideoStream: Rename rotate to rotation
+
+Fix and enhancements
+====================
+
+- Module multimedia.exif: Add Tamron brand
+
+-------
 v13.4.0
 -------
 
