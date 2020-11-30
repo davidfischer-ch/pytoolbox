@@ -4,12 +4,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from pytoolbox import decorators, module
 
-from . import equipment
+from . import brand, equipment
 
 _all = module.All(globals())
 
 
 class Lens(equipment.Equipement):
+
+    brand_class = brand.Brand
 
     @property
     def brand(self):
@@ -17,6 +19,8 @@ class Lens(equipment.Equipement):
         if brands:
             assert len(brands) == 1, brands
             return next(iter(brands))
+        # Extract brand from model
+        return self.brand_class(self._model.split(' ')[0])
 
     @property
     def _model(self):

@@ -19,7 +19,7 @@ class Tag(object):
     brand_class = brand.Brand
     date_formats = ['%Y%m%d %H%M%S', '%Y%m%d']
     date_clean_regex = re.compile(r'[:-]')
-    group_to_brand_blacklist = frozenset(['aux', 'crs', 'Image', 'Photo'])
+    group_to_brand_blacklist = frozenset(['aux', 'crs', 'exifEX', 'Image', 'Photo'])
     type_to_hook = {
         datetime.datetime: 'get_tag_string',  # clean method will convert to a date-time
         datetime.time: 'get_tag_string',  # clean method will convert to a time

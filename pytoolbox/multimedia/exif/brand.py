@@ -27,7 +27,8 @@ class Brand(object):
         'Samsung',
         'Sigma',
         'Sony',
-        'Sony Ericsson'
+        'Sony Ericsson',
+        'Tamron'
     ])
     clean_map = collections.merge_dicts({b.lower(): b for b in brands}, {
         # maps the group of Exif.Group.Label
@@ -46,7 +47,8 @@ class Brand(object):
         'olympus imaging corp.': 'Olympus',
         'olympus optical co.,ltd': 'Olympus',
         'samsung techwin': 'Samsung',
-        'semc': 'Sony Ericsson'
+        'semc': 'Sony Ericsson',
+        'tamron': 'Tamron'
     })
 
     def __new__(cls, brand):
