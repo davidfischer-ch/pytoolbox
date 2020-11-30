@@ -10,6 +10,8 @@ from .filesystem import get_bytes
 
 _all = module.All(globals())
 
+AWS_S3_ETAG_CHUNK_SIZE = 8 * 1024**2
+
 
 def new(algorithm=hashlib.sha256):
     """
@@ -68,7 +70,6 @@ def get_password_generator(characters=string.ascii_letters + string.digits, leng
 
 
 # FIXME implement githash class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
-# FIXME add length optional argument to implement chunk'ed update()
 def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     """
     Return the blob of some data.
@@ -101,6 +102,19 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
         s.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
         s.update(data_bytes)
     return s.hexdigest()
+
+
+# FIXME implement s3etag class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
+def s3etag(path_or_data, encoding='utf-8', is_path=False, chunk_size=AWS_S3_ETAG_CHUNK_SIZE):
+    """
+    Credits: https://zihao.me/post/calculating-etag-for-aws-s3-objects/
+    Note: Override `chunk_size` at your own risk.
+    """
+    md5s = []
+    for data_bytes in get_bytes(path_or_data, encoding, is_path, chunk_size):
+        md5s.append(hashlib.md5(data_bytes).digest())
+    m = hashlib.md5(b''.join(md5s))
+    return '{0}-{1}'.format(m.hexdigest(), len(md5s))
 
 
 def guess_algorithm(checksum, algorithms=None, unique=False):
