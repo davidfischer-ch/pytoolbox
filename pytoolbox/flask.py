@@ -12,12 +12,12 @@ __all__ = ['STATUS_TO_EXCEPTION', 'check_id', 'json_response', 'map_exceptions']
 STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
 
 
-def check_id(id):
-    if valid_uuid(id, objectid_allowed=False, none_allowed=False):
-        return uuid.UUID(id)
-    elif ObjectId is not None and valid_uuid(id, objectid_allowed=True, none_allowed=False):
-        return ObjectId(id)
-    raise ValueError(f'Wrong id format {id}')
+def check_id(value):
+    if valid_uuid(value, objectid_allowed=False, none_allowed=False):
+        return uuid.UUID(value)
+    if ObjectId is not None and valid_uuid(value, objectid_allowed=True, none_allowed=False):
+        return ObjectId(value)
+    raise ValueError(f'Wrong id format {value}')
 
 
 def json_response(status, value=None, include_properties=False):
@@ -65,9 +65,9 @@ def map_exceptions(exception):
             return exception['value']
         exception_class = STATUS_TO_EXCEPTION.get(exception['status'], Exception)
         raise exception_class(exception['value'])
-    elif isinstance(exception, HTTPException):
+    if isinstance(exception, HTTPException):
         raise exception
-    elif isinstance(exception, TypeError):
+    if isinstance(exception, TypeError):
         abort(400, str(exception))
     elif isinstance(exception, KeyError):
         abort(400, f'Key {exception} not found.')
@@ -79,3 +79,4 @@ def map_exceptions(exception):
         abort(501, str(exception))
     else:
         abort(500, f'{exception.__class__.__name__} {repr(exception)} {str(exception)}')
+    return None

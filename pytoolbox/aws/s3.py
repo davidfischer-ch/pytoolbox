@@ -28,7 +28,7 @@ def list_objects(s3, bucket_name, prefix='', patterns='*', regex=False):
         try:
             objects = page['Contents']
         except KeyError:
-            raise StopIteration
+            return
         for obj in objects:
             key = obj['Key']
             if any(p.match(key) for p in patterns):

@@ -7,7 +7,7 @@ from pytoolbox.network.http import download_ext
 
 def load_image(path):
     """Reverse channels because OpenCV loads images in BGR mode."""
-    return cv2.imread(path, 1)[..., ::-1]
+    return cv2.imread(path, 1)[..., ::-1]  # pylint:disable=no-member
 
 
 def load_to_file(uri):

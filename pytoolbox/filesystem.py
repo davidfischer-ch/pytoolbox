@@ -21,7 +21,7 @@ def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
     uid = to_user_id(user)
     gid = to_group_id(group)
     if recursive:
-        for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
+        for dirpath, _, filenames in os.walk(path, **walk_kwargs):
             os.chown(dirpath, uid, gid)
             for filename in filenames:
                 os.chown(os.path.join(dirpath, filename), uid, gid)
@@ -55,7 +55,7 @@ def find_recursive(directory, patterns, regex=False, **walk_kwargs):
     True
     """
     patterns = from_path_patterns(patterns, regex=regex)
-    for dirpath, dirnames, filenames in os.walk(directory, **walk_kwargs):
+    for dirpath, _, filenames in os.walk(directory, **walk_kwargs):
         for filename in filenames:
             filename = os.path.join(dirpath, filename)
             if any(p.match(filename) for p in patterns):
@@ -185,7 +185,7 @@ def get_size(path, **walk_kwargs):
     if os.path.isfile(path):
         return os.stat(path).st_size
     size = 0
-    for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
+    for dirpath, _, filenames in os.walk(path, **walk_kwargs):
         for filename in filenames:
             size += os.stat(os.path.join(dirpath, filename)).st_size
     return size
@@ -218,7 +218,7 @@ def makedirs(path, parent=False):
         raise  # Re-raise exception if a different error occurred
 
 
-def recursive_copy(
+def recursive_copy(  # pylint:disable=too-many-locals
     source_path,
     destination_path,
     progress_callback=None,
@@ -244,7 +244,7 @@ def recursive_copy(
         src_size, dst_size = get_size(source_path), 0
 
         # Recursive copy of a directory of files
-        for src_root, dirnames, filenames in os.walk(source_path):
+        for src_root, _, filenames in os.walk(source_path):
             for filename in filenames:
                 dst_root = src_root.replace(source_path, destination_path)
                 src_path = os.path.join(src_root, filename)
@@ -350,7 +350,7 @@ def remove(path, recursive=False):
         except Exception as e:
             # Is a directory and recursion is allowed
             if recursive and (
-                isinstance(e, OSError) and e.errno == errno.EISDIR
+                isinstance(e, OSError) and e.errno == errno.EISDIR  # pylint:disable=no-member
                 or PermissionError is not None and isinstance(e, PermissionError)
             ):
                 shutil.rmtree(path)
@@ -411,20 +411,19 @@ def symlink(source, link_name):
         link_name = os.path.expanduser(link_name)
         os.symlink(source, link_name)
         return True
-    except OSError as e1:
+    except OSError as e1:  # pylint:disable=invalid-name
         # File exists
         if e1.errno == errno.EEXIST:
             try:
                 if os.path.samefile(source, link_name):
                     return False
-            except OSError as e2:
+            except OSError as e2:  # pylint:disable=invalid-name
                 # Handle broken symlink that point to same target
                 target = os.path.expanduser(os.readlink(link_name))
                 if e2.errno == errno.ENOENT:
                     if target == source:
                         return False
-                    else:
-                        raise OSError(errno.EEXIST, 'File exists')
+                    raise OSError(errno.EEXIST, 'File exists')  # pylint:disable=raise-missing-from
                 raise
         raise  # Re-raise exception if a different error occurred
 
@@ -465,7 +464,7 @@ class TempStorage(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, kind, value, traceback):
         self.remove_all()
 
     def create_tmp_directory(self, path='tmp-{uuid}', key=None, user=None, group=None):

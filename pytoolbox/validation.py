@@ -89,12 +89,12 @@ def valid_filename(path):
     True
     """
     try:
-        return True if re.match(r'[^\.]+\.[^\.]+', path) else False
-    except Exception:
+        return bool(re.match(r'[^\.]+\.[^\.]+', path))
+    except Exception:  # pylint:disable=broad-except
         return False
 
 
-def valid_ip(ip):
+def valid_ip(address):
     """
     Returns True if `ip` is a valid IP address.
 
@@ -106,9 +106,9 @@ def valid_ip(ip):
     True
     """
     try:
-        ip_address(ip)
+        ip_address(address)
         return True
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         return False
 
 
@@ -124,8 +124,8 @@ def valid_email(email):
     True
     """
     try:
-        return True if re.match(r'[^@]+@[^@]+\.[^@]+', email) else False
-    except Exception:
+        return bool(re.match(r'[^@]+@[^@]+\.[^@]+', email))
+    except Exception:  # pylint:disable=broad-except
         return False
 
 
@@ -143,7 +143,7 @@ def valid_int(value):
     try:
         int(value)
         return True
-    except ValueError:
+    except ValueError:  # pylint:disable=broad-except
         return False
 
 
@@ -161,7 +161,7 @@ def valid_port(port):
     """
     try:
         return 0 <= int(port) < 2**16
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         return False
 
 
@@ -185,8 +185,8 @@ def valid_secret(secret, none_allowed):
     if secret is None and none_allowed:
         return True
     try:
-        return True if re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) else False
-    except Exception:
+        return bool(re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret))
+    except Exception:  # pylint:disable=broad-except
         return False
 
 
@@ -233,8 +233,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
         conn = http.client.HTTPConnection(url.netloc, url.port or default_port, timeout=timeout)
         try:
             conn.request('HEAD', url.path)
-            response = conn.getresponse()
-            return response.status != 404
+            return conn.getresponse().status != 404
         except socket.error as e:
             # Resource does not exist
             if isinstance(e, socket.timeout) or e.errno in excepted_errnos:
@@ -245,7 +244,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     return True
 
 
-def valid_uuid(id, objectid_allowed=False, none_allowed=False):
+def valid_uuid(value, objectid_allowed=False, none_allowed=False):
     """
     Returns True if `id` is a valid UUID / ObjectId.
 
@@ -272,17 +271,17 @@ def valid_uuid(id, objectid_allowed=False, none_allowed=False):
     >>> valid_uuid(ObjectId().binary, objectid_allowed=True)
     True
     """
-    if id is None and none_allowed:
+    if value is None and none_allowed:
         return True
     try:
-        uuid.UUID('{{{0}}}'.format(id))
+        uuid.UUID('{{{0}}}'.format(value))
     except ValueError:
         if not objectid_allowed:
             return False
         if ObjectId is None:
-            raise RuntimeError('bson library not installed')
+            raise RuntimeError('bson library not installed')  # pylint:disable=raise-missing-from
         try:
-            ObjectId(id)
+            ObjectId(value)
         except InvalidId:
             return False
     return True

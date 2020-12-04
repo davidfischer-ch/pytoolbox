@@ -6,10 +6,10 @@ from .subprocess import cmd
 _all = module.All(globals())
 
 
-class cached_property(object):  # pylint:disable=too-few-public-methods
+class cached_property(object):  # pylint:disable=invalid-name
     """
-    Decorator that converts a method with a single self argument into a property cached on the
-    instance.
+    Decorator that converts a method with a single self argument into a property
+    cached on the instance.
 
     Optional ``name`` argument allows you to make cached properties of other methods.
     For example ``url=cached_property(get_absolute_url, name='url')``.
@@ -30,8 +30,10 @@ class cached_property(object):  # pylint:disable=too-few-public-methods
 
 def deprecated(func):
     """
-    Decorator that can be used to mark functions as deprecated. It will result in a warning being
-    emitted when the function is used. Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
+    Decorator that can be used to mark functions as deprecated.
+    It will result in a warning being emitted when the function is used.
+
+    Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
     """
     @functools.wraps(func)
     def _deprecated(*args, **kwargs):
@@ -44,7 +46,7 @@ def deprecated(func):
     return _deprecated
 
 
-class hybridmethod(object):  # pylint:disable=too-few-public-methods
+class hybridmethod(object):  # pylint:disable=invalid-name
     """
     Decorator that allows a method to be both used as a class method and an instance method.
 
@@ -131,10 +133,11 @@ def root_required(error_message='This script must be run as root.'):
 def run_once(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
-        if not wrapper.executed:
-            result = f(*args, **kwargs)
-            wrapper.executed = True
-            return result
+        if wrapper.executed:
+            return None
+        result = f(*args, **kwargs)
+        wrapper.executed = True
+        return result
     wrapper.executed = False
     return wrapper
 

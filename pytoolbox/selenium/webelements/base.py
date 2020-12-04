@@ -28,6 +28,7 @@ class WebElement(common.FindMixin, webelement.WebElement):
             except StopIteration:
                 self._specialize_default(component)
 
-    def _specialize_default(self, component):
+    @staticmethod
+    def _specialize_default(component):
         raise exceptions.NoSuchSpecializedElementException(
             f'Unable to find a class implementing the component {component}.')

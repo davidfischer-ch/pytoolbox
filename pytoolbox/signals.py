@@ -12,7 +12,7 @@ def propagate_handler(signum, frame):
     for handler in reversed(handlers_by_signal[signum]):
         try:
             handler(signum, frame)
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             errors[handler] = e
     if errors:
         raise RuntimeError(errors)
@@ -21,7 +21,7 @@ def propagate_handler(signum, frame):
 def register_handler(signum, handler, append=True, reset=False):
     old_handler = signal.getsignal(signum)
     signal.signal(signum, propagate_handler)
-    if inspect.isfunction(old_handler) and old_handler != propagate_handler:
+    if inspect.isfunction(old_handler) and old_handler is not propagate_handler:
         handlers_by_signal[signum].append(old_handler)
     handlers = handlers_by_signal[signum]
     if not append and handlers:

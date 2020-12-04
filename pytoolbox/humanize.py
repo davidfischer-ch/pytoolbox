@@ -71,7 +71,7 @@ def naturalfilesize(
     format='{sign}{value:.3g} {unit}',
     scale=None,
     args=DEFAULT_FILESIZE_ARGS
-):  # pylint:disable=redefined-builtin
+):  # pylint:disable=dangerous-default-value,redefined-builtin
     """
     Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
 
@@ -114,13 +114,13 @@ def naturalfilesize(
 
 
 def naturalfrequency(
-    hz,
+    hertz,
     format='{sign}{value:.3g} {unit}',
     scale=None,
     units=DEFAULT_FREQUENCY_UNITS
-):  # pylint:disable=redefined-builtin
+):  # pylint:disable=dangerous-default-value,redefined-builtin
     """
-    Return a human readable representation of a frequency taking `hz` as the frequency in Hz.
+    Return a human readable representation of a frequency taking `hertz` as the frequency in Hz.
 
     The unit is taken from:
 
@@ -146,7 +146,7 @@ def naturalfrequency(
     >>> naturalfrequency(3210837, scale=1, format='{value:.2f} {unit}')
     '3210.84 kHz'
     """
-    return _naturalnumber(hz, base=1000, format=format, scale=scale, units=units)
+    return _naturalnumber(hertz, base=1000, format=format, scale=scale, units=units)
 
 
 def natural_int_key(text):

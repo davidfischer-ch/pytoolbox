@@ -4,7 +4,7 @@ from pytoolbox import module
 
 _all = module.All(globals())
 
-from PIL import Image  # noqa
+from PIL import Image  # noqa pylint:disable=wrong-import-position
 
 TRANSPOSE_SEQUENCES = {
     None: [],
@@ -27,13 +27,17 @@ def get_orientation(image, orientation_tag=0x0112, no_exif_default=None, no_key_
         return no_key_default
 
 
-def apply_orientation(image, get_orientation=get_orientation, sequences=TRANSPOSE_SEQUENCES):
+def apply_orientation(  # pylint:disable=redefined-outer-name
+    image,
+    get_orientation=get_orientation,
+    sequences=TRANSPOSE_SEQUENCES
+):
     """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
     orientation = get_orientation(image)
     return functools.reduce(lambda i, op: i.transpose(op), sequences.get(orientation, []), image)
 
 
-def open(file_or_path):
+def open(file_or_path):  # pylint:disable=redefined-builtin
     image = Image.open(file_or_path)
     try:
         image.load()

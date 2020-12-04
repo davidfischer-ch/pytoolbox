@@ -85,7 +85,7 @@ class Stream(BaseInfo):
 
     codec_class = Codec
 
-    def __init__(self, info):
+    def __init__(self, info):  # pylint:disable=super-init-not-called
         for attr in get_slots(self):
             if attr == 'codec':
                 self.codec = self.codec_class(info)
@@ -232,7 +232,7 @@ class VideoStream(Stream):
         return None if value is None else int(value)
 
     @property
-    def rotation(self):
+    def rotation(self):  # pylint:disable=no-member
         return int(0 if self.tags is None else self.tags.get('rotate', 0))
 
 

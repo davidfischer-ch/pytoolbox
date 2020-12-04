@@ -26,6 +26,7 @@ class TimeThrottle(object):
     >>> list(t2.throttle_iterable(slow_range(3)))
     [0, 1, 2]
     """
+
     def __init__(self, min_time_delta):
         self.min_time_delta = total_seconds(min_time_delta)
         self.previous_time = None
@@ -36,7 +37,7 @@ class TimeThrottle(object):
             self._update()
             return False
         if time.time() - self.previous_time >= total_seconds(self.min_time_delta):
-            return self._update()
+            self._update()
             return False
         return True
 
@@ -77,13 +78,14 @@ class TimeAndRatioThrottle(TimeThrottle):
     >>> list(t2.throttle_iterable(slow_range(9), lambda i: [i/9]))
     [0, 3, 6, 8]
     """
+
     def __init__(self, min_ratio_delta, min_time_delta, max_time_delta):
         super().__init__(min_time_delta)
         self.min_ratio_delta = total_seconds(min_ratio_delta)
         self.max_time_delta = total_seconds(max_time_delta)
         self.previous_ratio = 0
 
-    def is_throttled(self, ratio):
+    def is_throttled(self, ratio):  # pylint:disable=arguments-differ
         """Return a boolean indicating if you should throttle."""
         if not self.previous_time:
             self._update(ratio)
@@ -99,7 +101,7 @@ class TimeAndRatioThrottle(TimeThrottle):
             return False
         return True
 
-    def _update(self, ratio):
+    def _update(self, ratio):  # pylint:disable=arguments-differ
         super()._update()
         self.previous_ratio = ratio
 

@@ -41,11 +41,11 @@ def _to_camel(string, separator):
         suffix = separator
     if len(components) > 1:
         camel_case_string = components[0].lower()
-        for x in components[1:]:
-            if x.isupper() or x.istitle():
-                camel_case_string += x
+        for component in components[1:]:
+            if component.isupper() or component.istitle():
+                camel_case_string += component
             else:
-                camel_case_string += x.title()
+                camel_case_string += component.title()
     else:
         camel_case_string = components[0]
     return preffix + camel_case_string + suffix

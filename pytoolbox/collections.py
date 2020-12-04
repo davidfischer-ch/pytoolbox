@@ -49,30 +49,41 @@ class EventsTable(object):
 
         **Example usage**
 
-        >>> from pytoolbox.unittest import asserts
         >>> table = EventsTable({0: 'salut'}, 24, 60)
-        >>> asserts.equal(table.sleep_time(1), 59)
-        >>> asserts.equal(table.sleep_time(58), 2)
-        >>> asserts.equal(table.sleep_time(60), 60)
-        >>> asserts.equal(table.sleep_time(62), 58)
-        >>> asserts.equal(table.sleep_time(3590, time_speedup=1), 10)
-        >>> asserts.equal(table.sleep_time(12543, time_speedup=1), 1857)
-        >>> asserts.equal(table.sleep_time(12543, time_speedup=1, sleep_factor=2), 57)
-        >>> asserts.equal(table.sleep_time(12600, time_speedup=1, sleep_factor=2), 1800)
-        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=1), 59)
-        >>> asserts.equal(table.sleep_time(1, time_speedup=60, sleep_factor=2), 29)
-        >>> asserts.equal(table.sleep_time(30, time_speedup=60, sleep_factor=2), 30)
+        >>> table.sleep_time(1)
+        59
+        >>> table.sleep_time(58)
+        2
+        >>> table.sleep_time(60)
+        60
+        >>> table.sleep_time(62)
+        58
+        >>> table.sleep_time(3590, time_speedup=1)
+        10
+        >>> table.sleep_time(12543, time_speedup=1)
+        1857
+        >>> table.sleep_time(12543, time_speedup=1, sleep_factor=2)
+        57
+        >>> table.sleep_time(12600, time_speedup=1, sleep_factor=2)
+        1800
+        >>> table.sleep_time(1, time_speedup=60, sleep_factor=1)
+        59
+        >>> table.sleep_time(1, time_speedup=60, sleep_factor=2)
+        29
+        >>> table.sleep_time(30, time_speedup=60, sleep_factor=2)
+        30
         >>> table.time_range = 1
-        >>> asserts.equal(table.sleep_time(1, time_speedup=1), 149)
+        >>> table.sleep_time(1, time_speedup=1)
+        149
         """
         # 150 = 3600 / 24
         speedup = time_speedup or self.time_speedup
         factor = sleep_factor or self.sleep_factor
-        d = self.time_range * 150 / (speedup * factor)
-        return math.ceil(d - (total_seconds(time) % d))
+        duration = self.time_range * 150 / (speedup * factor)
+        return math.ceil(duration - (total_seconds(time) % duration))
 
 
-class pygal_deque(collections.deque):
+class pygal_deque(collections.deque):  # pylint:disable=invalid-name
     """
     A deque None'ing duplicated values to produce nicer `pygal <pygal.org>`_ line charts
     (e.g. 5555322211111 -> 5__532_21___1).
@@ -257,7 +268,6 @@ def window(values, index, delta):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
     >>> window(['a'], 0, 2)
     (['a'], 0, 0)
     >>> window(['a', 'b', 'c', 'd'], 2, 0)

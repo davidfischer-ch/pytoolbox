@@ -97,13 +97,13 @@ class PickleableObject(object):
         try:
             with open(path, 'rb') as f:
                 the_object = pickle.load(f)
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             if not create_if_error:
                 raise
             the_object = cls(**kwargs)
             the_object.write(path, store_path=store_path)
         if store_path:
-            the_object._pickle_path = path
+            the_object._pickle_path = path  # pylint:disable=all
         return the_object
 
     def write(self, path=None, store_path=False, safe=False, backup=False, makedirs=False):
@@ -124,16 +124,17 @@ class PickleableObject(object):
                 makedirs=makedirs)
         finally:
             if store_path:
-                self._pickle_path = path
+                self._pickle_path = path  # pylint:disable=attribute-defined-outside-init
             elif pickle_path:
-                self._pickle_path = pickle_path
+                self._pickle_path = pickle_path  # pylint:disable=attribute-defined-outside-init
 
 
 # Object <-> JSON string ---------------------------------------------------------------------------
 
 # http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
-    def default(self, obj):
+
+    def default(self, obj):  # pylint:disable=arguments-differ
         if ObjectId is not None and isinstance(obj, ObjectId):
             return str(obj)
         if hasattr(obj, '__dict__'):
@@ -142,16 +143,17 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 
 
 class SmartJSONEncoderV2(json.JSONEncoder):
-    def default(self, obj):
+
+    def default(self, obj):  # pylint:disable=arguments-differ
         if isinstance(obj, ObjectId):
             return str(obj)
         attributes = {}
-        for a in inspect.getmembers(obj):
-            if inspect.isroutine(a[1]) or inspect.isbuiltin(a[1]) or a[0].startswith('__'):
+        for attr in inspect.getmembers(obj):
+            if inspect.isroutine(attr[1]) or inspect.isbuiltin(attr[1]) or attr[0].startswith('__'):
                 continue
-            if hasattr(obj.__dict__, a[0]) and not isinstance(a[1], property):
+            if hasattr(obj.__dict__, attr[0]) and not isinstance(attr[1], property):
                 continue
-            attributes[a[0]] = a[1]
+            attributes[attr[0]] = attr[1]
         return attributes
 
 
@@ -185,7 +187,9 @@ def object_to_json(obj, include_properties, **kwargs):
     }
     """
     return json.dumps(
-        obj, cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1), **kwargs)
+        obj,
+        cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1),
+        **kwargs)
 
 
 def json_to_object(cls, json_string, inspect_constructor):
@@ -297,13 +301,14 @@ class JsoneableObject(object):
     True
     >>> asserts.dict_equal(media_back.author.__dict__, media.author.__dict__)
     """
+
     @classmethod
     def read(cls, path, store_path=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(path, 'r') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
             if store_path:
-                the_object._json_path = path
+                the_object._json_path = path  # pylint:disable=all
             return the_object
 
     def write(self, path=None, include_properties=False, safe=False, backup=False, makedirs=False,
@@ -321,7 +326,7 @@ class JsoneableObject(object):
                     backup=backup,
                     makedirs=makedirs)
             finally:
-                self._json_path = path
+                self._json_path = path  # pylint:disable=attribute-defined-outside-init
         elif path is not None:
             to_file(
                 path,

@@ -9,7 +9,12 @@ from . import module
 _all = module.All(globals())
 
 
-def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):
+def datetime_now(
+    format='%Y-%m-%d %H:%M:%S',
+    append_utc=False,
+    offset=None,
+    tz=pytz.utc
+):  # pylint:disable=redefined-builtin
     """
     Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a
     timezone. If `format` is not None, the date will be returned in a formatted string.
@@ -71,8 +76,8 @@ def str_to_datetime(
 ):  # pylint:disable=redefined-builtin
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
-    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5
-    minutes.
+    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at
+    midnight and 5 minutes.
 
     **Example usage**
 
@@ -92,8 +97,8 @@ def str_to_datetime(
 
 def multiply_time(value, factor, as_delta=False):
     """
-    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` corresponding to
-    `value` multiplied by a `factor`.
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`
+    corresponding to `value` multiplied by a `factor`.
 
     **Example usage**
 
@@ -237,9 +242,9 @@ def total_seconds(time):
     try:
         if isinstance(time, datetime.timedelta):
             return time.total_seconds()
-        elif isinstance(time, numbers.Number):
+        if isinstance(time, numbers.Number):
             return time
-        elif isinstance(time, str):
+        if isinstance(time, str):
             hours, minutes, seconds = time.split(':')
         else:
             hours, minutes, seconds = time.hour, time.minute, time.second

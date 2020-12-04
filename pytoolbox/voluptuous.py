@@ -25,7 +25,7 @@ class VersionInvalid(voluptuous.Invalid):
 # Validators
 
 @voluptuous.message('Incorrect e-mail address')
-def Email(value):
+def Email(value):  # pylint:disable=invalid-name
     value = str(value)
     if not validation.valid_email(value):
         raise ValueError
@@ -33,7 +33,7 @@ def Email(value):
 
 
 @voluptuous.message('Incorrect list of e-mail addresses')
-def EmailSet(values):
+def EmailSet(values):  # pylint:disable=invalid-name
     emails = set()
     for value in values or []:
         email = str(value)
@@ -44,13 +44,13 @@ def EmailSet(values):
 
 
 @voluptuous.message('Incorrect git commit hash')
-def GitCommitHash(value):
+def GitCommitHash(value):  # pylint:disable=invalid-name
     if re.match(r'^[0-9a-f]{40}$', value):
         return value
     raise ValueError
 
 
-def Password(length=16, msg=None):
+def Password(length=16, msg=None):  # pylint:disable=invalid-name
 
     @functools.wraps(Password)
     def f(value):
@@ -61,18 +61,18 @@ def Password(length=16, msg=None):
 
 
 @voluptuous.message('Incorrect percentage')
-def Percent(value):
+def Percent(value):  # pylint:disable=invalid-name
     return voluptuous.Range(min=1, max=100)(value)
 
 
 @voluptuous.message('Incorrect SHA-256 checksum')
-def SHA256(value):
+def SHA256(value):  # pylint:disable=invalid-name
     if re.match(r'^[0-9a-f]{64}$', value):
         return value
     raise ValueError
 
 
-def Version(digits=4, msg=None):
+def Version(digits=4, msg=None):  # pylint:disable=invalid-name
     assert 1 <= digits <= 4
 
     @functools.wraps(Version)

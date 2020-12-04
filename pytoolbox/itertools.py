@@ -44,10 +44,10 @@ def chunk(objects, length, of_type=list):
     """
     iterable = iter(objects)
     while True:
-        chunk = of_type(itertools.islice(iterable, 0, length))
-        if not chunk:
+        data = of_type(itertools.islice(iterable, 0, length))
+        if not data:
             break
-        yield chunk
+        yield data
 
 
 def extract_single(objects):

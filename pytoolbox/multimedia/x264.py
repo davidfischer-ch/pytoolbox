@@ -15,23 +15,27 @@ ENCODING_REGEX = re.compile(
 
 class X264(FFmpeg):
 
-    encoding_regex = ENCODING_REGEX
-    encoding_executable = 'x264'
+    # encoding_regex = ENCODING_REGEX
+    executable = 'x264'
 
-    def _get_arguments(self, in_paths, out_path, options):
-        in_paths = [f for f in ([in_paths] if isinstance(in_paths, str) else in_paths)]
-        if len(in_paths) > 1:
-            raise NotImplementedError('Unable to handle more than one input.')
-        out_path = out_path or '/dev/null'
-        options = (shlex.split(options) if isinstance(options, str) else options) or []
-        args = [self.encoder_executable] + options + ['-o', out_path] + in_paths
-        return args, in_paths, out_path, options
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
 
-    def _get_progress(self, in_duration, stats):
-        out_duration = in_duration * float(stats['percent'])
-        ratio = float(stats['frame']) / float(stats['frame_total'])
-        return out_duration, ratio
+    def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
+        raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
+        # in_paths = [f for f in ([in_paths] if isinstance(in_paths, str) else in_paths)]
+        # if len(in_paths) > 1:
+        #     raise NotImplementedError('Unable to handle more than one input.')
+        # out_path = out_path or '/dev/null'
+        # options = (shlex.split(options) if isinstance(options, str) else options) or []
+        # args = [self.executable] + options + ['-o', out_path] + in_paths
+        # return args, in_paths, out_path, options
 
-    def _clean_statistics(self, stats, **statistics):
-        statistics.setdefault('eta_time', datetime.timedelta(seconds=total_seconds(stats['eta'])))
-        return statistics
+    # def _get_progress(self, in_duration, stats):
+    #     out_duration = in_duration * float(stats['percent'])
+    #     ratio = float(stats['frame']) / float(stats['frame_total'])
+    #     return out_duration, ratio
+
+    # def _clean_statistics(self, stats, **statistics):
+    #     statistics.setdefault('eta_time', datetime.timedelta(seconds=total_seconds(stats['eta'])))
+    #     return statistics

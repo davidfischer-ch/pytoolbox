@@ -60,7 +60,7 @@ def set_columns(value=None, default=120):
     os.environ['COLUMNS'] = str(value)
 
 
-class FullPaths(argparse.Action):  # pylint:disable=too-few-public-methods
+class FullPaths(argparse.Action):
     """Expand user/relative paths."""
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -70,7 +70,7 @@ class FullPaths(argparse.Action):  # pylint:disable=too-few-public-methods
         setattr(namespace, self.dest, value)
 
 
-class Range(object):  # pylint:disable=too-few-public-methods
+class Range(object):
 
     def __init__(self, type, min, max):  # pylint:disable=redefined-builtin
         self.type = type

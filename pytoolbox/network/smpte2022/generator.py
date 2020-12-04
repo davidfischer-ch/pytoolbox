@@ -1,5 +1,4 @@
 from pytoolbox.network.rtp import RtpPacket
-
 from .base import FecPacket
 
 __all__ = ['FecGenerator']

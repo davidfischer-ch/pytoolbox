@@ -53,7 +53,7 @@ class Image(tag.TagSet):
         data = self.metadata['Exif.Image.Orientation'].data
         try:
             return Orientation(data)
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             return None
 
     @property

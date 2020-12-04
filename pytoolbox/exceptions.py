@@ -30,7 +30,6 @@ class CorruptedFileError(MessageMixin, Exception):
 
 class ForbiddenError(Exception):
     """A forbidden error."""
-    pass
 
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
@@ -83,13 +82,14 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
         if delete:
             del something[index]
         elif value is None:
-            something[index]
+            something[index]  # pylint:disable=pointless-statement
         else:
             something[index] = value
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         if not isinstance(e, exception_cls):
             raise ValueError(
-                f'Exception {e.__class__.__name__} is not an instance of {exception_cls.__name__}.')
+                f'Exception {e.__class__.__name__} is not '
+                f'an instance of {exception_cls.__name__}.') from e
         return
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')
 

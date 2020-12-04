@@ -67,7 +67,7 @@ def setup_logging(
         log.handlers = []
     log.setLevel(level)
     if colorize:
-        log.addFilter(ColorizeFilter())
+        log.addFilter(ColorizeFilter(color_by_level=color_by_level))
     if path:
         handler = logging.FileHandler(path)
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))

@@ -9,12 +9,18 @@ def to_unicode(message, encoding='utf-8'):
     return str(message)
 
 
-def csv_reader(path, delimiter=';', quotechar='"', encoding='utf-8'):
+def csv_reader(
+    path,
+    delimiter=';',
+    quotechar='"',  # pylint:disable=unused-argument
+    encoding='utf-8'
+):
     """Yield the content of a CSV file."""
     with open(path, 'r', encoding) as f:
         for line in f.readlines():
             line = line.strip()
-            yield [cell for cell in line.split(delimiter)]
+            yield from line.split(delimiter)
+
     # import csv
     # reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
     # for row in reader:

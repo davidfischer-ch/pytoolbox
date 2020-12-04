@@ -31,7 +31,7 @@ def kill(process):
             raise
 
 
-def su(user, group):
+def su(user, group):  # pylint:disable=invalid-name
     """
     Return a function to change current user/group id.
 
@@ -48,13 +48,13 @@ def su(user, group):
 
 
 # http://stackoverflow.com/a/7730201/190597
-def make_async(fd):
+def make_async(fd):  # pylint:disable=invalid-name
     """Add the O_NONBLOCK flag to a file descriptor."""
     fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
 
 
 # http://stackoverflow.com/a/7730201/190597
-def read_async(fd):
+def read_async(fd):  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()

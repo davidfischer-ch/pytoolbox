@@ -1,6 +1,5 @@
 from pytoolbox import decorators
-
-from . import brand, equipment
+from . import brand, equipment  # pylint:disable=unused-import
 
 __all__ = ['Lens']
 

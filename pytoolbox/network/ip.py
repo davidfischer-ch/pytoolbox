@@ -3,7 +3,7 @@ from ipaddress import ip_address
 __all__ = ['ip_address', 'IPSocket']
 
 
-def IPSocket(string):
+def IPSocket(string):  # pylint:disable=invalid-name
     """
     This helper create a dictionary containing address and port from a parsed IP address string.
     Throws ValueError in case of failure (e.g. string is not a valid IP address).
@@ -25,10 +25,10 @@ def IPSocket(string):
         TODO IPv6 ready : >>> IPSocket('[2001:0db8:0000:0000:0000:ff00:0042]:8329')
     """
     try:
-        (ip, port) = string.rsplit(':', 1)
-        # ip = ip.translate(None, '[]')
-        ip_address(ip)  # Seem not IPv6 ready
+        (address, port) = string.rsplit(':', 1)
+        # address = address.translate(None, '[]')
+        ip_address(address)  # Seem not IPv6 ready
         port = int(port)
     except Exception:
         raise ValueError(f'{string} is not a valid IP socket.')
-    return {'ip': ip, 'port': port}
+    return {'ip': address, 'port': port}

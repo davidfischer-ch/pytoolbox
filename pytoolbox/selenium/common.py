@@ -5,13 +5,16 @@ __all__ = ['FindMixin']
 
 class FindMixin(object):
 
-    def clean_elements(self, elements, criteria, force_list=False, fail=True):
+    @staticmethod
+    def clean_elements(elements, criteria, force_list=False, fail=True):
         if elements:
             return elements if force_list or len(elements) > 1 else elements[0]
         if fail:
             raise exceptions.NoSuchElementException(criteria)
+        return None
 
     def find_css(self, css_selector, prefix=True, force_list=False, fail=True):
+        assert prefix  # Not implemented
         elements = self.find_elements_by_css_selector(css_selector)
         return self.clean_elements(elements, css_selector, force_list, fail)
 

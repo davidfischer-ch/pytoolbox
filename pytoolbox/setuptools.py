@@ -12,5 +12,5 @@ class Disabled(setuptools.Command):
     def finalize_options(self):
         pass
 
-    def run(self):
+    def run(self):  # pylint:disable=no-self-use
         sys.exit('This command is disabled!')

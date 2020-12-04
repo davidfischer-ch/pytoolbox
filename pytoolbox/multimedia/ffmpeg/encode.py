@@ -129,6 +129,7 @@ class EncodeStatistics(object):
     def _compute_ratio(self):
         if self.input.duration and self.output.duration is not None:
             return time_ratio(self.output.duration, self.input.duration)
+        return None
 
     @staticmethod
     def _get_subclip_duration_and_size(duration, size, out_options):

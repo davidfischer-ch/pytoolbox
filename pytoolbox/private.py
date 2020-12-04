@@ -1,6 +1,6 @@
 try:
-    from bson.objectid import InvalidId, ObjectId
-except Exception:
+    from bson.objectid import InvalidId, ObjectId  # pylint:disable=unused-import
+except ImportError:
     InvalidId = ObjectId = None
 
 
