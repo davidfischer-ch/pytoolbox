@@ -15,8 +15,8 @@ _all = module.All(globals())
 
 def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
     """
-    Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it
-    unchanged.
+    Change owner/group of a path, can be recursive.
+    Both can be a name, an id or None to leave it unchanged.
     """
     uid = to_user_id(user)
     gid = to_group_id(group)
@@ -31,8 +31,8 @@ def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
 
 def find_recursive(directory, patterns, regex=False, **walk_kwargs):
     """
-    Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions,
-    if necessary.
+    Yield filenames matching any of the patterns.
+    Patterns will be compiled to regular expressions, if necessary.
 
     If `regex` is set to True, then any string pattern will be converted from the unix-style
     wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
@@ -40,8 +40,8 @@ def find_recursive(directory, patterns, regex=False, **walk_kwargs):
     **Example usage**
 
     >>> import re
-    >>> print(next(find_recursive('/etc', '*/interfaces*')))
-    /etc/network/interfaces
+    >>> next(find_recursive('/etc', '*/interfaces*'))
+    '/etc/network/interfaces'
     >>> filenames = list(find_recursive('/etc/network', ['*/interfaces*', '*/*.jpg']))
     >>> '/etc/network/interfaces' in filenames
     True
@@ -75,12 +75,12 @@ def first_that_exist(*paths):
 
     **Example usage**
 
-    >>> print(first_that_exist('', '/etc', '.'))
-    /etc
-    >>> print(first_that_exist('does_not_exist.com', '', '..'))
-    ..
-    >>> print(first_that_exist('does_not_exist.ch'))
-    None
+    >>> first_that_exist('', '/etc', '.')
+    '/etc'
+    >>> first_that_exist('does_not_exist.com', '', '..')
+    '..'
+    >>> first_that_exist('does_not_exist.ch') is None
+    True
     """
     for path in paths:
         if os.path.exists(path):
@@ -108,31 +108,33 @@ def from_template(
 
     >>> template = '{{username={user}; password={pass}}}'
     >>> values = {'user': 'tabby', 'pass': 'miaow', 'other': 10}
-    >>> open('config.template', 'w', 'utf-8').write(template)
+    >>> with open('config.template', 'w') as f:
+    ...     f.write(template)
+    36
 
     The behavior when all keys are given (and even more):
 
     >>> _ = from_template('config.template', 'config', values)
-    >>> print(open('config', 'r', 'utf-8').read())
-    {username=tabby; password=miaow}
+    >>> open('config').read()
+    '{username=tabby; password=miaow}'
 
     >>> _ = from_template(template, 'config', values, is_file=False)
-    >>> print(open('config', 'r', 'utf-8').read())
-    {username=tabby; password=miaow}
+    >>> open('config').read()
+    '{username=tabby; password=miaow}'
 
     >>> def post_func(content, values, jinja2):
     ...     return content.replace('tabby', 'tikky')
-    >>> print(from_template(template, None, values, is_file=False, post_func=post_func))
-    {username=tikky; password=miaow}q
+    >>> from_template(template, None, values, is_file=False, post_func=post_func)
+    '{username=tikky; password=miaow}'
 
     The behavior if a value for a key is missing:
 
-    >>> from_template('config.template', 'config', {'pass': 'miaow', 'other': 10})  # doctest: +ELLIPSIS
+    >>> from_template('config.template', 'config', {'pass': 'miaow', 'other': 10})
     Traceback (most recent call last):
         ...
     KeyError: ...'user'
-    >>> print(open('config', 'r', 'utf-8').read())
-    {username=tabby; password=miaow}
+    >>> open('config').read()
+    '{username=tabby; password=miaow}'
 
     >>> os.remove('config.template')
     >>> os.remove('config')
@@ -177,8 +179,8 @@ def get_size(path, **walk_kwargs):
     """
     Returns the size of a file or directory.
 
-    If given `path` is a directory (or symlink to a directory), then returned value is computed by summing the size of
-    all files, and that recursively.
+    If given `path` is a directory (or symlink to a directory), then returned value is computed by
+    summing the size of all files, and that recursively.
     """
     if os.path.isfile(path):
         return os.stat(path).st_size
@@ -192,7 +194,8 @@ def get_size(path, **walk_kwargs):
 def makedirs(path, parent=False):
     """
     Recursively make directories (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if directory found and re-raise any other type of exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type
+    of exception.
 
     **Example usage**
 
@@ -266,9 +269,9 @@ def recursive_copy(
 
                     # Update status of job only if delta time or delta ratio is sufficient
                     if (
-                        progress_callback is not None and
-                        ratio - prev_ratio > ratio_delta and
-                        elapsed_time - prev_time > time_delta
+                        progress_callback is not None
+                        and ratio - prev_ratio > ratio_delta
+                        and elapsed_time - prev_time > time_delta
                     ):
                         prev_ratio = ratio
                         prev_time = elapsed_time
@@ -311,11 +314,14 @@ def recursive_copy(
 def remove(path, recursive=False):
     """
     Remove a file/directory (which may not exists) without throwing an exception.
-    Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
+    Returns True if operation is successful, False if file/directory not found and re-raise any
+    other type of exception.
 
     **Example usage**
 
-    >>> open('remove.example', 'w', encoding='utf-8').write('salut les pépés')
+    >>> with open('remove.example', 'w') as f:
+    ...     f.write('salut les pépés')
+    15
     >>> remove('remove.example')
     True
     >>> remove('remove.example')
@@ -323,7 +329,11 @@ def remove(path, recursive=False):
 
     >>> for file_name in ('remove/a', 'remove/b/c', 'remove/d/e/f'):
     ...     _ = makedirs(os.path.dirname(file_name))
-    ...     open(file_name, 'w', encoding='utf-8').write('salut les pépés')
+    ...     with open(file_name, 'w') as f:
+    ...         f.write('salut les pépés')
+    15
+    15
+    15
     >>> remove('remove/d/e', recursive=True)
     True
     >>> remove('remove/d/e', recursive=True)
@@ -340,8 +350,8 @@ def remove(path, recursive=False):
         except Exception as e:
             # Is a directory and recursion is allowed
             if recursive and (
-                isinstance(e, OSError) and e.errno == errno.EISDIR or
-                PermissionError is not None and isinstance(e, PermissionError)
+                isinstance(e, OSError) and e.errno == errno.EISDIR
+                or PermissionError is not None and isinstance(e, PermissionError)
             ):
                 shutil.rmtree(path)
                 return True
@@ -440,11 +450,12 @@ class TempStorage(object):
     As a context manager:
 
     >>> import os
-    >>> from pytoolbox.unittest import asserts
     >>> with TempStorage() as tmp:
     ...     directory = tmp.create_tmp_directory()
-    ...     asserts.true(os.path.isdir(directory))
-    >>> asserts.false(os.path.isdir(directory))
+    ...     os.path.isdir(directory)
+    True
+    >>> os.path.isdir(directory)
+    False
     """
     def __init__(self, root=None):
         self.root = root or tempfile.gettempdir()
@@ -462,10 +473,10 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> directory = tmp.create_tmp_directory()
-        >>> asserts.true(os.path.isdir(directory))
+        >>> os.path.isdir(directory)
+        True
         >>> tmp.remove_all()
         """
         directory = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex))
@@ -489,22 +500,24 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> path = tmp.create_tmp_file(encoding=None, return_file=False)
-        >>> asserts.true(os.path.isfile(path))
+        >>> os.path.isfile(path)
+        True
         >>> with tmp.create_tmp_file(extension='txt') as f:
-        ...     asserts.true(os.path.isfile(f.name))
-        ...     f.write('Je suis une théière')
+        ...     assert os.path.isfile(f.name)
+        ...     length = f.write('Je suis une théière')
         ...     path = f.name
-        >>> asserts.equal(open(path, encoding='utf-8').read(), 'Je suis une théière')
+        >>> length
+        19
+        >>> open(path).read()
+        'Je suis une théière'
         >>> tmp.remove_all()
         """
         mode = 'w' if encoding else 'wb'
         path = os.path.join(
             self.root,
-            path.format(uuid=uuid.uuid4().hex) +
-            ('.%s' % extension if extension else ''))
+            path.format(uuid=uuid.uuid4().hex) + (f'.{extension}' if extension else ''))
 
         self._path_to_key[path] = key
         self._paths_by_key[key].add(path)
@@ -539,15 +552,17 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_by_key(10)
-        >>> asserts.true(os.path.isdir(d1))
-        >>> asserts.false(os.path.isdir(d2))
+        >>> os.path.isdir(d1)
+        True
+        >>> os.path.isdir(d2)
+        False
         >>> tmp.remove_by_key()
-        >>> asserts.false(os.path.isdir(d1))
+        >>> os.path.isdir(d1)
+        False
         """
         paths = self._paths_by_key[key]
         for path in copy.copy(paths):
@@ -561,13 +576,14 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_all()
-        >>> asserts.false(os.path.isdir(d1))
-        >>> asserts.false(os.path.isdir(d2))
+        >>> os.path.isdir(d1)
+        False
+        >>> os.path.isdir(d2)
+        False
         >>> tmp.remove_all()
         """
         for key in self._paths_by_key.copy().keys():

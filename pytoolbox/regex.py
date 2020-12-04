@@ -18,10 +18,12 @@ def embed_in_regex(string, regex_parts, index, as_string=True):
     """
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.equal(embed_in_regex('L', ['[a-z]', '[a-z]'], 0), (0, 'L[a-z]'))
-    >>> asserts.equal(embed_in_regex('L', ['[a-z]', '[a-z]'], 1), (1, '[a-z]L'))
-    >>> asserts.equal(embed_in_regex('L', ['[a-z]', '[a-z]'], 1, as_string=False), (1, ['[a-z]', 'L']))
+    >>> embed_in_regex('L', ['[a-z]', '[a-z]'], 0)
+    (0, 'L[a-z]')
+    >>> embed_in_regex('L', ['[a-z]', '[a-z]'], 1)
+    (1, '[a-z]L')
+    >>> embed_in_regex('L', ['[a-z]', '[a-z]'], 1, as_string=False)
+    (1, ['[a-z]', 'L'])
     """
     regex = regex_parts[:]
     regex[index:index + len(string)] = string
@@ -32,15 +34,14 @@ def findall_partial(string, regex_parts):
     """
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
-    >>> result = [i for s, r, i in findall_partial(':', TIME_REGEX_PARTS)]
-    >>> asserts.list_equal(result, [2, 5])
-    >>> result = [embed_in_regex(s, r, i) for s, r, i in findall_partial('12:15:2', TIME_REGEX_PARTS)]
-    >>> asserts.list_equal(result, [(0, '12:15:2[0-9]')])
-    >>> result = [embed_in_regex(s, r, i) for s, r, i in findall_partial('18:2', TIME_REGEX_PARTS)]
-    >>> asserts.list_equal(result, [(0, '18:2[0-9]:[0-5][0-9]'), (3, '[0-2][0-9]:18:2[0-9]')])
-    >>> result = [embed_in_regex(s, r, i) for s, r, i in findall_partial('59:1', TIME_REGEX_PARTS)]
-    >>> asserts.list_equal(result, [(3, '[0-2][0-9]:59:1[0-9]')])
+    >>> [i for s, r, i in findall_partial(':', TIME_REGEX_PARTS)]
+    [2, 5]
+    >>> [embed_in_regex(s, r, i) for s, r, i in findall_partial('12:15:2', TIME_REGEX_PARTS)]
+    [(0, '12:15:2[0-9]')]
+    >>> [embed_in_regex(s, r, i) for s, r, i in findall_partial('18:2', TIME_REGEX_PARTS)]
+    [(0, '18:2[0-9]:[0-5][0-9]'), (3, '[0-2][0-9]:18:2[0-9]')]
+    >>> [embed_in_regex(s, r, i) for s, r, i in findall_partial('59:1', TIME_REGEX_PARTS)]
+    [(3, '[0-2][0-9]:59:1[0-9]')]
     """
     for index in range(0, len(regex_parts) - len(string) + 1):  # noqa
         regex = regex_parts[index:index + len(string)]
@@ -61,13 +62,13 @@ def from_path_patterns(patterns, regex=False):
     >>> from pytoolbox.unittest import asserts
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns('*.txt')],
-    ...     ['.*\\.txt\\Z(?ms)'])
+    ...     ['(?s:.*\\\\.txt)\\\\Z'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns(['text', 'something*'], '*.py')],
-    ...     ['text\\Z(?ms)', 'something.*\\Z(?ms)'])
+    ...     ['text', 'something*'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'fo?'])],
-    ...     ['a?c', 'fo.\\Z(?ms)'])
+    ...     ['a?c', '(?s:fo.)\\\\Z'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'foo?'], regex=True)],
     ...     ['a?c', 'foo?'])

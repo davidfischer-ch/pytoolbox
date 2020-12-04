@@ -54,11 +54,9 @@ class LiveClient(common.FindMixin):
             clear = element.is_displayed()
         if isinstance(element, self.web_driver.web_element_classes['select']):
             return element.select_by_value(value)
-        else:
-            if clear:
-                element.clear()
-            return element.send_keys(value)
-        raise NotImplementedError
+        if clear:
+            element.clear()
+        return element.send_keys(value)
 
     def submit(self):
         return self.find_css('form button.btn-primary[type="submit"]').click()

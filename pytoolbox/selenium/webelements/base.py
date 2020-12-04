@@ -11,7 +11,8 @@ class WebElement(common.FindMixin, webelement.WebElement):
         super().__init__(*args, **kwargs)
         self._specialize()
 
-    def clean_value(self, value):
+    @staticmethod
+    def clean_value(value):
         return value
 
     def get_attribute(self, name):

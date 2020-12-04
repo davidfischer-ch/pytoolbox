@@ -3,7 +3,6 @@ import json, os, socket, random, subprocess, sys, time, uuid, yaml
 from . import module
 from .console import confirm
 from .filesystem import from_template, remove, symlink
-from .exceptions import TimeoutError
 from .subprocess import cmd
 
 _all = module.All(globals())
@@ -60,9 +59,10 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
 
     Locking Juju status 'are you sure you want to continue connecting (yes/no)'.
 
-    We need a way to confirm our choice ``cmd('juju status --environment %s' % environment, cli_input='yes\\n')``
-    seem to not work as expected. This happens the first time (and only the first time) juju connect
-    to a freshly deployed environment.
+    We need a way to confirm our choice
+    ``cmd('juju status --environment %s' % environment, cli_input='yes\\n')``
+    seem to not work as expected. This happens the first time (and only the first time)
+    juju connect to a freshly deployed environment.
 
     Solution : http://askubuntu.com/questions/123072/ssh-automatically-accept-keys::
 
@@ -91,7 +91,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     if result['returncode'] != 0 and fail:
         raise RuntimeError(f"Subprocess failed {' '.join(arguments)} : {result['stderr']}.")
 
-    return yaml.load(result['stdout'])
+    return yaml.safe_load(result['stdout'])
 
 
 def load_unit_config(config, log=None):
@@ -109,7 +109,7 @@ def load_unit_config(config, log=None):
             log(f'Load config from file {config}')
 
         with open(config, 'r', encoding='utf-8') as f:
-            options = yaml.load(f)['options']
+            options = yaml.safe_load(f)['options']
             config = {}
             for option in options:
                 config[option] = options[option]['default']
@@ -166,7 +166,7 @@ def add_environment(
             'admin-secret': uuid.uuid4().hex
         }
     else:
-        raise NotImplementedError(f'Registration of {type} type of environment not yet implemented.')
+        raise NotImplementedError(f'Registration of {type} type of environment.')
 
     environments_dict['environments'][environment] = environment_dict
 
@@ -219,7 +219,7 @@ def get_environments(environments=None, get_status=False, status_timeout=None):
 
 def get_environments_count(environments=None):
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
-        return len(yaml.load(f)['environments'])
+        return len(yaml.safe_load(f)['environments'])
 
 
 # Units --------------------------------------------------------------------------------------------
@@ -287,7 +287,7 @@ class CharmHooks(object):
 
     Trigger some hooks:
 
-    >>> my_hooks = MyCharmHooks(metadata, config, DEFAULT_OS_ENV, force_disable_juju=True) # doctest: +ELLIPSIS
+    >>> my_hooks = MyCharmHooks(metadata, config, DEFAULT_OS_ENV, force_disable_juju=True)
     [DEBUG] Using juju False, reason: Disabled by user.
     [DEBUG] Load metadata from file ...
     >>>
@@ -476,11 +476,10 @@ class CharmHooks(object):
         >>> hasattr(hooks.config, 'pingu') or hasattr(hooks.config, 'rabbit_password')
         False
         >>> hooks.load_config({'pingu': 'bi bi'})
-        >>> print(hooks.config.pingu)
-        bi bi
+        >>> hooks.config.pingu
+        'bi bi'
         >>> hooks.config.verbose = True
-        >>>
-        >>> hooks.load_config(config)  # doctest: +ELLIPSIS
+        >>> hooks.load_config(config)
         [DEBUG] Load config from file ...
         [DEBUG] Convert boolean option ... true -> True
         [DEBUG] Convert boolean option ... true -> True
@@ -509,24 +508,24 @@ class CharmHooks(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
         >>> metadata = os.path.join(
         ...     here, '../../..' if 'build/lib' in here else '..', 'tests/metadata.yaml')
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.metadata
         >>> hooks.load_metadata({'ensemble': 'oscied'})
-        >>> asserts.equal(hooks.metadata, {'ensemble': 'oscied'})
+        >>> hooks.metadata
+        {'ensemble': 'oscied'}
         >>> hooks.config.verbose = True
-        >>> hooks.load_metadata(metadata)  # doctest: +ELLIPSIS
+        >>> hooks.load_metadata(metadata)
         [DEBUG] Load metadata from file ...
-        >>> print(hooks.metadata['maintainer'])
-        OSCIED Main Developper <david.fischer.ch@gmail.com>
+        >>> hooks.metadata['maintainer']
+        'OSCIED Main Developper <david.fischer.ch@gmail.com>'
         """
         if isinstance(metadata, str):
             self.debug(f'Load metadata from file {metadata}')
-            with open(metadata, 'r') as f:
-                metadata = yaml.load(f)
+            with open(metadata) as f:
+                metadata = yaml.safe_load(f)
         self.metadata = metadata
 
     # ----------------------------------------------------------------------------------------------
@@ -793,8 +792,10 @@ class Environment(object):
 
         * Set local to False to deploy non-local charms.
         * Set num_units to None to ensure the service does not exist.
-        * Set required to False to bypass this method in automatic mode. WARNING: IT MEANS NO ACTION AT ALL.
-        * Set units_number_to_keep to a (list, tuple, ...) with the units you want to protect against destruction.
+        * Set required to False to bypass this method in automatic mode.
+          WARNING: IT MEANS NO ACTION AT ALL.
+        * Set units_number_to_keep to a (list, tuple, ...) with the units you want to protect
+          against destruction.
 
         **Example usage**
 
@@ -878,7 +879,7 @@ class Environment(object):
 
         if self.auto and required or confirm('do it now', default=False):
 
-            assert(num_units is None or num_units >= 0)
+            assert num_units is None or num_units >= 0
             units_dict = self.get_units(service, default=None, fail=False, timeout=timeout)
             units_count = None if units_dict is None else len(units_dict)
 
@@ -951,7 +952,10 @@ class Environment(object):
         if unit_dict is not None:
             if terminate:
                 juju_do('destroy-unit', self.name, options=[name])
-                time.sleep(delay_terminate)  # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
+
+                # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
+                time.sleep(delay_terminate)
+
                 return self.destroy_machine(unit_dict['machine'])
             return juju_do('destroy-unit', self.name, options=[name])
 
@@ -1180,7 +1184,7 @@ class SimulatedUnits(object):
 
     def ensure_num_units(self, num_units=1, units_number_to_keep=None):
         """Ensure `num_units` units by adding new units or destroying useless units first !"""
-        assert(num_units is None or num_units >= 0)
+        assert num_units is None or num_units >= 0
 
         units_count = len(self.units)
 

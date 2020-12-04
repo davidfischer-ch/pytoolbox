@@ -26,7 +26,7 @@ def kill(process):
     except OSError as e:
         if e.errno != errno.ESRCH:
             raise
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         if not NoSuchProcess or not isinstance(e, NoSuchProcess):
             raise
 
@@ -97,7 +97,7 @@ def raw_cmd(arguments, shell=False, **kwargs):
 def cmd(
     command,
     user=None,
-    input=None,
+    input=None,  # pylint:disable=redefined-builtin
     cli_input=None,
     cli_output=False,
     communicate=True,

@@ -22,7 +22,7 @@ class CleanAttributesMixin(object):
     ...
     ...     def clean_locale(self, value):
     ...         value = str(value)
-    ...         assert(len(value) == 2)
+    ...         assert len(value) == 2
     ...         return value
 
     >>> settings = Settings('fr', {})
@@ -153,9 +153,9 @@ def valid_port(port):
 
     **Example usage**
 
-    >>> assert(not valid_port(-1))
-    >>> assert(not valid_port('something not a port'))
-    >>> assert(valid_port('80'))
+    >>> assert not valid_port(-1)
+    >>> assert not valid_port('something not a port')
+    >>> assert valid_port('80')
     >>> valid_port(65535)
     True
     """

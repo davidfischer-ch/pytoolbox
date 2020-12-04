@@ -15,11 +15,9 @@ class MessageMixin(Exception):
         self.__dict__.update(kwargs)
         Exception.__init__(self)
 
-    def __unicode__(self):
+    def __str__(self):
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
         return self.message.format(**{a: v for a, v in attributes if a[0] != '_'})
-
-    __str__ = __unicode__
 
 
 class BadHTTPResponseCodeError(MessageMixin, Exception):
@@ -37,11 +35,6 @@ class ForbiddenError(Exception):
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
     message = """Signal {signum} already handled by {handlers}."""
-
-
-class TimeoutError(Exception):
-    """A time-out error."""
-    pass
 
 
 class UndefinedPathError(Exception):
@@ -109,8 +102,8 @@ def get_exception_with_traceback(exception, encoding='utf-8'):  # pylint:disable
 
     If the exception was not raised then there are no traceback:
 
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.equal(get_exception_with_traceback(ValueError('yé')), 'ValueError: yé\\n')
+    >>> get_exception_with_traceback(ValueError('yé'))
+    'ValueError: yé\\n'
 
     If the exception was raised then there is a traceback:
 
@@ -118,8 +111,10 @@ def get_exception_with_traceback(exception, encoding='utf-8'):  # pylint:disable
     ...     raise RuntimeError('yé')
     ... except Exception as e:
     ...     trace = get_exception_with_traceback(e)
-    ...     asserts.assert_in('Traceback', trace)
-    ...     asserts.assert_in("raise RuntimeError('yé')", trace)
+    >>> 'Traceback' in trace
+    True
+    >>> "raise RuntimeError('yé')" in trace
+    True
     """
     buf = io.StringIO()
     traceback.print_exception(type(exception), exception, exception.__traceback__, file=buf)

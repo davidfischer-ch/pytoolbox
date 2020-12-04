@@ -11,15 +11,15 @@ class FindMixin(object):
         if fail:
             raise exceptions.NoSuchElementException(criteria)
 
-    def find_css(self, css_selector, *args, **kwargs):
+    def find_css(self, css_selector, prefix=True, force_list=False, fail=True):
         elements = self.find_elements_by_css_selector(css_selector)
-        return self.clean_elements(elements, css_selector, *args, **kwargs)
+        return self.clean_elements(elements, css_selector, force_list, fail)
 
-    def find_id(self, element_id, *args, **kwargs):
-        return self.find_css(f'#{element_id}', *args, **kwargs)
+    def find_id(self, element_id, prefix=True, force_list=False, fail=True):
+        return self.find_css(f'#{element_id}', prefix, force_list, fail)
 
-    def find_name(self, element_name, *args, **kwargs):
-        return self.find_css(f'[name={element_name}]', *args, **kwargs)
+    def find_name(self, element_name, prefix=True, force_list=False, fail=True):
+        return self.find_css(f'[name={element_name}]', prefix, force_list, fail)
 
-    def find_xpath(self, xpath, *args, **kwargs):
-        return self.clean_elements(self.find_elements_by_xpath(xpath), xpath, *args, **kwargs)
+    def find_xpath(self, xpath, force_list=False, fail=True):
+        return self.clean_elements(self.find_elements_by_xpath(xpath), xpath, force_list, fail)

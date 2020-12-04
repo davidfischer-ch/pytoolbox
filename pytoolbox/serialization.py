@@ -26,35 +26,45 @@ def to_file(
 
     In-place write operation:
 
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.is_none(to_file('/tmp/to_file', data='bonjour'))
-    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'bonjour')
+    >>> to_file('/tmp/to_file', data='bonjour') is None
+    True
+    >>> open('/tmp/to_file').read()
+    'bonjour'
 
     No backup is created if the destination file does not exist:
 
     >>> from pytoolbox import filesystem
     >>> _ = filesystem.remove('/tmp/to_file')
-    >>> asserts.is_none(to_file('/tmp/to_file', data='bonjour', backup=True))
+    >>> to_file('/tmp/to_file', data='bonjour', backup=True) is None
+    True
 
     In-place write operation after having copied the file into a backup:
 
-    >>> asserts.equal(to_file('/tmp/to_file', data='ça va ?', backup=True), '/tmp/to_file.bkp')
-    >>> asserts.equal(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'bonjour')
-    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'ça va ?')
+    >>> to_file('/tmp/to_file', data='ça va ?', backup=True)
+    '/tmp/to_file.bkp'
+    >>> open('/tmp/to_file.bkp').read()
+    'bonjour'
+    >>> open('/tmp/to_file').read()
+    'ça va ?'
 
     The most secure, do a backup, write into a temporary file, and rename the temporary file to the
     destination:
 
-    >>> asserts.equal(
-    ...     to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True),
-    ...     '/tmp/to_file.bkp')
-    >>> asserts.equal(open('/tmp/to_file.bkp', 'r', 'utf-8').read(), 'ça va ?')
-    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
+    >>> to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True)
+    '/tmp/to_file.bkp'
+    >>> open('/tmp/to_file.bkp').read()
+    'ça va ?'
+    >>> open('/tmp/to_file').read()
+    'oui et toi ?'
 
     The content of the destination is not broken if the write operation fails:
 
-    >>> asserts.raises(TypeError, to_file, '/tmp/to_file', data=asserts.equal, safe=True)
-    >>> asserts.equal(open('/tmp/to_file', 'r', 'utf-8').read(), 'oui et toi ?')
+    >>> to_file('/tmp/to_file', data=to_file, safe=True)
+    Traceback (most recent call last):
+        ...
+    TypeError: write() argument must be str, not function
+    >>> open('/tmp/to_file').read()
+    'oui et toi ?'
     """
     if makedirs:
         filesystem.makedirs(os.path.dirname(path))
@@ -155,8 +165,6 @@ def object_to_json(obj, include_properties, **kwargs):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
-    >>>
     >>> class Point(object):
     ...     def __init__(self, x=0, y=0):
     ...         self.x = x
@@ -165,9 +173,11 @@ def object_to_json(obj, include_properties, **kwargs):
     ...     def z(self):
     ...         return self.x + self.y
     >>> p1 = Point(x=16, y=-5)
-    >>> asserts.equal(object_to_json(p1, include_properties=False, sort_keys=True), '{"x": 16, "y": -5}')
-    >>> asserts.equal(object_to_json(p1, include_properties=True, sort_keys=True), '{"x": 16, "y": -5, "z": 11}')
-    >>> print(object_to_json(p1, include_properties=True, sort_keys=True, indent=4)) # doctest: +NORMALIZE_WHITESPACE
+    >>> object_to_json(p1, include_properties=False, sort_keys=True)
+    '{"x": 16, "y": -5}'
+    >>> object_to_json(p1, include_properties=True, sort_keys=True)
+    '{"x": 16, "y": -5, "z": 11}'
+    >>> print(object_to_json(p1, include_properties=True, sort_keys=True, indent=4))
     {
         "x": 16,
         "y": -5,
@@ -210,14 +220,15 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     ...         self.x = x
     ...         self.y = y
     >>> p1 = Point(name='My point', x=10, y=-5)
-    >>> open('test.json', 'w', encoding='utf-8').write(object_to_json(p1, include_properties=False))
+    >>> with open('test.json', 'w') as f:
+    ...     f.write(object_to_json(p1, include_properties=False))
+    38
 
     Deserialize the freshly saved file:
 
     >>> p2 = jsonfile_to_object(Point, 'test.json', inspect_constructor=False)
     >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
-    >>> p2 = jsonfile_to_object(
-    ...     Point, open('test.json', 'r', encoding='utf-8'), inspect_constructor=False)
+    >>> p2 = jsonfile_to_object(Point, open('test.json'), inspect_constructor=False)
     >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
     >>> os.remove('test.json')
     """
@@ -349,7 +360,7 @@ def object_to_dict(
 
     Define the sample class and convert some instances to a nested structure:
 
-    >>> from pytoolbox.unittest import asserts
+    >>> import pprint
     >>>
     >>> class Point(object):
     ...     def __init__(self, name, x, y, p):
@@ -375,19 +386,18 @@ def object_to_dict(
     ...         }
     ...     }]
     ... }
-    >>> asserts.dict_equal(
+    ...
+    >>> pprint.pprint(
     ...     object_to_dict(
     ...         Point('p1', 5, 2, [
     ...             Point('p2', 3, 4, None),
     ...             Point('p3', 7, 0, Point('p4', 0, 0, None))
-    ...         ]), SCHEMA),
-    ...     {
-    ...         'name': 'p1', 'x': 5, 'zed': 3, 'p': [
-    ...             {'name': 'p2', 'stuff': 42, 'p': None},
-    ...             {'name': 'p3', 'stuff': 42, 'p': {'name': 'p4'}}
-    ...         ]
-    ...     }
-    ... )
+    ...         ]), SCHEMA))
+    {'name': 'p1',
+     'p': [{'name': 'p2', 'p': None, 'stuff': 42},
+           {'name': 'p3', 'p': {'name': 'p4'}, 'stuff': 42}],
+     'x': 5,
+     'zed': 3}
 
     This serializer can optionally adapt container type and do a lot more:
 
@@ -412,7 +422,7 @@ def object_to_dict(
     >>> def ignore_private_schema_keys(obj, schema, depth):
     ...     return obj, {k: v for k, v in list(schema.items()) if k[0] != '_'}
     ...
-    >>> asserts.dict_equal(
+    >>> pprint.pprint(
     ...     object_to_dict(
     ...         Point('p1', 5, 2, {
     ...             Point('p2', 3, 4, []),
@@ -423,19 +433,12 @@ def object_to_dict(
     ...         }),
     ...         schema=SCHEMA,
     ...         callback=ignore_private_schema_keys,
-    ...         iterable_callback=use_container_defined_in_schema),
-    ...     {
-    ...         'name': 'p1', 'x': 5, 'zed': 3, 'p': (
-    ...             {'name': 'p2', 'stuff': 42, 'p': ()},
-    ...             {
-    ...                 'name': 'p3', 'stuff': 42, 'p': (
-    ...                     {'name': 'p4'},
-    ...                     {'name': 'p5'}
-    ...                 )
-    ...             }
-    ...         )
-    ...     }
-    ... )
+    ...         iterable_callback=use_container_defined_in_schema))
+    {'name': 'p1',
+     'p': ({'name': 'p2', 'p': (), 'stuff': 42},
+           {'name': 'p3', 'p': ({'name': 'p4'}, {'name': 'p5'}), 'stuff': 42}),
+     'x': 5,
+     'zed': 3}
 
     This serializer can optionally adapt schema to objects:
 
@@ -450,6 +453,7 @@ def object_to_dict(
     ... }]
     ...
     >>> seen = set()
+    >>>
     >>> def reduce_seen(obj, schema, depth):
     ...     if obj in seen:
     ...         return obj, {'r': 'name'}
@@ -457,21 +461,20 @@ def object_to_dict(
     ...     return obj, schema
     ...
     >>> p1 = Point('p1', 0, 0, None)
-    >>> asserts.list_equal(
+    >>>
+    >>> pprint.pprint(
     ...     object_to_dict([
     ...         p1,
     ...         Point('p2', 5, 2, Point('p3', 3, 4, p1)),
     ...         Point('p4', 5, 2, Point('p5', 3, 4, p1)),
     ...         Point('p6', 5, 2, p1)
-    ...     ], SCHEMA, callback=reduce_seen),
-    ...     [
-    ...         {'n': 'p1', 'p': None},
-    ...         {'n': 'p2', 'p': {'n': 'p3', 'p': {'r': 'p1'}}},
-    ...         {'n': 'p4', 'p': {'n': 'p5', 'p': {'r': 'p1'}}},
-    ...         {'n': 'p6', 'p': {'r': 'p1'}}
-    ...     ]
-    ... )
+    ...     ], SCHEMA, callback=reduce_seen))
+    [{'n': 'p1', 'p': None},
+     {'n': 'p2', 'p': {'n': 'p3', 'p': {'r': 'p1'}}},
+     {'n': 'p4', 'p': {'n': 'p5', 'p': {'r': 'p1'}}},
+     {'n': 'p6', 'p': {'r': 'p1'}}]
     """
+
     if isinstance(schema, list):
         count = len(schema)
         if count != 1:
@@ -530,8 +533,10 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     >>> from pytoolbox.unittest import asserts
     >>>
     >>> class User(object):
+    ...
     ...     def __init__(self, first_name, last_name='Fischer'):
     ...         self.first_name, self.last_name = first_name, last_name
+    ...
     ...     @property
     ...     def name(self):
     ...        return '{0} {1}'.format(self.first_name, self.last_name)
@@ -541,14 +546,15 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     Traceback (most recent call last):
         ...
     TypeError: __init__() got an unexpected keyword argument 'unexpected'
-    >>> asserts.dict_equal(dict_to_object(User, user_dict, inspect_constructor=True).__dict__, {
-    ...     'first_name': 'Victor', 'last_name': 'Fischer'
-    ... })
+    >>> asserts.dict_equal(
+    ...     dict_to_object(User, user_dict, inspect_constructor=True).__dict__,
+    ...     {'first_name': 'Victor', 'last_name': 'Fischer'})
     """
     if inspect_constructor:
         the_dict = {
-            a: the_dict.get(a, None)
-            for a in inspect.getargspec(cls.__init__)[0] if a != 'self'
+            p.name: the_dict.get(p.name, None)
+            for p in inspect.signature(cls.__init__).parameters.values()
+            if p.name != 'self'
         }
     return cls(**the_dict)
 

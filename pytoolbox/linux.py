@@ -13,10 +13,11 @@ def get_kernel_config(release=None, fail=True):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
     >>> config = get_kernel_config(fail=False)
-    >>> asserts.is_instance(config, dict)
-    >>> asserts.assert_in('memory', config) if config else None
+    >>> type(config)
+    <class 'dict'>
+    >>> not config or 'memory' in config
+    True
 
     Error handling:
 

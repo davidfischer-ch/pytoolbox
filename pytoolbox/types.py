@@ -36,8 +36,6 @@ def get_subclasses(obj, nested=True):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
-    >>>
     >>> class Root(object):
     ...     pass
     ...
@@ -56,14 +54,14 @@ def get_subclasses(obj, nested=True):
     >>> class NodeE(NodeD):
     ...     pass
     ...
-    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(Root)], [
-    ...     (NodeA, True), (NodeC, False), (NodeD, True), (NodeE, False), (NodeB, False)
-    ... ])
-    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(Root, nested=False)], [
-    ...     (NodeA, True), (NodeB, False)
-    ... ])
-    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(NodeB)], [])
-    >>> asserts.list_equal([(c, bool(s)) for c, s in get_subclasses(NodeD)], [(NodeE, False)])
+    >>> [(c.__name__, bool(s)) for c, s in get_subclasses(Root)]
+    [('NodeA', True), ('NodeC', False), ('NodeD', True), ('NodeE', False), ('NodeB', False)]
+    >>> [(c.__name__, bool(s)) for c, s in get_subclasses(Root, nested=False)]
+    [('NodeA', True), ('NodeB', False)]
+    >>> [(c.__name__, bool(s)) for c, s in get_subclasses(NodeB)]
+    []
+    >>> [(c.__name__, bool(s)) for c, s in get_subclasses(NodeD)]
+    [('NodeE', False)]
     """
     for subclass in obj.__subclasses__():
         yield subclass, subclass.__subclasses__()
@@ -83,7 +81,8 @@ def isiterable(obj, blacklist=(bytes, str)):
     ...     asserts.false(isiterable(obj), obj)
     >>> for obj in [], (), set(), iter({}.items()):
     ...     asserts.true(isiterable(obj), obj)
-    >>> asserts.false(isiterable({}, dict))
+    >>> isiterable({}, dict)
+    False
     """
     return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
 
@@ -127,26 +126,36 @@ class EchoObject(object):
 
     >>> from pytoolbox.unittest import asserts
     >>> something = EchoObject('something', language='Python')
-    >>> asserts.equal(something._name, 'something')
-    >>> asserts.equal(something.language, 'Python')
-    >>> asserts.true(hasattr(something, 'everything'))
-    >>> asserts.is_instance(something.user.email, EchoObject)
-    >>> asserts.equal(str(something.user.first_name), 'something.user.first_name')
-    >>> asserts.equal(str(something[0][None]['bar']).replace("[u'", "['"), "something[0][None]['bar']")
-    >>> asserts.equal(str(something[0].node['foo'].x).replace("[u'", "['"), "something[0].node['foo'].x")
-    >>> asserts.equal(str(something), 'something')
+    >>> something._name
+    'something'
+    >>> something.language
+    'Python'
+    >>> hasattr(something, 'everything')
+    True
+    >>> type(something.user.email)
+    <class 'pytoolbox.types.EchoObject'>
+    >>> str(something.user.first_name)
+    'something.user.first_name'
+    >>> str(something[0][None]['bar'])
+    "something[0][None]['bar']"
+    >>> str(something[0].node['foo'].x)
+    "something[0].node['foo'].x"
+    >>> str(something)
+    'something'
 
     You can also define the class for the generated attributes:
 
     >>> something.attr_class = list
-    >>> asserts.is_instance(something.cool, list)
+    >>> type(something.cool)
+    <class 'list'>
 
     This class handles sub-classing appropriately:
 
     >>> class MyEchoObject(EchoObject):
     ...     pass
     >>>
-    >>> asserts.is_instance(MyEchoObject('name').x.y.z, MyEchoObject)
+    >>> type(MyEchoObject('name').x.y.z)
+    <class 'pytoolbox.types.MyEchoObject'>
     """
     attr_class = None
 
@@ -161,7 +170,7 @@ class EchoObject(object):
     def __getitem__(self, key):
         return (self.attr_class or self.__class__)(f'{self._name}[{repr(key)}]')
 
-    def __unicode__(self):
+    def __str__(self):
         return self._name
 
 
@@ -172,19 +181,25 @@ class EchoDict(dict):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
     >>> context = EchoDict('context', language='Python')
-    >>> asserts.equal(context._name, 'context')
-    >>> asserts.equal(context['language'], 'Python')
-    >>> asserts.true('anything' in context)
-    >>> asserts.equal(str(context['user'].first_name).replace("[u'", "['"), "context['user'].first_name")
-    >>> asserts.equal(str(context[0][None]['bar']).replace("[u'", "['"), "context[0][None]['bar']")
-    >>> asserts.equal(str(context[0].node['foo'].x).replace("[u'", "['"), "context[0].node['foo'].x")
+    >>> context._name
+    'context'
+    >>> context['language']
+    'Python'
+    >>> 'anything' in context
+    True
+    >>> str(context['user'].first_name)
+    "context['user'].first_name"
+    >>> str(context[0][None]['bar'])
+    "context[0][None]['bar']"
+    >>> str(context[0].node['foo'].x)
+    "context[0].node['foo'].x"
 
     You can also define the class for the generated items:
 
     >>> context.item_class = set
-    >>> asserts.is_instance(context['jet'], set)
+    >>> type(context['jet'])
+    <class 'set'>
     """
     item_class = EchoObject
 

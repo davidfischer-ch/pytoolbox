@@ -7,7 +7,8 @@ class BootstrapSliderMixin(object):
 
     component = 'bootstrapSlider'
 
-    def clean_value(self, value):
+    @staticmethod
+    def clean_value(value):
         return int(value)
 
     def clear(self):

@@ -8,7 +8,8 @@ class BootstrapSwitchMixin(object):
     component = 'bootstrapSwitch'
     key_map = {True: Keys.RIGHT, False: Keys.LEFT}
 
-    def clean_value(self, value):
+    @staticmethod
+    def clean_value(value):
         return {'on': True, 'off': False, True: True, False: False}[value]
 
     def send_keys(self, *value):

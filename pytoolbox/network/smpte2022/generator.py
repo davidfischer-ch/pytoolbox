@@ -66,7 +66,7 @@ class FecGenerator(object):
 
         .. seealso::
 
-            You can `monkey patch <http://stackoverflow.com/questions/5626193/what-is-monkey-patching>`_ it.
+            You can `monkey patch <http://stackoverflow.com/questions/5626193>`_ it.
 
         :param col: Generated column FEC packet
         :type col: FecPacket
@@ -88,7 +88,7 @@ class FecGenerator(object):
 
         .. seealso::
 
-            You can `monkey patch <http://stackoverflow.com/questions/5626193/what-is-monkey-patching>`_ it.
+            You can `monkey patch <http://stackoverflow.com/questions/5626193>`_ it.
 
         :param row: Generated row FEC packet
         :type row: FecPacket
@@ -110,7 +110,7 @@ class FecGenerator(object):
 
         .. seealso::
 
-            You can `monkey patch <http://stackoverflow.com/questions/5626193/what-is-monkey-patching>`_ it.
+            You can `monkey patch <http://stackoverflow.com/questions/5626193>`_ it.
 
         :param media: Out of sequence media packet
         :type row: RtpPacket
@@ -132,18 +132,17 @@ class FecGenerator(object):
 
         Testing input of out of sequence medias:
 
-        >>> from pytoolbox.unittest import asserts
         >>> g = FecGenerator(4, 5)
-        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('Tabby', 'utf-8')))
+        >>> R = RtpPacket
+        >>> g.put_media(R.create(1, 100, R.MP2T_PT, bytearray('Tabby', 'utf-8')))
         Media seq=1 is out of sequence (expected None) : FEC algorithm reseted !
-        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('1234', 'utf-8')))
+        >>> g.put_media(R.create(1, 100, R.MP2T_PT, bytearray('1234', 'utf-8')))
         Media seq=1 is out of sequence (expected 2) : FEC algorithm reseted !
-        >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray('abcd', 'utf-8')))
+        >>> g.put_media(R.create(4, 400, R.MP2T_PT, bytearray('abcd', 'utf-8')))
         Media seq=4 is out of sequence (expected 2) : FEC algorithm reseted !
-        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('python', 'utf-8')))
+        >>> g.put_media(R.create(2, 200, R.MP2T_PT, bytearray('python', 'utf-8')))
         Media seq=2 is out of sequence (expected 5) : FEC algorithm reseted !
-        >>> g.put_media(
-        ...     RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('Kuota Kharma Evo', 'utf-8')))
+        >>> g.put_media(R.create(2, 200, R.MP2T_PT, bytearray('Kuota Kharma Evo', 'utf-8')))
         Media seq=2 is out of sequence (expected 3) : FEC algorithm reseted !
         >>> print(g)
         Matrix size L x D            = 4 x 5
@@ -154,27 +153,28 @@ class FecGenerator(object):
         Media  sequence number       = 3
         Medias buffer (seq. numbers) = [2]
         >>> if isinstance(g._medias[0].payload, bytearray):
-        ...     asserts.equal(g._medias[0].payload, bytearray('Kuota Kharma Evo', 'utf-8'))
+        ...     assert g._medias[0].payload == bytearray('Kuota Kharma Evo', 'utf-8')
         ... else:
-        ...     asserts.equal(g._medias[0].payload, 'Kuota Kharma Evo')
+        ...     assert g._medias[0].payload == 'Kuota Kharma Evo'
 
         Testing a complete 3x4 matrix:
 
         >>> g = FecGenerator(3, 4)
-        >>> g.put_media(RtpPacket.create(1, 100, RtpPacket.MP2T_PT, bytearray('Tabby', 'utf-8')))
+        >>> R = RtpPacket
+        >>> g.put_media(R.create(1, 100, R.MP2T_PT, bytearray('Tabby', 'utf-8')))
         Media seq=1 is out of sequence (expected None) : FEC algorithm reseted !
-        >>> g.put_media(RtpPacket.create(2, 200, RtpPacket.MP2T_PT, bytearray('1234', 'utf-8')))
-        >>> g.put_media(RtpPacket.create(3, 300, RtpPacket.MP2T_PT, bytearray('abcd', 'utf-8')))
+        >>> g.put_media(R.create(2, 200, R.MP2T_PT, bytearray('1234', 'utf-8')))
+        >>> g.put_media(R.create(3, 300, R.MP2T_PT, bytearray('abcd', 'utf-8')))
         New ROW FEC packet seq=1 snbase=1 LxD=3xNone trec=384
-        >>> g.put_media(RtpPacket.create(4, 400, RtpPacket.MP2T_PT, bytearray('python', 'utf-8')))
-        >>> g.put_media(RtpPacket.create(5, 500, RtpPacket.MP2T_PT, bytearray('Kuota harma Evo', 'utf-8')))
-        >>> g.put_media(RtpPacket.create(6, 600, RtpPacket.MP2T_PT, bytearray('h0ffman', 'utf-8')))
+        >>> g.put_media(R.create(4, 400, R.MP2T_PT, bytearray('python', 'utf-8')))
+        >>> g.put_media(R.create(5, 500, R.MP2T_PT, bytearray('Kuota harma Evo', 'utf-8')))
+        >>> g.put_media(R.create(6, 600, R.MP2T_PT, bytearray('h0ffman', 'utf-8')))
         New ROW FEC packet seq=2 snbase=4 LxD=3xNone trec=572
-        >>> g.put_media(RtpPacket.create(7, 700, RtpPacket.MP2T_PT, bytearray('mutable', 'utf-8')))
-        >>> g.put_media(RtpPacket.create(8, 800, RtpPacket.MP2T_PT, bytearray('10061987', 'utf-8')))
-        >>> g.put_media(RtpPacket.create(9, 900, RtpPacket.MP2T_PT, bytearray('OSCIED', 'utf-8')))
+        >>> g.put_media(R.create(7, 700, R.MP2T_PT, bytearray('mutable', 'utf-8')))
+        >>> g.put_media(R.create(8, 800, R.MP2T_PT, bytearray('10061987', 'utf-8')))
+        >>> g.put_media(R.create(9, 900, R.MP2T_PT, bytearray('OSCIED', 'utf-8')))
         New ROW FEC packet seq=3 snbase=7 LxD=3xNone trec=536
-        >>> g.put_media(RtpPacket.create(10, 1000, RtpPacket.MP2T_PT, bytearray('5ème élément', 'utf-8')))
+        >>> g.put_media(R.create(10, 1000, R.MP2T_PT, bytearray('5ème élément', 'utf-8')))
         New COL FEC packet seq=1 snbase=1 LxD=3x4 trec=160
         >>> print(g)
         Matrix size L x D            = 3 x 4
@@ -184,9 +184,9 @@ class FecGenerator(object):
         Row    sequence number       = 4
         Media  sequence number       = 11
         Medias buffer (seq. numbers) = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        >>> g.put_media(RtpPacket.create(11, 1100, RtpPacket.MP2T_PT, bytearray('Chaos Theory', 'utf-8')))
+        >>> g.put_media(R.create(11, 1100, R.MP2T_PT, bytearray('Chaos Theory', 'utf-8')))
         New COL FEC packet seq=2 snbase=2 LxD=3x4 trec=1616
-        >>> g.put_media(RtpPacket.create(12, 1200, RtpPacket.MP2T_PT, bytearray('Yes, it WORKS !', 'utf-8')))
+        >>> g.put_media(R.create(12, 1200, R.MP2T_PT, bytearray('Yes, it WORKS !', 'utf-8')))
         New ROW FEC packet seq=4 snbase=10 LxD=3xNone trec=788
         New COL FEC packet seq=3 snbase=3 LxD=3x4 trec=1088
         >>> print(g)
@@ -221,9 +221,14 @@ class FecGenerator(object):
         # Compute a new row FEC packet when a new row just filled with packets
         if len(self._medias) % self._L == 0:
             row_medias = self._medias[-self._L:]
-            assert(len(row_medias) == self._L)
+            assert len(row_medias) == self._L
             row = FecPacket.compute(
-                self._row_sequence, FecPacket.XOR, FecPacket.ROW, self._L, self._D, row_medias)
+                self._row_sequence,
+                FecPacket.XOR,
+                FecPacket.ROW,
+                self._L,
+                self._D,
+                row_medias)
             self._row_sequence = (self._row_sequence + 1) & RtpPacket.S_MASK
             self.on_new_row(row, self)
 
@@ -231,9 +236,14 @@ class FecGenerator(object):
         if len(self._medias) > self._L * (self._D - 1):
             first = len(self._medias) - self._L * (self._D - 1) - 1
             col_medias = self._medias[first::self._L]
-            assert(len(col_medias) == self._D)
+            assert len(col_medias) == self._D
             col = FecPacket.compute(
-                self._col_sequence, FecPacket.XOR, FecPacket.COL, self._L, self._D, col_medias)
+                self._col_sequence,
+                FecPacket.XOR,
+                FecPacket.COL,
+                self._L,
+                self._D,
+                col_medias)
             self._col_sequence = (self._col_sequence + 1) & RtpPacket.S_MASK
             self.on_new_col(col, self)
 

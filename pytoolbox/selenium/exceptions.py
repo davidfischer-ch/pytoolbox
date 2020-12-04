@@ -1,5 +1,6 @@
-from selenium.common.exceptions import *
+from selenium.common.exceptions import *  # noqa:F401,F403
+from selenium.common.exceptions import NoSuchElementException
 
 
-class NoSuchSpecializedElementException(NoSuchElementException):  # pylint:disable=undefined-variable
+class NoSuchSpecializedElementException(NoSuchElementException):
     pass

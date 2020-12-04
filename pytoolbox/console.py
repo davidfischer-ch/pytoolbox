@@ -32,13 +32,13 @@ def confirm(question=None, default=False, stream=sys.stdout):
             return default
         if answer.lower() in ('y', 'yes'):
             return True
-        elif answer.lower() in ('n', 'no'):
+        if answer.lower() in ('n', 'no'):
             return False
         stream.write(f'please enter y(es) or n(o).{os.linesep}')
         stream.flush()
 
 
-def choice(question='', choices=[], stream=sys.stdout):
+def choice(question='', choices=tuple(), stream=sys.stdout):
     """
     Prompt the user for a choice and return his/her answer.
 
@@ -87,7 +87,7 @@ def print_error(message, exit_code=1, stream=sys.stderr):
 
 
 def progress_bar(
-    start_time,
+    start_time,  # pylint:disable=unused-argument
     current,
     total,
     size=50,

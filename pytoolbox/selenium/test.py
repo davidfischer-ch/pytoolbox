@@ -25,7 +25,10 @@ class LiveTestCaseMixin(object):
 
     def assertElementEqual(self, name, value, enabled=True):
         """Check the properties of an element. Works with both WebElement and Select."""
-        self.assertElementIsEnabled(name) if enabled else self.assertElementIsDisabled(name)
+        if enabled:
+            self.assertElementIsEnabled(name)
+        else:
+            self.assertElementIsDisabled(name)
         element = self.client.find_name(name)
         Select = self.client.web_driver.web_element_classes['select']
         if isinstance(element, Select):

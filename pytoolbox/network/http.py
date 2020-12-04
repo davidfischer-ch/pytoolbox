@@ -75,7 +75,7 @@ def iter_download_to_file(
         yield position, length, chunk, downloaded, file_hash
 
 
-def download_ext(
+def download_ext(  # pylint:disable=too-many-locals
     url,
     path,
     code=200,
@@ -125,20 +125,22 @@ def download_ext(
     (383631, 383631)
     (True, True, None)
 
-    >>> asserts.raises(
-    ...     CorruptedFileError,
-    ...     download_ext, url, 'small.mp4', hash_algorithm=hashlib.md5,
-    ...     expected_hash='efac5df252145c2d07b73e8177d15c8d')
+    >>> with asserts.raises(CorruptedFileError):
+    ...     download_ext(
+    ...         url,
+    ...         'small.mp4',
+    ...         hash_algorithm=hashlib.md5,
+    ...         expected_hash='efac5df252145c2d07b73e8177d15c8d')
 
     >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
     (False, False, None)
 
-    >>> asserts.raises(
-    ...     BadHTTPResponseCodeError,
-    ...     download_ext,
-    ...     'http://techslides.com/monkey.mp4', 'monkey.mp4')
+    >>> with asserts.raises(BadHTTPResponseCodeError):
+    ...     download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
-    exists, start_time = os.path.exists(path), time.time()
+    exists = os.path.exists(path)
+    downloaded = False
+    start_time = time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
         url, path, code, chunk_size, force, hash_algorithm, expected_hash, **kwargs
     ):
@@ -161,8 +163,11 @@ def download_ext_multi(
     Any extra item is passed to :func:`iter_download_to_file` as extra keyword arguments.
     """
     for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
-        kwargs, start_time = resource.copy(), time.time()
-        url, path, name = kwargs.pop('url'), kwargs.pop('path'), kwargs.pop('name')
+        kwargs = resource.copy()
+        start_time = time.time()
+        url = kwargs.pop('url')
+        path = kwargs.pop('path')
+        name = kwargs.pop('name')
 
         callback = functools.partial(
             progress_callback,

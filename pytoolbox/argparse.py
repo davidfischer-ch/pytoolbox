@@ -4,15 +4,13 @@ Module related to parsing arguments from the command-line.
 **Example usage**
 
 >>> import argparse
->>> from pytoolbox.unittest import asserts
 >>> parser = argparse.ArgumentParser(
-...     formatter_class=argparse.ArgumentDefaultsHelpFormatter, epilog='My super cool software.'
-... )
+...     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+...     epilog='My super cool software.')
 >>> x = parser.add_argument('directory', action=FullPaths, type=is_dir)
->>> print(parser.parse_args(['/usr/lib']).directory)
-/usr/lib
->>> asserts.equal(
-...     parser.parse_args(['.']).directory, os.path.abspath(os.path.expanduser(os.getcwd())))
+>>> parser.parse_args(['/usr/lib']).directory
+'/usr/lib'
+>>> assert parser.parse_args(['.']).directory == os.path.abspath(os.path.expanduser(os.getcwd()))
 >>> parser.parse_args(['/does_not_exist/'])
 Traceback (most recent call last):
     ...
@@ -62,16 +60,17 @@ def set_columns(value=None, default=120):
     os.environ['COLUMNS'] = str(value)
 
 
-class FullPaths(argparse.Action):
+class FullPaths(argparse.Action):  # pylint:disable=too-few-public-methods
     """Expand user/relative paths."""
+
     def __call__(self, parser, namespace, values, option_string=None):
         def fullpath(path):
             return os.path.abspath(os.path.expanduser(path))
-        value = itertools.extract_single(fullpath(v) for v in itertools.chain(values))
+        value = itertools.extract_single([fullpath(v) for v in itertools.chain(values)])
         setattr(namespace, self.dest, value)
 
 
-class Range(object):
+class Range(object):  # pylint:disable=too-few-public-methods
 
     def __init__(self, type, min, max):  # pylint:disable=redefined-builtin
         self.type = type
@@ -81,9 +80,9 @@ class Range(object):
     def __call__(self, value):
         try:
             value = self.type(value)
-        except Exception:
-            raise argparse.ArgumentTypeError(f'Must be of type {self.type.__name__}')
-        if not (self.min <= value <= self.max):
+        except Exception as e:
+            raise argparse.ArgumentTypeError(f'Must be of type {self.type.__name__}') from e
+        if not (self.min <= value <= self.max):  # pylint:disable=superfluous-parens
             raise argparse.ArgumentTypeError(f'Must be in range [{self.min}, {self.max}]')
         return value
 

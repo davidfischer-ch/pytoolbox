@@ -61,8 +61,8 @@ class RtpPacket(object):
     CC_MASK = 0x0f
     M_MASK = 0x80
     PT_MASK = 0x7f
-    DYNAMIC_PT = 96  # Dynamic payload type
-    MP2T_PT = 33  # MPEG2 TS payload type
+    DYNAMIC_PT = 96   # Dynamic payload type
+    MP2T_PT = 33      # MPEG2 TS payload type
     MP2T_CLK = 90000  # MPEG2 TS clock rate [Hz]
     S_MASK = 0x0000ffff
     TS_MASK = 0xffffffff
@@ -77,7 +77,7 @@ class RtpPacket(object):
     @property
     def validMP2T(self):
         """Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
-        return self.valid and self.payload_type == RtpPacket.MP2T_PT
+        return self.valid and self.payload_type == self.MP2T_PT
 
     @property
     def errors(self):
@@ -106,15 +106,15 @@ class RtpPacket(object):
         if self._errors:
             errors.append(self._errors)
         if self.version != 2:
-            errors.append(RtpPacket.ER_VERSION)
+            errors.append(self.ER_VERSION)
         if self.payload_size == 0:
-            errors.append(RtpPacket.ER_PAYLOAD)
+            errors.append(self.ER_PAYLOAD)
         return errors
 
     @property
     def clock_rate(self):
         """Return the MPEG2-TS clock rate of a MPEG2-TS payload or 1 if this is not."""
-        return RtpPacket.MP2T_CLK if self.payload_type == RtpPacket.MP2T_PT else 1
+        return self.MP2T_CLK if self.payload_type == self.MP2T_PT else 1
 
     @property
     def header_size(self):
@@ -127,7 +127,7 @@ class RtpPacket(object):
         >>> print(rtp.header_size)
         12
         """
-        return RtpPacket.HEADER_LENGTH + 4*len(self.csrc)
+        return self.HEADER_LENGTH + 4 * len(self.csrc)
 
     @property
     def payload_size(self):
@@ -170,12 +170,11 @@ class RtpPacket(object):
         csrc count   = 0
         payload size = 4
         >>> header = rtp.header_bytes
-        >>> assert(len(header) == 12)
+        >>> assert len(header) == 12
         >>> print(''.join(' %02x' % b for b in header))
          80 21 00 06 00 00 03 09 00 00 00 00
         >>> header += rtp.payload
-        >>> rtp2 = RtpPacket(header, len(header))
-        >>> assert(rtp == rtp2)
+        >>> assert rtp == RtpPacket(header, len(header))
 
         >>> rtp = RtpPacket.create(0xffffffff, 0xffffffffff, RtpPacket.DYNAMIC_PT, bytearray(1023))
         >>> print(rtp)
@@ -193,21 +192,22 @@ class RtpPacket(object):
         csrc count   = 0
         payload size = 1023
         >>> header = rtp.header_bytes
-        >>> assert(len(header) == 12)
+        >>> assert len(header) == 12
         >>> print(''.join(' %02x' % b for b in header))
          80 60 ff ff ff ff ff ff 00 00 00 00
         >>> header += rtp.payload
-        >>> rtp2 = RtpPacket(header, len(header))
-        >>> assert(rtp == rtp2)
+        >>> assert rtp == RtpPacket(header, len(header))
         """
         cc = len(self.csrc)
-        bytes = bytearray(RtpPacket.HEADER_LENGTH + 4*cc)
-        bytes[0] = (((self.version << RtpPacket.V_SHIFT) & RtpPacket.V_MASK) +
-                    (RtpPacket.P_MASK if self.padding else 0) +
-                    (RtpPacket.X_MASK if self.extension else 0) +
-                    (cc & RtpPacket.CC_MASK))
-        bytes[1] = ((RtpPacket.M_MASK if self.marker else 0) +
-                    (self.payload_type & RtpPacket.PT_MASK))
+        bytes = bytearray(self.HEADER_LENGTH + 4 * cc)
+        bytes[0] = (
+            ((self.version << self.V_SHIFT) & self.V_MASK)
+            + (self.P_MASK if self.padding else 0)
+            + (self.X_MASK if self.extension else 0)
+            + (cc & self.CC_MASK))
+        bytes[1] = (
+            (self.M_MASK if self.marker else 0)
+            + (self.payload_type & self.PT_MASK))
         struct.pack_into(b'!H', bytes, 2, self.sequence)
         struct.pack_into(b'!I', bytes, 4, self.timestamp)
         struct.pack_into(b'!I', bytes, 8, self.ssrc)
@@ -227,8 +227,8 @@ class RtpPacket(object):
     def __init__(self, bytes, length):
         """
         This constructor will parse input bytes array to fill packet's fields.
-        In case of error (e.g. bad version number) the constructor will abort filling fields and
-        un-updated fields are set to their corresponding default value.
+        In case of error (e.g. bad version number) the constructor will abort filling
+        fields and un-updated fields are set to their corresponding default value.
 
         :param bytes: Input array of bytes to parse as a RTP packet
         :type bytes: bytearray
@@ -240,19 +240,23 @@ class RtpPacket(object):
         Testing invalid headers:
 
         >>> rtp = RtpPacket(bytearray(RtpPacket.HEADER_LENGTH-1), RtpPacket.HEADER_LENGTH-1)
-        >>> assert(not rtp.valid)  # Bad length
+        >>> rtp.valid  # Bad length
+        False
         >>> rtp = RtpPacket(bytearray(RtpPacket.HEADER_LENGTH), RtpPacket.HEADER_LENGTH)
-        >>> assert(not rtp.valid)  # Bad version
+        >>> rtp.valid  # Bad version
+        False
         >>> bytes = bytearray(RtpPacket.HEADER_LENGTH)
         >>> bytes[0] = 0xa0
         >>> rtp = RtpPacket(bytes, RtpPacket.HEADER_LENGTH)
-        >>> assert(not rtp.valid)  # Padding enabled but not present
+        >>> rtp.valid  # Padding enabled but not present
+        False
 
         Testing header fields value:
 
         >>> bytes = bytes.fromhex('80 a1 a4 25 ca fe b5 04 b0 60 5e bb 12 34')
         >>> rtp = RtpPacket(bytes, len(bytes))
-        >>> assert(rtp.valid)
+        >>> rtp.valid
+        True
         >>> print(rtp)
         version      = 2
         errors       = []
@@ -267,21 +271,46 @@ class RtpPacket(object):
         ssrc         = 2959105723
         csrc count   = 0
         payload size = 2
-        >>> assert(rtp.csrc == [] and rtp.payload[0] == 0x12 and rtp.payload[1] == 0x34)
+        >>> rtp.csrc
+        []
+        >>> rtp.payload[0]
+        18
+        >>> rtp.payload[1]
+        52
 
         Testing header fields value (with padding, extension and ccrc):
 
         >>> bytes = bytes.fromhex('b5a1a401 cafea421 b0605ebb 11111111 22222222 33333333 '
         ...                       '44444444 55555555 00000004 87654321 12340002')
         >>> rtp = RtpPacket(bytes, len(bytes))
-        >>> assert(rtp.valid)
-        >>> assert(rtp.version == 2 and rtp.padding and rtp.extension and rtp.marker)
-        >>> assert(rtp.payload_type == 33 and rtp.sequence == 0xa401 and rtp.timestamp == 3405685793)
-        >>> assert(rtp.clock_rate == 90000 and rtp.ssrc == 2959105723 and len(rtp.csrc) == 5)
-        >>> assert(rtp.csrc[0] == 286331153 and rtp.csrc[1] == 572662306 and rtp.csrc[2] == 858993459)
-        >>> assert(rtp.csrc[3] == 1145324612 and rtp.csrc[4] == 1431655765 and len(rtp.payload) == 2)
-        >>> assert(rtp.payload[0] == 0x12 and rtp.payload[1] == 0x34)
+        >>> rtp.valid
+        True
+        >>> rtp.version
+        2
+        >>> rtp.padding
+        True
+        >>> rtp.extension
+        True
+        >>> rtp.marker
+        True
+        >>> rtp.payload_type
+        33
+        >>> rtp.sequence
+        41985
+        >>> rtp.timestamp
+        3405685793
+        >>> rtp.clock_rate
+        90000
+        >>> rtp.ssrc
+        2959105723
+        >>> len(rtp.csrc)
+        5
+        >>> rtp.csrc
+        [286331153, 572662306, 858993459, 1145324612, 1431655765]
+        >>> rtp.payload
+        bytearray(b'\\x124')
         """
+
         # Fields default values
         self.version = 0
         self.padding = False
@@ -295,39 +324,43 @@ class RtpPacket(object):
         self.payload = []
         self._errors = None
 
-        offset = RtpPacket.HEADER_LENGTH
+        offset = self.HEADER_LENGTH
         if length < offset:
             return
-        self.version = (bytes[0] & RtpPacket.V_MASK) >> 6
+
+        self.version = (bytes[0] & self.V_MASK) >> 6
         if self.version != 2:
             return
-        self.padding = (bytes[0] & RtpPacket.P_MASK) == RtpPacket.P_MASK
+
+        self.padding = (bytes[0] & self.P_MASK) == self.P_MASK
         if self.padding:  # Remove padding if present
             padding_length = bytes[-1]
             if padding_length == 0 or length < (offset + padding_length):
-                self._errors = RtpPacket.ER_PADDING_LENGTH
+                self._errors = self.ER_PADDING_LENGTH
                 return
             length -= padding_length
-        self.extension = (bytes[0] & RtpPacket.X_MASK) == RtpPacket.X_MASK
-        cc = bytes[0] & RtpPacket.CC_MASK
+
+        self.extension = (bytes[0] & self.X_MASK) == self.X_MASK
+        cc = bytes[0] & self.CC_MASK
         self.csrc = []  # cc > 0 ? new long[cc] : null
-        self.marker = (bytes[1] & RtpPacket.M_MASK) == RtpPacket.M_MASK
-        self.payload_type = bytes[1] & RtpPacket.PT_MASK
-        self.sequence = bytes[2]*256 + bytes[3]
-        self.timestamp = ((bytes[4]*256 + bytes[5])*256 + bytes[6])*256 + bytes[7]
-        self.ssrc = ((bytes[8]*256 + bytes[9])*256 + bytes[10])*256 + bytes[11]
+        self.marker = (bytes[1] & self.M_MASK) == self.M_MASK
+        self.payload_type = bytes[1] & self.PT_MASK
+        self.sequence = bytes[2] * 256 + bytes[3]
+        self.timestamp = ((bytes[4] * 256 + bytes[5]) * 256 + bytes[6]) * 256 + bytes[7]
+        self.ssrc = ((bytes[8] * 256 + bytes[9]) * 256 + bytes[10]) * 256 + bytes[11]
 
         for i in range(cc):  # noqa
             self.csrc.append(
-                ((bytes[offset]*256 + bytes[offset+1])*256 + bytes[offset+2])*256 + bytes[offset+3])
+                ((bytes[offset] * 256 + bytes[offset + 1]) * 256 + bytes[offset + 2]) * 256
+                + bytes[offset + 3])
             offset += 4
             # FIXME In session.c of VLC they store per-source statistics in a rtp_source_t struct
 
         if self.extension:  # Extension header (ignored for now)
-            extensionLength = bytes[offset+2]*256 + bytes[offset+3]
+            extensionLength = bytes[offset + 2] * 256 + bytes[offset + 3]
             offset += 4 + extensionLength
             if length < offset:
-                self._errors = RtpPacket.ER_EXTENSION_LENGTH
+                self._errors = self.ER_EXTENSION_LENGTH
                 return
 
         # And finally ... The payload !
@@ -365,16 +398,16 @@ class RtpPacket(object):
         >>> p = RtpPacket.create(10, 1024, RtpPacket.MP2T_PT, 'The payload string')
         >>> q = RtpPacket.create(11, 1028, RtpPacket.MP2T_PT, bytearray.fromhex('00 11 22 33'))
         >>> r = RtpPacket.create(11, 1028, RtpPacket.DYNAMIC_PT, bytearray.fromhex('cc aa ff ee'))
-        >>> assert(p.validMP2T and q.validMP2T and r.valid)
+        >>> assert p.validMP2T and q.validMP2T and r.valid
         """
         rtp = cls(None, 0)
         rtp.version = 2
         rtp.padding = False
         rtp.extension = False
         rtp.marker = False
-        rtp.payload_type = payload_type & RtpPacket.PT_MASK
-        rtp.sequence = sequence & RtpPacket.S_MASK
-        rtp.timestamp = timestamp & RtpPacket.TS_MASK
+        rtp.payload_type = payload_type & cls.PT_MASK
+        rtp.sequence = sequence & cls.S_MASK
+        rtp.timestamp = timestamp & cls.TS_MASK
         rtp.ssrc = 0
         rtp.csrc = []
         rtp.payload = payload
@@ -390,10 +423,10 @@ class RtpPacket(object):
         """
         if isinstance(other, self.__class__):
             return (
-                self.sequence == other.sequence and
-                self.timestamp == other.timestamp and
-                self.payload_type == other.payload_type and
-                self.payload == other.payload)
+                self.sequence == other.sequence
+                and self.timestamp == other.timestamp
+                and self.payload_type == other.payload_type
+                and self.payload == other.payload)
 
     def __str__(self):
         """

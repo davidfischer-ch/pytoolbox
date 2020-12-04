@@ -6,7 +6,7 @@ from .subprocess import cmd
 _all = module.All(globals())
 
 
-class cached_property(object):
+class cached_property(object):  # pylint:disable=too-few-public-methods
     """
     Decorator that converts a method with a single self argument into a property cached on the
     instance.
@@ -44,11 +44,11 @@ def deprecated(func):
     return _deprecated
 
 
-class hybridmethod(object):
+class hybridmethod(object):  # pylint:disable=too-few-public-methods
     """
     Decorator that allows a method to be both used as a class method and an instance method.
 
-    Credits: http://stackoverflow.com/questions/18078744/python-hybrid-between-regular-method-and-classmethod#18078819
+    Credits: http://stackoverflow.com/questions/18078744/#18078819
 
     **Example usage**
 
@@ -86,7 +86,7 @@ def confirm_it(message, default=False, abort_message='Operation aborted by the u
     """Ask for confirmation before calling the decorated function."""
     def _confirm_it(f):
         @functools.wraps(f)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # pylint:disable=inconsistent-return-statements
             if console.confirm(message, default=default):
                 return f(*args, **kwargs)
             print(abort_message)
@@ -106,7 +106,7 @@ def disable_iptables(f):
                 cmd('sudo service iptables stop', shell=True)
                 print('Disable iptables')
                 has_iptables = True
-            except Exception:
+            except Exception:  # pylint:disable=broad-except
                 has_iptables = False
             return f(*args, **kwargs)
         finally:

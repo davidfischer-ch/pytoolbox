@@ -16,14 +16,15 @@ class TimeThrottle(object):
     Time based throttling class.
 
     >>> import datetime
-    >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> t1, t2 = (TimeThrottle(t) for t in (datetime.timedelta(minutes=1), 0.2))
-    >>> asserts.list_equal(list(t1.throttle_iterable((i, i) for i in range(10))), [(0, 0), (9, 9)])
-    >>> asserts.list_equal(list(t2.throttle_iterable(slow_range(3))), [0, 1, 2])
+    >>> list(t1.throttle_iterable((i, i) for i in range(10)))
+    [(0, 0), (9, 9)]
+    >>> list(t2.throttle_iterable(slow_range(3)))
+    [0, 1, 2]
     """
     def __init__(self, min_time_delta):
         self.min_time_delta = total_seconds(min_time_delta)
@@ -66,14 +67,15 @@ class TimeAndRatioThrottle(TimeThrottle):
     Time and ratio based throttling class.
 
     >>> import datetime
-    >>> from pytoolbox.unittest import asserts
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
     >>> t1, t2 = (TimeAndRatioThrottle(0.3, t, 10*t) for t in (datetime.timedelta(minutes=1), 0.4))
-    >>> asserts.list_equal(list(t1.throttle_iterable(list(range(9)), lambda i: [i/9])), [0, 8])
-    >>> asserts.list_equal(list(t2.throttle_iterable(slow_range(9), lambda i: [i/9])), [0, 3, 6, 8])
+    >>> list(t1.throttle_iterable(list(range(9)), lambda i: [i/9]))
+    [0, 8]
+    >>> list(t2.throttle_iterable(slow_range(9), lambda i: [i/9]))
+    [0, 3, 6, 8]
     """
     def __init__(self, min_ratio_delta, min_time_delta, max_time_delta):
         super().__init__(min_time_delta)
@@ -89,9 +91,9 @@ class TimeAndRatioThrottle(TimeThrottle):
         ratio_delta = ratio - self.previous_ratio
         time_delta = time.time() - self.previous_time
         if (
-            ratio_delta > self.min_ratio_delta and
-            time_delta > self.min_time_delta or
-            time_delta > self.max_time_delta
+            ratio_delta > self.min_ratio_delta
+            and time_delta > self.min_time_delta
+            or time_delta > self.max_time_delta
         ):
             self._update(ratio)
             return False
