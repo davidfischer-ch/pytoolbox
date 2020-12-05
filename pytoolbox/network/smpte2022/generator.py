@@ -55,7 +55,8 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def on_new_col(self, col):  # pylint:disable=no-self-use
+    @staticmethod
+    def on_new_col(col):
         """
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
@@ -77,7 +78,8 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
             f'LxD={col.L}x{col.D} '
             f'trec={col.timestamp_recovery}')
 
-    def on_new_row(self, row):  # pylint:disable=no-self-use
+    @staticmethod
+    def on_new_row(row):
         """
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 

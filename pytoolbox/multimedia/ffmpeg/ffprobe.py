@@ -64,6 +64,7 @@ class FFprobe(object):
             if duration and (duration >= datetime.timedelta(seconds=1) if as_delta else
                              duration >= datetime.time(0, 0, 1)):
                 return duration
+        return None
 
     def get_media_info(self, media, fail=False):
         """

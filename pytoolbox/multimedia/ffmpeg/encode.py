@@ -136,7 +136,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
         """Adjust duration and size if we only encode a sub-clip."""
 
         try:
-            sub_duration = cls.to_time(out_options[out_options.index('-t') + 1])
+            sub_duration = cls._to_time(out_options[out_options.index('-t') + 1])
         except (IndexError, ValueError):
             sub_duration = duration
         if sub_duration is None:
@@ -144,7 +144,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
 
         zero = datetime.timedelta(0)
         try:
-            sub_position = cls.to_time(out_options[out_options.index('-ss') + 1]) or zero
+            sub_position = cls._to_time(out_options[out_options.index('-ss') + 1]) or zero
         except (IndexError, ValueError):
             sub_position = zero
 

@@ -2,7 +2,7 @@ import errno, itertools, re, select, subprocess, sys, time
 
 from pytoolbox import filesystem
 from pytoolbox.subprocess import kill, make_async, raw_cmd, to_args_list
-from . import encode, ffprobe
+from . import encode, ffprobe  # pylint:disable=unused-import
 
 __all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
 
@@ -38,7 +38,7 @@ class FFmpeg(object):
             itertools.chain([self.executable], arguments),
             stderr=subprocess.PIPE, universal_newlines=True)
 
-    def encode(
+    def encode(  # pylint:disable=too-many-locals
         self,
         inputs,
         outputs,
@@ -77,13 +77,13 @@ class FFmpeg(object):
                 if self.encode_poll_delay:
                     time.sleep(self.encode_poll_delay)
             yield statistics.end(returncode)
-        except Exception as exception:
-            tb = sys.exc_info()[2]
+        except Exception as e:
+            traceback = sys.exc_info()[2]
             kill(process)
-            raise exception.with_traceback(tb) \
-                if hasattr(exception, 'with_traceback') else exception
+            raise e.with_traceback(traceback) if hasattr(e, 'with_traceback') else e
 
-    def get_frames_md5_checksum(self, filename):
+    @staticmethod
+    def get_frames_md5_checksum(filename):
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
@@ -129,13 +129,13 @@ class FFmpeg(object):
             chunk = process.stderr.read()
             if chunk is None or isinstance(chunk, str):
                 return chunk
-            else:
-                return chunk.decode(self.encoding)
+            return chunk.decode(self.encoding)
         except IOError as e:
             if e.errno != errno.EAGAIN:
                 raise
 
-    def _get_process(self, arguments, **process_kwargs):
+    @staticmethod
+    def _get_process(arguments, **process_kwargs):
         """Return an encoding process with stderr made asynchronous."""
         process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
         make_async(process.stderr)
