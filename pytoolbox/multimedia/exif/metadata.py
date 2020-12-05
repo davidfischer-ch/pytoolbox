@@ -15,9 +15,9 @@ class Metadata(object):
     tag_class = tag.Tag
 
     def __init__(self, path=None, buf=None, orientation=None, gexiv2_version='0.10'):
-        import gi
+        import gi  # pylint:disable=import-error
         gi.require_version('GExiv2', gexiv2_version)
-        from gi.repository import GExiv2
+        from gi.repository import GExiv2  # pylint:disable=import-error
         self.path = path
         self.exiv2 = GExiv2.Metadata()
         if buf:
@@ -42,13 +42,14 @@ class Metadata(object):
     def tags(self):
         return {k: self[k] for k in self.exiv2.get_tags()}
 
-    def get_date(self, keys=('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'), fail=True):
+    def get_date(self, keys=('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')):
         if isinstance(keys, str):
             keys = [keys]
         for key in keys:
             date = self[key].data
             if isinstance(date, datetime.datetime):
                 return date
+        return None
 
     def rewrite(self, path=None, save=False):
         """

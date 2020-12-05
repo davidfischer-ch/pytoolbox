@@ -1,12 +1,14 @@
 from ipaddress import ip_address
 
+from pytoolbox import exceptions
+
 __all__ = ['ip_address', 'IPSocket']
 
 
-def IPSocket(string):  # pylint:disable=invalid-name
+def IPSocket(socket):  # pylint:disable=invalid-name
     """
     This helper create a dictionary containing address and port from a parsed IP address string.
-    Throws ValueError in case of failure (e.g. string is not a valid IP address).
+    Throws InvalidIPSocketError in case of failure.
 
     **Example usage**
 
@@ -25,10 +27,10 @@ def IPSocket(string):  # pylint:disable=invalid-name
         TODO IPv6 ready : >>> IPSocket('[2001:0db8:0000:0000:0000:ff00:0042]:8329')
     """
     try:
-        (address, port) = string.rsplit(':', 1)
+        (address, port) = socket.rsplit(':', 1)
         # address = address.translate(None, '[]')
         ip_address(address)  # Seem not IPv6 ready
         port = int(port)
-    except Exception:
-        raise ValueError(f'{string} is not a valid IP socket.')
+    except Exception as e:
+        raise exceptions.InvalidIPSocketError(socket=socket) from e
     return {'ip': address, 'port': port}

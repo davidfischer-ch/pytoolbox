@@ -36,6 +36,10 @@ class InvalidBrandError(MessageMixin, Exception):
     message = 'Brand {brand} not in {brands}.'
 
 
+class InvalidIPSocketError(MessageMixin, Exception):
+    message = '{socket} is not a valid IP socket.'
+
+
 class MultipleSignalHandlersError(MessageMixin, Exception):
     message = 'Signal {signum} already handled by {handlers}.'
 

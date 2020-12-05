@@ -13,7 +13,7 @@ class FecGenerator(object):
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
-    def L(self):
+    def L(self):  # pylint:disable=invalid-name
         """
         Returns the Horizontal size of the FEC matrix (columns).
 
@@ -25,7 +25,7 @@ class FecGenerator(object):
         return self._L
 
     @property
-    def D(self):
+    def D(self):  # pylint:disable=invalid-name
         """
         Returns the vertical size of the FEC matrix (rows).
 
@@ -38,7 +38,7 @@ class FecGenerator(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, L, D):
+    def __init__(self, L, D):  # pylint:disable=too-many-instance-attributes
         """
         Construct a FecGenerator.
 
@@ -46,10 +46,8 @@ class FecGenerator(object):
         :type L: int
         :param D: Vertical size of the FEC matrix (rows)
         :type D: int
-        :param extra: Extra argument for `on_new_col` and `on_new_row` methods
-        :type extra: object
         """
-        self._L, self._D = L, D
+        self._L, self._D = L, D  # pylint:disable=invalid-name
         self._col_sequence = self._row_sequence = 1
         self._media_sequence = None
         self._medias = []
@@ -57,7 +55,7 @@ class FecGenerator(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def on_new_col(self, col, caller):
+    def on_new_col(self, col):
         """
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
@@ -79,7 +77,7 @@ class FecGenerator(object):
             f'LxD={col.L}x{col.D} '
             f'trec={col.timestamp_recovery}')
 
-    def on_new_row(self, row, caller):
+    def on_new_row(self, row):
         """
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 
@@ -101,7 +99,7 @@ class FecGenerator(object):
             f'LxD={row.L}x{row.D} '
             f'trec={row.timestamp_recovery}')
 
-    def on_reset(self, media, caller):
+    def on_reset(self, media):
         """
         Called by FecGenerator when the algorithm is reseted (an incoming media is out of sequence).
 
@@ -214,7 +212,7 @@ class FecGenerator(object):
             self._medias.append(media)
         else:
             self._medias = [media]
-            self.on_reset(media, self)
+            self.on_reset(media)
         self._media_sequence = sequence
 
         # Compute a new row FEC packet when a new row just filled with packets
@@ -229,7 +227,7 @@ class FecGenerator(object):
                 self._D,
                 row_medias)
             self._row_sequence = (self._row_sequence + 1) & RtpPacket.S_MASK
-            self.on_new_row(row, self)
+            self.on_new_row(row)
 
         # Compute a new column FEC packet when a new column just filled with packets
         if len(self._medias) > self._L * (self._D - 1):
@@ -244,7 +242,7 @@ class FecGenerator(object):
                 self._D,
                 col_medias)
             self._col_sequence = (self._col_sequence + 1) & RtpPacket.S_MASK
-            self.on_new_col(col, self)
+            self.on_new_col(col)
 
         if len(self._medias) == self._L * self._D:
             self._medias = []

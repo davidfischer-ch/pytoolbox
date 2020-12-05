@@ -38,14 +38,14 @@ def with_tags(tags=None, required=None):
 
 class InMixin(object):
 
-    def assert_in_hook(self, b):
-        return b if isinstance(b, (str, bytes)) else sorted(b)
+    def assert_in_hook(self, obj):
+        return obj if isinstance(obj, (str, bytes)) else sorted(obj)
 
-    def assertIn(self, a, b, msg=None):
-        assert a in b, f"{a} not in {self.assert_in_hook(b)}: {msg or ''}"
+    def assertIn(self, obj_a, obj_b, msg=None):
+        assert obj_a in obj_b, f"{obj_a} not in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
-    def assertNotIn(self, a, b, msg=None):
-        assert a not in b, f"{a} in {self.assert_in_hook(b)}: {msg or ''}"
+    def assertNotIn(self, obj_a, obj_b, msg=None):
+        assert obj_a not in obj_b, f"{obj_a} in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
 
 class InspectMixin(object):

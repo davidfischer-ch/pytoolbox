@@ -138,8 +138,9 @@ def download_ext(  # pylint:disable=too-many-locals
     >>> with asserts.raises(BadHTTPResponseCodeError):
     ...     download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4')
     """
-    exists = os.path.exists(path)
     downloaded = False
+    exists = os.path.exists(path)
+    file_hash = None
     start_time = time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
         url, path, code, chunk_size, force, hash_algorithm, expected_hash, **kwargs

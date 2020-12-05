@@ -1,3 +1,5 @@
+# pylint:disable=invalid-name
+
 import functools
 
 from pytoolbox import module
@@ -27,9 +29,9 @@ def get_orientation(image, orientation_tag=0x0112, no_exif_default=None, no_key_
         return no_key_default
 
 
-def apply_orientation(  # pylint:disable=redefined-outer-name
+def apply_orientation(  # pylint:disable=dangerous-default-value
     image,
-    get_orientation=get_orientation,
+    get_orientation=get_orientation,  # pylint:disable=redefined-outer-name
     sequences=TRANSPOSE_SEQUENCES
 ):
     """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""

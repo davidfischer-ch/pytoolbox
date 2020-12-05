@@ -313,7 +313,7 @@ def make(
 
 # --------------------------------------------------------------------------------------------------
 
-def rsync(
+def rsync(  # pylint:disable=too-many-locals
     source,
     destination,
     source_is_dir=False,

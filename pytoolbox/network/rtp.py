@@ -3,7 +3,7 @@ import struct
 __all__ = ['RtpPacket']
 
 
-class RtpPacket(object):
+class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
     """
     This represent a real-time transport protocol (RTP) packet.
 
@@ -75,7 +75,7 @@ class RtpPacket(object):
         return len(self.errors) == 0
 
     @property
-    def validMP2T(self):
+    def validMP2T(self):  # pylint:disable=invalid-name
         """Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
         return self.valid and self.payload_type == self.MP2T_PT
 
@@ -198,24 +198,24 @@ class RtpPacket(object):
         >>> header += rtp.payload
         >>> assert rtp == RtpPacket(header, len(header))
         """
-        cc = len(self.csrc)
-        bytes = bytearray(self.HEADER_LENGTH + 4 * cc)
-        bytes[0] = (
+        cc = len(self.csrc)  # pylint:disable=invalid-name
+        header = bytearray(self.HEADER_LENGTH + 4 * cc)
+        header[0] = (
             ((self.version << self.V_SHIFT) & self.V_MASK)
             + (self.P_MASK if self.padding else 0)
             + (self.X_MASK if self.extension else 0)
             + (cc & self.CC_MASK))
-        bytes[1] = (
+        header[1] = (
             (self.M_MASK if self.marker else 0)
             + (self.payload_type & self.PT_MASK))
-        struct.pack_into(b'!H', bytes, 2, self.sequence)
-        struct.pack_into(b'!I', bytes, 4, self.timestamp)
-        struct.pack_into(b'!I', bytes, 8, self.ssrc)
+        struct.pack_into(b'!H', header, 2, self.sequence)
+        struct.pack_into(b'!I', header, 4, self.timestamp)
+        struct.pack_into(b'!I', header, 8, self.ssrc)
         i = 12
         for contributor in self.csrc:
-            struct.pack_into(b'!I', bytes, i, contributor)
+            struct.pack_into(b'!I', header, i, contributor)
             i += 4
-        return bytes
+        return header
 
     @property
     def bytes(self):
@@ -224,7 +224,7 @@ class RtpPacket(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, bytes, length):
+    def __init__(self, data, length):
         """
         This constructor will parse input bytes array to fill packet's fields.
         In case of error (e.g. bad version number) the constructor will abort filling
@@ -328,43 +328,43 @@ class RtpPacket(object):
         if length < offset:
             return
 
-        self.version = (bytes[0] & self.V_MASK) >> 6
+        self.version = (data[0] & self.V_MASK) >> 6
         if self.version != 2:
             return
 
-        self.padding = (bytes[0] & self.P_MASK) == self.P_MASK
+        self.padding = (data[0] & self.P_MASK) == self.P_MASK
         if self.padding:  # Remove padding if present
-            padding_length = bytes[-1]
+            padding_length = data[-1]
             if padding_length == 0 or length < (offset + padding_length):
                 self._errors = self.ER_PADDING_LENGTH
                 return
             length -= padding_length
 
-        self.extension = (bytes[0] & self.X_MASK) == self.X_MASK
-        cc = bytes[0] & self.CC_MASK
+        self.extension = (data[0] & self.X_MASK) == self.X_MASK
+        cc = data[0] & self.CC_MASK  # pylint:disable=invalid-name
         self.csrc = []  # cc > 0 ? new long[cc] : null
-        self.marker = (bytes[1] & self.M_MASK) == self.M_MASK
-        self.payload_type = bytes[1] & self.PT_MASK
-        self.sequence = bytes[2] * 256 + bytes[3]
-        self.timestamp = ((bytes[4] * 256 + bytes[5]) * 256 + bytes[6]) * 256 + bytes[7]
-        self.ssrc = ((bytes[8] * 256 + bytes[9]) * 256 + bytes[10]) * 256 + bytes[11]
+        self.marker = (data[1] & self.M_MASK) == self.M_MASK
+        self.payload_type = data[1] & self.PT_MASK
+        self.sequence = data[2] * 256 + data[3]
+        self.timestamp = ((data[4] * 256 + data[5]) * 256 + data[6]) * 256 + data[7]
+        self.ssrc = ((data[8] * 256 + data[9]) * 256 + data[10]) * 256 + data[11]
 
-        for i in range(cc):  # noqa
+        for _ in range(cc):
             self.csrc.append(
-                ((bytes[offset] * 256 + bytes[offset + 1]) * 256 + bytes[offset + 2]) * 256
-                + bytes[offset + 3])
+                ((data[offset] * 256 + data[offset + 1]) * 256 + data[offset + 2]) * 256
+                + data[offset + 3])
             offset += 4
             # FIXME In session.c of VLC they store per-source statistics in a rtp_source_t struct
 
         if self.extension:  # Extension header (ignored for now)
-            extensionLength = bytes[offset + 2] * 256 + bytes[offset + 3]
-            offset += 4 + extensionLength
+            extension_length = data[offset + 2] * 256 + data[offset + 3]
+            offset += 4 + extension_length
             if length < offset:
                 self._errors = self.ER_EXTENSION_LENGTH
                 return
 
         # And finally ... The payload !
-        self.payload = bytes[offset:length]
+        self.payload = data[offset:length]
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -421,12 +421,12 @@ class RtpPacket(object):
 
             Test equality only on some fields (not all) !
         """
-        if isinstance(other, self.__class__):
-            return (
-                self.sequence == other.sequence
-                and self.timestamp == other.timestamp
-                and self.payload_type == other.payload_type
-                and self.payload == other.payload)
+        return (
+            isinstance(other, self.__class__)
+            and self.sequence == other.sequence
+            and self.timestamp == other.timestamp
+            and self.payload_type == other.payload_type
+            and self.payload == other.payload)
 
     def __str__(self):
         """

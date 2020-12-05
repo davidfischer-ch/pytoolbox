@@ -27,7 +27,7 @@ class EncodeState(object):
     FINAL_STATES = frozenset([SUCCESS, FAILURE])
 
 
-class EncodeStatistics(object):
+class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
 
     default_in_duration = datetime.timedelta(seconds=0)
     encoding_regex = ENCODING_REGEX
@@ -131,23 +131,25 @@ class EncodeStatistics(object):
             return time_ratio(self.output.duration, self.input.duration)
         return None
 
-    @staticmethod
-    def _get_subclip_duration_and_size(duration, size, out_options):
+    @classmethod
+    def _get_subclip_duration_and_size(cls, duration, size, out_options):
         """Adjust duration and size if we only encode a sub-clip."""
-        def to_time(t):
-            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
+
         try:
-            sub_pos = to_time(out_options[out_options.index('-ss') + 1]) or datetime.timedelta(0)
+            sub_duration = cls.to_time(out_options[out_options.index('-t') + 1])
         except (IndexError, ValueError):
-            sub_pos = datetime.timedelta(0)
+            sub_duration = duration
+        if sub_duration is None:
+            return duration, size
+
+        zero = datetime.timedelta(0)
         try:
-            sub_dur = to_time(out_options[out_options.index('-t') + 1])
+            sub_position = cls.to_time(out_options[out_options.index('-ss') + 1]) or zero
         except (IndexError, ValueError):
-            sub_dur = duration
-        if sub_dur is not None:
-            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
-            return sub_dur, int(size * time_ratio(sub_dur, duration))
-        return duration, size
+            sub_position = zero
+
+        sub_duration = max(zero, min(duration - sub_position, sub_duration))
+        return sub_duration, int(size * time_ratio(sub_duration, duration))
 
     def _parse_chunk(self, chunk):
         self.process_output += chunk
@@ -165,6 +167,11 @@ class EncodeStatistics(object):
             ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
             ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
             return ffmpeg_statistics
+
+    @staticmethod
+    def _to_time(value):
+        method = str_to_time if ':' in value else secs_to_time
+        return method(value, as_delta=True)
 
 
 class FrameBasedRatioMixin(object):

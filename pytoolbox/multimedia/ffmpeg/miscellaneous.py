@@ -232,8 +232,9 @@ class VideoStream(Stream):
         return None if value is None else int(value)
 
     @property
-    def rotation(self):  # pylint:disable=no-member
-        return int(0 if self.tags is None else self.tags.get('rotate', 0))
+    def rotation(self):
+        tags = self.tags  # pylint:disable=no-member
+        return int(0 if tags is None else tags.get('rotate', 0))
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
