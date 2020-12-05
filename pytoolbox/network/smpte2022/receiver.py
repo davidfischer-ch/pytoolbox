@@ -104,6 +104,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
     ER_DIRECTION = 'FEC packet direction is neither COL nor ROW : {0}'
     ER_FLUSHING = 'Currently flushing buffers'
     ER_MISSING_COUNT = 'They are {0} missing media packet, expected one (1)'
+    ER_FEC_DIRECTION = "Invalid FEC direction '{0}'"
     ER_COL_MISMATCH = 'Column FEC packet n°{0}, expected n°{1}'
     ER_COL_OVERWRITE = \
         'Another column FEC packet is already registered to protect media packet n°{0}'
@@ -157,8 +158,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         # Fec packets + related information storage, col[sequence] = { fec pkt + info }
         self.cols = {}
         self.rows = {}
-        self.matrixL = 0  # Detected FEC matrix size (number of columns)
-        self.matrixD = 0  # Detected FEC matrix size (number of rows)
+        self.matrixL = 0  # Detected FEC matrix size (number of columns) pylint:disable=invalid-name
+        self.matrixD = 0  # Detected FEC matrix size (number of rows)    pylint:disable=invalid-name
         # Output
         self.output = output  # Registered output
         # Settings
@@ -208,7 +209,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         else:
             raise ValueError(self.ER_DELAY_UNITS.format(units))
 
-    def put_media(self, media, onlyMP2TS):
+    def put_media(self, media, onlyMP2TS):  # pylint=disable:invalid-name
         """Put an incoming media packet."""
         if self.flushing:
             raise ValueError(self.ER_FLUSHING)

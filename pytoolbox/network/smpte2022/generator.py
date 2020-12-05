@@ -4,7 +4,7 @@ from .base import FecPacket
 __all__ = ['FecGenerator']
 
 
-class FecGenerator(object):
+class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
     """
     A SMPTE 2022-1 FEC streams generator.
     This generator accept incoming RTP media packets and compute corresponding FEC packets.
@@ -55,7 +55,7 @@ class FecGenerator(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def on_new_col(self, col):
+    def on_new_col(self, col):  # pylint:disable=no-self-use
         """
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
@@ -77,7 +77,7 @@ class FecGenerator(object):
             f'LxD={col.L}x{col.D} '
             f'trec={col.timestamp_recovery}')
 
-    def on_new_row(self, row):
+    def on_new_row(self, row):  # pylint:disable=no-self-use
         """
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 
