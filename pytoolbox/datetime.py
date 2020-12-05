@@ -34,8 +34,11 @@ def datetime_now(
 
     >>> now = datetime_now(format=None)
     >>> future = datetime_now(offset=datetime.timedelta(hours=2, minutes=10), format=None)
-    >>> future - now
-    datetime.timedelta(seconds=7800, microseconds=...)
+    >>> result = (future - now)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> print(result)
+    2:10:00.000...
 
     Append UTC to output date string:
 
@@ -108,8 +111,11 @@ def multiply_time(value, factor, as_delta=False):
     datetime.time(0, 3)
     >>> multiply_time(120, 0.1)
     datetime.time(0, 0, 12)
-    >>> multiply_time(datetime.timedelta(seconds=152, microseconds=500000), 1, as_delta=True)
-    datetime.timedelta(seconds=152, microseconds=500000)
+    >>> res = multiply_time(datetime.timedelta(seconds=152, microseconds=500000), 1, as_delta=True)
+    >>> type(res)
+    <class 'datetime.timedelta'>
+    >>> print(res)
+    0:02:32.500000
     """
     return secs_to_time(total_seconds(value) * factor, as_delta=as_delta)
 
@@ -122,8 +128,11 @@ def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):
 
     >>> parts_to_time(23, 15, 7, 3500)
     datetime.time(23, 15, 7, 3500)
-    >>> parts_to_time(23, 15, 7, 3500, as_delta=True)
-    datetime.timedelta(seconds=83707, microseconds=3500)
+    >>> result = parts_to_time(23, 15, 7, 3500, as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> print(result)
+    23:15:07.003500
     """
     if as_delta:
         return datetime.timedelta(
@@ -146,9 +155,13 @@ def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     >>> secs_to_time(None)
     >>> secs_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
-    >>> secs_to_time(83707.0035, as_delta=True)
-    datetime.timedelta(seconds=83707, microseconds=3500)
-    >>> secs_to_time(None, as_delta=True)
+    >>> result = secs_to_time(83707.0035, as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> print(result)
+    23:15:07.003500
+    >>> secs_to_time(None, as_delta=True) is None
+    True
     >>> secs_to_time(None, defaults_to_zero=True, as_delta=True)
     datetime.timedelta(0)
     """

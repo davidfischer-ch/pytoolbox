@@ -8,7 +8,7 @@ install:
   - travis_retry sudo apt-get update -qq
   - travis_retry sudo apt-get install -qq cmake screen
   - travis_retry pip install --upgrade pip
-  - travis_retry pip install coveralls
+  - travis_retry pip install bson coveralls  # for valid_uuid(objectid_allowed=True) and coverage report
   - travis_retry pip install -U -e .[atlassian,aws,flask,imaging,jinja2,logging,network,pandas,selenium,smpte2022,unittest,vision,voluptuous,test]
 script:
   - rm -rf pytoolbox/django* pytoolbox/rest_framework  # FIXME Implement tests ...

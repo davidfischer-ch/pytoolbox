@@ -103,38 +103,41 @@ def download_ext(  # pylint:disable=too-many-locals
     **Example usage**
 
     >>> import hashlib
-    >>> from pytoolbox.unittest import asserts
+    >>> from pytoolbox.unittest import asserts, filesystem
+    >>>
+    >>> _ = filesystem.remove('small.mp4')
+    >>>
     >>> url = 'http://techslides.com/demos/sample-videos/small.mp4'
-
+    >>>
     >>> download_ext(url, 'small.mp4')
     (True, True, None)
     >>> download_ext(url, 'small.mp4', force=False)
     (True, False, None)
-
+    >>>
     >>> download_ext(url, 'small.mp4', force=False, hash_algorithm='md5',
     ...              expected_hash='a3ac7ddabb263c2d00b73e8177d15c8d')
     (True, False, 'a3ac7ddabb263c2d00b73e8177d15c8d')
-
+    >>>
     >>> def progress(start_time, position, length, chunk):
     ...     print('(%d, %d)' % (position, length))
-
+    >>>
     >>> download_ext(url, 'small.mp4', progress_callback=progress)
     (102400, 383631)
     (204800, 383631)
     (307200, 383631)
     (383631, 383631)
     (True, True, None)
-
+    >>>
     >>> with asserts.raises(CorruptedFileError):
     ...     download_ext(
     ...         url,
     ...         'small.mp4',
     ...         hash_algorithm=hashlib.md5,
     ...         expected_hash='efac5df252145c2d07b73e8177d15c8d')
-
+    >>>
     >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
     (False, False, None)
-
+    >>>
     >>> with asserts.raises(BadHTTPResponseCodeError):
     ...     download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4')
     """

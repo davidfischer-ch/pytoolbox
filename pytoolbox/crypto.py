@@ -35,9 +35,9 @@ def checksum(
     'ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef'
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
-    >>> checksum('small.mp4', is_path=True)
+    >>> checksum('../tests/small.mp4', is_path=True)
     '1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859'
-    >>> checksum('small.mp4', is_path=True, chunk_size=1024)
+    >>> checksum('../tests/small.mp4', is_path=True, chunk_size=1024)
     '1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859'
     """
     hasher = new(algorithm)
@@ -88,9 +88,9 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     'abdd1818289725c072eff0f5ce185457679650be'
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
-    >>> githash('small.mp4', is_path=True)
+    >>> githash('../tests/small.mp4', is_path=True)
     '1fc478842f51e7519866f474a02ad605235bc6a6'
-    >>> githash('small.mp4', is_path=True, chunk_size=1024)
+    >>> githash('../tests/small.mp4', is_path=True, chunk_size=1024)
     '1fc478842f51e7519866f474a02ad605235bc6a6'
     """
     hasher = hashlib.sha1()
