@@ -94,7 +94,12 @@ def raw_cmd(arguments, shell=False, **kwargs):
     return process
 
 
-def cmd(
+# thanks http://stackoverflow.com/questions/1191374$
+def _communicate_with_timeout(*, data, process, input):  # pylint:disable=redefined-builtin
+    data['stdout'], data['stderr'] = process.communicate(input=input)
+
+
+def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
     command,
     user=None,
     input=None,  # pylint:disable=redefined-builtin
@@ -195,10 +200,9 @@ def cmd(
         if communicate:
             data = {}
 
-            # thanks http://stackoverflow.com/questions/1191374/subprocess-with-timeout
-            def communicate_with_timeout(data=None):
-                data['stdout'], data['stderr'] = process.communicate(input=input)
-            thread = threading.Thread(target=communicate_with_timeout, kwargs={'data': data})
+            thread = threading.Thread(
+                target=_communicate_with_timeout,
+                kwargs={'data': data, 'input': input, 'process': process})
             thread.start()
             thread.join(timeout=timeout)
             if thread.is_alive():
