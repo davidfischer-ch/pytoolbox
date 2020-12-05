@@ -7,12 +7,26 @@ _all = module.All(globals())
 
 
 def get_arguments_names(function):
-    specs = inspect.getargspec(function)
-    all_names = specs.args[:]
-    for names in specs.varargs, specs.keywords:
-        if names:
-            all_names.extend(names if isinstance(names, list) else [names])
-    return all_names
+    """
+    Return a list with arguments names.
+
+    >>> from pytoolbox import types
+    >>>
+    >>> get_arguments_names(get_arguments_names)
+    ['function']
+    >>>
+    >>> def my_func(directory, a=1, *args, b, c=None, **kwargs):
+    ...     pass
+    ...
+    >>> get_arguments_names(my_func)
+    ['directory', 'a', 'args', 'b', 'c', 'kwargs']
+    >>>
+    >>> get_arguments_names(types.get_subclasses)
+    ['obj', 'nested']
+    >>> get_arguments_names(types.merge_bases_attribute)
+    ['cls', 'attr_name', 'init', 'default', 'merge_func']
+    """
+    return list(inspect.signature(function).parameters.keys())
 
 
 def get_properties(obj):
