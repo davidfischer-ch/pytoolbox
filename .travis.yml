@@ -7,11 +7,11 @@ python:
 install:
   - travis_retry sudo apt-get update -qq
   - travis_retry sudo apt-get install -qq cmake screen
-  - travis_retry sudo pip install --upgrade pip
-  - travis_retry sudo pip install --user coveralls
-  - travis_retry sudo pip install --user -U -e .[atlassian,aws,flask,imaging,jinja2,logging,network,pandas,selenium,smpte2022,unittest,vision,voluptuous]
+  - travis_retry sudo pip3 install --upgrade pip
+  - travis_retry sudo pip3 install --user coveralls
+  - travis_retry sudo pip3 install --user -U -e .[atlassian,aws,flask,imaging,jinja2,logging,network,pandas,selenium,smpte2022,unittest,vision,voluptuous]
 script:
-  - rm -rf pytoolbox/django* pytoolbox/rest_framework  # Not maintained so not testable ...
-  - python setup.py test
+  - rm -rf pytoolbox/django* pytoolbox/rest_framework  # FIXME Implement tests ...
+  - python3 setup.py test
 after_success:
   coveralls
