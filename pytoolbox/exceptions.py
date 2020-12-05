@@ -32,8 +32,12 @@ class ForbiddenError(Exception):
     """A forbidden error."""
 
 
+class InvalidBrandError(MessageMixin, Exception):
+    message = 'Brand {brand} not in {brands}.'
+
+
 class MultipleSignalHandlersError(MessageMixin, Exception):
-    message = """Signal {signum} already handled by {handlers}."""
+    message = 'Signal {signum} already handled by {handlers}.'
 
 
 class UndefinedPathError(Exception):

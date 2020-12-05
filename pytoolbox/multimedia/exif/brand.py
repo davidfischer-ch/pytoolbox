@@ -1,4 +1,4 @@
-from pytoolbox import collections
+from pytoolbox import collections, exceptions
 
 __all__ = ['Brand']
 
@@ -53,7 +53,9 @@ class Brand(object):
     @classmethod
     def clean(cls, brand):
         brand = brand.strip() if brand else brand
-        if brand:
-            brand = cls.clean_map.get(brand.lower(), brand)
-            assert brand in cls.brands, f'Brand {brand} not in {cls.brands}'
-            return brand
+        if not brand:
+            return None
+        brand = cls.clean_map.get(brand.lower(), brand)
+        if brand not in cls.brands:
+            raise exceptions.InvalidBrandError(brand=brand, brands=cls.brands)
+        return brand
