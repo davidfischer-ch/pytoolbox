@@ -1,6 +1,12 @@
-from selenium.common.exceptions import *  # noqa:F401,F403
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common import exceptions
+
+# Replace the infamous "from selenium.common.exceptions import *" :)
+things = {k: v for k, v in exceptions.__dict__.items() if k[0] != '_'}
+__all__ = sorted(list(things.keys()) + ['NoSuchSpecializedElementException'])
+assert 'NoSuchSpecializedElementException' not in things
+
+globals().update(things)
 
 
-class NoSuchSpecializedElementException(NoSuchElementException):
+class NoSuchSpecializedElementException(exceptions.NoSuchElementException):
     pass

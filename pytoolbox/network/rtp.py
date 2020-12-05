@@ -103,8 +103,8 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         >>> asserts.list_equal(rtp.errors, [])
         """
         errors = []
-        if self._errors:
-            errors.append(self._errors)
+        if self._error:
+            errors.append(self._error)
         if self.version != 2:
             errors.append(self.ER_VERSION)
         if self.payload_size == 0:
@@ -322,7 +322,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         self.ssrc = 0
         self.csrc = []
         self.payload = []
-        self._errors = None
+        self._error = None
 
         offset = self.HEADER_LENGTH
         if length < offset:
@@ -336,7 +336,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         if self.padding:  # Remove padding if present
             padding_length = data[-1]
             if padding_length == 0 or length < (offset + padding_length):
-                self._errors = self.ER_PADDING_LENGTH
+                self._error = self.ER_PADDING_LENGTH
                 return
             length -= padding_length
 
@@ -360,7 +360,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
             extension_length = data[offset + 2] * 256 + data[offset + 3]
             offset += 4 + extension_length
             if length < offset:
-                self._errors = self.ER_EXTENSION_LENGTH
+                self._error = self.ER_EXTENSION_LENGTH
                 return
 
         # And finally ... The payload !

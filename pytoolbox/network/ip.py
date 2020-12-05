@@ -15,7 +15,7 @@ def IPSocket(socket):  # pylint:disable=invalid-name
     >>> IPSocket('gaga:gogo')
     Traceback (most recent call last):
         ...
-    ValueError: gaga:gogo is not a valid IP socket.
+    pytoolbox.exceptions.InvalidIPSocketError: gaga:gogo is not a valid IP socket.
     >>>
     >>> from pytoolbox.unittest import asserts
     >>> asserts.dict_equal(

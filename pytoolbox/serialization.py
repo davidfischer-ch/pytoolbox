@@ -365,7 +365,7 @@ def object_to_dict(
 
     Define the sample class and convert some instances to a nested structure:
 
-    >>> import pprint
+    >>> from pytoolbox.unittest import asserts
     >>>
     >>> class Point(object):
     ...     def __init__(self, name, x, y, p):
@@ -392,17 +392,20 @@ def object_to_dict(
     ...     }]
     ... }
     ...
-    >>> pprint.pprint(
+    >>> asserts.dict_equal(
     ...     object_to_dict(
     ...         Point('p1', 5, 2, [
     ...             Point('p2', 3, 4, None),
     ...             Point('p3', 7, 0, Point('p4', 0, 0, None))
-    ...         ]), SCHEMA))
-    {'name': 'p1',
-     'p': [{'name': 'p2', 'p': None, 'stuff': 42},
-           {'name': 'p3', 'p': {'name': 'p4'}, 'stuff': 42}],
-     'x': 5,
-     'zed': 3}
+    ...         ]),
+    ...         SCHEMA),
+    ...     {
+    ...         'name': 'p1', 'x': 5, 'zed': 3,
+    ...         'p': [
+    ...             {'name': 'p2', 'stuff': 42, 'p': None},
+    ...             {'name': 'p3', 'stuff': 42, 'p': {'name': 'p4'}}
+    ...         ]
+    ...     })
 
     This serializer can optionally adapt container type and do a lot more:
 
@@ -427,23 +430,28 @@ def object_to_dict(
     >>> def ignore_private_schema_keys(obj, schema, depth):
     ...     return obj, {k: v for k, v in list(schema.items()) if k[0] != '_'}
     ...
-    >>> pprint.pprint(
+    >>> asserts.dict_equal(
     ...     object_to_dict(
-    ...         Point('p1', 5, 2, {
+    ...         Point('p1', 5, 2, (
     ...             Point('p2', 3, 4, []),
     ...             Point('p3', 7, 0, [
     ...                 Point('p4', 0, 0, None),
     ...                 Point('p5', 0, 0, None)
     ...             ])
-    ...         }),
+    ...         )),
     ...         schema=SCHEMA,
     ...         callback=ignore_private_schema_keys,
-    ...         iterable_callback=use_container_defined_in_schema))
-    {'name': 'p1',
-     'p': ({'name': 'p2', 'p': (), 'stuff': 42},
-           {'name': 'p3', 'p': ({'name': 'p4'}, {'name': 'p5'}), 'stuff': 42}),
-     'x': 5,
-     'zed': 3}
+    ...         iterable_callback=use_container_defined_in_schema),
+    ...     {
+    ...         'name': 'p1', 'x': 5, 'zed': 3,
+    ...         'p': (
+    ...             {'name': 'p2', 'stuff': 42, 'p': ()},
+    ...             {'name': 'p3', 'stuff': 42, 'p': (
+    ...                 {'name': 'p4'},
+    ...                 {'name': 'p5'}
+    ...             )}
+    ...         )
+    ...     })
 
     This serializer can optionally adapt schema to objects:
 
@@ -467,17 +475,19 @@ def object_to_dict(
     ...
     >>> p1 = Point('p1', 0, 0, None)
     >>>
-    >>> pprint.pprint(
+    >>> asserts.list_equal(
     ...     object_to_dict([
     ...         p1,
     ...         Point('p2', 5, 2, Point('p3', 3, 4, p1)),
     ...         Point('p4', 5, 2, Point('p5', 3, 4, p1)),
     ...         Point('p6', 5, 2, p1)
-    ...     ], SCHEMA, callback=reduce_seen))
-    [{'n': 'p1', 'p': None},
-     {'n': 'p2', 'p': {'n': 'p3', 'p': {'r': 'p1'}}},
-     {'n': 'p4', 'p': {'n': 'p5', 'p': {'r': 'p1'}}},
-     {'n': 'p6', 'p': {'r': 'p1'}}]
+    ...     ], SCHEMA, callback=reduce_seen),
+    ...     [
+    ...         {'n': 'p1', 'p': None},
+    ...         {'n': 'p2', 'p': {'n': 'p3', 'p': {'r': 'p1'}}},
+    ...         {'n': 'p4', 'p': {'n': 'p5', 'p': {'r': 'p1'}}},
+    ...         {'n': 'p6', 'p': {'r': 'p1'}}
+    ...     ])
     """
 
     if isinstance(schema, list):

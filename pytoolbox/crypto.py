@@ -25,6 +25,10 @@ def checksum(
 
     **Example usage**
 
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
     >>> checksum('')
     'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
     >>> checksum('', algorithm=hashlib.md5)
@@ -35,10 +39,10 @@ def checksum(
     'ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef'
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
-    >>> checksum('../tests/small.mp4', is_path=True)
-    '1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859'
-    >>> checksum('../tests/small.mp4', is_path=True, chunk_size=1024)
-    '1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859'
+    >>> checksum(directory / 'juju.py', is_path=True)
+    'dc6a938ef94e729531956871b7c50e1b8d72a91d7dc07c282629960b2be57d7b'
+    >>> checksum(directory / 'juju.py', is_path=True, chunk_size=1024)
+    'dc6a938ef94e729531956871b7c50e1b8d72a91d7dc07c282629960b2be57d7b'
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
@@ -82,16 +86,20 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
 
     **Example usage**
 
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
     >>> githash('')
     'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'
     >>> githash('give me some hash please')
     'abdd1818289725c072eff0f5ce185457679650be'
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
-    >>> githash('../tests/small.mp4', is_path=True)
-    '1fc478842f51e7519866f474a02ad605235bc6a6'
-    >>> githash('../tests/small.mp4', is_path=True, chunk_size=1024)
-    '1fc478842f51e7519866f474a02ad605235bc6a6'
+    >>> githash(directory / 'juju.py', is_path=True)
+    '386ffaad5d36cdf5080fe3326281b11492c0462c'
+    >>> githash(directory / 'juju.py', is_path=True, chunk_size=256)
+    '386ffaad5d36cdf5080fe3326281b11492c0462c'
     """
     hasher = hashlib.sha1()
     if is_path:

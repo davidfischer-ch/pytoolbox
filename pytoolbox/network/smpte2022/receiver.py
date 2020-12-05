@@ -209,7 +209,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         else:
             raise ValueError(self.ER_DELAY_UNITS.format(units))
 
-    def put_media(self, media, onlyMP2TS):  # pylint=disable:invalid-name
+    def put_media(self, media, onlyMP2TS):  # pylint:disable=invalid-name
         """Put an incoming media packet."""
         if self.flushing:
             raise ValueError(self.ER_FLUSHING)
@@ -235,7 +235,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
         self.out()  # FIXME maybe better to call it from another thread
 
-    def put_fec(self, fec):
+    def put_fec(self, fec):  # pylint:disable=too-many-branches,too-many-statements
         """
         Put an incoming FEC packet, the algorithm will do the following according to these
         scenarios:
@@ -350,9 +350,9 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
         if self.delay_units == self.PACKETS:
             start, end = self.position, (self.position + self.delay_value) & RtpPacket.S_MASK
-            for media_sequence in self.crosses.keys:
+            cross_items = list(self.crosses.items())
+            for media_sequence, cross in cross_items:
                 if not self.validity_window(media_sequence, start, end):
-                    cross = self.crosses[media_sequence]
                     del self.cols[cross['col_sequence']]
                     del self.rows[cross['row_sequence']]
                     del self.crosses[media_sequence]
@@ -361,7 +361,12 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
         raise ValueError(self.ER_DELAY_UNITS.format(self.delay_units))
 
-    def recover_media_packet(self, media_sequence, cross, fec):
+    def recover_media_packet(
+        self,
+        media_sequence,
+        cross,
+        fec
+    ):  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
         """
         Recover a missing media packet helped by a FEC packet, this method is also called to
         register an incoming media packet if it is registered as missing.
@@ -412,8 +417,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 media.timestamp ^= friend.timestamp
                 payload_size ^= friend.payload_size
                 # FIXME FIXME FIXME FIXME FIXME OPTIMIZATION FIXME FIXME FIXME FIXME
-                for no in range(min(len(media.payload), len(friend.payload))):  # noqa
-                    media.payload[no] ^= friend.payload[no]
+                for index in range(min(len(media.payload), len(friend.payload))):
+                    media.payload[index] ^= friend.payload[index]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK
 
             # If the media packet is successfully recovered
@@ -535,10 +540,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         Current delay (can be set) : 0 packets
         FEC matrix size (LxD) : 0x0 = 0 packets
         """
-        delayFormat = '%.0f' if self.delay_units == self.PACKETS else '%.2f'
-        mDelay = '{0} {1}'.format(
-            delayFormat % self.current_delay,
-            self.DELAY_NAMES[self.delay_units])
+        delay_format = '%.0f' if self.delay_units == self.PACKETS else '%.2f'
+        delay_msg = f'{delay_format % self.current_delay} {self.DELAY_NAMES[self.delay_units]}'
 
         return ("Name  Received Buffered Maximum Dropped{0}"
                 "Media %8d%9d%8d{0}"
@@ -556,7 +559,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                  self.row_received, len(self.rows), self.max_row, self.row_dropped,
                  len(self.crosses), self.max_cross, self.media_recovered,
                  self.media_aborted_recovery, self.media_overwritten, self.media_missing,
-                 self.position, mDelay, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
+                 self.position, delay_msg, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Static >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -577,7 +580,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         >>> print(FecReceiver.compute_col_address('salut'))
         Traceback (most recent call last):
             ....
-        ValueError: salut is not a valid IP socket.
+        pytoolbox.exceptions.InvalidIPSocketError: salut is not a valid IP socket.
         """
         if not isinstance(media_socket, dict):
             media_socket = IPSocket(media_socket)
@@ -601,7 +604,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         >>> print(FecReceiver.compute_row_address('salut'))
         Traceback (most recent call last):
             ....
-        ValueError: salut is not a valid IP socket.
+        pytoolbox.exceptions.InvalidIPSocketError: salut is not a valid IP socket.
         """
         if not isinstance(media_socket, dict):
             media_socket = IPSocket(media_socket)
@@ -622,19 +625,27 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
         Testing validity window condition:
 
-        >>> from pytoolbox.unittest import asserts
-        >>> asserts.false(FecReceiver.validity_window(    0,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(    5,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(    8,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(   10,     5, 10))
-        >>> asserts.false(FecReceiver.validity_window(   15,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(    0, 65534,  2))
-        >>> asserts.true( FecReceiver.validity_window(    2, 65534,  2))
-        >>> asserts.false(FecReceiver.validity_window(    5, 65534,  2))
-        >>> asserts.true( FecReceiver.validity_window(65534, 65534,  2))
-        >>> asserts.true( FecReceiver.validity_window(65535, 65534,  2))
+        >>> FecReceiver.validity_window(0, 5, 10)
+        False
+        >>> FecReceiver.validity_window(5, 5, 10)
+        True
+        >>> FecReceiver.validity_window(8, 5, 10)
+        True
+        >>> FecReceiver.validity_window(10, 5, 10)
+        True
+        >>> FecReceiver.validity_window(15, 5, 10)
+        False
+        >>> FecReceiver.validity_window(0, 65534, 2)
+        True
+        >>> FecReceiver.validity_window(2, 65534, 2)
+        True
+        >>> FecReceiver.validity_window(5, 65534, 2)
+        False
+        >>> FecReceiver.validity_window(65534, 65534, 2)
+        True
+        >>> FecReceiver.validity_window(65535, 65534, 2)
+        True
         """
         if end > start:
-            return current >= start and current <= end
-        else:
-            return current <= end or current >= start
+            return start <= current <= end
+        return current <= end or current >= start

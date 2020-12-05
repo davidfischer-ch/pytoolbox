@@ -154,19 +154,20 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
     def _parse_chunk(self, chunk):
         self.process_output += chunk
         match = self.encoding_regex.match(chunk.strip())
-        if match:
-            ffmpeg_statistics = match.groupdict()
-            try:
-                ffmpeg_statistics['time'] = str_to_time(ffmpeg_statistics['time'], as_delta=True)
-            except ValueError:
-                return None  # Parsed statistics are broken, do not use them
-            ffmpeg_statistics['frame'] = int(ffmpeg_statistics['frame'])
-            ffmpeg_statistics['frame_rate'] = float(ffmpeg_statistics['frame_rate'])
-            qscale = ffmpeg_statistics.get('qscale')
-            ffmpeg_statistics['qscale'] = None if qscale is None else float(qscale)
-            ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
-            ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
-            return ffmpeg_statistics
+        if not match:
+            return None
+        ffmpeg_statistics = match.groupdict()
+        try:
+            ffmpeg_statistics['time'] = str_to_time(ffmpeg_statistics['time'], as_delta=True)
+        except ValueError:
+            return None  # Parsed statistics are broken, do not use them
+        ffmpeg_statistics['frame'] = int(ffmpeg_statistics['frame'])
+        ffmpeg_statistics['frame_rate'] = float(ffmpeg_statistics['frame_rate'])
+        qscale = ffmpeg_statistics.get('qscale')
+        ffmpeg_statistics['qscale'] = None if qscale is None else float(qscale)
+        ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
+        ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
+        return ffmpeg_statistics
 
     @staticmethod
     def _to_time(value):

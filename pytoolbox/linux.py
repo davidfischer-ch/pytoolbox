@@ -24,16 +24,10 @@ def get_kernel_config(release=None, fail=True):
     >>> get_kernel_config('0.0.1-generic', fail=False)
     {}
     """
-    # On Python<2.3.3 os.uname returns a tuple, so we stuck with it
     try:
-        with open(f'/boot/config-{release or os.uname()[2]}') as f:
+        with open(f'/boot/config-{release or os.uname().release}') as f:
             config = configparser.ConfigParser()
-            config_string = f'[kernel]{f.read()}'
-            try:
-                config.read_string(config_string)
-            except AttributeError:
-                import io
-                config.readfp(io.StringIO(config_string))
+            config.read_string(f'[kernel]{f.read()}')
     except IOError:
         if fail:
             raise

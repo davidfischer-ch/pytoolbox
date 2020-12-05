@@ -1,13 +1,13 @@
 import struct
 
-from fastxor import fast_xor_inplace
+from fastxor import fast_xor_inplace  # pylint:disable=no-name-in-module
 
 from pytoolbox.network.rtp import RtpPacket
 
 __all__ = ['FecPacket']
 
 
-class FecPacket(object):
+class FecPacket(object):  # pylint:disable=too-many-instance-attributes
     """
     This represent a real-time transport protocol (RTP) packet.
 
@@ -163,7 +163,7 @@ class FecPacket(object):
         #TODO >>> print(fec.errors)
         #TODO ['RTP Header : Version must be set to 2', 'RTP packet must have a payload']
         """
-        errors = self._errors
+        errors = self._errors[:]
         if not self.extended:
             errors.append(self.ER_EXTENDED)
         if self.mask != 0:
@@ -187,7 +187,7 @@ class FecPacket(object):
         return errors
 
     @property
-    def D(self):
+    def D(self):  # pylint:disable=invalid-name
         """
         Returns the vertical size of the FEC matrix (rows).
 
@@ -202,7 +202,7 @@ class FecPacket(object):
         return self.na if self.direction == self.COL else None
 
     @property
-    def L(self):
+    def L(self):  # pylint:disable=invalid-name
         """
         Returns the horizontal size of the FEC matrix (columns).
 
@@ -288,23 +288,23 @@ class FecPacket(object):
         True
         """
         # FIXME map type string to enum
-        bytes = bytearray(self.HEADER_LENGTH)
-        struct.pack_into(b'!H', bytes, 0, self.snbase & self.SNBL_MASK)
-        struct.pack_into(b'!H', bytes, 2, self.length_recovery)
-        struct.pack_into(b'!I', bytes, 4, self.mask)
-        bytes[4] = (
+        header = bytearray(self.HEADER_LENGTH)
+        struct.pack_into(b'!H', header, 0, self.snbase & self.SNBL_MASK)
+        struct.pack_into(b'!H', header, 2, self.length_recovery)
+        struct.pack_into(b'!I', header, 4, self.mask)
+        header[4] = (
             (self.payload_type_recovery & self.PT_MASK)
             + (self.E_MASK if self.extended else 0))
-        struct.pack_into(b'!I', bytes, 8, self.timestamp_recovery)
-        bytes[12] = (
+        struct.pack_into(b'!I', header, 8, self.timestamp_recovery)
+        header[12] = (
             (self.N_MASK if self.n else 0)
             + (self.D_MASK if self.direction else 0)
             + ((self.algorithm << self.T_SHIFT) & self.T_MASK)
             + (self.index & self.I_MASK))
-        bytes[13] = self.offset
-        bytes[14] = self.na
-        bytes[15] = self.snbase >> self.SNBE_SHIFT
-        return bytes
+        header[13] = self.offset
+        header[14] = self.na
+        header[15] = self.snbase >> self.SNBE_SHIFT
+        return header
 
     @property
     def bytes(self):
@@ -312,7 +312,8 @@ class FecPacket(object):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, bytes=None, length=0):
+    def __init__(self, data=None, length=0):
+
         # Fields default values
         self._errors = []
         self.sequence = 0
@@ -320,25 +321,26 @@ class FecPacket(object):
         self.direction = self.COL
         self.snbase = 0
         self.offset = 0
-        self.na = 0
+        self.na = 0  # pylint:disable=invalid-name
         self.payload_type_recovery = 0
         self.timestamp_recovery = 0
         self.length_recovery = 0
         self.payload_recovery = []
-        # (Unused has defined in SMPTE 2022-1-1)
+        # (Unused as defined in SMPTE 2022-1-1)
         self.index = 0
         self.mask = 0
         self.extended = True
-        self.n = False
+        self.n = False  # pylint:disable=invalid-name
         self.missing = []
-        if bytes:
-            packet = RtpPacket(bytes, length)
+
+        if data is not None:
+            packet = RtpPacket(data, length)
             self.sequence = packet.sequence
-            self._errors = packet.errors
+            self._errors = packet.errors[:]
             if len(self._errors) > 0:
                 return
             if packet.payload_type != RtpPacket.DYNAMIC_PT:
-                self._errors.add(self.ER_PAYLOAD_TYPE)
+                self._errors.append(self.ER_PAYLOAD_TYPE)
                 return
             self.snbase = (packet.payload[15] * 256 + packet.payload[0]) * 256 + packet.payload[1]
             self.length_recovery = packet.payload[2] * 256 + packet.payload[3]
@@ -371,7 +373,7 @@ class FecPacket(object):
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @classmethod
-    def compute(cls, sequence, algorithm, direction, L, D, packets):
+    def compute(cls, sequence, algorithm, direction, L, D, packets):  # pylint:disable=invalid-name
         """
         This method will generate FEC packet's field by applying FEC algorithm to input packets.
         In case of error (e.g. bad version number) the method will abort filling fields and
@@ -541,6 +543,17 @@ class FecPacket(object):
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
 
+    def compute_j(self, media_sequence):
+        """
+        TODO
+        """
+        delta = media_sequence - self.snbase
+        if delta < 0:
+            delta += RtpPacket.S_MASK + 1
+        if delta % self.offset != 0:
+            return None
+        return int(delta / self.offset)
+
     def set_missing(self, media_sequence):
         """
         Register a protected media packet as missing.
@@ -624,7 +637,7 @@ class FecPacket(object):
         >>> fec.missing
         [65533, 65530]
         """
-        j = self.computeJ(media_sequence)
+        j = self.compute_j(media_sequence)
         if j is None:
             raise ValueError(self.ER_J)
         if media_sequence not in self.missing:
@@ -635,35 +648,24 @@ class FecPacket(object):
         """
         TODO
         """
-        j = self.computeJ(media_sequence)
+        j = self.compute_j(media_sequence)
         if j is None:
             raise ValueError(self.ER_J)
         self.missing.remove(media_sequence)
         return j
 
-    def computeJ(self, media_sequence):
-        """
-        TODO
-        """
-        delta = media_sequence - self.snbase
-        if delta < 0:
-            delta += RtpPacket.S_MASK + 1
-        if delta % self.offset != 0:
-            return None
-        return int(delta / self.offset)
-
     def __eq__(self, other):
         """
         Test equality field by field !
         """
-        if isinstance(other, self.__class__):
-            return (
-                self.sequence == other.sequence and self.algorithm == other.algorithm
-                and self.direction == other.direction and self.snbase == other.snbase
-                and self.offset == other.offset and self.na == other.na
-                and self.payload_type_recovery == other.payload_type_recovery
-                and self.length_recovery == other.length_recovery
-                and self.payload_recovery == other.payload_recovery)
+        return (
+            isinstance(other, self.__class__)
+            and self.sequence == other.sequence and self.algorithm == other.algorithm
+            and self.direction == other.direction and self.snbase == other.snbase
+            and self.offset == other.offset and self.na == other.na
+            and self.payload_type_recovery == other.payload_type_recovery
+            and self.length_recovery == other.length_recovery
+            and self.payload_recovery == other.payload_recovery)
 
     def __str__(self):
         """

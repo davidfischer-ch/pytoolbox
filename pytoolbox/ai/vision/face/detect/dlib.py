@@ -99,7 +99,7 @@ class DlibFaceDetector(object):
         if predictor is None:
             predictor = self.DEFAULT_PREDICTOR
         self.predictor = self._load_predictor(predictor)
-        self.detector = dlib.get_frontal_face_detector()
+        self.detector = dlib.get_frontal_face_detector()  # pylint:disable=no-member
 
     def align(self, image, box, dimension=96, landmark_indices=None, landmarks=None):
         """
@@ -127,11 +127,11 @@ class DlibFaceDetector(object):
         landmarks = np.float32(landmarks)
         landmark_indices = np.array(landmark_indices)
 
-        H = cv2.getAffineTransform(
-            landmarks[landmark_indices],
+        H = cv2.getAffineTransform(       # pylint:disable=invalid-name,no-member
+            landmarks[landmark_indices],  # pylint:disable=unsubscriptable-object
             dimension * MINMAX_TEMPLATE[landmark_indices])
 
-        return cv2.warpAffine(image, H, (dimension, dimension))
+        return cv2.warpAffine(image, H, (dimension, dimension))  # pylint:disable=no-member
 
     def extract_all_faces(self, image, dimension=96, landmark_indices=None):
         for box in self.get_all_faces_bounding_boxes(image):
@@ -140,6 +140,20 @@ class DlibFaceDetector(object):
     def extract_largest_face(self, image, dimension=96, landmark_indices=None, skip_multi=False):
         box = self.get_largest_face_bounding_box(image, skip_multi=skip_multi)
         return box, (self.align(image, box, dimension, landmark_indices) if box else None)
+
+    def find_landmarks(self, image, box):
+        """
+        Find the landmarks of a face.
+
+        :param image: RGB image to process. Shape: (height, width, 3)
+        :type image: numpy.ndarray
+        :param box: Bounding box around the face to find landmarks for.
+        :type box: dlib.rectangle
+        :return: Detected landmark locations.
+        :rtype: list of (x,y) tuples
+        """
+        points = self.predictor(image, box)
+        return [(p.x, p.y) for p in points.parts()]
 
     def get_all_faces_bounding_boxes(self, image):
         """
@@ -152,7 +166,7 @@ class DlibFaceDetector(object):
         """
         try:
             return self.detector(image, 1)
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             print(f"Warning: {e}")
             # In rare cases, exceptions are thrown.
             return []
@@ -171,27 +185,15 @@ class DlibFaceDetector(object):
         faces = self.get_all_faces_bounding_boxes(image)
         if not skip_multi and len(faces) > 0 or len(faces) == 1:
             return max(faces, key=lambda rect: rect.width() * rect.height())
+        return None
 
-    def find_landmarks(self, image, box):
-        """
-        Find the landmarks of a face.
-
-        :param image: RGB image to process. Shape: (height, width, 3)
-        :type image: numpy.ndarray
-        :param box: Bounding box around the face to find landmarks for.
-        :type box: dlib.rectangle
-        :return: Detected landmark locations.
-        :rtype: list of (x,y) tuples
-        """
-        points = self.predictor(image, box)
-        return [(p.x, p.y) for p in points.parts()]
-
-    def _load_predictor(self, predictor):
+    @staticmethod
+    def _load_predictor(predictor):
         predictor = utils.load_to_file(predictor)
         if predictor.endswith('.bz2'):
             decompressor = bz2.BZ2Decompressor()
-            with open(predictor, 'rb') as f, tempfile.NamedTemporaryFile('wb') as g:
-                g.write(decompressor.decompress(f.read()))
-                return dlib.shape_predictor(g.name)
+            with open(predictor, 'rb') as source, tempfile.NamedTemporaryFile('wb') as target:
+                target.write(decompressor.decompress(source.read()))
+                return dlib.shape_predictor(target.name)  # pylint:disable=no-member
         else:
-            return dlib.shape_predictor(predictor)
+            return dlib.shape_predictor(predictor)  # pylint:disable=no-member

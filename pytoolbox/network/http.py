@@ -103,14 +103,15 @@ def download_ext(  # pylint:disable=too-many-locals
     **Example usage**
 
     >>> import hashlib
-    >>> from pytoolbox.unittest import asserts, filesystem
+    >>> from pytoolbox import filesystem
+    >>> from pytoolbox.unittest import asserts
     >>>
     >>> _ = filesystem.remove('small.mp4')
     >>>
     >>> url = 'http://techslides.com/demos/sample-videos/small.mp4'
     >>>
     >>> download_ext(url, 'small.mp4')
-    (True, True, None)
+    (False, True, None)
     >>> download_ext(url, 'small.mp4', force=False)
     (True, False, None)
     >>>

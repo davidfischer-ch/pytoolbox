@@ -20,7 +20,7 @@ E = 0.00001  # Epsilon
 
 
 def conv2d_bn(
-    x,
+    tensor,
     layer=None,
     cv1_out=None,
     cv1_filter=(1, 1),
@@ -31,7 +31,7 @@ def conv2d_bn(
     padding=None,
 ):
     num = '' if cv2_out is None else '1'
-    tensor = Conv2D(cv1_out, cv1_filter, strides=cv1_strides, name=layer + '_conv' + num)(x)
+    tensor = Conv2D(cv1_out, cv1_filter, strides=cv1_strides, name=layer + '_conv' + num)(tensor)
     tensor = BatchNormalization(axis=3, epsilon=E, name=layer + '_bn' + num)(tensor)
     tensor = Activation('relu')(tensor)
     if padding is None:
@@ -45,37 +45,37 @@ def conv2d_bn(
     return tensor
 
 
-def LRN2D(x):
-    return tf.nn.lrn(x, alpha=1e-4, beta=0.75)
+def LRN2D(tensor):  # pylint:disable=invalid-name
+    return tf.nn.lrn(tensor, alpha=1e-4, beta=0.75)
 
 
-def create_model():
+def create_model():  # pylint:disable=too-many-locals,too-many-statements
 
     inputs = Input(shape=(96, 96, 3))
 
-    x = ZeroPadding2D(padding=(3, 3), input_shape=(96, 96, 3))(inputs)
-    x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
-    x = BatchNormalization(axis=3, epsilon=E, name='bn1')(x)
-    x = Activation('relu')(x)
-    x = ZeroPadding2D(padding=(1, 1))(x)
-    x = MaxPooling2D(pool_size=3, strides=2)(x)
-    x = Lambda(LRN2D, name='lrn_1')(x)
-    x = Conv2D(64, (1, 1), name='conv2')(x)
-    x = BatchNormalization(axis=3, epsilon=E, name='bn2')(x)
-    x = Activation('relu')(x)
-    x = ZeroPadding2D(padding=(1, 1))(x)
-    x = Conv2D(192, (3, 3), name='conv3')(x)
-    x = BatchNormalization(axis=3, epsilon=E, name='bn3')(x)
-    x = Activation('relu')(x)
-    x = Lambda(LRN2D, name='lrn_2')(x)
-    x = ZeroPadding2D(padding=(1, 1))(x)
-    x = MaxPooling2D(pool_size=3, strides=2)(x)
+    tensor = ZeroPadding2D(padding=(3, 3), input_shape=(96, 96, 3))(inputs)
+    tensor = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(tensor)
+    tensor = BatchNormalization(axis=3, epsilon=E, name='bn1')(tensor)
+    tensor = Activation('relu')(tensor)
+    tensor = ZeroPadding2D(padding=(1, 1))(tensor)
+    tensor = MaxPooling2D(pool_size=3, strides=2)(tensor)
+    tensor = Lambda(LRN2D, name='lrn_1')(tensor)
+    tensor = Conv2D(64, (1, 1), name='conv2')(tensor)
+    tensor = BatchNormalization(axis=3, epsilon=E, name='bn2')(tensor)
+    tensor = Activation('relu')(tensor)
+    tensor = ZeroPadding2D(padding=(1, 1))(tensor)
+    tensor = Conv2D(192, (3, 3), name='conv3')(tensor)
+    tensor = BatchNormalization(axis=3, epsilon=E, name='bn3')(tensor)
+    tensor = Activation('relu')(tensor)
+    tensor = Lambda(LRN2D, name='lrn_2')(tensor)
+    tensor = ZeroPadding2D(padding=(1, 1))(tensor)
+    tensor = MaxPooling2D(pool_size=3, strides=2)(tensor)
 
     # Inception 3a
 
     Norm = BatchNormalization
 
-    inception_3a_3x3 = Conv2D(96, (1, 1), name='inception_3a_3x3_conv1')(x)
+    inception_3a_3x3 = Conv2D(96, (1, 1), name='inception_3a_3x3_conv1')(tensor)
     inception_3a_3x3 = Norm(axis=3, epsilon=E, name='inception_3a_3x3_bn1')(inception_3a_3x3)
     inception_3a_3x3 = Activation('relu')(inception_3a_3x3)
     inception_3a_3x3 = ZeroPadding2D(padding=(1, 1))(inception_3a_3x3)
@@ -83,7 +83,7 @@ def create_model():
     inception_3a_3x3 = Norm(axis=3, epsilon=E, name='inception_3a_3x3_bn2')(inception_3a_3x3)
     inception_3a_3x3 = Activation('relu')(inception_3a_3x3)
 
-    inception_3a_5x5 = Conv2D(16, (1, 1), name='inception_3a_5x5_conv1')(x)
+    inception_3a_5x5 = Conv2D(16, (1, 1), name='inception_3a_5x5_conv1')(tensor)
     inception_3a_5x5 = Norm(axis=3, epsilon=E, name='inception_3a_5x5_bn1')(inception_3a_5x5)
     inception_3a_5x5 = Activation('relu')(inception_3a_5x5)
     inception_3a_5x5 = ZeroPadding2D(padding=(2, 2))(inception_3a_5x5)
@@ -91,13 +91,13 @@ def create_model():
     inception_3a_5x5 = Norm(axis=3, epsilon=E, name='inception_3a_5x5_bn2')(inception_3a_5x5)
     inception_3a_5x5 = Activation('relu')(inception_3a_5x5)
 
-    inception_3a_pool = MaxPooling2D(pool_size=3, strides=2)(x)
+    inception_3a_pool = MaxPooling2D(pool_size=3, strides=2)(tensor)
     inception_3a_pool = Conv2D(32, (1, 1), name='inception_3a_pool_conv')(inception_3a_pool)
     inception_3a_pool = Norm(axis=3, epsilon=E, name='inception_3a_pool_bn')(inception_3a_pool)
     inception_3a_pool = Activation('relu')(inception_3a_pool)
     inception_3a_pool = ZeroPadding2D(padding=((3, 4), (3, 4)))(inception_3a_pool)
 
-    inception_3a_1x1 = Conv2D(64, (1, 1), name='inception_3a_1x1_conv')(x)
+    inception_3a_1x1 = Conv2D(64, (1, 1), name='inception_3a_1x1_conv')(tensor)
     inception_3a_1x1 = Norm(axis=3, epsilon=E, name='inception_3a_1x1_bn')(inception_3a_1x1)
     inception_3a_1x1 = Activation('relu')(inception_3a_1x1)
 

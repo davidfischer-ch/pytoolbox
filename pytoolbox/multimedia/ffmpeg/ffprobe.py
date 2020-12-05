@@ -32,7 +32,7 @@ class FFprobe(object):
         process.wait()
         return process.stdout.read()
 
-    def get_media_duration(self, media, as_delta=False, options=None, fail=False):
+    def get_media_duration(self, media, as_delta=False, fail=False):
         """
         Returns the duration of a media as an instance of time or None in case of error.
 
@@ -75,20 +75,27 @@ class FFprobe(object):
         if isinstance(media, dict):
             return media
         media = self.to_media(media)
-        if not utils.is_pipe(media.path):  # Read media information from a PIPE not yet implemented
-            try:
-                return json.loads(
-                    subprocess.check_output([
-                        self.executable, '-v', 'quiet', '-print_format', 'json', '-show_format',
-                        '-show_streams', media.path
-                    ]).decode('utf-8'))
-            except OSError as e:
-                # Executable does not exist
-                if fail or e.errno == errno.ENOENT:
-                    raise
-            except Exception:
-                if fail:
-                    raise
+        try:
+            if utils.is_pipe(media.path):
+                raise NotImplementedError('Read media information from a PIPE not yet implemented.')
+
+            return json.loads(
+                subprocess.check_output([
+                    self.executable,
+                    '-v', 'quiet',
+                    '-print_format', 'json',
+                    '-show_format',
+                    '-show_streams',
+                    media.path
+                ]).decode('utf-8'))
+        except OSError as e:
+            # Executable does not exist
+            if fail or e.errno == errno.ENOENT:
+                raise
+        except Exception:  # pylint:disable=broad-except
+            if fail:
+                raise
+        return None
 
     def get_media_format(self, media, fail=False):
         """
@@ -99,13 +106,13 @@ class FFprobe(object):
         info = self.get_media_info(media, fail)
         try:
             cls, the_format = self.format_class, info['format']
-            if cls and not isinstance(the_format, cls):
-                return cls(the_format)  # pylint:disable=not-callable
-            else:
-                return the_format
-        except Exception:
+            if cls and not isinstance(the_format, cls):  # pylint:disable=all
+                return cls(the_format)                   # pylint:disable=not-callable
+            return the_format
+        except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
+        return None
 
     def get_media_streams(self, media, condition=lambda stream: True, fail=False):
         """
@@ -116,7 +123,7 @@ class FFprobe(object):
         info = self.get_media_info(media, fail)
         try:
             raw_streams = (s for s in info['streams'] if condition(s))
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
             return []
@@ -173,9 +180,10 @@ class FFprobe(object):
                 return utils.to_frame_rate(stream['avg_frame_rate'])
             else:
                 return stream.avg_frame_rate
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
+        return None
 
     def get_video_resolution(self, media, index=0, fail=False):
         """
@@ -188,11 +196,11 @@ class FFprobe(object):
             is_dict = isinstance(stream, dict)
             if is_dict:
                 return [int(stream['width']), int(stream['height'])]
-            else:
-                return [stream.width, stream.height]
-        except Exception:
+            return [stream.width, stream.height]
+        except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
+        return None
 
     def to_media(self, media):
         return media if isinstance(media, self.media_class) else self.media_class(media)

@@ -23,13 +23,14 @@ def with_tags(tags=None, required=None):
 
 class InMixin(object):
 
-    def assert_in_hook(self, obj):
+    @staticmethod
+    def assert_in_hook(obj):
         return obj if isinstance(obj, (str, bytes)) else sorted(obj)
 
-    def assertIn(self, obj_a, obj_b, msg=None):
+    def assertIn(self, obj_a, obj_b, msg=None):  # pylint:disable=invalid-name
         assert obj_a in obj_b, f"{obj_a} not in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
-    def assertNotIn(self, obj_a, obj_b, msg=None):
+    def assertNotIn(self, obj_a, obj_b, msg=None):  # pylint:disable=invalid-name
         assert obj_a not in obj_b, f"{obj_a} in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
 
@@ -49,7 +50,7 @@ class InspectMixin(object):
 
 class AwareTearDownMixin(object):
 
-    def awareTearDown(self, result):
+    def awareTearDown(self, result):  # pylint:disable=invalid-name
         pass  # de bleu, c'est fantastique !
 
     def run(self, result=None):
@@ -82,20 +83,21 @@ class FilterByTagsMixin(InspectMixin):
         return True
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint:disable=invalid-name
         if cls.fast_class_skip_enabled:
             cls.fast_class_skip()
         super().setUpClass()
 
     @classmethod
     def fast_class_skip(cls):
-        r = functools.partial(
+        methods = cls.get_test_methods()
+        should_run = functools.partial(
             cls.should_run,
             extra_tags=cls.get_extra_tags(),
             only_tags=cls.get_only_tags(),
             skip_tags=cls.get_skip_tags()
         )
-        if not any(r(cls.get_tags(m), cls.get_required_tags(m)) for n, m in cls.get_test_methods()):
+        if not any(should_run(cls.get_tags(m), cls.get_required_tags(m)) for n, m in methods):
             raise unittest.SkipTest('Test skipped by FilterByTagsMixin.fast_class_skip')
 
     @classmethod
@@ -123,7 +125,7 @@ class FilterByTagsMixin(InspectMixin):
     def get_required_tags(cls, current_test):
         return set(itertools.chain(cls.required_tags, getattr(current_test, 'required_tags', ())))
 
-    def setUp(self):
+    def setUp(self):  # pylint:disable=invalid-name
         if not self.should_run(
             self.get_tags(self.current_test),
             self.get_required_tags(self.current_test),
@@ -140,36 +142,42 @@ class FFmpegMixin(object):
     ffmpeg_class = ffmpeg.FFmpeg
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint:disable=invalid-name
         for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
             assert stream_class is not None, name
             assert stream_class.codec_class is not None, name
         super().setUpClass()
 
-    def setUp(self):
+    def setUp(self):  # pylint:disable=invalid-name
         super().setUp()
         self.ffmpeg = self.ffmpeg_class()
         self.ffprobe = self.ffmpeg.ffprobe_class()
 
     # Codecs Asserts
 
-    def assertMediaCodecEqual(self, path, stream_type, index, **codec_attrs):
+    def assertMediaCodecEqual(
+        self,
+        path,
+        stream_type,
+        index,
+        **codec_attrs
+    ):  # pylint:disable=invalid-name
         codec = getattr(self.ffprobe, f'get_{stream_type}_streams')(path)[index].codec
         for attr, value in codec_attrs.items():
             self.assertEqual(getattr(codec, attr), value, msg=f'Codec attribute {attr}')
 
-    def assertAudioCodecEqual(self, path, index, **codec_attrs):
+    def assertAudioCodecEqual(self, path, index, **codec_attrs):  # pylint:disable=invalid-name
         self.assertMediaCodecEqual(path, 'audio', index, **codec_attrs)
 
-    def assertSubtitleCodecEqual(self, path, index, **codec_attrs):
+    def assertSubtitleCodecEqual(self, path, index, **codec_attrs):  # pylint:disable=invalid-name
         self.assertMediaCodecEqual(path, 'subtitle', index, **codec_attrs)
 
-    def assertVideoCodecEqual(self, path, index, **codec_attrs):
+    def assertVideoCodecEqual(self, path, index, **codec_attrs):  # pylint:disable=invalid-name
         self.assertMediaCodecEqual(path, 'video', index, **codec_attrs)
 
     # Streams Asserts
 
-    def assertAudioStreamEqual(
+    def assertAudioStreamEqual(  # pylint:disable=invalid-name
         self,
         first_path,
         second_path,
@@ -183,7 +191,7 @@ class FFmpegMixin(object):
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
 
-    def assertMediaFormatEqual(
+    def assertMediaFormatEqual(  # pylint:disable=invalid-name
         self,
         first_path,
         second_path,
@@ -211,7 +219,7 @@ class FFmpegMixin(object):
             self.assertRelativeEqual(*start_times, msg='Start time mistmatch.')
         self.assertDictEqual(*formats)
 
-    def assertVideoStreamEqual(
+    def assertVideoStreamEqual(  # pylint:disable=invalid-name
         self,
         first_path,
         second_path,
@@ -233,13 +241,13 @@ class FFmpegMixin(object):
 
     # Encoding Asserts
 
-    def assertEncodeFailure(self, generator):
+    def assertEncodeFailure(self, generator):  # pylint:disable=invalid-name
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
 
-    def assertEncodeSuccess(self, generator):
+    def assertEncodeSuccess(self, generator):  # pylint:disable=invalid-name
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
 
-    def assertEncodeState(self, generator, state):
+    def assertEncodeState(self, generator, state):  # pylint:disable=invalid-name
         results = list(generator)
         result = io.StringIO()
         statistics = results[-1]
@@ -252,10 +260,10 @@ class FFmpegMixin(object):
 
 class MissingMixin(object):
 
-    def assertIsMissing(self, value, *args, **kwargs):
+    def assertIsMissing(self, value, *args, **kwargs):  # pylint:disable=invalid-name
         return self.assertIs(value, Missing, *args, **kwargs)
 
-    def assertIsNotMissing(self, value, *args, **kwargs):
+    def assertIsNotMissing(self, value, *args, **kwargs):  # pylint:disable=invalid-name
         return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
@@ -272,11 +280,11 @@ class TimingMixin(object):
 
     timing_logger = None
 
-    def setUp(self):
+    def setUp(self):  # pylint:disable=invalid-name
         self.start_time = time.time()
         super().setUp()
 
-    def tearDown(self):
+    def tearDown(self):  # pylint:disable=invalid-name
         super().tearDown()
         if self.timing_logger:
             self.timing_logger.info(f'{self.id()}: {time.time() - self.start_time:.3f}')
@@ -284,7 +292,7 @@ class TimingMixin(object):
 
 class Asserts(InMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):
 
-    def runTest(self, *args, **kwargs):
+    def runTest(self, *args, **kwargs):  # pylint:disable=invalid-name
         pass
 
 

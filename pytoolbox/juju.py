@@ -1,8 +1,9 @@
-import json, os, socket, random, subprocess, sys, time, uuid, yaml
+# pylint:disable=too-many-lines
 
-from . import module
-from .console import confirm
-from .filesystem import from_template, remove, symlink
+import argparse, json, os, socket, random, subprocess, sys, time, uuid, yaml
+
+from . import console, filesystem, module
+from .argparse import FullPaths, is_dir
 from .subprocess import cmd
 
 _all = module.All(globals())
@@ -116,18 +117,18 @@ def load_unit_config(config, log=None):
 
     for option, value in config.items():
         if str(value).lower() in ('false', 'true'):
-            config[option] = True if str(value).lower() == 'true' else False
+            config[option] = str(value).lower() == 'true'
             if hasattr(log, '__call__'):
                 log(f'Convert boolean option {option} {value} -> {config[option]}')
 
     return config
 
 
-def save_unit_config(path, service, config, log=None):
+def save_unit_config(path, service, config):
     with open(path, 'w', encoding='utf-8') as f:
         for option, value in config.items():
             if isinstance(value, bool):
-                config[option] = 'True' if value else 'False'
+                config[option] = str(value)
         config = {service: config}
         f.write(yaml.safe_dump(config))
 
@@ -136,7 +137,7 @@ def save_unit_config(path, service, config, log=None):
 
 def add_environment(
     environment,
-    type,
+    kind,
     region,
     access_key,
     secret_key,
@@ -153,9 +154,9 @@ def add_environment(
     if environment in environments_dict['environments']:
         raise ValueError(f'The name {environment} is already used by another environment.')
 
-    if type == 'ec2':
+    if kind == 'ec2':
         environment_dict = {
-            'type': type,
+            'type': kind,
             'region': region,
             'access-key': access_key,
             'secret-key': secret_key,
@@ -166,7 +167,7 @@ def add_environment(
             'admin-secret': uuid.uuid4().hex
         }
     else:
-        raise NotImplementedError(f'Registration of {type} type of environment.')
+        raise NotImplementedError(f'Registration of {kind} type of environment.')
 
     environments_dict['environments'][environment] = environment_dict
 
@@ -179,7 +180,7 @@ def add_environment(
         if 'configuration error' in str(e):
             del environments_dict['environments'][environment]
             open(environments, 'w', encoding='utf-8').write(yaml.safe_dump(environments_dict))
-            raise ValueError(f'Cannot add environment {environment} ({e}).')
+            raise ValueError(f'Cannot add environment {environment} ({e}).') from e
         raise
 
 
@@ -190,8 +191,8 @@ def get_environment(environment, environments=None, get_status=False, status_tim
     environment = environments_dict['default'] if environment == 'default' else environment
     try:
         environment_dict = environments_dict['environments'][environment]
-    except KeyError:
-        raise ValueError(f'No environment with name {environment}.')
+    except KeyError as e:
+        raise ValueError(f'No environment with name {environment}.') from e
 
     if get_status:
         environment_dict['status'] = Environment(name=environment).status(timeout=status_timeout)
@@ -230,16 +231,16 @@ def get_unit_path(service, number, *args):
 
 # Helpers ------------------------------------------------------------------------------------------
 
-__get_ip = None
+__get_ip = None  # pylint:disable=invalid-name
 
 
 def get_ip():
-    global __get_ip
+    global __get_ip  # pylint:disable=global-statement,invalid-name
     if __get_ip is None:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        __get_ip = s.getsockname()[0]
-        s.close()
+        host = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        host.connect(('8.8.8.8', 80))
+        __get_ip = host.getsockname()[0]
+        host.close()
     return __get_ip
 
 
@@ -252,7 +253,7 @@ class CharmConfig(object):
         return str(self.__dict__)
 
 
-class CharmHooks(object):
+class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods
     """
     A base class to build charms based on python hooks, callable even if juju is not installed.
 
@@ -278,7 +279,6 @@ class CharmHooks(object):
     ...     def hook_stop(self):
     ...         self.info('stop services')
     ...
-
     >>> import os
     >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
     >>> here = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests')
@@ -345,7 +345,7 @@ class CharmHooks(object):
     # ----------------------------------------------------------------------------------------------
 
     @property
-    def id(self):
+    def identifier(self):
         """
         Returns the id extracted from the unit's name.
 
@@ -353,7 +353,7 @@ class CharmHooks(object):
 
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.name = 'oscied-storage/3'
-        >>> hooks.id
+        >>> hooks.identifier
         3
         """
         return int(self.name.split('/')[1])
@@ -378,7 +378,7 @@ class CharmHooks(object):
             peers = self.relation_list(rel_ids[0])
             self.debug(f'us={self.name} peers={peers}')
             return len(peers) == 0 or self.name <= min(peers)
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             self.remark(f'Bug during leader detection: {repr(e)}')
             return True
 
@@ -444,8 +444,7 @@ class CharmHooks(object):
 
     def debug(self, message):
         """Convenience method for logging a debug-related message."""
-        if self.config.verbose:
-            return self.log(f'[DEBUG] {message}')
+        return self.log(f'[DEBUG] {message}') if self.config.verbose else None
 
     def info(self, message):
         """Convenience method for logging a standard message."""
@@ -537,7 +536,7 @@ class CharmHooks(object):
         return cmd(command, log=self.debug if logging else None, **kwargs)
 
     def template_to_config(self, template, config, values):
-        from_template(template, config, values)
+        filesystem.from_template(template, config, values)
         self.remark('File {0} successfully generated'.format(config))
 
     # ----------------------------------------------------------------------------------------------
@@ -568,7 +567,7 @@ class CharmHooks(object):
             self.hook(f'Exiting {self.__class__.__name__} hook {hook_name}')
 
 
-class Environment(object):
+class Environment(object):  # pylint:disable=too-many-public-methods
 
     def __init__(
         self,
@@ -580,7 +579,7 @@ class Environment(object):
         min_timeout=15
     ):
         self.name = name
-        self.charms_path = charms_path
+        self.charms_path = os.path.abspath(charms_path)
         self.config = config
         self.release = release
         self.auto = auto
@@ -617,14 +616,14 @@ class Environment(object):
         """Return True if the environment is bootstrapped (status returns something)."""
         try:
             return bool(self.status(timeout=timeout))
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             return False
 
     def symlink_local_charms(self, default_path='default'):
         """Symlink charms default directory to directory of current release."""
-        release_symlink = os.path.abspath(os.path.join(self.charms_path, self.release))
-        remove(release_symlink)
-        symlink(os.path.abspath(os.path.join(self.charms_path, default_path)), release_symlink)
+        release_symlink = os.path.join(self.charms_path, self.release)
+        filesystem.remove(release_symlink)
+        filesystem.symlink(os.path.join(self.charms_path, default_path), release_symlink)
 
     def sync_tools(self, all_tools=True):
         """Copy tools from the official bucket into a local environment."""
@@ -641,7 +640,7 @@ class Environment(object):
         timeout=600,
         status_timeout=15,
         polling_delay=30
-    ):
+    ):  # pylint:disable=too-many-branches,too-many-locals
         """
         Bootstrap an environment, (optional) terminate all machines and other associated resources
         before the bootstrap.
@@ -655,56 +654,55 @@ class Environment(object):
         else:
             print(f'Bootstrap environment {self.name}')
 
-        if self.auto or confirm('do it now', default=False):
+        if not self.auto and not console.confirm('do it now', default=False):
+            return None
 
-            if cleanup:
-                self.destroy(force=True, remove_default=True)
+        if cleanup:
+            self.destroy(force=True, remove_default=True)
+        if synchronize_tools:
+            self.sync_tools(all_tools=True)
+        try:
+            result = juju_do('bootstrap', self.name)
+        except RuntimeError as e:
+            result = None
+            if 'already' not in str(e):
+                raise
 
-            if synchronize_tools:
-                self.sync_tools(all_tools=True)
-
-            try:
-                result = juju_do('bootstrap', self.name)
-            except RuntimeError as e:
-                result = None
-                if 'already' not in str(e):
-                    raise
-
-            if wait_started:
-
-                start_time = time.time()
-
-                while True:
-
-                    time_zero = time.time()
-
-                    try:
-                        state = self.status(timeout=status_timeout)['machines']['0']['agent-state']
-                    except (KeyError, TypeError):
-                        state = UNKNOWN
-
-                    delta_time = time.time() - start_time
-                    timeout_time = timeout - delta_time
-
-                    _msg = f' in {timeout_time:.0f} seconds' if timeout_time > 0 else '!'
-                    print(f'State of juju bootstrap machine is {state}, time-out{_msg}')
-
-                    if state in started_states:
-                        print(
-                            f'Environment bootstrapped in approximatively '
-                            f'{delta_time:.0f} seconds')
-                        break
-                    elif state in error_states:
-                        raise RuntimeError(f'Bootstrap failed with state {state}.')
-
-                    if delta_time > timeout:
-                        raise TimeoutError(f'Bootstrap time-out with state {state}.')
-
-                    time.sleep(max(0, polling_delay - (time.time() - time_zero)))
+        if not wait_started:
             return result
 
-    def destroy(self, environments=None, force=True, remove_default=False, remove=False,
-                timeout=15):
+        start_time = time.time()
+        while True:
+            time_zero = time.time()
+            try:
+                state = self.status(timeout=status_timeout)['machines']['0']['agent-state']
+            except (KeyError, TypeError):
+                state = UNKNOWN
+
+            delta_time = time.time() - start_time
+            timeout_time = timeout - delta_time
+
+            _msg = f' in {timeout_time:.0f} seconds' if timeout_time > 0 else '!'
+            print(f'State of juju bootstrap machine is {state}, time-out{_msg}')
+
+            if state in started_states:
+                print(f'Environment bootstrapped in approximatively {delta_time:.0f} seconds')
+                break
+            if state in error_states:
+                raise RuntimeError(f'Bootstrap failed with state {state}.')
+            if delta_time > timeout:
+                raise TimeoutError(f'Bootstrap time-out with state {state}.')
+            time.sleep(max(0, polling_delay - (time.time() - time_zero)))
+        return result
+
+    def destroy(
+        self,
+        environments=None,
+        force=True,
+        remove_default=False,
+        remove=False,
+        timeout=15
+    ):
         # FIXME simpler algorithm
         with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
             environments_dict = yaml.safe_load(f)
@@ -725,17 +723,17 @@ class Environment(object):
 
         if remove:
             # Check if environment destroyed otherwise a lot of trouble with $/€ !
-            if self.is_boostrapped(timeout=timeout):
+            if self.is_bootstrapped(timeout=timeout):
                 raise RuntimeError(f'Environment {name} not removed, it is still alive.')
-            else:
-                del environments_dict['environments'][name]
-                with open(environments, 'w') as f:
-                    f.write(yaml.safe_dump(environments_dict))
+
+            del environments_dict['environments'][name]
+            with open(environments, 'w') as f:
+                f.write(yaml.safe_dump(environments_dict))
         return result
 
     # Services
 
-    def get_service_config(self, service, options=None, fail=True):
+    def get_service_config(self, service, fail=True):
         return juju_do('get', self.name, options=[service], fail=fail)
 
     def get_service(self, service, default=None, fail=True, timeout=15):
@@ -744,9 +742,10 @@ class Environment(object):
             return default
         try:
             return status_dict['services'][service]
-        except KeyError:
+        except KeyError as e:
             if fail:
-                raise RuntimeError(f'Service {service} not found in environment {self.name}.')
+                raise RuntimeError(
+                    f'Service {service} not found in environment {self.name}.') from e
         return default
 
     def expose_service(self, service, fail=True):
@@ -774,9 +773,8 @@ class Environment(object):
         terminate=False,
         to=None,
         units_number_to_keep=None,
-        fail=True,
         timeout=None
-    ):
+    ):  # pylint:disable=invalid-name,too-many-branches,too-many-locals
         """
         Ensure `num_units` units of `service` into `environment` by adding new or destroying useless
         units first !
@@ -877,7 +875,7 @@ class Environment(object):
 
         print(f'Deploy {charm} as {service or charm} (ensure {num_units} instance{s})')
 
-        if self.auto and required or confirm('do it now', default=False):
+        if self.auto and required or console.confirm('do it now', default=False):
 
             assert num_units is None or num_units >= 0
             units_dict = self.get_units(service, default=None, fail=False, timeout=timeout)
@@ -949,15 +947,14 @@ class Environment(object):
     def destroy_unit(self, service, number, terminate, delay_terminate=5, fail=True, timeout=None):
         name = f'{service}/{number}'
         unit_dict = self.get_unit(service, number, default=None, fail=fail, timeout=timeout)
-        if unit_dict is not None:
-            if terminate:
-                juju_do('destroy-unit', self.name, options=[name])
-
-                # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
-                time.sleep(delay_terminate)
-
-                return self.destroy_machine(unit_dict['machine'])
-            return juju_do('destroy-unit', self.name, options=[name])
+        if unit_dict is None:
+            return None
+        if terminate:
+            juju_do('destroy-unit', self.name, options=[name])
+            # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
+            time.sleep(delay_terminate)
+            return self.destroy_machine(unit_dict['machine'])
+        return juju_do('destroy-unit', self.name, options=[name])
 
     def get_unit(self, service, number, default=None, fail=True, timeout=None):
         # FIXME maybe none if missing or something else
@@ -966,9 +963,10 @@ class Environment(object):
         if service_dict is not None:
             try:
                 return service_dict['units'][name]
-            except KeyError:
+            except KeyError as e:
                 if fail:
-                    raise RuntimeError(f'No unit with name {name} on environment {self.name}.')
+                    raise RuntimeError(
+                        f'No unit with name {name} on environment {self.name}.') from e
         return default
 
     def get_unit_public_address(self, service, number):
@@ -978,14 +976,14 @@ class Environment(object):
         """
         if self.properties(cached=True)['type'] == 'local':
             return self.get_unit(service, number)['public-address']
-        else:
-            # public-address may report a private address (172.x.x.x) with non-local deployments see
-            # OSCIED #132, so we need this workaround (which cannot be used for local deployments).
-            machine_number = self.get_unit(service, number)['machine']
-            status_dict = self.status()
-            if status_dict:
-                return status_dict['machines'][machine_number]['dns-name']
-            raise ValueError(f'Unable to get public address of unit {service}/{number}')
+
+        # public-address may report a private address (172.x.x.x) with non-local deployments see
+        # OSCIED #132, so we need this workaround (which cannot be used for local deployments).
+        machine_number = self.get_unit(service, number)['machine']
+        status_dict = self.status()
+        if status_dict:
+            return status_dict['machines'][machine_number]['dns-name']
+        raise ValueError(f'Unable to get public address of unit {service}/{number}')
 
     def wait_unit(
         self,
@@ -1013,7 +1011,7 @@ class Environment(object):
                 raise TimeoutError(f'State of unit {service}/{number} is {state}')
             time.sleep(max(0, polling_delay - (time.time() - time_zero)))
 
-    def add_units(self, service, num_units=1, to=None):
+    def add_units(self, service, num_units=1, to=None):  # pylint:disable=invalid-name
         options = ['--num-units', num_units]
         if to is not None:
             options += ['--to', to]
@@ -1031,7 +1029,7 @@ class Environment(object):
         local=False,
         release=None,
         repository=None
-    ):
+    ):  # pylint:disable=invalid-name
         service = service or charm
         if not charm:
             raise ValueError('Charm is required.')
@@ -1059,7 +1057,7 @@ class Environment(object):
         return {int(name.split('/')[1]): info for name, info in units_dict.items()}
 
     def get_units_count(self, service, default=None, fail=True, timeout=None):
-        service_dict = self.get_service(default=None, fail=fail, timeout=timeout)
+        service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is None:
             return default
         units_dict = service_dict.get('units', {})
@@ -1070,15 +1068,11 @@ class Environment(object):
     def cleanup_machines(self, fail=True, timeout=None):
         environment_dict = self.status(fail=fail, timeout=timeout) or {}
         machines = environment_dict.get('machines', {}).keys()
-        busy_machines = ['0']  # the machine running the juju daemon !
+        busy = ['0']  # the machine running the juju daemon !
         for s_dict in environment_dict.get('services', {}).values():
-            busy_machines = busy_machines + [
-                u_dict.get('machine', None)
-                for u_dict in s_dict.get('units', {}).values()
-            ]
-        idle_machines = [m for m in machines if m not in busy_machines]
-        if idle_machines:
-            return juju_do('destroy-machine', self.name, options=idle_machines)
+            busy.extend(u_dict.get('machine', None) for u_dict in s_dict.get('units', {}).values())
+        idle = [m for m in machines if m not in busy]
+        return juju_do('destroy-machine', self.name, options=idle) if idle else None
 
     def destroy_machine(self, machine):
         return juju_do('destroy-machine', self.name, options=[machine])
@@ -1088,31 +1082,35 @@ class Environment(object):
     def add_relation(self, service1, service2, relation1=None, relation2=None):
         """Add a relation between 2 services. Knowing that the relation may already exists."""
         print(f'Add relation between {service1} and {service2}')
-        if self.auto or confirm('do it now', default=False):
-            member1 = service1 if relation1 is None else f'{service1}:{relation1}'
-            member2 = service2 if relation2 is None else f'{service2}:{relation2}'
-            result = None
-            try:
-                result = juju_do('add-relation', self.name, options=[member1, member2])
-            except RuntimeError as e:
-                # FIXME get status of service before adding relation may be cleaner.
-                if 'already exists' not in str(e):
-                    raise
-            return result
+        if not self.auto and not console.confirm('do it now', default=False):
+            return None
+
+        member1 = service1 if relation1 is None else f'{service1}:{relation1}'
+        member2 = service2 if relation2 is None else f'{service2}:{relation2}'
+        result = None
+        try:
+            result = juju_do('add-relation', self.name, options=[member1, member2])
+        except RuntimeError as e:
+            # FIXME get status of service before adding relation may be cleaner.
+            if 'already exists' not in str(e):
+                raise
+        return result
 
     def remove_relation(self, service1, service2, relation1=None, relation2=None):
         """Remove a relation between 2 services. Knowing that the relation may not exists."""
         print(f'Remove relation between {service1} and {service2}')
-        if self.auto or confirm('do it now', default=False):
-            member1 = service1 if relation1 is None else f'{service1}:{relation1}'
-            member2 = service2 if relation2 is None else f'{service2}:{relation2}'
-            try:
-                result = juju_do('remove-relation', self.name, options=[member1, member2])
-            except RuntimeError as e:
-                # FIXME get status of service before removing relation may be cleaner.
-                if 'exists' not in str(e):
-                    raise
-            return result
+        if not self.auto and not console.confirm('do it now', default=False):
+            return None
+
+        member1 = service1 if relation1 is None else f'{service1}:{relation1}'
+        member2 = service2 if relation2 is None else f'{service2}:{relation2}'
+        try:
+            result = juju_do('remove-relation', self.name, options=[member1, member2])
+        except RuntimeError as e:
+            # FIXME get status of service before removing relation may be cleaner.
+            if 'exists' not in str(e):
+                raise
+        return result
 
 
 class DeploymentScenario(object):
@@ -1127,15 +1125,23 @@ class DeploymentScenario(object):
             environment.release = environment.release or self.args.release
             self.__dict__.update({environment.name: environment})  # A shortcut
 
-    def get_parser(self, epilog='', charms_path='charms', release='raring', auto=False):
+    @staticmethod
+    def get_parser(
+        epilog='',
+        charms_path='charms',
+        release='raring',
+        auto=False
+    ):  # pylint:disable=invalid-name
         HELP_A = 'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         HELP_M = 'Directory (repository) of any local charm.'
         HELP_R = 'Ubuntu serie to deploy by JuJu.'
-        from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-        parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog=epilog)
-        parser.add_argument('-a', '--auto', action='store_true', help=HELP_A, default=auto)
-        parser.add_argument('-m', '--charms_path', action='store', help=HELP_M, default=charms_path)
-        parser.add_argument('-r', '--release', action='store', help=HELP_R, default=release)
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            epilog=epilog)
+        arg = parser.add_argument
+        arg('-a', '--auto', action='store_true', default=auto, help=HELP_A)
+        arg('-m', '--charms_path', action=FullPaths, default=charms_path, type=is_dir, help=HELP_M)
+        arg('-r', '--release', action='store', default=release, help=HELP_R)
         return parser
 
     def run(self):
@@ -1192,33 +1198,36 @@ class SimulatedUnits(object):
             self.units = {}
             return 'Simulate destruction of service.'
 
+        if units_count == num_units:
+            return None
+
         if units_count < num_units:
             num_units = num_units - units_count
-            for i in range(num_units):  # noqa
+            for _ in range(num_units):
                 unit = SimulatedUnit(self.start_latency_range, self.stop_latency_range)
                 unit.start()
                 self.units[self.number] = unit
                 self.number += 1
             return f'Simulate deployment of {num_units} units.'
 
-        if units_count > num_units:
-            num_units = units_count - num_units
-            destroyed = {}
-            # Sort units by status to kill the useless units before any others !
-            # FIXME implement status comparison for sorting ??
-            for state in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
+        # units_count > num_units
+        num_units = units_count - num_units
+        destroyed = {}
+        # Sort units by status to kill the useless units before any others !
+        # FIXME implement status comparison for sorting ??
+        for state in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
+            if num_units == 0:
+                break
+            for number, unit in self.units.items():
                 if num_units == 0:
                     break
-                for number, unit in self.units.items():
-                    if num_units == 0:
-                        break
-                    if units_number_to_keep is not None and number in units_number_to_keep:
-                        continue
-                    if unit.state == state or unit.state not in ALL_STATES:
-                        destroyed[number] = unit
-                        unit.stop()
-                        num_units -= 1
-            return destroyed
+                if units_number_to_keep is not None and number in units_number_to_keep:
+                    continue
+                if unit.state == state or unit.state not in ALL_STATES:
+                    destroyed[number] = unit
+                    unit.stop()
+                    num_units -= 1
+        return destroyed
 
     def tick(self):
         """Increment time of 1 tick and remove units that are in STOPPED state."""
