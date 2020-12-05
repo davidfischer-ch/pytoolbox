@@ -77,3 +77,20 @@ def from_path_patterns(patterns, regex=False):
         p if hasattr(p, 'match') else re.compile(p if regex else fnmatch.translate(p))
         for p in chain(patterns)
     ]
+
+
+class Match(object):
+    """
+    Assert that a given string meets some expectations.
+
+    Credits: https://kalnytskyi.com/howto/assert-str-matches-regex-in-pytest/
+    """
+
+    def __init__(self, pattern, flags=0):
+        self._regex = re.compile(pattern, flags)
+
+    def __eq__(self, actual):
+        return bool(self._regex.match(actual))
+
+    def __repr__(self):
+        return self._regex.pattern

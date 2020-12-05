@@ -3,7 +3,14 @@ import datetime, os, tempfile, unittest, uuid
 from pytoolbox import filesystem
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.multimedia.ffmpeg import (
-    to_bit_rate, to_frame_rate, to_size, AudioStream, EncodeState, Format, Media, VideoStream,
+    to_bit_rate,
+    to_frame_rate,
+    to_size,
+    AudioStream,
+    EncodeState,
+    Format,
+    Media,
+    VideoStream,
     HEIGHT
 )
 
@@ -206,10 +213,24 @@ class _EncodeStatisticsMixin(object):
     outputs = [Media('ff_output.mp4')]
     statistics_class = StaticEncodeStatistics
 
-    def get_statistics(self, start=False, returncode=None, options=None, **kwargs):
-        if options is None:
-            options = ['-acodec', 'copy', '-vcodec', 'copy']
-        statistics = self.statistics_class(self.inputs, self.outputs, options, **kwargs)
+    def get_statistics(
+        self,
+        start=False,
+        returncode=None,
+        in_options=None,
+        out_options=None,
+        **kwargs
+    ):
+        if in_options is None:
+            in_options = ['-acodec', 'copy', '-vcodec', 'copy']
+        if out_options is None:
+            out_options = []
+        statistics = self.statistics_class(
+            self.inputs,
+            self.outputs,
+            in_options,
+            out_options,
+            **kwargs)
         start = start or returncode is not None
         if start:
             statistics.start('process')
@@ -365,20 +386,19 @@ class TestFFmpeg(base.TestCase):
         self.ffmpeg.executable = 'ffmpeg'
 
         # Using options (the legacy API, also simplify simple calls)
-        options_string = (
-            '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
-        )
+        in_o_str = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
 
-        args, inputs, outputs, options = get('input.mp4', 'output.mkv', options_string)
-        self.list_equal(inputs, [Media('input.mp4')])
-        self.list_equal(outputs, [Media('output.mkv')])
-        self.list_equal(options, [
-            '-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
+        args, inputs, outputs, in_options, out_options = get('input.mp4', 'output.mkv', in_o_str)
+        assert inputs == [Media('input.mp4')]
+        assert outputs == [Media('output.mkv')]
+        self.list_equal(in_options, [
+            '-strict', 'experimental',
+            '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
         ])
-        self.list_equal(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
+        assert args == ['ffmpeg', '-y', '-i', 'input.mp4', *in_options, *out_options, 'output.mkv']
 
-        args, _, outputs, options = get('input.mp4', None, options_string)
-        self.list_equal(outputs, [])
+        args, _, outputs, in_options, out_options = get('input.mp4', None, in_o_str)
+        assert outputs == []
         self.list_equal(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options)
 
         # Using instances of Media (the newest API, greater flexibility)
