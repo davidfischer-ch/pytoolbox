@@ -94,7 +94,7 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')
 
 
-def get_exception_with_traceback(exception, encoding='utf-8'):  # pylint:disable=unused-argument
+def get_exception_with_traceback(exception):
     """
     Return a string with the exception traceback.
 
