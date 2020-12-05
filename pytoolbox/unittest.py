@@ -13,21 +13,6 @@ def mock_cmd(stdout='', stderr='', returncode=0):
     return mock.Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
 
 
-def runtests(test_file, cover_packages, packages, ignore=None, extra_options=None):
-    """Run tests and report coverage with nose and coverage."""
-    import nose
-    nose_options = [_f for _f in itertools.chain(
-        [test_file, '--with-doctest', '--with-coverage', '--cover-erase', '--exe'],
-        ['--cover-package={0}'.format(package) for package in cover_packages],
-        ['--cover-html', '-vv', '-w', os.path.dirname(test_file)],
-        packages, extra_options or []
-    ) if _f]
-    if ignore:
-        nose_options += ['-I', ignore]
-    os.chdir(os.path.abspath(os.path.dirname(test_file)))
-    return nose.main(argv=nose_options)
-
-
 def with_tags(tags=None, required=None):
     def _with_tags(f):
         f.tags = set([tags] if isinstance(tags, str) else tags or [])

@@ -93,7 +93,7 @@ extras_require = {
         'fastxor'
     ],
     'unittest': [
-        'mock', 'nose'
+        'mock'
     ],
     'vision': [
         'dlib',
