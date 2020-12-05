@@ -1,6 +1,4 @@
-import datetime, re, shlex
-
-from pytoolbox.datetime import total_seconds
+import re
 
 from .ffmpeg import FFmpeg
 
@@ -19,6 +17,7 @@ class X264(FFmpeg):
     executable = 'x264'
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
 
     def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):

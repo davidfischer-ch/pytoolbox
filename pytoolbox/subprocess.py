@@ -377,8 +377,8 @@ def rsync(
 
 def screen_kill(name=None, fail=True, log=None, **kwargs):
     """Kill all screen instances called `name` or all if `name` is None."""
-    for name in screen_list(name=name, log=log):
-        cmd(['screen', '-S', name, '-X', 'quit'], fail=fail, log=log, **kwargs)
+    for instance_name in screen_list(name=name, log=log):
+        cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, log=log, **kwargs)
 
 
 def screen_launch(name, command, fail=True, log=None, **kwargs):
@@ -396,10 +396,10 @@ def screen_list(name=None, log=None, **kwargs):
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', screens.decode('utf-8'))
 
 
-def ssh(host, id=None, remote_cmd=None, fail=True, log=None, **kwargs):
+def ssh(host, identity_file=None, remote_cmd=None, fail=True, log=None, **kwargs):
     command = ['ssh']
-    if id is not None:
-        command += ['-i', id]
+    if identity_file is not None:
+        command += ['-i', identity_file]
     command += [host]
     if remote_cmd is not None:
         command += ['-n', remote_cmd]
