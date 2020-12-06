@@ -216,9 +216,9 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
             '--separate',
             '-o', source,
             project / 'pytoolbox'
-        ])
+        ], check=True)
         filesystem.remove(project / 'docs' / 'build' / 'html', recursive=True)
-        subprocess.run(['make', 'html'], cwd=project / 'docs')
+        subprocess.run(['make', 'html'], cwd=project / 'docs', check=True)
 
 
 setuptools.setup(
