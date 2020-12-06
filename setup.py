@@ -188,7 +188,7 @@ def get_command_with_extras(cls):
     return WithExtra
 
 
-class DocsCommand(setuptools.Command):
+class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
 
     description = 'Generate documentation using Sphinx'
     user_options = []
@@ -199,7 +199,7 @@ class DocsCommand(setuptools.Command):
     def finalize_options(self):
         pass
 
-    def run(self):  # pylint:disable=duplicate-code,no-self-use
+    def run(self):  # pylint:disable=no-self-use
         from pytoolbox import filesystem
         from pytoolbox.subprocess import cmd
 
