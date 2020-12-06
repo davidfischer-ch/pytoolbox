@@ -40,19 +40,25 @@ def find_recursive(directory, patterns, regex=False, **walk_kwargs):
     **Example usage**
 
     >>> import re
-    >>> next(find_recursive('/etc', '*/interfaces*'))
-    '/etc/network/interfaces'
-    >>> filenames = list(find_recursive('/etc/network', ['*/interfaces*', '*/*.jpg']))
-    >>> '/etc/network/interfaces' in filenames
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> next(find_recursive(directory, '*/collections*'))
+    '.../pytoolbox/collections.py'
+    >>> filenames = sorted(find_recursive(directory, ['*/django*', '*/*.py']))
+    >>> [Path(f).name for f in filenames[-4:]]
+    ['unittest.py', 'validation.py', 'virtualenv.py', 'voluptuous.py']
+    >>> str(directory / 'aws' / 's3.py') in filenames
     True
-    >>> '/etc/network/interfaces.d' in filenames  # Its a directory
+    >>> str(directory / 'django') in filenames  # Its a directory
     False
-    >>> a = set(find_recursive('/etc', re.compile('.*/host.*')))
-    >>> b = set(find_recursive('/etc', ['.*/host.*'], regex=True))
-    >>> len(a) > 0
+    >>> a_files = set(find_recursive(directory, re.compile(r'.*/st.+\\.py$')))
+    >>> b_files = set(find_recursive(directory, ['.*/st.+\\.py$'], regex=True))
+    >>> a_files == b_files
     True
-    >>> a == b
-    True
+    >>> [Path(f).name for f in sorted(a_files)]
+    ['storage.py', 'states.py', 'string.py']
     """
     patterns = from_path_patterns(patterns, regex=regex)
     for dirpath, _, filenames in os.walk(directory, **walk_kwargs):
