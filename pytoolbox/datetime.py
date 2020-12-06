@@ -187,11 +187,18 @@ def str_to_time(value, defaults_to_zero=False, as_delta=False):
     >>> str_to_time(None)
     >>> str_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
-    >>> str_to_time('08:23:57', as_delta=True)
-    datetime.timedelta(seconds=30237)
-    >>> str_to_time('00:03:02.12', as_delta=True)
-    datetime.timedelta(seconds=182, microseconds=120000)
-    >>> str_to_time(None, as_delta=True)
+    >>> result = str_to_time('08:23:57', as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> str(result)
+    '8:23:57'
+    >>> result = str_to_time('00:03:02.12', as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> str(result)
+    '0:03:02.120000'
+    >>> str_to_time(None, as_delta=True) is None
+    True
     >>> str_to_time(None, defaults_to_zero=True, as_delta=True)
     datetime.timedelta(0)
     """

@@ -66,7 +66,7 @@ class LiveClient(common.FindMixin):
             return ui.WebDriverWait(self.web_driver, timeout).until(
                 lambda driver: bool(self.find_css(css_selector, prefix, fail=False)) ^ inverse
             )
-        except exceptions.TimeoutException:
+        except exceptions.TimeoutException:  # pylint:disable=no-member
             if fail:
                 raise
 
