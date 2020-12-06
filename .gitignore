@@ -1,6 +1,9 @@
 build/
 dist/
+htmlcov/
 pytoolbox3/
+coverage.xml
+small.mp4
 .coverage
 *.pyc
 *.egg*/
