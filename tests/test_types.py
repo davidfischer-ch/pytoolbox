@@ -2,15 +2,10 @@ import copy
 
 from pytoolbox import types
 
-from . import base
 
-
-class TestTypes(base.TestCase):
-
-    tags = ('types', )
-
-    def test_Missing(self):
-        self.equal(f'{types.Missing}', 'Missing')
-        self.false(bool(types.Missing))
-        self.is_missing(copy.copy(types.Missing))
-        self.is_missing(copy.deepcopy(types.Missing))
+def test_missing():
+    assert f'{types.Missing}' == 'Missing'
+    assert types.Missing is not False
+    assert bool(types.Missing) is False
+    assert copy.copy(types.Missing) is types.Missing
+    assert copy.deepcopy(types.Missing) is types.Missing

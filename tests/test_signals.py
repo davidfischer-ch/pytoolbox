@@ -1,13 +1,11 @@
-import os, signal
+import os, signal, unittest
 
 from pytoolbox import exceptions, signals
+from pytoolbox.unittest import SnakeCaseMixin
 
-from . import base
 
-
-class TestSignals(base.TestCase):
-
-    tags = ('signals', )
+# FIXME Implement to simple pytest tests
+class TestSignals(SnakeCaseMixin, unittest.TestCase):
 
     def append_list_callback(self, number):
         self.flag = True
