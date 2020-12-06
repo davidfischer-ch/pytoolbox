@@ -537,7 +537,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     def template_to_config(self, template, config, values):
         filesystem.from_template(template, config, values)
-        self.remark('File {0} successfully generated'.format(config))
+        self.remark(f'File {config} successfully generated')
 
     # ----------------------------------------------------------------------------------------------
 

@@ -1,14 +1,14 @@
 from pytoolbox import module
 from pytoolbox.unittest import asserts
 
-not_included_variable = 0
+not_included_variable = 0  # pylint:disable=invalid-name
 
 _all = module.All(globals())
 
-from pytoolbox import types, validation as _validation
+from pytoolbox import types, validation as _validation  # noqa pylint:disable=wrong-import-position
 
-public_variable = 0
-_private_variable = 0
+public_variable = 0    # pylint:disable=invalid-name
+_private_variable = 0  # pylint:disable=invalid-name
 
 
 def public_function():

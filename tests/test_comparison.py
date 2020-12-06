@@ -27,24 +27,24 @@ class Point3D(SlotsEqualityMixin):
 
 
 def test_equality_same_class():
-    p1 = Point2D(10, -3, 'dot')
-    p2 = Point2D(10, -3, 'dot')
-    p3 = Point2D(10, -4, 'dot')
-    if not (p1 == p2 and p1 != p3):
+    point_1 = Point2D(10, -3, 'dot')
+    point_2 = Point2D(10, -3, 'dot')
+    point_3 = Point2D(10, -4, 'dot')
+    if not (point_1 == point_2 and point_1 != point_3):
         raise ValueError()
 
 
 def test_equality_inheritance():
-    p1 = Point2D(10, -3, 'dot')
-    p2 = Point2Dv2(10, -3, 'dot')
-    p3 = Point2Dv2(10, -4, 'dot')
-    if not (p1 == p2 and p1 != p3):
+    point_1 = Point2D(10, -3, 'dot')
+    point_2 = Point2Dv2(10, -3, 'dot')
+    point_3 = Point2Dv2(10, -4, 'dot')
+    if not (point_1 == point_2 and point_1 != point_3):
         raise AssertionError()
 
 
 def test_equality_different_class():
-    p1 = Point2D(10, -3, 'dot')
-    p2 = Point3D(10, -3, 5, 'dot')
-    p3 = Point3D(10, -4, 2, 'dot')
-    if not (p1 != p2 and p1 != p3):
+    point_1 = Point2D(10, -3, 'dot')
+    point_2 = Point3D(10, -3, 5, 'dot')
+    point_3 = Point3D(10, -4, 2, 'dot')
+    if point_1 in (point_2, point_3):
         raise AssertionError()

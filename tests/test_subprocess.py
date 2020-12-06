@@ -14,11 +14,11 @@ def test_to_args_list():
 
 
 def test_to_args_string():
-    subprocess.to_args_string(None) == ''
-    subprocess.to_args_string('') == ''
-    subprocess.to_args_string([]) == ''
-    subprocess.to_args_string('tail -f "~/some file"') == 'tail -f "~/some file"'
-    subprocess.to_args_string([10, None, 'string "salut"']) == '10 None \'string "salut"\''
+    assert subprocess.to_args_string(None) == ''
+    assert subprocess.to_args_string('') == ''
+    assert subprocess.to_args_string([]) == ''
+    assert subprocess.to_args_string('tail -f "~/some file"') == 'tail -f "~/some file"'
+    assert subprocess.to_args_string([10, None, 'string "salut"']) == '10 None \'string "salut"\''
 
 
 def test_cmd():
@@ -31,7 +31,7 @@ def test_cmd():
         r"call\(u*'Attempt 1 out of 1: Failed'\)"
     ])
     assert subprocess.cmd('my.funny.missing.script.sh', fail=False)['stderr'] != ''
-    result = subprocess.cmd('cat {0}'.format(__file__))
+    result = subprocess.cmd(f'cat {__file__}')
     # There are at least 30 lines in this source file !
     assert len(result['stdout'].splitlines()) > 30
 

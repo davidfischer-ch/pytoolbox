@@ -38,7 +38,7 @@ def datetime_now(
     >>> type(result)
     <class 'datetime.timedelta'>
     >>> print(result)
-    2:10:00.000...
+    2:10:00.00...
 
     Append UTC to output date string:
 

@@ -23,5 +23,5 @@ def test_full_paths():
     multi(None, namespace, ['a', 'b'])
     single = FullPaths(None, 'single')
     single(None, namespace, 'c')
-    assert namespace.multi == [os.path.abspath(e) for e in ('a', 'b')]
-    assert namespace.single == os.path.abspath('c')
+    assert namespace.multi == [os.path.abspath(e) for e in ('a', 'b')]  # pylint:disable=no-member
+    assert namespace.single == os.path.abspath('c')                     # pylint:disable=no-member

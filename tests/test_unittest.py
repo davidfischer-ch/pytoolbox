@@ -46,7 +46,7 @@ def test_should_run_with_extra():
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
 
-    def test_fast_class_skip(self):
+    def test_fast_class_skip(self):  # pylint:disable=no-self-use
 
         class TestCaseWithTags(FilterByTagsMixin):
             tags = {'c'}
@@ -82,13 +82,15 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
             except unittest.SkipTest:
                 skipped = True
             msg = []
-            for n, m in TestCaseWithTags.get_test_methods():
+            for name, method in TestCaseWithTags.get_test_methods():
                 args = (
-                    TestCaseWithTags.get_tags(m), TestCaseWithTags.get_required_tags(m),
-                    TestCaseWithTags.get_extra_tags(), TestCaseWithTags.get_only_tags(),
+                    TestCaseWithTags.get_tags(method),
+                    TestCaseWithTags.get_required_tags(method),
+                    TestCaseWithTags.get_extra_tags(),
+                    TestCaseWithTags.get_only_tags(),
                     TestCaseWithTags.get_skip_tags()
                 )
-                msg.append([counter, n, TestCaseWithTags.should_run(*args), args])
+                msg.append([counter, name, TestCaseWithTags.should_run(*args), args])
             assert skipped == skip, msg
 
         test(1, False)
@@ -106,7 +108,7 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         test(11, False, extra_tags={'r'}, skip_tags={'AnotherTestCase'})
 
     @with_tags(required='should-not-run')
-    def test_with_tags_decorator(self):
+    def test_with_tags_decorator(self):  # pylint:disable=no-self-use
         raise RuntimeError('This test should never run.')
 
 
