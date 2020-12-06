@@ -2,6 +2,6 @@ pytoolbox.throttles module
 ==========================
 
 .. automodule:: pytoolbox.throttles
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

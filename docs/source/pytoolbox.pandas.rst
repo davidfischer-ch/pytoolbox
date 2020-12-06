@@ -1,7 +1,7 @@
-pytoolbox.crypto module
+pytoolbox.pandas module
 =======================
 
-.. automodule:: pytoolbox.crypto
+.. automodule:: pytoolbox.pandas
    :members:
    :undoc-members:
    :show-inheritance:

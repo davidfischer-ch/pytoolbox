@@ -2,29 +2,32 @@ pytoolbox package
 =================
 
 .. automodule:: pytoolbox
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pytoolbox.ai
-    pytoolbox.django
-    pytoolbox.django_datatable_view
-    pytoolbox.django_filter
-    pytoolbox.django_formtools
-    pytoolbox.multimedia
-    pytoolbox.network
-    pytoolbox.rest_framework
-    pytoolbox.selenium
+   pytoolbox.ai
+   pytoolbox.aws
+   pytoolbox.django
+   pytoolbox.django_datatable_view
+   pytoolbox.django_filter
+   pytoolbox.django_formtools
+   pytoolbox.multimedia
+   pytoolbox.network
+   pytoolbox.rest_framework
+   pytoolbox.selenium
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pytoolbox.argparse
    pytoolbox.atlassian
@@ -34,7 +37,6 @@ Submodules
    pytoolbox.crypto
    pytoolbox.datetime
    pytoolbox.decorators
-   pytoolbox.encoding
    pytoolbox.enum
    pytoolbox.exceptions
    pytoolbox.filesystem
@@ -45,7 +47,7 @@ Submodules
    pytoolbox.linux
    pytoolbox.logging
    pytoolbox.module
-   pytoolbox.mongo
+   pytoolbox.pandas
    pytoolbox.private
    pytoolbox.regex
    pytoolbox.serialization
@@ -60,4 +62,3 @@ Submodules
    pytoolbox.validation
    pytoolbox.virtualenv
    pytoolbox.voluptuous
-

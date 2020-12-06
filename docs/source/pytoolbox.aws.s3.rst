@@ -1,7 +1,7 @@
-pytoolbox.crypto module
+pytoolbox.aws.s3 module
 =======================
 
-.. automodule:: pytoolbox.crypto
+.. automodule:: pytoolbox.aws.s3
    :members:
    :undoc-members:
    :show-inheritance:

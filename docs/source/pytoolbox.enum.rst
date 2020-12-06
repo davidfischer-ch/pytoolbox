@@ -2,6 +2,6 @@ pytoolbox.enum module
 =====================
 
 .. automodule:: pytoolbox.enum
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
