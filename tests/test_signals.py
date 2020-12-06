@@ -1,11 +1,11 @@
 import os, signal, unittest
 
+from pytest import raises
 from pytoolbox import exceptions, signals
-from pytoolbox.unittest import SnakeCaseMixin
 
 
 # FIXME Implement to simple pytest tests
-class TestSignals(SnakeCaseMixin, unittest.TestCase):
+class TestSignals(unittest.TestCase):
 
     def append_list_callback(self, number):
         self.flag = True
@@ -18,7 +18,7 @@ class TestSignals(SnakeCaseMixin, unittest.TestCase):
         self.flag = True
 
     def set_flag_callback(self, *args, **kwargs):
-        self.assertEqual(args, (None, ))
+        assert args == (None, )
         self.flag = True
 
     def setUp(self):
@@ -29,9 +29,9 @@ class TestSignals(SnakeCaseMixin, unittest.TestCase):
 
     def tearDown(self):
         if self.name:
-            self.assertTrue(self.flag, self.name)
+            assert self.flag is True, self.name
             if self.list:
-                self.assertListEqual(self.list, sorted(self.list), self.name)
+                assert self.list == sorted(self.list), self.name
 
     def test_handler(self):
         self.name = 'test_handler'
@@ -61,7 +61,7 @@ class TestSignals(SnakeCaseMixin, unittest.TestCase):
     def test_callback_unauthorized_append(self):
         self.name = 'test_callback_unauthorized_append'
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
-        with self.assertRaises(exceptions.MultipleSignalHandlersError):
+        with raises(exceptions.MultipleSignalHandlersError):
             signals.register_callback(
                 signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
         os.kill(os.getpid(), signal.SIGTERM)
