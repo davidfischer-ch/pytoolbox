@@ -13,7 +13,7 @@ WIDTH, HEIGHT = range(2)  # noqa
 
 
 def is_pipe(path):
-    return isinstance(path, str) and PIPE_REGEX.match(path)
+    return isinstance(path, str) and bool(PIPE_REGEX.match(path))
 
 
 def to_bit_rate(bit_rate):

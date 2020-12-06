@@ -108,7 +108,7 @@ def download_ext(  # pylint:disable=too-many-locals
     >>>
     >>> _ = filesystem.remove('small.mp4')
     >>>
-    >>> url = 'http://techslides.com/demos/sample-videos/small.mp4'
+    >>> url = 'https://pytoolbox.s3-eu-west-1.amazonaws.com/tests/small.mp4'
     >>>
     >>> download_ext(url, 'small.mp4')
     (False, True, None)

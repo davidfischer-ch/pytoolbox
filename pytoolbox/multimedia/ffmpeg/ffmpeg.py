@@ -1,4 +1,5 @@
 import errno, itertools, re, select, subprocess, sys, time
+from pathlib import Path
 
 from pytoolbox import filesystem
 from pytoolbox.subprocess import kill, make_async, raw_cmd, to_args_list
@@ -95,7 +96,7 @@ class FFmpeg(object):
         Return a list of Media instances from passed value.
         Value can be one or multiple instances of string or Media.
         """
-        values = [value] if isinstance(value, (str, self.ffprobe.media_class)) else value
+        values = [value] if isinstance(value, (str, Path, self.ffprobe.media_class)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
 
     def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):

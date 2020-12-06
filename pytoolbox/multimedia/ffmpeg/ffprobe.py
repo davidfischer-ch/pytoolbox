@@ -1,4 +1,5 @@
 import datetime, errno, itertools, json, math, os, re, subprocess
+from pathlib import Path
 
 from xml.dom import minidom
 
@@ -42,8 +43,9 @@ class FFprobe(object):
         If `media` is the path to a MPEG-DASH MPD, then duration will be parser from value of key
         *mediaPresentationDuration*.
         """
-        if isinstance(media, str) and os.path.splitext(media)[1] == '.mpd':
-            mpd = minidom.parse(media)
+        if isinstance(media, (str, Path)) and os.path.splitext(media)[1] == '.mpd':
+            with open(media) as f:
+                mpd = minidom.parse(f)
             if mpd.firstChild.nodeName == 'MPD':
                 match = self.duration_regex.search(
                     mpd.firstChild.getAttribute('mediaPresentationDuration'))
