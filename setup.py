@@ -23,7 +23,8 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-import itertools, os, setuptools, shutil, sys
+import itertools, setuptools, subprocess, sys
+from pathlib import Path
 from setuptools.command import develop, install
 
 import pytoolbox
@@ -201,19 +202,23 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
 
     def run(self):  # pylint:disable=no-self-use
         from pytoolbox import filesystem
-        from pytoolbox.subprocess import cmd
-
-        docs = os.path.join(os.path.dirname(__file__), 'docs')
-        source = os.path.join(docs, 'source')
-        package = os.path.join(os.path.dirname(__file__), 'pytoolbox')
+        project = Path(__file__).resolve().parent
+        source = project / 'docs' / 'source'
 
         # Cleanup previously generated restructured files
         for path in filesystem.find_recursive(source, r'^pytoolbox.*\.rst$', regex=True):
-            os.remove(path)
+            filesystem.remove(path)
 
-        cmd(['sphinx-apidoc', '--force', '--module-first', '--separate', '-o', source, package])
-        shutil.rmtree(os.path.join(docs, 'build', 'html'), ignore_errors=True)
-        cmd(['make', 'html'], cwd=docs)
+        subprocess.run([
+            'sphinx-apidoc',
+            '--force',
+            '--module-first',
+            '--separate',
+            '-o', source,
+            project / 'pytoolbox'
+        ])
+        filesystem.remove(project / 'docs' / 'build' / 'html', recursive=True)
+        subprocess.run(['make', 'html'], cwd=project / 'docs')
 
 
 setuptools.setup(
