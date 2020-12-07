@@ -566,7 +566,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.hook(f'Exiting {self.__class__.__name__} hook {hook_name}')
 
 
-class Environment(object):  # pylint:disable=too-many-public-methods
+class Environment(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods
 
     def __init__(
         self,
