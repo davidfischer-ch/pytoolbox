@@ -1,10 +1,4 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
-
-_all = module.All(globals())
+__all__ = ['log_to_console']
 
 
 def log_to_console(settings):
@@ -52,6 +46,3 @@ def log_to_console(settings):
     """
     for logger in settings.LOGGING['loggers']:
         settings.LOGGING['loggers'][logger]['handlers'] = ['console']
-
-
-__all__ = _all.diff(globals())

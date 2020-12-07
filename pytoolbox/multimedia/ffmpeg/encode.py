@@ -1,19 +1,18 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime, re, time
 
-from pytoolbox import module
 from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
-
 from . import ffprobe, utils
 
-_all = module.All(globals())
+__all__ = ['ENCODING_REGEX', 'EncodeState', 'EncodeStatistics', 'FrameBasedRatioMixin']
 
-ENCODING_REGEX = re.compile(  # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
-    r'frame=\s*(?P<frame>\d+)\s+fps=\s*(?P<frame_rate>\d+\.?\d*)\s+q=\s*(?P<qscale>\S+)\s+\S*.*size=\s*(?P<size>\S+)\s+'
-    r'time=\s*(?P<time>\S+)\s+bitrate=\s*(?P<bit_rate>\S+)'
+ENCODING_REGEX = re.compile(
+    # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
+    r'frame=\s*(?P<frame>\d+)\s+'
+    r'fps=\s*(?P<frame_rate>\d+\.?\d*)\s+'
+    r'q=\s*(?P<qscale>\S+)\s+\S*.*'
+    r'size=\s*(?P<size>\S+)\s+'
+    r'time=\s*(?P<time>\S+)\s+'
+    r'bitrate=\s*(?P<bit_rate>\S+)'
 )
 
 
@@ -28,7 +27,7 @@ class EncodeState(object):
     FINAL_STATES = frozenset([SUCCESS, FAILURE])
 
 
-class EncodeStatistics(object):
+class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
 
     default_in_duration = datetime.timedelta(seconds=0)
     encoding_regex = ENCODING_REGEX
@@ -58,8 +57,8 @@ class EncodeStatistics(object):
         self.bit_rate = None
 
         # Retrieve input media duration and size, handle sub-clipping
-        duration = self.ffprobe_class().get_media_duration(
-            self.input, as_delta=True) or self.default_in_duration
+        duration = self.ffprobe_class().get_media_duration(self.input, as_delta=True)
+        duration = duration or self.default_in_duration
         self.input.duration, self.input.size = \
             self._get_subclip_duration_and_size(duration, self.input.size, self.out_options)
         self.output.duration = None
@@ -130,41 +129,50 @@ class EncodeStatistics(object):
     def _compute_ratio(self):
         if self.input.duration and self.output.duration is not None:
             return time_ratio(self.output.duration, self.input.duration)
+        return None
 
-    @staticmethod
-    def _get_subclip_duration_and_size(duration, size, out_options):
+    @classmethod
+    def _get_subclip_duration_and_size(cls, duration, size, out_options):
         """Adjust duration and size if we only encode a sub-clip."""
-        def to_time(t):
-            return str_to_time(t, as_delta=True) if ':' in t else secs_to_time(t, as_delta=True)
+
         try:
-            sub_pos = to_time(out_options[out_options.index('-ss') + 1]) or datetime.timedelta(0)
+            sub_duration = cls._to_time(out_options[out_options.index('-t') + 1])
         except (IndexError, ValueError):
-            sub_pos = datetime.timedelta(0)
+            sub_duration = duration
+        if sub_duration is None:
+            return duration, size
+
+        zero = datetime.timedelta(0)
         try:
-            sub_dur = to_time(out_options[out_options.index('-t') + 1])
+            sub_position = cls._to_time(out_options[out_options.index('-ss') + 1]) or zero
         except (IndexError, ValueError):
-            sub_dur = duration
-        if sub_dur is not None:
-            sub_dur = max(datetime.timedelta(0), min(duration - sub_pos, sub_dur))
-            return sub_dur, int(size * time_ratio(sub_dur, duration))
-        return duration, size
+            sub_position = zero
+
+        sub_duration = max(zero, min(duration - sub_position, sub_duration))
+        return sub_duration, int(size * time_ratio(sub_duration, duration))
 
     def _parse_chunk(self, chunk):
         self.process_output += chunk
         match = self.encoding_regex.match(chunk.strip())
-        if match:
-            ffmpeg_statistics = match.groupdict()
-            try:
-                ffmpeg_statistics['time'] = str_to_time(ffmpeg_statistics['time'], as_delta=True)
-            except ValueError:
-                return None  # Parsed statistics are broken, do not use them
-            ffmpeg_statistics['frame'] = int(ffmpeg_statistics['frame'])
-            ffmpeg_statistics['frame_rate'] = float(ffmpeg_statistics['frame_rate'])
-            qscale = ffmpeg_statistics.get('qscale')
-            ffmpeg_statistics['qscale'] = None if qscale is None else float(qscale)
-            ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
-            ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
-            return ffmpeg_statistics
+        if not match:
+            return None
+        ffmpeg_statistics = match.groupdict()
+        try:
+            ffmpeg_statistics['time'] = str_to_time(ffmpeg_statistics['time'], as_delta=True)
+        except ValueError:
+            return None  # Parsed statistics are broken, do not use them
+        ffmpeg_statistics['frame'] = int(ffmpeg_statistics['frame'])
+        ffmpeg_statistics['frame_rate'] = float(ffmpeg_statistics['frame_rate'])
+        qscale = ffmpeg_statistics.get('qscale')
+        ffmpeg_statistics['qscale'] = None if qscale is None else float(qscale)
+        ffmpeg_statistics['size'] = utils.to_size(ffmpeg_statistics['size'])
+        ffmpeg_statistics['bit_rate'] = utils.to_bit_rate(ffmpeg_statistics['bit_rate'])
+        return ffmpeg_statistics
+
+    @staticmethod
+    def _to_time(value):
+        method = str_to_time if ':' in value else secs_to_time
+        return method(value, as_delta=True)
 
 
 class FrameBasedRatioMixin(object):
@@ -174,7 +182,7 @@ class FrameBasedRatioMixin(object):
     """
 
     def __init__(self, *args, **kwargs):
-        super(FrameBasedRatioMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         fps = self.ffprobe_class().get_video_frame_rate(self.input)
         if fps and self.input.duration:
             self.input.frame = fps * self.input.duration.total_seconds()
@@ -184,7 +192,4 @@ class FrameBasedRatioMixin(object):
     def _compute_ratio(self):
         if self.input.frame and self.frame is not None:
             return self.frame / self.input.frame
-        return super(FrameBasedRatioMixin, self)._compute_ratio()
-
-
-__all__ = _all.diff(globals())
+        return super()._compute_ratio()

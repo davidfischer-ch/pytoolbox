@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import inspect, io, sys, traceback
+import inspect, io, traceback
 
 from . import module
-from .encoding import PY2, to_bytes
 
 _all = module.All(globals())
 
@@ -20,11 +15,9 @@ class MessageMixin(Exception):
         self.__dict__.update(kwargs)
         Exception.__init__(self)
 
-    def __unicode__(self):
+    def __str__(self):
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
         return self.message.format(**{a: v for a, v in attributes if a[0] != '_'})
-
-    __str__ = __unicode__
 
 
 class BadHTTPResponseCodeError(MessageMixin, Exception):
@@ -37,16 +30,18 @@ class CorruptedFileError(MessageMixin, Exception):
 
 class ForbiddenError(Exception):
     """A forbidden error."""
-    pass
+
+
+class InvalidBrandError(MessageMixin, Exception):
+    message = 'Brand {brand} not in {brands}.'
+
+
+class InvalidIPSocketError(MessageMixin, Exception):
+    message = '{socket} is not a valid IP socket.'
 
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
-    message = """Signal {signum} already handled by {handlers}."""
-
-
-class TimeoutError(Exception):
-    """A time-out error."""
-    pass
+    message = 'Signal {signum} already handled by {handlers}.'
 
 
 class UndefinedPathError(Exception):
@@ -95,68 +90,43 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
         if delete:
             del something[index]
         elif value is None:
-            something[index]
+            something[index]  # pylint:disable=pointless-statement
         else:
             something[index] = value
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         if not isinstance(e, exception_cls):
-            raise ValueError(to_bytes('Exception {0} is not an instance of {1}.'.format(
-                             e.__class__.__name__, exception_cls.__name__)))
+            raise ValueError(
+                f'Exception {e.__class__.__name__} is not '
+                f'an instance of {exception_cls.__name__}.') from e
         return
-    raise AssertionError(to_bytes('Exception {0} not raised.'.format(exception_cls.__name__)))
+    raise AssertionError(f'Exception {exception_cls.__name__} not raised.')
 
 
-if PY2:
-    def get_exception_with_traceback(exception, encoding='utf-8'):
-        """
-        Return a string with the exception traceback.
+def get_exception_with_traceback(exception):
+    """
+    Return a string with the exception traceback.
 
-        **Example usage**
+    **Example usage**
 
-        If the exception was not raised then there are no traceback:
+    If the exception was not raised then there are no traceback:
 
-        >>> from pytoolbox.encoding import to_bytes
-        >>> from pytoolbox.unittest import asserts
-        >>> asserts.equal(
-        ...     get_exception_with_traceback(ValueError(to_bytes('yé'))), 'ValueError: yé\\n')
+    >>> get_exception_with_traceback(ValueError('yé'))
+    'ValueError: yé\\n'
 
-        If the exception was raised then there is a traceback:
+    If the exception was raised then there is a traceback:
 
-        >>> try:
-        ...     raise RuntimeError()
-        ... except Exception as e:
-        ...     trace = get_exception_with_traceback(e)
-        ...     asserts.assert_in('Traceback', trace)
-        ...     asserts.assert_in('raise RuntimeError()', trace)
-        """
-        exception_io = io.BytesIO()
-        trace = sys.exc_info()[2] if sys.exc_info()[1] is exception else None
-        traceback.print_exception(type(exception), exception, trace, file=exception_io)
-        return exception_io.getvalue().decode(encoding)
-else:
-    def get_exception_with_traceback(exception, encoding='utf-8'):  # pylint:disable=unused-argument
-        """
-        Return a string with the exception traceback.
+    >>> try:
+    ...     raise RuntimeError('yé')
+    ... except Exception as e:
+    ...     trace = get_exception_with_traceback(e)
+    >>> 'Traceback' in trace
+    True
+    >>> "raise RuntimeError('yé')" in trace
+    True
+    """
+    buf = io.StringIO()
+    traceback.print_exception(type(exception), exception, exception.__traceback__, file=buf)
+    return buf.getvalue()
 
-        **Example usage**
-
-        If the exception was not raised then there are no traceback:
-
-        >>> from pytoolbox.unittest import asserts
-        >>> asserts.equal(get_exception_with_traceback(ValueError('yé')), 'ValueError: yé\\n')
-
-        If the exception was raised then there is a traceback:
-
-        >>> try:
-        ...     raise RuntimeError('yé')
-        ... except Exception as e:
-        ...     trace = get_exception_with_traceback(e)
-        ...     asserts.assert_in('Traceback', trace)
-        ...     asserts.assert_in("raise RuntimeError('yé')", trace)
-        """
-        exception_io = io.StringIO()
-        traceback.print_exception(
-            type(exception), exception, exception.__traceback__, file=exception_io)
-        return exception_io.getvalue()
 
 __all__ = _all.diff(globals())

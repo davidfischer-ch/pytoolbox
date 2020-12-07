@@ -1,15 +1,10 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own forms.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from django.forms import fields
 
 from pytoolbox import module
-
 from . import utils, widgets
 
 _all = module.All(globals())
@@ -22,8 +17,8 @@ class ConvertEmailToTextMixin(object):
     """
 
     def __init__(self, *args, **kwargs):
-        super(ConvertEmailToTextMixin, self).__init__(*args, **kwargs)
-        for field in self.fields.itervalues():
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
             if getattr(field.widget, 'input_type', None) == 'email':
                 field.widget.input_type = 'text'
 
@@ -58,8 +53,8 @@ class HelpTextToPlaceholderMixin(object):
     placeholder_remove_help_text = True
 
     def __init__(self, *args, **kwargs):
-        super(HelpTextToPlaceholderMixin, self).__init__(*args, **kwargs)
-        for name, field in self.fields.iteritems():
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
             if field and isinstance(field, self.placeholder_fields):
                 self.set_placeholder(name, field)
 
@@ -90,7 +85,7 @@ class ModelBasedFormCleanupMixin(object):
     """
 
     def clean(self):
-        super(ModelBasedFormCleanupMixin, self).clean()
+        super().clean()
         try:
             return self._meta.model.clean_form(self)
         except AttributeError:
@@ -105,7 +100,7 @@ class RequestMixin(object):
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
-        super(RequestMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class CreatedByMixin(RequestMixin):
@@ -114,7 +109,7 @@ class CreatedByMixin(RequestMixin):
     def save(self, commit=True):
         if hasattr(self.instance, 'created_by_id') and not self.instance.created_by_id:
             self.instance.created_by = self.request.user
-        return super(CreatedByMixin, self).save(commit=commit)
+        return super().save(commit=commit)
 
 
 class StaffOnlyFieldsMixin(RequestMixin):
@@ -123,7 +118,7 @@ class StaffOnlyFieldsMixin(RequestMixin):
     staff_only_fields = ()
 
     def __init__(self, *args, **kwargs):
-        super(StaffOnlyFieldsMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if not self.request or not self.request.user.is_staff:
             for field in self.staff_only_fields:
                 self.fields.pop(field, None)
@@ -140,14 +135,14 @@ class UpdateWidgetAttributeMixin(object):
     #  update list.
     widgets_rules = {
         fields.DateField: [widgets.CalendarDateInput, {'class': '+dateinput +input-small'}],
-        fields.TimeField: [widgets.ClockTimeInput,    {'class': '+timeinput +input-small'}],
+        fields.TimeField: [widgets.ClockTimeInput, {'class': '+timeinput +input-small'}],
     }
     #: Attributes that are applied to all widgets of the form
     widgets_common_attrs = {}
 
     def __init__(self, *args, **kwargs):
-        super(UpdateWidgetAttributeMixin, self).__init__(*args, **kwargs)
-        for field in self.fields.itervalues():
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
             updates = self.widgets_rules.get(field.__class__)
             # May Update widget class with rules-based replacement class
             if updates and updates[0]:

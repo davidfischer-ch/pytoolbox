@@ -1,16 +1,11 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own `Django Form Tools <https://github.com/django/django-formtools>`_
 powered views.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
 from pytoolbox.django import forms
 
-_all = module.All(globals())
+__all__ = ['CrispyFormsMixin', 'DataTableViewCompositionMixin', 'SerializeStepInstanceMixin']
 
 
 class CrispyFormsMixin(object):
@@ -18,7 +13,7 @@ class CrispyFormsMixin(object):
     def get_context_data(self, form, **kwargs):
         """Add the management form to the form for working with crispy forms."""
         from crispy_forms import layout
-        context = super(CrispyFormsMixin, self).get_context_data(form=form, **kwargs)
+        context = super().get_context_data(form=form, **kwargs)
         context['wizard']['form'].helper.layout.append(
             layout.HTML(context['wizard']['management_form']))
         context['form'] = context['wizard']['form']
@@ -36,11 +31,11 @@ class DataTableViewCompositionMixin(object):
             view = self.get_table_view()
             if view:
                 return view.get_ajax(request, *args, **kwargs)
-        return super(DataTableViewCompositionMixin, self).get(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """Update the context with the context returned by the table view."""
-        context = super(DataTableViewCompositionMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         view = self.get_table_view()
         if view:
             context.update(view.get_context_data())
@@ -78,16 +73,13 @@ class SerializeStepInstanceMixin(object):
     def get_form(self, step=None, *args, **kwargs):
         if step is None:
             step = self.steps.current
-        if step in self.serialized_instances.iterkeys():
+        if step in self.serialized_instances.keys():
             self.form_list[step] = self.serialized_instance_form_class
-        return super(SerializeStepInstanceMixin, self).get_form(step, *args, **kwargs)
+        return super().get_form(step, *args, **kwargs)
 
     def get_form_kwargs(self, step):
-        form_kwargs = super(SerializeStepInstanceMixin, self).get_form_kwargs(step)
+        form_kwargs = super().get_form_kwargs(step)
         serialized_instance = self.serialized_instances.get(step, None)
         if serialized_instance:
             form_kwargs.update(serialized_instance)
         return form_kwargs
-
-
-__all__ = _all.diff(globals())

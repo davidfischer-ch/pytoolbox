@@ -1,13 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import os
 
 from pytoolbox import comparison, filesystem, module, validation
 from pytoolbox.subprocess import to_args_list
 from pytoolbox.types import get_slots
-
 from . import utils
 
 _all = module.All(globals())
@@ -24,8 +19,8 @@ class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     def _set_attribute(self, name, info):
         """Set attribute `name` value from the `info` or ``self.defaults`` dictionary."""
-        setattr(self, name, info.get(
-            self.attr_name_template.format(name=name), self.defaults.get(name)))
+        value = info.get(self.attr_name_template.format(name=name), self.defaults.get(name))
+        setattr(self, name, value)
 
 
 class Codec(BaseInfo):
@@ -33,20 +28,55 @@ class Codec(BaseInfo):
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
     attr_name_template = 'codec_{name}'
-    clean_time_base = lambda s, v: utils.to_frame_rate(v)
+
+    @staticmethod
+    def clean_time_base(value):
+        return utils.to_frame_rate(value)
 
 
 class Format(BaseInfo):
 
     __slots__ = (
-        'bit_rate', 'duration', 'filename', 'format_name', 'format_long_name', 'nb_programs',
-        'nb_streams', 'probe_score', 'size', 'start_time', 'tags'
+        'bit_rate',
+        'duration',
+        'filename',
+        'format_name',
+        'format_long_name',
+        'nb_programs',
+        'nb_streams',
+        'probe_score',
+        'size',
+        'start_time',
+        'tags'
     )
 
-    clean_bit_rate = clean_nb_programs = clean_nb_streams = clean_probe_score = clean_size = \
-        lambda s, v: None if v is None else int(v)
+    @staticmethod
+    def clean_bit_rate(value):
+        return None if value is None else int(value)
 
-    clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
+    @staticmethod
+    def clean_duration(value):
+        return None if value is None else float(value)
+
+    @staticmethod
+    def clean_nb_programs(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_nb_streams(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_probe_score(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_size(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_start_time(value):
+        return None if value is None else float(value)
 
 
 class Stream(BaseInfo):
@@ -55,60 +85,156 @@ class Stream(BaseInfo):
 
     codec_class = Codec
 
-    def __init__(self, info):
+    def __init__(self, info):  # pylint:disable=super-init-not-called
         for attr in get_slots(self):
             if attr == 'codec':
                 self.codec = self.codec_class(info)
             else:
                 self._set_attribute(attr, info)
 
-    clean_avg_frame_rate = clean_r_frame_rate = clean_time_base = \
-        lambda s, v: None if v is None else utils.to_frame_rate(v)
+    @staticmethod
+    def clean_avg_frame_rate(value):
+        return None if value is None else utils.to_frame_rate(value)
 
-    clean_index = lambda s, v: None if v is None else int(v)
+    @staticmethod
+    def clean_index(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_r_frame_rate(value):
+        return None if value is None else utils.to_frame_rate(value)
 
 
 class AudioStream(Stream):
 
     __slots__ = (
-        'bit_rate', 'bits_per_sample', 'channel_layout', 'channels', 'duration', 'duration_ts',
-        'nb_frames', 'sample_fmt', 'sample_rate', 'start_pts', 'start_time', 'tags'
+        'bit_rate',
+        'bits_per_sample',
+        'channel_layout',
+        'channels',
+        'duration',
+        'duration_ts',
+        'nb_frames',
+        'sample_fmt',
+        'sample_rate',
+        'start_pts',
+        'start_time',
+        'tags'
     )
 
-    clean_bit_rate = clean_bits_per_sample = clean_channels = clean_duration_ts = \
-        clean_nb_frames = clean_sample_rate = clean_start_pts = \
-        lambda s, v: None if v is None else int(v)
+    @staticmethod
+    def clean_bit_rate(value):
+        return None if value is None else int(value)
 
-    clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
+    @staticmethod
+    def clean_bits_per_sample(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_channels(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_duration(value):
+        return None if value is None else float(value)
+
+    @staticmethod
+    def clean_duration_ts(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_nb_frames(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_sample_rate(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_start_pts(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_start_time(value):
+        return None if value is None else float(value)
 
 
 class SubtitleStream(Stream):
 
     __slots__ = ('duration', 'duration_ts', 'start_pts', 'start_time', 'tags')
 
-    clean_duration_ts = clean_start_pts = lambda s, v: None if v is None else int(v)
-    clean_duration = clean_start_time = lambda s, v: None if v is None else float(v)
+    @staticmethod
+    def clean_duration(value):
+        return None if value is None else float(value)
+
+    @staticmethod
+    def clean_duration_ts(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_start_pts(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_start_time(value):
+        return None if value is None else float(value)
 
 
 class VideoStream(Stream):
 
     __slots__ = (
-        'bit_rate', 'bit_per_raw_sample', 'display_aspect_ratio', 'duration', 'duration_ts',
-        'has_b_frames', 'height', 'level', 'nb_frames', 'pix_fmt', 'profile', 'sample_aspect_ratio',
-        'width', 'tags'
+        'bit_rate',
+        'bit_per_raw_sample',
+        'display_aspect_ratio',
+        'duration',
+        'duration_ts',
+        'has_b_frames',
+        'height',
+        'level',
+        'nb_frames',
+        'pix_fmt',
+        'profile',
+        'sample_aspect_ratio',
+        'width',
+        'tags'
     )
 
-    clean_bit_rate = clean_bit_per_raw_sample = clean_duration_ts = \
-        lambda s, v: None if v is None else int(v)
+    @staticmethod
+    def clean_bit_rate(value):
+        return None if value is None else int(value)
 
-    clean_duration = lambda s, v: None if v is None else float(v)
+    @staticmethod
+    def clean_bit_per_raw_sample(value):
+        return None if value is None else int(value)
 
-    clean_height = clean_level = clean_nb_frames = clean_width = \
-        lambda s, v: None if v is None else int(v)
+    @staticmethod
+    def clean_duration(value):
+        return None if value is None else float(value)
+
+    @staticmethod
+    def clean_duration_ts(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_height(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_level(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_nb_frames(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_width(value):
+        return None if value is None else int(value)
 
     @property
     def rotation(self):
-        return int(0 if self.tags is None else self.tags.get('rotate', 0))
+        tags = self.tags  # pylint:disable=no-member
+        return int(0 if tags is None else tags.get('rotate', 0))
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
@@ -138,7 +264,8 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     def size(self, value):
         self._size = value
 
-    def clean_options(self, value):
+    @staticmethod
+    def clean_options(value):
         return to_args_list(value)
 
     def create_directory(self):

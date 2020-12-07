@@ -1,19 +1,14 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import functools, os, warnings
 
-from . import module
-from .console import confirm
-from .subprocess import cmd
+from . import console, module, subprocess as py_subprocess
 
 _all = module.All(globals())
 
 
-class cached_property(object):
+class cached_property(object):  # pylint:disable=invalid-name
     """
-    Decorator that converts a method with a single self argument into a property cached on the instance.
+    Decorator that converts a method with a single self argument into a property
+    cached on the instance.
 
     Optional ``name`` argument allows you to make cached properties of other methods.
     For example ``url=cached_property(get_absolute_url, name='url')``.
@@ -34,22 +29,27 @@ class cached_property(object):
 
 def deprecated(func):
     """
-    Decorator that can be used to mark functions as deprecated. It will result in a warning being emitted when the
-    function is used. Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
+    Decorator that can be used to mark functions as deprecated.
+    It will result in a warning being emitted when the function is used.
+
+    Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
     """
     @functools.wraps(func)
     def _deprecated(*args, **kwargs):
-        warnings.warn_explicit('Call to deprecated function {0.__name__}.'.format(func), category=DeprecationWarning,
-                               filename=func.func_code.co_filename, lineno=func.func_code.co_firstlineno + 1)
+        warnings.warn_explicit(
+            f'Call to deprecated function {func.__name__}.',
+            category=DeprecationWarning,
+            filename=func.__code__.co_filename,
+            lineno=func.__code__.co_firstlineno + 1)
         return func(*args, **kwargs)
     return _deprecated
 
 
-class hybridmethod(object):
+class hybridmethod(object):  # pylint:disable=invalid-name
     """
     Decorator that allows a method to be both used as a class method and an instance method.
 
-    Credits: http://stackoverflow.com/questions/18078744/python-hybrid-between-regular-method-and-classmethod#18078819
+    Credits: http://stackoverflow.com/questions/18078744/#18078819
 
     **Example usage**
 
@@ -78,8 +78,8 @@ class hybridmethod(object):
             return self.func(context, *args, **kwargs)
 
         # optional, mimic methods some more
-        hybrid.__func__ = hybrid.im_func = self.func
-        hybrid.__self__ = hybrid.im_self = context
+        hybrid.__func__ = self.func
+        hybrid.__self__ = context
         return hybrid
 
 
@@ -87,8 +87,8 @@ def confirm_it(message, default=False, abort_message='Operation aborted by the u
     """Ask for confirmation before calling the decorated function."""
     def _confirm_it(f):
         @functools.wraps(f)
-        def wrapper(*args, **kwargs):
-            if confirm(message, default=default):
+        def wrapper(*args, **kwargs):  # pylint:disable=inconsistent-return-statements
+            if console.confirm(message, default=default):
                 return f(*args, **kwargs)
             print(abort_message)
         return wrapper
@@ -97,23 +97,23 @@ def confirm_it(message, default=False, abort_message='Operation aborted by the u
 
 def disable_iptables(f):
     """
-    Stop the iptables service if necessary, execute the decorated function and then reactivate iptables if it was
-    previously stopped.
+    Stop the iptables service if necessary, execute the decorated function and then reactivate
+    iptables if it was previously stopped.
     """
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         try:
             try:
-                cmd('sudo service iptables stop', shell=True)
+                py_subprocess.cmd('sudo service iptables stop', shell=True)
                 print('Disable iptables')
                 has_iptables = True
-            except:
+            except Exception:  # pylint:disable=broad-except
                 has_iptables = False
             return f(*args, **kwargs)
         finally:
             if has_iptables:
                 print('Enable iptables')
-                cmd('sudo service iptables start', shell=True)
+                py_subprocess.cmd('sudo service iptables start', shell=True)
     return wrapper
 
 
@@ -132,10 +132,11 @@ def root_required(error_message='This script must be run as root.'):
 def run_once(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
-        if not wrapper.executed:
-            result = f(*args, **kwargs)
-            wrapper.executed = True
-            return result
+        if wrapper.executed:
+            return None
+        result = f(*args, **kwargs)
+        wrapper.executed = True
+        return result
     wrapper.executed = False
     return wrapper
 

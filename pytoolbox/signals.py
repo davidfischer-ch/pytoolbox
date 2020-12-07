@@ -1,12 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import collections, inspect, signal
 
-from . import exceptions, module
+from . import exceptions
 
-_all = module.All(globals())
+__all__ = ['handlers_by_signal', 'propagate_handler', 'register_handler', 'register_callback']
 
 handlers_by_signal = collections.defaultdict(list)
 
@@ -16,7 +12,7 @@ def propagate_handler(signum, frame):
     for handler in reversed(handlers_by_signal[signum]):
         try:
             handler(signum, frame)
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             errors[handler] = e
     if errors:
         raise RuntimeError(errors)
@@ -25,7 +21,7 @@ def propagate_handler(signum, frame):
 def register_handler(signum, handler, append=True, reset=False):
     old_handler = signal.getsignal(signum)
     signal.signal(signum, propagate_handler)
-    if inspect.isfunction(old_handler) and old_handler != propagate_handler:
+    if inspect.isfunction(old_handler) and old_handler is not propagate_handler:
         handlers_by_signal[signum].append(old_handler)
     handlers = handlers_by_signal[signum]
     if not append and handlers:
@@ -41,7 +37,7 @@ def register_handler(signum, handler, append=True, reset=False):
 
 def register_callback(signum, callback, append=True, reset=False, args=None, kwargs=None):
     return register_handler(
-        signum, lambda s, f: callback(*(args or []), **(kwargs or {})), append, reset)
-
-
-__all__ = _all.diff(globals())
+        signum,
+        lambda s, f: callback(*(args or []), **(kwargs or {})),
+        append,
+        reset)

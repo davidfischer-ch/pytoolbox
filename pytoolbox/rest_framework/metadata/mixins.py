@@ -1,17 +1,11 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
 powered API `metadata <https://github.com/tomchristie/django-rest-framework/blob/master/rest_framework/metadata.py>`_.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from rest_framework import serializers
 
-from pytoolbox import module
-
-_all = module.All(globals())
+__all__ = ['ExcludeRelatedChoicesMixin']
 
 
 class ExcludeRelatedChoicesMixin(object):
@@ -31,10 +25,7 @@ class ExcludeRelatedChoicesMixin(object):
 
             try:
                 field.__class__ = HaveNoChoicesProxy
-                return super(ExcludeRelatedChoicesMixin, self).get_field_info(field)
+                return super().get_field_info(field)
             finally:
                 field.__class__ = field_class
-        return super(ExcludeRelatedChoicesMixin, self).get_field_info(field)
-
-
-__all__ = _all.diff(globals())
+        return super().get_field_info(field)

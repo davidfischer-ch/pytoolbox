@@ -1,16 +1,10 @@
-# -*- encoding: utf-8 -*-
-
 """
 Module related to managing projects with Atlassian's products.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from jira import JIRA
 
-from . import module
-
-_all = module.All(globals())
+__all__ = ['JiraProject']
 
 
 class JiraProject(object):
@@ -35,11 +29,11 @@ class JiraProject(object):
             count = len(issues)
             issues.update({
                 i.id: i for i in self.jira.search_issues(
-                    'project={0.project} AND issuetype="{0.feature_type}"'.format(self),
+                    f'project={self.project} AND issuetype="{self.feature_type}"',
                     startAt=count
                 )
             })
-        return issues.itervalues()
+        return issues.values()
 
     @property
     def jira(self):
@@ -61,6 +55,3 @@ class JiraProject(object):
         field_id = self.get_field(name)['id']
         field_value = getattr(issue.fields, field_id) or default
         return getattr(field_value, 'value', field_value)
-
-
-__all__ = _all.diff(globals())

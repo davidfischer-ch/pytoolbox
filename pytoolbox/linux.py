@@ -1,13 +1,6 @@
-# -*- encoding: utf-8 -*-
+import configparser, os, re
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import ConfigParser, os, re
-from codecs import open  # pylint:disable=redefined-builtin
-
-from . import module
-
-_all = module.All(globals())
+__all__ = ['CONFIG_PREFIX', 'DRIVER_IN_KERNEL', 'DRIVER_HAS_MODULE', 'get_kernel_config']
 
 CONFIG_PREFIX = re.compile(r'^config_')
 DRIVER_IN_KERNEL = 'y'
@@ -20,31 +13,23 @@ def get_kernel_config(release=None, fail=True):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
     >>> config = get_kernel_config(fail=False)
-    >>> asserts.is_instance(config, dict)
-    >>> asserts.assert_in('memory', config) if config else None
+    >>> type(config)
+    <class 'dict'>
+    >>> not config or 'memory' in config
+    True
 
     Error handling:
 
     >>> get_kernel_config('0.0.1-generic', fail=False)
     {}
     """
-    # On Python<2.3.3 os.uname returns a tuple, so we stuck with it
     try:
-        with open('/boot/config-{0}'.format(release or os.uname()[2])) as f:
-            config = ConfigParser.ConfigParser()
-            config_string = '[kernel]' + f.read()
-            try:
-                config.read_string(config_string)
-            except AttributeError:
-                import StringIO
-                config.readfp(StringIO.StringIO(config_string))
+        with open(f'/boot/config-{release or os.uname().release}') as f:
+            config = configparser.ConfigParser()
+            config.read_string(f'[kernel]{f.read()}')
     except IOError:
         if fail:
             raise
         return {}
     return {CONFIG_PREFIX.sub('', k): v for k, v in config.items('kernel')}
-
-
-__all__ = _all.diff(globals())

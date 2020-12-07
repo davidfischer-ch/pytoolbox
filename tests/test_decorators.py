@@ -1,30 +1,21 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pytoolbox import decorators
 
-from . import base
+
+@decorators.run_once
+def increment(counter):
+    return counter + 1
 
 
-class TestDecorators(base.TestCase):
+@decorators.run_once
+def decrement(counter):
+    return counter - 1
 
-    tags = ('decorators', )
 
-    def test_run_once(self):
-
-        @decorators.run_once
-        def increment(counter):
-            return counter + 1
-
-        @decorators.run_once
-        def decrement(counter):
-            return counter - 1
-
-        self.equal(increment(0), 1)
-        self.is_none(increment(0))
-        self.equal(decrement(1), 0)
-        self.is_none(decrement(0))
-        increment.executed = False
-        self.equal(increment(5.5), 6.5)
-        self.is_none(increment(5.5))
+def test_run_once():
+    assert increment(0) == 1
+    assert increment(0) is None
+    assert decrement(1) == 0
+    assert decrement(0) is None
+    increment.executed = False
+    assert increment(5.5) == 6.5
+    assert increment(5.5) is None

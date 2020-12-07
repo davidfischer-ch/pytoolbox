@@ -1,14 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from selenium import webdriver
-
-from pytoolbox import module
 
 from . import common, select, webelements
 
-_all = module.All(globals())
+__all__ = ['Firefox']
 
 
 class Firefox(common.FindMixin, webdriver.Firefox):
@@ -19,7 +13,7 @@ class Firefox(common.FindMixin, webdriver.Firefox):
     }
 
     def _wrap_value(self, value):
-        if isinstance(value, tuple(self.web_element_classes.itervalues())):
+        if isinstance(value, tuple(self.web_element_classes.values())):
             return {'ELEMENT': value.id, 'element-6066-11e4-a52e-4f735466cecf': value.id}
         return super()._wrap_value(value)
 
@@ -28,6 +22,3 @@ class Firefox(common.FindMixin, webdriver.Firefox):
         tag_name = getattr(element, 'tag_name', 'default')
         cls = self.web_element_classes.get(tag_name)
         return cls(element) if cls else element
-
-
-__all__ = _all.diff(globals())

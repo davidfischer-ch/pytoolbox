@@ -1,23 +1,13 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
-
-try:
-    from pytoolbox.enum import OrderedEnum
-
-    class ExposureMode(OrderedEnum):
-        AUTO = 0
-        MANUAL = 1
-        BRACKET = 2
-except ImportError:
-    ExposureMode = {0: 'auto', 1: 'manual', 2: 'bracket'}.get
-
+from pytoolbox.enum import OrderedEnum
 from . import tag
 
+__all__ = ['ExposureMode', 'Photo']
 
-_all = module.All(globals())
+
+class ExposureMode(OrderedEnum):
+    AUTO = 0
+    MANUAL = 1
+    BRACKET = 2
 
 
 class Photo(tag.TagSet):
@@ -53,6 +43,3 @@ class Photo(tag.TagSet):
     @property
     def white_balance(self):
         return self.metadata['Exif.Photo.WhiteBalance'].data
-
-
-__all__ = _all.diff(globals())

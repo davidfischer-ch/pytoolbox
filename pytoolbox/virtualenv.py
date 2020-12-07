@@ -1,14 +1,9 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import itertools, os
 
-from . import module
 from .filesystem import find_recursive
 from .subprocess import rsync
 
-_all = module.All(globals())
+__all__ = ['relocate']
 
 
 def relocate(source_directory, destination_directory, encoding='utf-8'):
@@ -39,6 +34,3 @@ def relocate(source_directory, destination_directory, encoding='utf-8'):
             f.seek(0)
             f.write(content)
             f.truncate()
-
-
-__all__ = _all.diff(globals())

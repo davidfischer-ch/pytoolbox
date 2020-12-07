@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
 from pytoolbox.django.core.constants import DEFFERED_REGEX
 
-_all = module.All(globals())
+__all__ = ['FieldsToValuesLookupDict']
 
 
 class FieldsToValuesLookupDict(object):
@@ -61,20 +56,16 @@ class FieldsToValuesLookupDict(object):
             keys = [key]
         else:
             cls, field_name = key
-            keys = ['{0.__name__}.{1}'.format(cls, field_name), field_name]
+            keys = [f'{cls.__name__}.{field_name}', field_name]
             meta = getattr(cls, '_meta', None) or getattr(cls, 'Meta', None)
             if meta and hasattr(meta, 'model'):
                 # cleanup model name when some fields are deferred (Media vs Media_Deffered_...)
-                keys.insert(1, '{0}.{1}'.format(
-                    DEFFERED_REGEX.sub('', meta.model.__name__), field_name))
+                keys.insert(1, f"{DEFFERED_REGEX.sub('', meta.model.__name__)}.{field_name}")
         for key in keys:
             value = self.translations.get(key)
             if value:
                 return value
-        raise KeyError('Entry for keys {1} not found in {0.name}.'.format(self, keys))
+        raise KeyError(f'Entry for keys {keys} not found in {self.name}.')
 
     def __setitem__(self, key, value):
         self.translations[key] = value
-
-
-__all__ = _all.diff(globals())

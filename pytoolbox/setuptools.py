@@ -1,20 +1,16 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import setuptools, sys
 
 
-class Disabled(setuptools.Command):
+class Disabled(setuptools.Command):  # pylint:disable=duplicate-code
 
     description = 'Do not run this.'
     user_options = [('dummy=', 'd', 'dummy option to make setuptools happy')]
 
     def initialize_options(self):
-        pass
+        """Initialize options."""
 
     def finalize_options(self):
-        pass
+        """Finalize options."""
 
-    def run(self):
+    def run(self):  # pylint:disable=no-self-use
         sys.exit('This command is disabled!')

@@ -2,14 +2,15 @@ pytoolbox.multimedia.exif package
 =================================
 
 .. automodule:: pytoolbox.multimedia.exif
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pytoolbox.multimedia.exif.brand
    pytoolbox.multimedia.exif.camera
@@ -19,4 +20,3 @@ Submodules
    pytoolbox.multimedia.exif.metadata
    pytoolbox.multimedia.exif.photo
    pytoolbox.multimedia.exif.tag
-

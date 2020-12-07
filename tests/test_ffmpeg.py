@@ -1,29 +1,18 @@
-# -*- encoding: utf-8 -*-
+import datetime, shutil, uuid
+from pathlib import Path
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import datetime, os, tempfile, unittest, uuid
-from codecs import open  # pylint:disable=redefined-builtin
-
-from pytoolbox.filesystem import remove
+import pytest
+from pytoolbox import filesystem
 from pytoolbox.multimedia import ffmpeg
-from pytoolbox.multimedia.ffmpeg import (
-    to_bit_rate, to_frame_rate, to_size, AudioStream, EncodeState, Format, Media, VideoStream,
-    HEIGHT
-)
-
-from . import base
 
 MPD_TEST = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
   <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
 """
-STATIC_FFMPEG_BINARY = os.path.join(tempfile.gettempdir(), 'ffmpeg')
-STATIC_FFPROBE_BINARY = os.path.join(tempfile.gettempdir(), 'ffprobe')
-WITH_FFMPEG = os.path.isfile(STATIC_FFMPEG_BINARY)
-WITH_FFPROBE = os.path.isfile(STATIC_FFPROBE_BINARY)
-MEDIA_INFOS = {
+
+# This is ffprobe's result on small.mp4 to reverse engineer tests in case we loose it!
+SMALL_MP4_MEDIA_INFOS = {
     'format': {
         'bit_rate': '551193',
         'duration': '5.568000',
@@ -131,392 +120,329 @@ MEDIA_INFOS = {
 }
 
 
-class StaticFFmpeg(ffmpeg.FFmpeg):
-
-    executable = STATIC_FFMPEG_BINARY
-
-
-class StaticFFprobe(ffmpeg.FFprobe):
-
-    executable = STATIC_FFPROBE_BINARY
-
-    def get_media_info(self, media, *args, **kwargs):
-        if isinstance(media, dict):
-            return media
-        media = self.to_media(media)
-        if os.path.basename(media.path) == 'small.mp4' and not WITH_FFMPEG:
-            return MEDIA_INFOS
-        return super(StaticFFprobe, self).get_media_info(media, *args, **kwargs)
-
-
-class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
-
-    ffprobe_class = StaticFFprobe
-
-
-class StaticEncodeStatisticsWithFrameBaseRatio(ffmpeg.FrameBasedRatioMixin, StaticEncodeStatistics):
-    pass
-
-
-class RaiseEncodeStatistics(ffmpeg.EncodeStatistics):
-
-    def end(self, returncode):
-        raise ValueError('This is the error.')
-
-
-class RaiseFFmpeg(StaticFFmpeg):
-
-    statistics_class = RaiseEncodeStatistics
-
-
-class TestUtils(base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
-
-    def test_to_bit_rate(self):
-        self.equal(to_bit_rate('231.5kbit/s'), 231500)
-        self.equal(to_bit_rate('3302.3kbits/s'), 3302300)
-        self.equal(to_bit_rate('1935.9kbits/s'), 1935900)
-        self.is_none(to_bit_rate('N/A'))
-
-    def test_to_frame_rate(self):
-        self.equal(to_frame_rate('10.5'), 10.5)
-        self.equal(to_frame_rate(25.0), 25.0)
-        self.equal(to_frame_rate('59000/1000'), 59.0)
-        self.is_none(to_frame_rate('10/0'))
-
-    def test_to_size(self):
-        self.equal(to_size('231.5kB'), 237056)
-        self.equal(to_size('3302.3MB'), 3462712524)
-        self.equal(to_size('1935.9KB'), 1982361)
-
-
-class TestMedia(base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
-
-    def test_pipe(self):
-        self.false(Media(None).is_pipe)
-        self.false(Media('test-file.mp4').is_pipe)
-        for path in '-', 'pipe:3':
-            media = Media(path)
-            self.is_none(media.directory)
-            self.true(media.is_pipe)
-            self.equal(media.size, 0)
-
-
-class _EncodeStatisticsMixin(object):
-
-    inputs = [Media('small.mp4')]
-    outputs = [Media('ff_output.mp4')]
-    statistics_class = StaticEncodeStatistics
-
-    def get_statistics(self, start=False, returncode=None, options=None, **kwargs):
-        if options is None:
-            options = ['-acodec', 'copy', '-vcodec', 'copy']
-        statistics = self.statistics_class(self.inputs, self.outputs, options, **kwargs)
-        start = start or returncode is not None
-        if start:
-            statistics.start('process')
-        if returncode is not None:
-            statistics.progress('')
-            statistics.end(returncode)
-        return statistics
-
-
-class TestEncodeStatistics(_EncodeStatisticsMixin, base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
-
-    def test_get_subclip_duration_and_size(self):
-        eq, subclip = self.tuple_equal, self.get_statistics()._get_subclip_duration_and_size
-        duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
-        sub_dur_1 = datetime.timedelta(seconds=3610.2)
-        sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
-        sub_dur_3 = datetime.timedelta(minutes=40, seconds=36.3)
-        sub_dur_4 = datetime.timedelta(0)
-        eq(subclip(duration, 512 * 1024, []), (duration, 512 * 1024))
-        eq(subclip(duration, 512 * 1024, ['-t']), (duration, 512 * 1024))
-        eq(subclip(duration, 512 * 1024, ['-t', '-t']), (duration, 512 * 1024))
-        eq(subclip(duration, 512 * 1024, ['-t', '3610.2']), (sub_dur_1, 348162))
-        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8']), (sub_dur_2, 464428))
-        eq(subclip(
-            duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '00:50:00.2']), (sub_dur_3, 234953))
-        eq(subclip(duration, 512 * 1024, ['-t', '01:20:15.8', '-ss', '01:30:36.5']), (sub_dur_4, 0))
-        eq(subclip(duration, 512 * 1024, ['-ss', '01:30:53']), (sub_dur_4, 0))
-        eq(subclip(duration, 512 * 1024, ['-t', '02:00:00.0']), (duration, 512 * 1024))
-
-    def test_parse_chunk(self):
-        p = self.get_statistics()._parse_chunk
-        self.is_none(p('Random stuff'))
-        self.dict_equal(
-            p('    frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 '
-              'bitrate=3302.3kbits/s  '), {
-                'frame': 2071, 'frame_rate': 0.0, 'qscale': -1.0, 'size': 34623 * 1024,
-                'time': datetime.timedelta(minutes=1, seconds=25.89), 'bit_rate': 3302300
-            })
-
-    def test_eta_time(self):
-        statistics = self.get_statistics()
-        statistics.elapsed_time = datetime.timedelta(seconds=60)
-        self.is_none(statistics.eta_time)
-        statistics.ratio = 0.0
-        self.is_none(statistics.eta_time)
-        statistics.ratio = 0.2
-        self.equal(statistics.eta_time, datetime.timedelta(seconds=240))
-        statistics.ratio = 0.5
-        self.equal(statistics.eta_time, datetime.timedelta(seconds=60))
-        statistics.ratio = 1.0
-        self.equal(statistics.eta_time, datetime.timedelta(0))
-
-    def test_compute_ratio(self):
-        statistics = self.get_statistics()
-        statistics.input.duration = datetime.timedelta(seconds=0)
-        statistics.output.duration = None
-        self.is_none(statistics._compute_ratio())
-        statistics.input.duration = datetime.timedelta(seconds=0)
-        statistics.output.duration = datetime.timedelta(0)
-        self.is_none(statistics._compute_ratio())
-        statistics.input.duration = datetime.timedelta(seconds=1)
-        self.equal(statistics._compute_ratio(), 0.0)
-        statistics.input.duration = datetime.timedelta(seconds=60)
-        statistics.output.duration = datetime.timedelta(seconds=30)
-        self.equal(statistics._compute_ratio(), 0.5)
-
-    def test_new_properties(self):
-        statistics = self.get_statistics()
-        self.equal(statistics.state, statistics.states.NEW)
-        self.is_instance(statistics.input.duration, datetime.timedelta)
-        self.is_none(statistics.eta_time)
-        self.equal(statistics.input, statistics.inputs[0])
-        self.equal(statistics.output, statistics.outputs[0])
-        self.is_none(statistics.ratio)
-        self.is_not_none(statistics.input._size)
-
-    @unittest.skipIf(not WITH_FFPROBE, 'Static FFprobe binary not available')
-    def test_started_properties(self):
-        statistics = self.get_statistics(start=True)
-        self.equal(statistics.state, statistics.states.STARTED)
-        self.equal(statistics.output.duration, datetime.timedelta(0))
-        self.is_none(statistics.eta_time)
-        self.equal(statistics.ratio, 0.0)
-
-    @unittest.skipIf(not WITH_FFPROBE, 'Static FFprobe binary not available')
-    def test_success_properties(self):
-        self.outputs[0].path = self.inputs[0].path
-        statistics = self.get_statistics(returncode=0)
-        self.equal(statistics.state, statistics.states.SUCCESS)
-        self.equal(statistics.output.duration, statistics.input.duration)
-        self.equal(statistics.eta_time, datetime.timedelta(0))
-        self.equal(statistics.ratio, 1.0)
-        self.is_none(statistics.output._size)
-
-
-class TestEncodeStatisticsWithFrameBasedRatioMixin(_EncodeStatisticsMixin, base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
-
-    statistics_class = StaticEncodeStatisticsWithFrameBaseRatio
-
-    def test_compute_ratio_frame_based(self):
-        statistics = self.get_statistics()
-        self.greater(statistics.input.frame, 0)
-        statistics.input.duration = datetime.timedelta(seconds=60)
-        statistics.output.duration = datetime.timedelta(seconds=30)
-        statistics.frame, statistics.input.frame = 0, 100
-        self.equal(statistics._compute_ratio(), 0.0)
-        statistics.frame, statistics.input.frame = 60, 100
-        self.equal(statistics._compute_ratio(), 0.6)
-
-
-class TestFFmpeg(base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
-
-    def setUp(self):
-        super(TestFFmpeg, self).setUp()
-        self.ffmpeg = StaticFFmpeg()
-
-    def test_clean_medias_argument(self):
-        clean = self.ffmpeg._clean_medias_argument
-        self.list_equal(clean(None), [])
-        self.list_equal(clean([]), [])
-        self.list_equal(clean('a.mp4'), [Media('a.mp4')])
-        self.list_equal(clean(['a.mp4', 'b.mp3']), [Media('a.mp4'), Media('b.mp3')])
-        self.list_equal(clean(Media('a', '-f mp4')), [Media('a', ['-f', 'mp4'])])
-        self.list_equal(
-            clean([Media('a', ['-f', 'mp4']), Media('b.mp3')]),
-            [Media('a', ['-f', 'mp4']), Media('b.mp3')])
-
-    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
-    def test_encode(self):
-        results = list(self.ffmpeg.encode(
-            Media('small.mp4'), Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.true(remove('ff_output.mp4'))
-        self.equal(results[-1].state, EncodeState.SUCCESS)
-
-        results = list(self.ffmpeg.encode(
-            Media('small.mp4'), Media('ff_output.mp4', 'crazy_option')))
-        self.false(remove('ff_output.mp4'))
-        self.equal(results[-1].state, EncodeState.FAILURE)
-
-        results = list(self.ffmpeg.encode(
-            [Media('missing.mp4')], Media('ff_output.mp4', '-c:a copy -c:v copy')))
-        self.false(remove('ff_output.mp4'))
-        self.equal(results[-1].state, EncodeState.FAILURE)
-
-    def test_get_arguments(self):
-        get = self.ffmpeg._get_arguments
-        self.ffmpeg.executable = 'ffmpeg'
-
-        # Using options (the legacy API, also simplify simple calls)
-        options_string = (
-            '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
-        )
-
-        args, inputs, outputs, options = get('input.mp4', 'output.mkv', options_string)
-        self.list_equal(inputs, [Media('input.mp4')])
-        self.list_equal(outputs, [Media('output.mkv')])
-        self.list_equal(options, [
-            '-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
-        ])
-        self.list_equal(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
-
-        args, _, outputs, options = get('input.mp4', None, options_string)
-        self.list_equal(outputs, [])
-        self.list_equal(args, ['ffmpeg', '-y', '-i', 'input.mp4'] + options)
-
-        # Using instances of Media (the newest API, greater flexibility)
-        args, inputs, outputs, options = get(
-            Media('in', '-f mp4'), Media('out.mkv', '-acodec copy -vcodec copy'))
-        self.list_equal(inputs, [Media('in', ['-f', 'mp4'])])
-        self.list_equal(outputs, [Media('out.mkv', ['-acodec', 'copy', '-vcodec', 'copy'])])
-        self.list_equal(options, [])
-        self.list_equal(args, [
-            'ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'
-        ])
-
-    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
-    def test_get_process(self):
-        options = [
-            '-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
-        ]
-        process = self.ffmpeg._get_process(
-            [STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
-        self.list_equal(
-            process.args,
-            [STATIC_FFMPEG_BINARY, '-y', '-i', 'input.mp4'] + options + ['output.mkv'])
-        process.terminate()
-
-    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
-    def test_kill_process_handle_missing(self):
-        encoder = RaiseFFmpeg()
-        with self.raises(ValueError):
-            list(encoder.encode('small.mp4', 'ff_output.mp4', '-c:a copy -c:v copy'))
-        self.true(remove('ff_output.mp4'))
-
-
-class TestFFprobe(base.TestCase):
-
-    tags = ('multimedia', 'ffmpeg')
-
-    def setUp(self):
-        super(TestFFprobe, self).setUp()
-        self.ffprobe = StaticFFprobe()
-
-    def test_get_audio_streams(self):
-        self.ffprobe.stream_classes['audio'] = None
-        streams = self.ffprobe.get_audio_streams('small.mp4')
-        self.is_instance(streams[0], dict)
-        self.equal(streams[0]['avg_frame_rate'], '0/0')
-        self.equal(streams[0]['channels'], 1)
-        self.equal(streams[0]['codec_time_base'], '1/48000')
-
-        self.ffprobe.stream_classes['audio'] = AudioStream
-        streams = self.ffprobe.get_audio_streams('small.mp4')
-        self.is_instance(streams[0], AudioStream)
-        self.is_none(streams[0].avg_frame_rate)
-        self.equal(streams[0].channels, 1)
-        self.equal(streams[0].codec.time_base, 1 / 48000)
-
-    @unittest.skipIf(not WITH_FFMPEG, 'Static FFmpeg binary not available')
-    def test_get_media_duration(self):
-        # Bad file format
-        with open('/tmp/test.txt', 'w', encoding='utf-8') as f:
-            f.write('Hey, I am not a MPD nor a média')
-        self.is_none(self.ffprobe.get_media_duration('/tmp/test.txt'))
-        os.remove('/tmp/test.txt')
-
-        # Some random bad things
-        self.is_none(self.ffprobe.get_media_duration({}))
-
-        # A MPEG-DASH MPD
-        with open('/tmp/test.mpd', 'w', encoding='utf-8') as f:
-            f.write(MPD_TEST)
-        self.equal(self.ffprobe.get_media_duration(
-            '/tmp/test.mpd').strftime('%H:%M:%S.%f'), '00:06:07.830000')
-        self.equal(self.ffprobe.get_media_duration(
-            '/tmp/test.mpd', as_delta=True), datetime.timedelta(0, 367, 830000))
-        os.remove('/tmp/test.mpd')
-
-        # A MP4
-        self.equal(self.ffprobe.get_media_duration('small.mp4').strftime('%H:%M:%S'), '00:00:05')
-        self.equal(self.ffprobe.get_media_duration(
-            self.ffprobe.get_media_info('small.mp4')).strftime('%H:%M:%S'), '00:00:05')
-        self.equal(self.ffprobe.get_media_duration(
-            self.ffprobe.get_media_info('small.mp4'), as_delta=True).seconds, 5)
-
-    def test_get_media_format(self):
-        self.ffprobe.format_class = None
-        media_format = self.ffprobe.get_media_format('small.mp4', fail=True)
-        self.is_instance(media_format, dict)
-        self.equal(media_format['bit_rate'], '551193')
-        self.equal(media_format['format_long_name'], 'QuickTime / MOV')
-        self.equal(media_format['probe_score'], 100)
-
-        self.ffprobe.format_class = Format
-        media_format = self.ffprobe.get_media_format('small.mp4', fail=True)
-        self.is_instance(media_format, Format)
-        self.equal(media_format.bit_rate, 551193)
-        self.equal(media_format.format_long_name, 'QuickTime / MOV')
-        self.equal(media_format.probe_score, 100)
-
-    def test_get_media_info_errors_handling(self):
-        self.ffprobe.executable = str(uuid.uuid4())
-        with self.assertRaises(OSError):
-            self.ffprobe.get_media_info('another.mp4', fail=False)
-
-    def test_get_video_streams(self):
-        self.ffprobe.stream_classes['video'] = None
-        streams = self.ffprobe.get_video_streams('small.mp4')
-        self.is_instance(streams[0], dict)
-        self.equal(streams[0]['avg_frame_rate'], '30/1')
-
-        self.ffprobe.stream_classes['video'] = VideoStream
-        streams = self.ffprobe.get_video_streams('small.mp4')
-        self.is_instance(streams[0], VideoStream)
-        self.equal(streams[0].avg_frame_rate, 30.0)
-
-    def test_get_video_frame_rate(self):
-        self.is_none(self.ffprobe.get_video_frame_rate(3.14159265358979323846))
-        self.is_none(self.ffprobe.get_video_frame_rate({}))
-        self.equal(self.ffprobe.get_video_frame_rate(
-            self.ffprobe.get_media_info('small.mp4')), 30.0)
-        self.equal(self.ffprobe.get_video_frame_rate('small.mp4'), 30.0)
-        self.equal(self.ffprobe.get_video_frame_rate({'streams': [
-            {'codec_type': 'audio'},
-            {'codec_type': 'video', 'avg_frame_rate': '59000/1000'}
-        ]}), 59.0)
-
-    def test_get_video_resolution(self):
-        self.is_none(self.ffprobe.get_video_resolution(3.14159265358979323846))
-        self.is_none(self.ffprobe.get_video_resolution({}))
-        self.list_equal(self.ffprobe.get_video_resolution(
-            self.ffprobe.get_media_info('small.mp4')), [560, 320])
-        self.list_equal(self.ffprobe.get_video_resolution('small.mp4'), [560, 320])
-        self.is_none(self.ffprobe.get_video_resolution('small.mp4', index=1))
-        self.equal(self.ffprobe.get_video_resolution('small.mp4')[HEIGHT], 320)
-        self.list_equal(self.ffprobe.get_video_resolution({'streams': [
-            {'codec_type': 'audio'},
-            {'codec_type': 'video', 'width': '1920', 'height': '1080'}
-        ]}), [1920, 1080])
+def test_to_bit_rate():
+    assert ffmpeg.to_bit_rate('231.5kbit/s') == 231500
+    assert ffmpeg.to_bit_rate('3302.3kbits/s') == 3302300
+    assert ffmpeg.to_bit_rate('1935.9kbits/s') == 1935900
+    assert ffmpeg.to_bit_rate('N/A') is None
+
+
+def test_to_frame_rate():
+    assert ffmpeg.to_frame_rate('10.5') == 10.5
+    assert ffmpeg.to_frame_rate(25.0) == 25.0
+    assert ffmpeg.to_frame_rate('59000/1000') == 59.0
+    assert ffmpeg.to_frame_rate('10/0') is None
+
+
+def test_to_size():
+    assert ffmpeg.to_size('231.5kB') == 237056
+    assert ffmpeg.to_size('3302.3MB') == 3462712524
+    assert ffmpeg.to_size('1935.9KB') == 1982361
+
+
+def test_media_pipe():
+    assert ffmpeg.Media(None).is_pipe is False
+    assert ffmpeg.Media('test-file.mp4').is_pipe is False
+    assert ffmpeg.Media(Path('other-file.mp4')).is_pipe is False
+    for path in '-', 'pipe:3':
+        media = ffmpeg.Media(path)
+        assert media.directory is None
+        assert media.is_pipe is True
+        assert media.size == 0
+
+
+def test_statistics_compute_ratio(statistics):
+    statistics.input.duration = datetime.timedelta(seconds=0)
+    statistics.output.duration = None
+    assert statistics._compute_ratio() is None  # pylint:disable=protected-access
+    statistics.input.duration = datetime.timedelta(seconds=0)
+    statistics.output.duration = datetime.timedelta(0)
+    assert statistics._compute_ratio() is None  # pylint:disable=protected-access
+    statistics.input.duration = datetime.timedelta(seconds=1)
+    assert statistics._compute_ratio() == 0.0  # pylint:disable=protected-access
+    statistics.input.duration = datetime.timedelta(seconds=60)
+    statistics.output.duration = datetime.timedelta(seconds=30)
+    assert statistics._compute_ratio() == 0.5  # pylint:disable=protected-access
+
+
+def test_statistics_compute_ratio_frame_based(frame_based_statistics):
+    assert frame_based_statistics.input.frame > 0
+    frame_based_statistics.input.duration = datetime.timedelta(seconds=60)
+    frame_based_statistics.output.duration = datetime.timedelta(seconds=30)
+    frame_based_statistics.frame, frame_based_statistics.input.frame = 0, 100
+    assert frame_based_statistics._compute_ratio() == 0.0  # pylint:disable=protected-access
+    frame_based_statistics.frame = 60
+    frame_based_statistics.input.frame = 100
+    assert frame_based_statistics._compute_ratio() == 0.6  # pylint:disable=protected-access
+
+
+def test_statistics_eta_time(statistics):
+    statistics.elapsed_time = datetime.timedelta(seconds=60)
+    assert statistics.eta_time is None
+    statistics.ratio = 0.0
+    assert statistics.eta_time is None
+    statistics.ratio = 0.2
+    assert statistics.eta_time == datetime.timedelta(seconds=240)
+    statistics.ratio = 0.5
+    assert statistics.eta_time == datetime.timedelta(seconds=60)
+    statistics.ratio = 1.0
+    assert statistics.eta_time == datetime.timedelta(0)
+
+
+def test_statistics_parse_chunk(statistics):
+    assert statistics._parse_chunk('Random stuff') is None  # pylint:disable=protected-access
+    assert statistics._parse_chunk(                         # pylint:disable=protected-access
+        '   frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s  '), {
+            'frame': 2071,
+            'frame_rate': 0.0,
+            'qscale': -1.0,
+            'size': 34623 * 1024,
+            'time': datetime.timedelta(minutes=1, seconds=25.89),
+            'bit_rate': 3302300
+    }
+
+
+def test_statistics_subclip_duration_and_size(statistics):
+    subclip = statistics._get_subclip_duration_and_size  # pylint:disable=protected-access
+    size = 512 * 1024
+    duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
+    sub_dur_1 = datetime.timedelta(seconds=3610.2)
+    sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
+    sub_dur_3 = datetime.timedelta(minutes=40, seconds=36.3)
+    sub_dur_4 = datetime.timedelta(0)
+    assert subclip(duration, size, []) == (duration, size)
+    assert subclip(duration, size, ['-t']) == (duration, size)
+    assert subclip(duration, size, ['-t', '-t']) == (duration, size)
+    assert subclip(duration, size, ['-t', '3610.2']) == (sub_dur_1, 348162)
+    assert subclip(duration, size, ['-t', '01:20:15.8']) == (sub_dur_2, 464428)
+    assert subclip(duration, size, ['-t', '01:20:15.8', '-ss', '00:50:00.2']) == (sub_dur_3, 234953)
+    assert subclip(duration, size, ['-t', '01:20:15.8', '-ss', '01:30:36.5']) == (sub_dur_4, 0)
+    assert subclip(duration, size, ['-ss', '01:30:53']) == (sub_dur_4, 0)
+    assert subclip(duration, size, ['-t', '02:00:00.0']) == (duration, size)
+
+
+def test_statistics_new_properties(statistics):
+    assert statistics.state == statistics.states.NEW
+    assert isinstance(statistics.input.duration, datetime.timedelta)
+    assert statistics.eta_time is None
+    assert statistics.input == statistics.inputs[0]
+    assert statistics.output == statistics.outputs[0]
+    assert statistics.ratio is None
+    assert statistics.input._size is not None  # pylint:disable=protected-access
+
+
+def test_statistics_started_properties(statistics):
+    statistics.start('process')
+    assert statistics.state == statistics.states.STARTED
+    assert statistics.output.duration == datetime.timedelta(0)
+    assert statistics.eta_time is None
+    assert statistics.ratio == 0.0
+
+
+def test_statistics_success_properties(statistics):
+    statistics.start('process')
+    statistics.progress('')
+    shutil.copy(statistics.input.path, statistics.output.path)  # Generate output
+    statistics.end(0)
+    assert statistics.state == statistics.states.SUCCESS
+    assert statistics.output.duration == statistics.input.duration
+    assert statistics.eta_time == datetime.timedelta(0)
+    assert statistics.ratio == 1.0
+    assert statistics.output._size is None  # pylint:disable=protected-access
+
+
+def test_ffmpeg_clean_medias_argument():
+    clean = ffmpeg.FFmpeg()._clean_medias_argument  # pylint:disable=protected-access
+    assert clean(None) == []
+    assert clean([]) == []
+    assert clean('a.mp4') == [ffmpeg.Media('a.mp4')]
+    assert clean(['a.mp4', 'b.mp3']) == [ffmpeg.Media('a.mp4'), ffmpeg.Media('b.mp3')]
+    assert clean(ffmpeg.Media('a', '-f mp4')) == [ffmpeg.Media('a', ['-f', 'mp4'])]
+    assert clean([ffmpeg.Media('a', ['-f', 'mp4']), ffmpeg.Media('b.mp3')]) == [
+        ffmpeg.Media('a', ['-f', 'mp4']),
+        ffmpeg.Media('b.mp3')
+    ]
+
+
+def test_ffmpeg_encode(static_ffmpeg, small_mp4, tmp_path):
+    encoder = static_ffmpeg()
+
+    results = list(encoder.encode(
+        ffmpeg.Media(small_mp4),
+        ffmpeg.Media(tmp_path / 'output.mp4', '-c:a copy -c:v copy')))
+    assert filesystem.remove(tmp_path / 'output.mp4') is True
+    assert results[-1].state == ffmpeg.EncodeState.SUCCESS
+
+    results = list(encoder.encode(
+        ffmpeg.Media(small_mp4),
+        ffmpeg.Media(tmp_path / 'output.mp4', 'crazy_option')))
+    assert filesystem.remove(tmp_path / 'output.mp4') is False
+    assert results[-1].state == ffmpeg.EncodeState.FAILURE
+
+    results = list(encoder.encode(
+        [ffmpeg.Media('missing.mp4')],
+        ffmpeg.Media(tmp_path / 'output.mp4', '-c:a copy -c:v copy')))
+    assert filesystem.remove(tmp_path / 'output.mp4') is False
+    assert results[-1].state == ffmpeg.EncodeState.FAILURE
+
+
+def test_ffmpeg_get_arguments():
+    get = ffmpeg.FFmpeg()._get_arguments  # pylint:disable=protected-access
+
+    # Using options (the legacy API, also simplify simple calls)
+    in_o_str = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
+
+    args, inputs, outputs, in_options, out_options = get('input.mp4', 'output.mkv', in_o_str)
+    assert inputs == [ffmpeg.Media('input.mp4')]
+    assert outputs == [ffmpeg.Media('output.mkv')]
+    assert in_options == [
+        '-strict', 'experimental',
+        '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
+    ]
+    assert args == ['ffmpeg', '-y', *in_options, '-i', 'input.mp4', *out_options, 'output.mkv']
+
+    args, _, outputs, in_options, out_options = get('input.mp4', None, in_o_str)
+    assert outputs == []
+    assert args == ['ffmpeg', '-y', *in_options, '-i', 'input.mp4']
+
+    # Using instances of Media (the newest API, greater flexibility)
+    args, inputs, outputs, in_options, out_options = get(
+        ffmpeg.Media('in', '-f mp4'),
+        ffmpeg.Media('out.mkv', '-acodec copy -vcodec copy'))
+    assert inputs == [ffmpeg.Media('in', ['-f', 'mp4'])]
+    assert outputs == [ffmpeg.Media('out.mkv', ['-acodec', 'copy', '-vcodec', 'copy'])]
+    assert in_options == []
+    assert out_options == []
+    assert args == [
+        'ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'
+    ]
+
+
+def test_ffmpeg_get_process(static_ffmpeg):
+    get = ffmpeg.FFmpeg()._get_process  # pylint:disable=protected-access
+    executable = static_ffmpeg.executable
+    options = [
+        '-strict', 'experimental', '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
+    ]
+    process = get([executable, '-y', '-i', 'in.mp4', *options, 'out.mkv'])
+    process.terminate()
+    assert process.args == [str(executable), '-y', '-i', 'in.mp4', *options, 'out.mkv']
+
+
+def test_ffmpeg_kill_process_handle_missing(static_ffmpeg, small_mp4, tmp_path):
+
+    class SomeError(Exception):
+        pass
+
+    class RaiseEncodeStatistics(static_ffmpeg.statistics_class):
+        @staticmethod
+        def end(returncode):
+            raise SomeError('This is the error.')
+
+    encoder = static_ffmpeg()
+    encoder.statistics_class = RaiseEncodeStatistics
+    with pytest.raises(SomeError):
+        list(encoder.encode(small_mp4, tmp_path / 'out.mp4', out_options='-c:a copy -c:v copy'))
+    assert filesystem.remove(tmp_path / 'out.mp4') is True
+
+
+def test_ffprobe_get_audio_streams(static_ffmpeg, small_mp4):
+    probe = static_ffmpeg.ffprobe_class()
+
+    probe.stream_classes['audio'] = None
+    streams = probe.get_audio_streams(small_mp4)
+    assert isinstance(streams[0], dict)
+    assert streams[0]['avg_frame_rate'] == '0/0'
+    assert streams[0]['channels'] == 1
+    assert streams[0]['codec_time_base'] == '1/48000'
+
+    probe.stream_classes['audio'] = ffmpeg.AudioStream
+    streams = probe.get_audio_streams(small_mp4)
+    assert isinstance(streams[0], ffmpeg.AudioStream)
+    assert streams[0].avg_frame_rate is None
+    assert streams[0].channels == 1
+    assert streams[0].codec.time_base == 1 / 48000
+
+
+def test_ffprobe_get_media_duration(static_ffmpeg, small_mp4, tmp_path):
+    probe = static_ffmpeg.ffprobe_class()
+
+    # Some random bad things
+    assert probe.get_media_duration({}) is None
+
+    # Bad file format
+    txt_file = tmp_path / 'test.txt'
+    with open(txt_file, 'w', encoding='utf-8') as f:
+        f.write('Hey, I am not a MPD nor a média')
+    assert probe.get_media_duration(txt_file) is None
+
+    # A MPEG-DASH MPD
+    mpd_file = tmp_path / 'test.mpd'
+    with open(mpd_file, 'w', encoding='utf-8') as f:
+        f.write(MPD_TEST)
+    assert probe.get_media_duration(mpd_file).strftime('%H:%M:%S.%f') == '00:06:07.830000'
+    assert probe.get_media_duration(mpd_file, as_delta=True) == datetime.timedelta(0, 367, 830000)
+
+    # A MP4
+    assert probe.get_media_duration(small_mp4).strftime('%H:%M:%S') == '00:00:05'
+    assert probe.get_media_duration(probe.get_media_info(small_mp4)).strftime('%H:%M:%S') == \
+        '00:00:05'
+    assert probe.get_media_duration(probe.get_media_info(small_mp4), as_delta=True).seconds == 5
+
+
+def test_ffprobe_get_media_format(static_ffmpeg, small_mp4):
+    probe = static_ffmpeg.ffprobe_class()
+
+    probe.format_class = None
+    media_format = probe.get_media_format(small_mp4, fail=True)
+    assert isinstance(media_format, dict)
+    assert media_format['bit_rate'] == '551193'
+    assert media_format['format_long_name'] == 'QuickTime / MOV'
+    assert media_format['probe_score'] == 100
+
+    probe.format_class = ffmpeg.Format
+    media_format = probe.get_media_format(small_mp4, fail=True)
+    assert isinstance(media_format, ffmpeg.Format)
+    assert media_format.bit_rate == 551193
+    assert media_format.format_long_name == 'QuickTime / MOV'
+    assert media_format.probe_score == 100
+
+
+def test_ffprobe_get_media_info_errors_handling(static_ffmpeg):
+    probe = static_ffmpeg.ffprobe_class()
+
+    probe.executable = str(uuid.uuid4())
+    with pytest.raises(OSError):
+        probe.get_media_info('another.mp4', fail=False)
+
+
+def test_ffprobe_get_video_streams(static_ffmpeg, small_mp4):
+    probe = static_ffmpeg.ffprobe_class()
+
+    probe.stream_classes['video'] = None
+    streams = probe.get_video_streams(small_mp4)
+    assert isinstance(streams[0], dict)
+    assert streams[0]['avg_frame_rate'] == '30/1'
+
+    probe.stream_classes['video'] = ffmpeg.VideoStream
+    streams = probe.get_video_streams(small_mp4)
+    assert isinstance(streams[0], ffmpeg.VideoStream)
+    assert streams[0].avg_frame_rate == 30.0
+
+
+def test_ffprobe_get_video_frame_rate(static_ffmpeg, small_mp4):
+    probe = static_ffmpeg.ffprobe_class()
+    assert probe.get_video_frame_rate(3.14159265358979323846) is None
+    assert probe.get_video_frame_rate({}) is None
+    assert probe.get_video_frame_rate(probe.get_media_info(small_mp4)) == 30.0
+    assert probe.get_video_frame_rate(small_mp4) == 30.0
+
+
+def test_ffprobe_get_video_resolution(static_ffmpeg, small_mp4):
+    probe = static_ffmpeg.ffprobe_class()
+    assert probe.get_video_resolution(3.14159265358979323846) is None
+    assert probe.get_video_resolution({}) is None
+    assert probe.get_video_resolution(probe.get_media_info(small_mp4)) == [560, 320]
+    assert probe.get_video_resolution(small_mp4) == [560, 320]
+    assert probe.get_video_resolution(small_mp4, index=1) is None
+    assert probe.get_video_resolution(small_mp4)[ffmpeg.HEIGHT] == 320

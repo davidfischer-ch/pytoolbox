@@ -1,17 +1,9 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import abc, re
 
-from pytoolbox import module
-
-_all = module.All(globals())
+__all__ = ['Equipement']
 
 
-class Equipement(object):
-
-    __metaclass__ = abc.ABCMeta
+class Equipement(object, metaclass=abc.ABCMeta):
 
     def __init__(self, metadata):
         self.metadata = metadata
@@ -29,7 +21,7 @@ class Equipement(object):
         return hash(repr(self))
 
     def __repr__(self):
-        return '<{0.__class__.__name__} {0.brand} {0.model}>'.format(self)
+        return f'<{self.__class__.__name__} {self.brand} {self.model}>'
 
     @abc.abstractproperty
     def brand(self):
@@ -38,7 +30,7 @@ class Equipement(object):
     @property
     def model(self):
         if self.brand and self._model:
-            return re.sub('{0.brand}\s+'.format(self), '', self._model, 1, re.IGNORECASE)
+            return re.sub(fr'{self.brand}\s+', '', self._model, 1, re.IGNORECASE)
         return self._model
 
     @abc.abstractproperty
@@ -51,6 +43,3 @@ class Equipement(object):
 
     def refresh(self):
         self.__dict__.pop('tags', None)
-
-
-__all__ = _all.diff(globals())

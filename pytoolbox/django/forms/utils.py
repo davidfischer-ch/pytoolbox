@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Some utilities related to the forms.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from copy import copy
 
@@ -12,7 +8,6 @@ from django.contrib import messages
 from django.forms.utils import ErrorList
 
 from pytoolbox import module
-from pytoolbox.encoding import to_bytes
 
 _all = module.All(globals())
 
@@ -22,7 +17,7 @@ def conditional_required(form, required_dict, data=None, cleanup=False):
     Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'.
     """
     data = data or form.cleaned_data
-    for name, value in data.iteritems():
+    for name, value in data.items():
         required = required_dict.get(name, None)
         if required and not value:
             form._errors[name] = ErrorList(['This field is required.'])
@@ -53,7 +48,7 @@ def set_disabled(form, field_name, value=False):
     else:
         try:
             del form.fields[field_name].widget.attrs['disabled']
-        except:
+        except Exception:
             pass
 
 
@@ -83,8 +78,8 @@ def update_widget_attributes(widget, updates):
             elif operation in ('-', '^'):
                 class_set.discard(cls)
             else:
-                raise ValueError(to_bytes(
-                    'updates must be a valid string with "<op>class <op>..." with op in [+-^].'))
+                raise ValueError(
+                    'updates must be a valid string with "<op>class <op>..." with op in [+-^].')
         widget.attrs['class'] = ' '.join(sorted(class_set))
         del updates['class']
     widget.attrs.update(updates)
@@ -99,8 +94,7 @@ def validate_start_end(form, data=None, start_name='start_date', end_name='end_d
     start, end = data[start_name], data[end_name]
     if start and end and start > end:
         form._errors[end_name] = ErrorList([
-            'The {0} cannot be before the {1}.'.format(
-                start_name.replace('_', ' '), end_name.replace('_', ' '))
+            f"The {start_name.replace('_', ' ')} cannot be before the {end_name.replace('_', ' ')}."
         ])
 
 

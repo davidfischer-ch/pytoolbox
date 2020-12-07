@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own views.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
@@ -26,7 +22,7 @@ class AddRequestToFormKwargsMixin(object):
     """Add the view request to the keywords arguments for instantiating the form."""
 
     def get_form_kwargs(self, *args, **kwargs):
-        kwargs = super(AddRequestToFormKwargsMixin, self).get_form_kwargs(*args, **kwargs)
+        kwargs = super().get_form_kwargs(*args, **kwargs)
         if self.should_add_request_to_form_kwargs():
             kwargs.update({'request': self.request})
         return kwargs
@@ -42,7 +38,7 @@ class BaseModelMultipleMixin(object):
         if self.context_object_name:
             return self.context_object_name
         elif hasattr(instance_list, 'model'):
-            return '{0}_list'.format(utils.get_base_model(instance_list.model)._meta.model_name)
+            return f'{utils.get_base_model(instance_list.model)._meta.model_name}_list'
 
 
 class BaseModelSingleMixin(object):
@@ -61,8 +57,8 @@ class InitialMixin(object):
     initials = {}
 
     def get_initial(self):
-        initial = super(InitialMixin, self).get_initial()
-        for name, default in self.initials.iteritems():
+        initial = super().get_initial()
+        for name, default in self.initials.items():
             self.set_inital(initial, name, default)
         return initial
 
@@ -76,10 +72,10 @@ class InitialMixin(object):
             try:
                 value = func(value)
             except ValueError:
-                messages.error(self.request, '{0} - {1}.'.format(name, msg_value))
+                messages.error(self.request, f'{name} - {msg_value}.')
                 return None
             except KeyError:
-                messages.error(self.request, '{0} - {1}.'.format(name, mgs_missing))
+                messages.error(self.request, f'{name} - {mgs_missing}.')
                 return None
         initial[name] = value
         return value
@@ -90,10 +86,10 @@ class InitialMixin(object):
             try:
                 value = model.objects.for_user(self.request.user).get(pk=value)
             except ValueError:
-                messages.error(self.request, '{0} - {1}.'.format(name, msg_value))
+                messages.error(self.request, f'{name} - {msg_value}.')
                 return None
             except model.DoesNotExist:
-                messages.error(self.request, '{0} - {1}.'.format(name, mgs_missing))
+                messages.error(self.request, f'{name} - {mgs_missing}.')
                 return None
         initial[name] = value
         return value
@@ -103,7 +99,7 @@ class LoggedCookieMixin(object):
     """Add a "logged" cookie set to "True" if user is authenticated else to "False"."""
 
     def post(self, *args, **kwargs):
-        response = super(LoggedCookieMixin, self).post(*args, **kwargs)
+        response = super().post(*args, **kwargs)
         logged = self.request.user.is_authenticated
         response.set_cookie('logged', logged if isinstance(logged, bool) else logged())
         return response
@@ -117,7 +113,7 @@ class RedirectMixin(object):
     def dispatch(self, request, *args, **kwargs):
         if self.redirect_view:
             return redirect(self.redirect_view)
-        return super(RedirectMixin, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class TemplateResponseMixin(generic.TemplateResponseMixin):
@@ -135,7 +131,7 @@ class ValidationErrorsMixin(object):
 
     def form_valid(self, form):
         try:
-            return super(ValidationErrorsMixin, self).form_valid(form)
+            return super().form_valid(form)
         except ValidationError as e:
             for field, error in exceptions.iter_validation_errors(e):
                 if field:

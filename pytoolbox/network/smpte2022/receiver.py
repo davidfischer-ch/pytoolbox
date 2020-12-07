@@ -1,21 +1,13 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import collections, os
 
-from pytoolbox import module
-from pytoolbox.encoding import to_bytes
 from pytoolbox.network.ip import IPSocket
 from pytoolbox.network.rtp import RtpPacket
-
 from .base import FecPacket
 
+__all__ = ['FecReceiver']
 
-_all = module.All(globals())
 
-
-class FecReceiver(object):
+class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
     """
     A SMPTE 2022-1 FEC streams receiver.
     This receiver accept incoming RTP media and FEC packets and make available the recovered media
@@ -50,32 +42,30 @@ class FecReceiver(object):
 
     Media packets are sorted by the buffer, so, it's time to test this feature:
 
-    >>> import random
-    >>> from StringIO import StringIO
-    >>> output = StringIO()
+    >>> import io, random
+    >>> output = io.StringIO()
     >>> receiver = FecReceiver(output)
-    >>> receiver.set_delay(1024, FecReceiver.PACKETS)
-    >>> source = range(1024)
+    >>> receiver.set_delay(1000, FecReceiver.PACKETS)
+    >>> source = list(range(30))
     >>> random.shuffle(source)
     >>> for i in source:
     ...     receiver.put_media(RtpPacket.create(i, i * 100, RtpPacket.MP2T_PT, str(i)), True)
     >>> receiver.flush()
-    >>> assert(output.getvalue() == ''.join(str(i) for i in xrange(1024)))
+    >>> output.getvalue()
+    '01234567891011121314151617181920212223242526272829'
 
     Testing FEC algorithm correctness:
 
-    >>> from io import BytesIO
-    >>> from os import urandom
-    >>> from random import randint
-    >>> output = BytesIO()
+    >>> import io, os, random
+    >>> output = io.BytesIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1024, FecReceiver.PACKETS)
     >>> L, D = 4, 5
     >>> # Generate a [D][L] matrix of randomly generated RTP packets
-    >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + randint(0, 50),
-    ...           RtpPacket.MP2T_PT, bytearray(urandom(randint(50, 100))))
-    ...           for i in xrange(L)] for j in xrange(D)]
-    >>> assert(len(matrix) == D and len(matrix[0]) == L)
+    >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + random.randint(0, 50),
+    ...           RtpPacket.MP2T_PT, bytearray(os.urandom(random.randint(50, 100))))
+    ...           for i in range(L)] for j in range(D)]
+    >>> assert len(matrix) == D and len(matrix[0]) == L
     >>> # Retrieve the first column of the matrix
     >>> for column in matrix:
     ...     for media in column:
@@ -114,12 +104,16 @@ class FecReceiver(object):
     ER_DIRECTION = 'FEC packet direction is neither COL nor ROW : {0}'
     ER_FLUSHING = 'Currently flushing buffers'
     ER_MISSING_COUNT = 'They are {0} missing media packet, expected one (1)'
+    ER_FEC_DIRECTION = "Invalid FEC direction '{0}'"
     ER_COL_MISMATCH = 'Column FEC packet n°{0}, expected n°{1}'
-    ER_COL_OVERWRITE = 'Another column FEC packet is already registered to protect media packet n°{0}'
+    ER_COL_OVERWRITE = \
+        'Another column FEC packet is already registered to protect media packet n°{0}'
     ER_ROW_MISMATCH = 'Row FEC packet n°{0}, expected n°{1}'
     ER_ROW_OVERWRITE = 'Another row FEC packet is already registered to protect media packet n°{0}'
-    ER_GET_COL_CASCADE = 'Column FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
-    ER_GET_ROW_CASCADE = 'Row FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
+    ER_GET_COL_CASCADE = \
+        'Column FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
+    ER_GET_ROW_CASCADE = \
+        'Row FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
     ER_NULL_COL_CASCADE = 'Column FEC cascade : Unable to find linked entry in crosses buffer'
     ER_NULL_ROW_CASCADE = 'Row FEC cascade : Unable to find linked entry in crosses buffer'
     ER_STARTUP = 'Current position still not initialized (startup state)'
@@ -127,7 +121,7 @@ class FecReceiver(object):
     ER_VALID_RTP = 'packet is not valid (expected RTP packet)'
 
     DELAY_NAMES = ['packets', 'seconds']
-    DELAY_RANGE = xrange(len(DELAY_NAMES))  # noqa
+    DELAY_RANGE = range(len(DELAY_NAMES))  # noqa
     PACKETS, SECONDS = DELAY_RANGE
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -148,12 +142,12 @@ class FecReceiver(object):
             ...
         ValueError: output is None
         >>>
-        >>> from StringIO import StringIO
-        >>> output = StringIO()
+        >>> import io
+        >>> output = io.StringIO()
         >>> receiver = FecReceiver(output)
         """
         if not output:
-            raise ValueError(to_bytes('output is None'))
+            raise ValueError('output is None')
         # Media packets storage, medias[media seq] = media pkt
         self.medias = {}
         self.startup = True    # Indicate that actual position must be initialized
@@ -164,13 +158,13 @@ class FecReceiver(object):
         # Fec packets + related information storage, col[sequence] = { fec pkt + info }
         self.cols = {}
         self.rows = {}
-        self.matrixL = 0  # Detected FEC matrix size (number of columns)
-        self.matrixD = 0  # Detected FEC matrix size (number of rows)
+        self.matrixL = 0  # Detected FEC matrix size (number of columns) pylint:disable=invalid-name
+        self.matrixD = 0  # Detected FEC matrix size (number of rows)    pylint:disable=invalid-name
         # Output
         self.output = output  # Registered output
         # Settings
-        self.delay_value = 100                  # RTP buffer delay value
-        self.delay_units = FecReceiver.PACKETS  # RTP buffer delay units
+        self.delay_value = 100           # RTP buffer delay value
+        self.delay_units = self.PACKETS  # RTP buffer delay units
         # Statistics about media (buffers and packets)
         self.media_received = 0          # Received media packets counter
         self.media_recovered = 0         # Recovered media packets counter
@@ -196,35 +190,35 @@ class FecReceiver(object):
         """Return current delay based on the length of the media buffer."""
         if len(self.medias) == 0:
             return 0
-        if self.delay_units == FecReceiver.PACKETS:
+        if self.delay_units == self.PACKETS:
             return len(self.medias)
-        elif self.delay_units == FecReceiver.SECONDS:
+        if self.delay_units == self.SECONDS:
             raise NotImplementedError()
-        raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(self.delay_units)))
+        raise ValueError(self.ER_DELAY_UNITS.format(self.delay_units))
         # return medias.lastEntry().getValue().getTime() - medias.firstEntry().getValue().getTime()
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def set_delay(self, value, units):
         """Set desired size for the internal media buffer."""
-        if units == FecReceiver.PACKETS:
+        if units == self.PACKETS:
             self.delay_value = value
             self.delay_units = units
-        elif units == FecReceiver.SECONDS:
+        elif units == self.SECONDS:
             raise NotImplementedError()
         else:
-            raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(units)))
+            raise ValueError(self.ER_DELAY_UNITS.format(units))
 
-    def put_media(self, media, onlyMP2TS):
+    def put_media(self, media, onlyMP2TS):  # pylint:disable=invalid-name
         """Put an incoming media packet."""
         if self.flushing:
-            raise ValueError(to_bytes(FecReceiver.ER_FLUSHING))
+            raise ValueError(self.ER_FLUSHING)
         if onlyMP2TS:
             if not media.validMP2T:
-                raise ValueError(to_bytes(FecReceiver.ER_VALID_RTP_MP2TS))
+                raise ValueError(self.ER_VALID_RTP_MP2TS)
         else:
             if not media.valid:
-                raise ValueError(to_bytes(FecReceiver.ER_VALID_RTP))
+                raise ValueError(self.ER_VALID_RTP)
 
         # Put the media packet into medias buffer
         if media.sequence in self.medias:
@@ -241,7 +235,7 @@ class FecReceiver(object):
 
         self.out()  # FIXME maybe better to call it from another thread
 
-    def put_fec(self, fec):
+    def put_fec(self, fec):  # pylint:disable=too-many-branches,too-many-statements
         """
         Put an incoming FEC packet, the algorithm will do the following according to these
         scenarios:
@@ -251,20 +245,22 @@ class FecReceiver(object):
         3. More than one media packet is missing, fec packet stored for future recovery
         """
         if self.flushing:
-            raise ValueError(to_bytes(FecReceiver.ER_FLUSHING))
+            raise ValueError(self.ER_FLUSHING)
         if not fec.valid:
-            raise ValueError(to_bytes('Invalid FEC packet'))
+            raise ValueError('Invalid FEC packet')
 
         if fec.direction == FecPacket.COL:
             self.col_received += 1
         elif fec.direction == FecPacket.ROW:
             self.row_received += 1
         else:
-            raise ValueError(FecReceiver.ER_DIRECTION.format(fec.direction))
+            raise ValueError(self.ER_DIRECTION.format(fec.direction))
+
         cross = None
         media_lost = 0
         media_max = (fec.snbase + fec.na * fec.offset) & RtpPacket.S_MASK
         media_test = fec.snbase
+
         while media_test != media_max:
             # If media packet is not in the medias buffer (is missing)
             if media_test not in self.medias:
@@ -276,31 +272,43 @@ class FecReceiver(object):
                     self.crosses[media_test] = cross
                     if len(self.crosses) > self.max_cross:
                         self.max_cross = len(self.crosses)
+
                 # Register the fec packet able to recover the missing media packet
                 if fec.direction == FecPacket.COL:
                     if cross['col_sequence']:
-                        raise ValueError(to_bytes(FecReceiver.ER_COL_OVERWRITE.format(media_lost)))
+                        raise ValueError(self.ER_COL_OVERWRITE.format(media_lost))
                     cross['col_sequence'] = fec.sequence
+
                 elif fec.direction == FecPacket.ROW:
                     if cross['row_sequence']:
-                        raise ValueError(to_bytes(FecReceiver.ER_ROW_OVERWRITE.format(media_lost)))
+                        raise ValueError(self.ER_ROW_OVERWRITE.format(media_lost))
                     cross['row_sequence'] = fec.sequence
+
                 else:
-                    raise ValueError(to_bytes(FecReceiver.ER_FEC_DIRECTION.format(fec.direction)))
+                    raise ValueError(self.ER_FEC_DIRECTION.format(fec.direction))
+
                 fec.set_missing(media_test)
+
             media_test = (media_test + fec.offset) & RtpPacket.S_MASK
+
         if fec.L:
             self.matrixL = fec.L
+
         if fec.D:
             self.matrixD = fec.D
+
         # [1] The fec packet is useless if none of the protected media packets is missing
         if len(fec.missing) == 0:
             return
+
         # FIXME check if 10*delay_value is a good way to avoid removing early fec packets !
         # The fec packet is useless if it needs an already output'ed media packet to do recovery
-        drop = not FecReceiver.validity_window(
-            fec.snbase, self.position, (self.position + 10 * self.delay_value) & RtpPacket.S_MASK
+        drop = not self.validity_window(
+            fec.snbase,
+            self.position,
+            (self.position + 10 * self.delay_value) & RtpPacket.S_MASK
         )
+
         if fec.direction == FecPacket.COL:
             if drop:
                 self.col_dropped += 1
@@ -308,6 +316,7 @@ class FecReceiver(object):
             self.cols[fec.sequence] = fec
             if len(self.cols) > self.max_col:
                 self.max_col = len(self.cols)
+
         if fec.direction == FecPacket.ROW:
             if drop:
                 self.row_dropped += 1
@@ -315,6 +324,7 @@ class FecReceiver(object):
             self.rows[fec.sequence] = fec
             if len(self.rows) > self.max_row:
                 self.max_row = len(self.rows)
+
         # [2] Only on media packet missing, fec packet is able to recover it now !
         if len(fec.missing) == 1:
             self.recover_media_packet(media_lost, cross, fec)
@@ -333,27 +343,33 @@ class FecReceiver(object):
     def cleanup(self):
         """Remove FEC packets that are stored / waiting but useless."""
         if self.flushing:
-            raise ValueError(to_bytes(FecReceiver.ER_FLUSHING))
+            raise ValueError(self.ER_FLUSHING)
+
         if self.startup:
-            raise ValueError(to_bytes(FecReceiver.ER_STARTUP))
-        if self.delay_units == FecReceiver.PACKETS:
+            raise ValueError(self.ER_STARTUP)
+
+        if self.delay_units == self.PACKETS:
             start, end = self.position, (self.position + self.delay_value) & RtpPacket.S_MASK
-            for media_sequence in self.crosses.keys:
+            for media_sequence, cross in list(self.crosses.items()):
                 if not self.validity_window(media_sequence, start, end):
-                    cross = self.crosses[media_sequence]
                     del self.cols[cross['col_sequence']]
                     del self.rows[cross['row_sequence']]
                     del self.crosses[media_sequence]
-        elif self.delay_units == FecReceiver.SECONDS:
+        elif self.delay_units == self.SECONDS:
             raise NotImplementedError()
-        raise ValueError(to_bytes(FecReceiver.ER_DELAY_UNITS.format(self.delay_units)))
 
-    def recover_media_packet(self, media_sequence, cross, fec):
+        raise ValueError(self.ER_DELAY_UNITS.format(self.delay_units))
+
+    def recover_media_packet(
+        self,
+        media_sequence,
+        cross,
+        fec
+    ):  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
         """
         Recover a missing media packet helped by a FEC packet, this method is also called to
         register an incoming media packet if it is registered as missing.
         """
-
         recovered_by_fec = fec is not None
 
         # Read and remove "cross" it from the buffer
@@ -363,14 +379,15 @@ class FecReceiver(object):
 
         # Recover the missing media packet and remove any useless linked fec packet
         if recovered_by_fec:
+
             if len(fec.missing) != 1:
-                raise NotImplementedError(FecReceiver.ER_MISSING_COUNT.format(len(fec.missing)))
+                raise NotImplementedError(self.ER_MISSING_COUNT.format(len(fec.missing)))
+
             if fec.direction == FecPacket.COL and fec.sequence != col_sequence:
-                raise NotImplementedError(
-                    FecReceiver.ER_COL_MISMATCH.format(fec.sequence, col_sequence))
+                raise NotImplementedError(self.ER_COL_MISMATCH.format(fec.sequence, col_sequence))
+
             if fec.direction == FecPacket.ROW and fec.sequence != row_sequence:
-                raise NotImplementedError(
-                    FecReceiver.ER_ROW_MISMATCH.format(fec.sequence, row_sequence))
+                raise NotImplementedError(self.ER_ROW_MISMATCH.format(fec.sequence, row_sequence))
 
             # Media packet recovery
             # > Copy fec packet fields into the media packet
@@ -399,8 +416,8 @@ class FecReceiver(object):
                 media.timestamp ^= friend.timestamp
                 payload_size ^= friend.payload_size
                 # FIXME FIXME FIXME FIXME FIXME OPTIMIZATION FIXME FIXME FIXME FIXME
-                for no in xrange(min(len(media.payload), len(friend.payload))):  # noqa
-                    media.payload[no] ^= friend.payload[no]
+                for index in range(min(len(media.payload), len(friend.payload))):
+                    media.payload[index] ^= friend.payload[index]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK
 
             # If the media packet is successfully recovered
@@ -436,11 +453,12 @@ class FecReceiver(object):
                         self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_col)
                     else:
                         raise NotImplementedError(
-                            to_bytes('recover_media_packet({1}, {2}, {3}):{0}{4}{0}media sequence : {5}{0}{6}{0}'
-                                     .format(os.linesep, media_sequence, cross, fec, FecReceiver.ER_NULL_COL_CASCADE,
-                                     cascade_media_sequence, fec_col)))
+                            f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
+                            f'{self.ER_NULL_COL_CASCADE}{os.linesep}'
+                            f'media sequence : {cascade_media_sequence}{os.linesep}'
+                            f'{fec_col}{os.linesep}')
                 else:
-                    raise NotImplementedError(to_bytes(FecReceiver.ER_GET_COL_CASCADE.format(os.linesep, fec_col)))
+                    raise NotImplementedError(self.ER_GET_COL_CASCADE.format(os.linesep, fec_col))
 
         if fec_row:
             if len(fec_row.missing) == 1:
@@ -452,26 +470,30 @@ class FecReceiver(object):
                         self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_row)
                     else:
                         raise NotImplementedError(
-                            to_bytes('{1}{0}recover_media_packet({2}, {3}, {4}):{0}media sequence : {5}{0}{6}{0}'
-                                     .format(os.linesep, FecReceiver.ER_NULL_ROW_CASCADE, media_sequence, cross, fec,
-                                     cascade_media_sequence, fec_row)))
+                            f'{self.ER_NULL_ROW_CASCADE}{os.linesep}'
+                            f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
+                            f'media sequence : {cascade_media_sequence}{os.linesep}'
+                            f'{fec_row}{os.linesep}')
                 else:
-                    raise NotImplementedError(to_bytes(FecReceiver.ER_GET_ROW_CASCADE.format(os.linesep, fec_row)))
+                    raise NotImplementedError(self.ER_GET_ROW_CASCADE.format(os.linesep, fec_row))
 
     def out(self):
         """Extract packets to output in order to keep a 'certain' amount of them in the buffer."""
-        units = FecReceiver.PACKETS if self.flushing else self.delay_units
+        units = self.PACKETS if self.flushing else self.delay_units
         value = 0 if self.flushing else self.delay_value
         lostogram_counter = 0
+
         # Extract packets to output in order to keep a 'certain' amount of them in the buffer
-        if units == FecReceiver.PACKETS:  # based on buffer size
+        if units == self.PACKETS:  # based on buffer size
             while len(self.medias) > value:
                 # Initialize or increment actual position (expected sequence number)
-                self.position = (
-                    (self.medias.iterkeys().next() if self.startup else (self.position + 1)) &
-                    RtpPacket.S_MASK
-                )
+                if self.startup:
+                    self.position = min(self.medias.keys()) & RtpPacket.S_MASK
+                else:
+                    self.position = (self.position + 1) & RtpPacket.S_MASK
+
                 self.startup = False
+
                 media = self.medias.get(self.position)
                 if media:
                     self.lostogram[lostogram_counter] += 1
@@ -482,6 +504,7 @@ class FecReceiver(object):
                 else:
                     self.media_missing += 1
                     lostogram_counter += 1
+
                 # Remove any fec packet linked to current media packet
                 cross = self.crosses.get(self.position)
                 if cross:
@@ -490,11 +513,12 @@ class FecReceiver(object):
                         del self.cols[cross['col_sequence']]
                     if cross['row_sequence'] and cross['row_sequence'] in self.rows:
                         del self.rows[cross['row_sequence']]
+
         # Extract packets to output in order to keep a 'certain' amount of them in the buffer
-        elif units == FecReceiver.SECONDS:  # based on time stamps
+        elif units == self.SECONDS:  # based on time stamps
             raise NotImplementedError()
         else:
-            raise ValueError(FecReceiver.ER_DELAY_UNITS.format(units))
+            raise ValueError(self.ER_DELAY_UNITS.format(units))
 
     def __str__(self):
         """
@@ -515,9 +539,8 @@ class FecReceiver(object):
         Current delay (can be set) : 0 packets
         FEC matrix size (LxD) : 0x0 = 0 packets
         """
-        delayFormat = '%.0f' if self.delay_units == FecReceiver.PACKETS else '%.2f'
-        mDelay = '{0} {1}'.format(
-            delayFormat % self.current_delay, FecReceiver.DELAY_NAMES[self.delay_units])
+        delay_format = '%.0f' if self.delay_units == self.PACKETS else '%.2f'
+        delay_msg = f'{delay_format % self.current_delay} {self.DELAY_NAMES[self.delay_units]}'
 
         return ("Name  Received Buffered Maximum Dropped{0}"
                 "Media %8d%9d%8d{0}"
@@ -535,7 +558,7 @@ class FecReceiver(object):
                  self.row_received, len(self.rows), self.max_row, self.row_dropped,
                  len(self.crosses), self.max_cross, self.media_recovered,
                  self.media_aborted_recovery, self.media_overwritten, self.media_missing,
-                 self.position, mDelay, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
+                 self.position, delay_msg, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Static >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -556,7 +579,7 @@ class FecReceiver(object):
         >>> print(FecReceiver.compute_col_address('salut'))
         Traceback (most recent call last):
             ....
-        ValueError: salut is not a valid IP socket.
+        pytoolbox.exceptions.InvalidIPSocketError: salut is not a valid IP socket.
         """
         if not isinstance(media_socket, dict):
             media_socket = IPSocket(media_socket)
@@ -580,7 +603,7 @@ class FecReceiver(object):
         >>> print(FecReceiver.compute_row_address('salut'))
         Traceback (most recent call last):
             ....
-        ValueError: salut is not a valid IP socket.
+        pytoolbox.exceptions.InvalidIPSocketError: salut is not a valid IP socket.
         """
         if not isinstance(media_socket, dict):
             media_socket = IPSocket(media_socket)
@@ -601,22 +624,27 @@ class FecReceiver(object):
 
         Testing validity window condition:
 
-        >>> from pytoolbox.unittest import asserts
-        >>> asserts.false(FecReceiver.validity_window(    0,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(    5,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(    8,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(   10,     5, 10))
-        >>> asserts.false(FecReceiver.validity_window(   15,     5, 10))
-        >>> asserts.true( FecReceiver.validity_window(    0, 65534,  2))
-        >>> asserts.true( FecReceiver.validity_window(    2, 65534,  2))
-        >>> asserts.false(FecReceiver.validity_window(    5, 65534,  2))
-        >>> asserts.true( FecReceiver.validity_window(65534, 65534,  2))
-        >>> asserts.true( FecReceiver.validity_window(65535, 65534,  2))
+        >>> FecReceiver.validity_window(0, 5, 10)
+        False
+        >>> FecReceiver.validity_window(5, 5, 10)
+        True
+        >>> FecReceiver.validity_window(8, 5, 10)
+        True
+        >>> FecReceiver.validity_window(10, 5, 10)
+        True
+        >>> FecReceiver.validity_window(15, 5, 10)
+        False
+        >>> FecReceiver.validity_window(0, 65534, 2)
+        True
+        >>> FecReceiver.validity_window(2, 65534, 2)
+        True
+        >>> FecReceiver.validity_window(5, 65534, 2)
+        False
+        >>> FecReceiver.validity_window(65534, 65534, 2)
+        True
+        >>> FecReceiver.validity_window(65535, 65534, 2)
+        True
         """
         if end > start:
-            return current >= start and current <= end
-        else:
-            return current <= end or current >= start
-
-
-__all__ = _all.diff(globals())
+            return start <= current <= end
+        return current <= end or current >= start

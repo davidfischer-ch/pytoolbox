@@ -1,18 +1,10 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import errno, itertools, re, select, subprocess, sys, time
-from codecs import open  # pylint:disable=redefined-builtin
+from pathlib import Path
 
-from pytoolbox import module
-from pytoolbox.encoding import string_types
-from pytoolbox.filesystem import TempStorage
-from pytoolbox.subprocess import kill, make_async, raw_cmd, to_args_list
+from pytoolbox import filesystem, subprocess as py_subprocess
+from . import encode, ffprobe  # pylint:disable=unused-import
 
-from . import encode, ffprobe
-
-_all = module.All(globals())
+__all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
 
 FRAME_MD5_REGEX = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
@@ -42,11 +34,12 @@ class FFmpeg(object):
 
     def __call__(self, *arguments):
         """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
-        return raw_cmd(
+        return py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
-            stderr=subprocess.PIPE, universal_newlines=True)
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
 
-    def encode(
+    def encode(  # pylint:disable=too-many-locals
         self,
         inputs,
         outputs,
@@ -70,7 +63,11 @@ class FFmpeg(object):
                 output.create_directory()
 
         statistics = self.statistics_class(
-            inputs, outputs, in_options, out_options, **(statistics_kwargs or {}))
+            inputs,
+            outputs,
+            in_options,
+            out_options,
+            **(statistics_kwargs or {}))
 
         process = self._get_process(arguments, **(process_kwargs or {}))
         try:
@@ -85,17 +82,17 @@ class FFmpeg(object):
                 if self.encode_poll_delay:
                     time.sleep(self.encode_poll_delay)
             yield statistics.end(returncode)
-        except Exception as exception:
-            tb = sys.exc_info()[2]
-            kill(process)
-            raise exception.with_traceback(tb) \
-                if hasattr(exception, 'with_traceback') else exception
+        except Exception as e:
+            traceback = sys.exc_info()[2]
+            py_subprocess.kill(process)
+            raise e.with_traceback(traceback) if hasattr(e, 'with_traceback') else e
 
-    def get_frames_md5_checksum(self, filename):
-        with TempStorage() as tmp:
+    @staticmethod
+    def get_frames_md5_checksum(filename):
+        with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
-            match = FRAME_MD5_REGEX.search(open(checksum_filename, 'r', encoding='utf-8').read())
+            match = FRAME_MD5_REGEX.search(open(checksum_filename, 'r').read())
             return match.group() if match else None
 
     def _clean_medias_argument(self, value):
@@ -103,7 +100,7 @@ class FFmpeg(object):
         Return a list of Media instances from passed value.
         Value can be one or multiple instances of string or Media.
         """
-        values = [value] if isinstance(value, (string_types, self.ffprobe.media_class)) else value
+        values = [value] if isinstance(value, (str, Path, self.ffprobe.media_class)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
 
     def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
@@ -120,8 +117,8 @@ class FFmpeg(object):
         """
         inputs = self._clean_medias_argument(inputs)
         outputs = self._clean_medias_argument(outputs)
-        in_options = to_args_list(in_options)
-        out_options = to_args_list(out_options)
+        in_options = py_subprocess.to_args_list(in_options)
+        out_options = py_subprocess.to_args_list(out_options)
         args = [self.executable, '-y']
         args.extend(in_options)
         for the_input in inputs:
@@ -135,19 +132,20 @@ class FFmpeg(object):
         select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
             chunk = process.stderr.read()
-            if chunk is None or isinstance(chunk, string_types):
+            if chunk is None or isinstance(chunk, str):
                 return chunk
-            else:
-                return chunk.decode(self.encoding)
+            return chunk.decode(self.encoding)
         except IOError as e:
             if e.errno != errno.EAGAIN:
                 raise
 
-    def _get_process(self, arguments, **process_kwargs):
+    @staticmethod
+    def _get_process(arguments, **process_kwargs):
         """Return an encoding process with stderr made asynchronous."""
-        process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
-        make_async(process.stderr)
+        process = py_subprocess.raw_cmd(
+            arguments,
+            stderr=subprocess.PIPE,
+            close_fds=True,
+            **process_kwargs)
+        py_subprocess.make_async(process.stderr)
         return process
-
-
-__all__ = _all.diff(globals())

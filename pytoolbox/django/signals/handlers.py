@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-
 """
     :file:`apps.py` ::
 
@@ -36,18 +34,18 @@
                 strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import logging
 
 from django.conf import settings
 from django.db.models import fields
 from django.db.models.fields.files import FileField
 
-from pytoolbox import module
-from pytoolbox.encoding import PY2, string_types
-
-_all = module.All(globals())
+__all__ = [
+    'logger',
+    'clean_files_delete_handler',
+    'create_site',
+    'setup_postgresql_hstore_extension'
+]
 
 logger = logging.getLogger(__name__)
 
@@ -86,29 +84,23 @@ def create_site(sender, **kwargs):
     site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}
     site = site_app.Site.objects.update_or_create(pk=settings.SITE_ID, defaults=site_fields)[0]
     logger.info(
-        'Updated settings of Site "{0.name}" with ID {0.pk} and domain {0.domain}'.format(site))
+        f'Updated settings of Site "{site.name}" with ID {site.pk} and domain {site.domain}')
 
 
 def setup_postgresql_hstore_extension(sender, connection, **kwargs):
     from psycopg2.extras import register_hstore
     cursor = connection.connection.cursor()
     cursor.execute('CREATE EXTENSION IF NOT EXISTS hstore')
-    if PY2:
-        register_hstore(connection.connection, globally=True, unicode=True)
-    else:
-        register_hstore(connection.connection, globally=True)
+    register_hstore(connection.connection, globally=True)
 
 
 def strip_strings_and_validate_model(sender, instance, raw, **kwargs):
     """Strip the string fields of the instance and run the instance's full_clean()."""
     if not raw:
-        logger.debug('Validate model {0} on save() with kwargs={1}'.format(instance, kwargs))
+        logger.debug(f'Validate model {instance} on save() with kwargs={kwargs}')
         for field in instance._meta.fields:
             if isinstance(field, (fields.CharField, fields.TextField)):
                 field_value = getattr(instance, field.name)
-                if isinstance(field_value, string_types):
+                if isinstance(field_value, str):
                     setattr(instance, field.name, field_value.strip())
         instance.full_clean()
-
-
-__all__ = _all.diff(globals())

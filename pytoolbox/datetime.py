@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime, numbers
 from calendar import timegm
 from time import mktime
@@ -9,15 +5,19 @@ from time import mktime
 import pytz
 
 from . import module
-from .encoding import string_types
 
 _all = module.All(globals())
 
 
-def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=pytz.utc):  # noqa
+def datetime_now(
+    format='%Y-%m-%d %H:%M:%S',
+    append_utc=False,
+    offset=None,
+    tz=pytz.utc
+):  # pylint:disable=redefined-builtin
     """
-    Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a timezone. If `format` is
-    not None, the date will be returned in a formatted string.
+    Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a
+    timezone. If `format` is not None, the date will be returned in a formatted string.
 
     :param format: Output date string formatting
     :type format: str
@@ -34,16 +34,20 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
 
     >>> now = datetime_now(format=None)
     >>> future = datetime_now(offset=datetime.timedelta(hours=2, minutes=10), format=None)
-    >>> print(future - now)  # doctest: +ELLIPSIS
-    2:10:00...
+    >>> result = (future - now)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> print(result)
+    2:10:00.00...
 
     Append UTC to output date string:
 
-    >>> assert(isinstance(datetime_now(), string_types))
-    >>> assert(' UTC' not in datetime_now(tz=pytz.utc, append_utc=False))
-    >>> assert(' UTC' not in datetime_now(tz=None, append_utc=True))
-    >>> assert(' UTC' not in datetime_now(tz=pytz.timezone('EST'), append_utc=True))
-    >>> assert(' UTC' in datetime_now(tz=pytz.utc, append_utc=True))
+    >>> type(datetime_now())
+    <class 'str'>
+    >>> assert ' UTC' not in datetime_now(tz=pytz.utc, append_utc=False)
+    >>> assert ' UTC' not in datetime_now(tz=None, append_utc=True)
+    >>> assert ' UTC' not in datetime_now(tz=pytz.timezone('EST'), append_utc=True)
+    >>> assert ' UTC' in datetime_now(tz=pytz.utc, append_utc=True)
 
     Play with timezones::
 
@@ -55,17 +59,28 @@ def datetime_now(format='%Y-%m-%d %H:%M:%S', append_utc=False, offset=None, tz=p
     now = datetime.datetime.now(tz)
     if offset is not None:
         now += offset
-    return (now.strftime(format) + (' UTC' if tz == pytz.utc and append_utc else '')) if format else now
+    if not format:
+        return now
+    return now.strftime(format) + (' UTC' if tz == pytz.utc and append_utc else '')
 
 
-def datetime_to_str(date_time, format='%Y-%m-%d %H:%M:%S', append_utc=False):  # pylint:disable=redefined-builtin
+def datetime_to_str(
+    date_time,
+    format='%Y-%m-%d %H:%M:%S',
+    append_utc=False
+):  # pylint:disable=redefined-builtin
     return date_time.strftime(format) + (' UTC' if append_utc else '')
 
 
-def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):  # pylint:disable=redefined-builtin
+def str_to_datetime(
+    date,
+    format='%Y-%m-%d %H:%M:%S',
+    fail=True
+):  # pylint:disable=redefined-builtin
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
-    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at midnight and 5 minutes.
+    Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at
+    midnight and 5 minutes.
 
     **Example usage**
 
@@ -85,8 +100,8 @@ def str_to_datetime(date, format='%Y-%m-%d %H:%M:%S', fail=True):  # pylint:disa
 
 def multiply_time(value, factor, as_delta=False):
     """
-    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` corresponding to `value` multiplied by a
-    `factor`.
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`
+    corresponding to `value` multiplied by a `factor`.
 
     **Example usage**
 
@@ -96,8 +111,11 @@ def multiply_time(value, factor, as_delta=False):
     datetime.time(0, 3)
     >>> multiply_time(120, 0.1)
     datetime.time(0, 0, 12)
-    >>> multiply_time(datetime.timedelta(seconds=152, microseconds=500000), 1, as_delta=True)
-    datetime.timedelta(0, 152, 500000)
+    >>> res = multiply_time(datetime.timedelta(seconds=152, microseconds=500000), 1, as_delta=True)
+    >>> type(res)
+    <class 'datetime.timedelta'>
+    >>> print(res)
+    0:02:32.500000
     """
     return secs_to_time(total_seconds(value) * factor, as_delta=as_delta)
 
@@ -110,18 +128,25 @@ def parts_to_time(hours, minutes, seconds, microseconds, as_delta=False):
 
     >>> parts_to_time(23, 15, 7, 3500)
     datetime.time(23, 15, 7, 3500)
-    >>> parts_to_time(23, 15, 7, 3500, as_delta=True)
-    datetime.timedelta(0, 83707, 3500)
+    >>> result = parts_to_time(23, 15, 7, 3500, as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> print(result)
+    23:15:07.003500
     """
     if as_delta:
-        return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+        return datetime.timedelta(
+            hours=hours,
+            minutes=minutes,
+            seconds=seconds,
+            microseconds=microseconds)
     return datetime.time(hours, minutes, seconds, microseconds)
 
 
 def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     """
-    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the number of seconds +
-    microseconds (e.g. 10.3 = 10s 3000us).
+    Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the
+    number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
 
     **Example usage**
 
@@ -130,9 +155,13 @@ def secs_to_time(value, defaults_to_zero=False, as_delta=False):
     >>> secs_to_time(None)
     >>> secs_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
-    >>> secs_to_time(83707.0035, as_delta=True)
-    datetime.timedelta(0, 83707, 3500)
-    >>> secs_to_time(None, as_delta=True)
+    >>> result = secs_to_time(83707.0035, as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> print(result)
+    23:15:07.003500
+    >>> secs_to_time(None, as_delta=True) is None
+    True
     >>> secs_to_time(None, defaults_to_zero=True, as_delta=True)
     datetime.timedelta(0)
     """
@@ -158,11 +187,18 @@ def str_to_time(value, defaults_to_zero=False, as_delta=False):
     >>> str_to_time(None)
     >>> str_to_time(None, defaults_to_zero=True)
     datetime.time(0, 0)
-    >>> str_to_time('08:23:57', as_delta=True)
-    datetime.timedelta(0, 30237)
-    >>> str_to_time('00:03:02.12', as_delta=True)
-    datetime.timedelta(0, 182, 120000)
-    >>> str_to_time(None, as_delta=True)
+    >>> result = str_to_time('08:23:57', as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> str(result)
+    '8:23:57'
+    >>> result = str_to_time('00:03:02.12', as_delta=True)
+    >>> type(result)
+    <class 'datetime.timedelta'>
+    >>> str(result)
+    '0:03:02.120000'
+    >>> str_to_time(None, as_delta=True) is None
+    True
     >>> str_to_time(None, defaults_to_zero=True, as_delta=True)
     datetime.timedelta(0)
     """
@@ -186,11 +222,12 @@ def time_ratio(numerator, denominator, zero_div_result=1.0):
     **Example usage**
 
     >>> from pytoolbox.unittest import asserts
-    >>> print(time_ratio('0:30:00', '01:30:00'))  # doctest: +ELLIPSIS
+    >>> time_ratio('0:30:00', '01:30:00')
     0.33...
-    >>> print(time_ratio('0:00:05', '00:00:00'))  # doctest: +ELLIPSIS
+    >>> time_ratio('0:00:05', '00:00:00')
     1.0
-    >>> asserts.raises(ValueError, time_ratio, '01:42:34', 'N/A')
+    >>> with asserts.raises(ValueError):
+    ...     time_ratio('01:42:34', 'N/A')
     """
     try:
         ratio = total_seconds(numerator) / total_seconds(denominator)
@@ -209,7 +246,7 @@ def total_seconds(time):
     600.0
     >>> total_seconds('01:54:17')
     6857.0
-    >>> print(round(total_seconds('16.40'), 3))
+    >>> round(total_seconds('16.40'), 3)
     16.4
     >>> total_seconds(143.2)
     143.2
@@ -225,9 +262,9 @@ def total_seconds(time):
     try:
         if isinstance(time, datetime.timedelta):
             return time.total_seconds()
-        elif isinstance(time, numbers.Number):
+        if isinstance(time, numbers.Number):
             return time
-        elif isinstance(time, string_types):
+        if isinstance(time, str):
             hours, minutes, seconds = time.split(':')
         else:
             hours, minutes, seconds = time.hour, time.minute, time.second
@@ -238,8 +275,8 @@ def total_seconds(time):
 
 def datetime_to_epoch(date_time, utc=True, factor=1):
     """
-    Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch. Default `factor` means
-    that the result is in seconds.
+    Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch.
+    Default `factor` means that the result is in seconds.
 
     **Example usage**
 
@@ -262,19 +299,19 @@ def datetime_to_epoch(date_time, utc=True, factor=1):
         -3600
     """
     if utc:
-        time_tuple = date_time.utctimetuple() if hasattr(date_time, 'utctimetuple') else date_time.timetuple()
+        has_it = hasattr(date_time, 'utctimetuple')
+        time_tuple = date_time.utctimetuple() if has_it else date_time.timetuple()
         return int(timegm(time_tuple) * factor)
     return int(mktime(date_time.timetuple()) * factor)
 
 
 def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     """
-    Return the Unix epoch converted to a :class:`datetime.datetime`. Default `factor` means that the `unix_epoch` is in
-    seconds.
+    Return the Unix epoch converted to a :class:`datetime.datetime`.
+    Default `factor` means that the `unix_epoch` is in seconds.
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
     >>> epoch_to_datetime(0, factor=1)
     datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>)
     >>> epoch_to_datetime(1276128000, factor=1)
@@ -284,7 +321,8 @@ def epoch_to_datetime(unix_epoch, tz=pytz.utc, factor=1):
     >>> epoch_to_datetime(1276128000000, factor=1000)
     datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
     >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
-    >>> asserts.equal(epoch_to_datetime(datetime_to_epoch(today, factor=1000), factor=1000), today)
+    >>> epoch_to_datetime(datetime_to_epoch(today, factor=1000), factor=1000) == today
+    True
     """
     return datetime.datetime.fromtimestamp(unix_epoch / factor, tz)
 

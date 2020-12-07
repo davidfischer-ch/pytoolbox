@@ -1,11 +1,6 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import os, re
 
 from . import module
-from .encoding import text_type
 
 _all = module.All(globals())
 
@@ -46,11 +41,11 @@ def _to_camel(string, separator):
         suffix = separator
     if len(components) > 1:
         camel_case_string = components[0].lower()
-        for x in components[1:]:
-            if x.isupper() or x.istitle():
-                camel_case_string += x
+        for component in components[1:]:
+            if component.isupper() or component.istitle():
+                camel_case_string += component
             else:
-                camel_case_string += x.title()
+                camel_case_string += component.title()
     else:
         camel_case_string = components[0]
     return preffix + camel_case_string + suffix
@@ -61,13 +56,70 @@ def filterjoin(items, sep=' ', keep=lambda o: o):
     Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string
     and filter the items using the `keep` function.
     """
-    return sep.join(text_type(i) for i in items if keep(i))
+    return sep.join(str(i) for i in items if keep(i))
 
 
-def to_lines(items, limit=80, start='\t', line='{0} '):
+def to_lines(items, limit=80, start='\t', template='{0} '):
+    """
+    Convert items to string using `template`.
+    Ensure lines length of maximum `limit`.
+    Prefixing every line with `start`.
+
+    **Example usage***
+
+    >>> some_culture = (  # Credits: https://en.wikipedia.org/wiki/Punched_card
+    ...     "A legacy of the 80 column punched card format is that a display of 80 characters per"
+    ...     " row was a common choice in the design of character-based terminals. As of November"
+    ...     " 2011 some character interface defaults, such as the command prompt window's width"
+    ...     " in Microsoft Windows, remain set at 80 columns and some file formats, such as FITS,"
+    ...     " still use 80-character card images.")
+
+    Using default options:
+
+    >>> print(to_lines(some_culture.split(' ')))
+        A legacy of the 80 column punched card format is that a display of 80
+        characters per row was a common choice in the design of character-based
+        terminals. As of November 2011 some character interface defaults, such as the
+        command prompt window's width in Microsoft Windows, remain set at 80 columns
+        and some file formats, such as FITS, still use 80-character card images.
+
+    Customizing output:
+
+    >>> print(to_lines(some_culture.split(' '), limit=42, start='> '))
+    > A legacy of the 80 column punched card
+    > format is that a display of 80
+    > characters per row was a common choice
+    > in the design of character-based
+    > terminals. As of November 2011 some
+    > character interface defaults, such as
+    > the command prompt window's width in
+    > Microsoft Windows, remain set at 80
+    > columns and some file formats, such as
+    > FITS, still use 80-character card
+    > images.
+
+    Displaying objects representation:
+
+    >>> class Item(object):
+    ...     def __init__(self, value):
+    ...         self.value = value
+    ...
+    ...     def __repr__(self):
+    ...         return f'<Item value={self.value}>'
+    ...
+    >>> print(to_lines((Item(i) for i in range(22)), limit=60, template='{0!r} '))
+        <Item value=0> <Item value=1> <Item value=2>
+        <Item value=3> <Item value=4> <Item value=5>
+        <Item value=6> <Item value=7> <Item value=8>
+        <Item value=9> <Item value=10> <Item value=11>
+        <Item value=12> <Item value=13> <Item value=14>
+        <Item value=15> <Item value=16> <Item value=17>
+        <Item value=18> <Item value=19> <Item value=20>
+        <Item value=21>
+    """
     lines = [start]
     for item in items:
-        item_str = line.format(item)
+        item_str = template.format(item)
         if len(lines[-1]) + len(item_str) > limit:
             lines.append(start)
         lines[-1] += item_str

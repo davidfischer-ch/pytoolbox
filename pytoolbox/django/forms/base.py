@@ -1,17 +1,12 @@
-# -*- encoding: utf-8 -*-
-
 """
 Extra forms.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from django.utils.functional import cached_property
 
-from pytoolbox import module
 from pytoolbox.django.models import utils
 
-_all = module.All(globals())
+__all__ = ['SerializedInstanceForm']
 
 
 class SerializedInstanceForm(object):
@@ -32,8 +27,5 @@ class SerializedInstanceForm(object):
     def is_valid(self):
         try:
             return bool(self.instance)
-        except:
+        except Exception:
             return False
-
-
-_all = module.All(globals())

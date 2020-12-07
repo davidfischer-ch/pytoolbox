@@ -1,9 +1,12 @@
-# -*- encoding: utf-8 -*-
+from selenium.common import exceptions
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+# Replace the infamous "from selenium.common.exceptions import *" :)
+things = {k: v for k, v in exceptions.__dict__.items() if k[0] != '_'}
+__all__ = sorted(list(things.keys()) + ['NoSuchSpecializedElementException'])
+assert 'NoSuchSpecializedElementException' not in things
 
-from selenium.common.exceptions import *
+globals().update(things)
 
 
-class NoSuchSpecializedElementException(NoSuchElementException):  # pylint:disable=undefined-variable
+class NoSuchSpecializedElementException(exceptions.NoSuchElementException):
     pass

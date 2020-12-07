@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-#
 # pytoolbox documentation build configuration file, created by
 # sphinx-quickstart on Sat Oct  3 21:34:10 2015.
 #
@@ -15,6 +13,7 @@
 import sys
 
 import pytoolbox, sphinx_rtd_theme
+from django.core.management import execute_from_command_line
 
 
 def setup(app):
@@ -24,6 +23,7 @@ def setup(app):
     # http://sphinx-doc.org/ext/autodoc.html#event-autodoc-skip-member
     app.connect('autodoc-skip-member', skip)
 
+
 autodoc_member_order = 'bysource'
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -32,7 +32,6 @@ autodoc_member_order = 'bysource'
 #sys.path.insert(0, os.path.abspath('.'))
 
 # Set up the Django settings/environment
-from django.core.management import execute_from_command_line
 execute_from_command_line([sys.argv[0]] + ['--help'])
 
 # -- General configuration ------------------------------------------------

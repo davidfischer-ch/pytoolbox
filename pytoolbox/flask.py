@@ -1,29 +1,32 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import logging, uuid
 
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException
 
-from . import module
-from .encoding import text_type
 from .private import ObjectId
 from .serialization import object_to_json
 from .validation import valid_uuid
 
-_all = module.All(globals())
+__all__ = ['STATUS_TO_EXCEPTION', 'check_id', 'json_response', 'map_exceptions']
 
 STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
 
 
-def check_id(id):
-    if valid_uuid(id, objectid_allowed=False, none_allowed=False):
-        return uuid.UUID(id)
-    elif ObjectId is not None and valid_uuid(id, objectid_allowed=True, none_allowed=False):
-        return ObjectId(id)
-    raise ValueError('Wrong id format {0}'.format(id))
+def check_id(value):
+    if valid_uuid(value, objectid_allowed=False, none_allowed=False):
+        return uuid.UUID(value)
+    if ObjectId is not None and valid_uuid(value, objectid_allowed=True, none_allowed=False):
+        return ObjectId(value)
+    raise ValueError(f'Wrong id format {value}')
+
+
+def json_response(status, value=None, include_properties=False):
+    response = Response(
+        response=object_to_json({'status': status, 'value': value}, include_properties),
+        status=status,
+        mimetype='application/json')
+    response.status_code = status
+    return response
 
 
 def map_exceptions(exception):
@@ -62,29 +65,18 @@ def map_exceptions(exception):
             return exception['value']
         exception_class = STATUS_TO_EXCEPTION.get(exception['status'], Exception)
         raise exception_class(exception['value'])
-    elif isinstance(exception, HTTPException):
+    if isinstance(exception, HTTPException):
         raise exception
-    elif isinstance(exception, TypeError):
-        abort(400, text_type(exception))
+    if isinstance(exception, TypeError):
+        abort(400, str(exception))
     elif isinstance(exception, KeyError):
-        abort(400, 'Key {0} not found.'.format(exception))
+        abort(400, f'Key {exception} not found.')
     elif isinstance(exception, IndexError):
-        abort(404, text_type(exception))
+        abort(404, str(exception))
     elif isinstance(exception, ValueError):
-        abort(415, text_type(exception))
+        abort(415, str(exception))
     elif isinstance(exception, NotImplementedError):
-        abort(501, text_type(exception))
+        abort(501, str(exception))
     else:
-        abort(500, '{0} {1} {2}'.format(
-            exception.__class__.__name__, repr(exception), text_type(exception)))
-
-
-def json_response(status, value=None, include_properties=False):
-    response = Response(
-        response=object_to_json({'status': status, 'value': value}, include_properties),
-        status=status, mimetype='application/json')
-    response.status_code = status
-    return response
-
-
-__all__ = _all.diff(globals())
+        abort(500, f'{exception.__class__.__name__} {repr(exception)} {str(exception)}')
+    return None

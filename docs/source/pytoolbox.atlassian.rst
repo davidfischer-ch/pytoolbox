@@ -2,6 +2,6 @@ pytoolbox.atlassian module
 ==========================
 
 .. automodule:: pytoolbox.atlassian
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

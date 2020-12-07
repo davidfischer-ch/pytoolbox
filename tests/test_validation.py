@@ -1,25 +1,18 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
+import pytest
 from pytoolbox.validation import validate_list
 
-from . import base
+
+def test_validate_list():
+    regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
+    validate_list([10, "call(['my_var', recursive=False])"], regexes)
 
 
-class TestValidation(base.TestCase):
+def test_validate_list_fail_size():
+    with pytest.raises(IndexError):
+        validate_list([1, 2], [1, 2, 3])
 
-    tags = ('validation', )
 
-    def test_validate_list(self):
+def test_validate_list_fail_value():
+    with pytest.raises(ValueError):
         regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
-        validate_list([10, "call(['my_var', recursive=False])"], regexes)
-
-    def test_validate_list_fail_size(self):
-        with self.raises(IndexError):
-            validate_list([1, 2], [1, 2, 3])
-
-    def test_validate_list_fail_value(self):
-        with self.raises(ValueError):
-            regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
-            validate_list([10, "call(['my_var', recursive='error'])"], regexes)
+        validate_list([10, "call(['my_var', recursive='error'])"], regexes)

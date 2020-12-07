@@ -1,10 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 """
 Mix-ins for building your own test cases.
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
@@ -21,7 +17,6 @@ except ImportError:
     from django.core.urlresolvers import resolve, reverse
 
 from pytoolbox import module
-from pytoolbox.encoding import string_types
 
 _all = module.All(globals())
 
@@ -31,17 +26,18 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
     def __init__(self, test_case, num_range, connection):
         self.test_case = test_case
         self.range = num_range
-        super(_AssertNumQueriesInContext, self).__init__(connection)
+        super().__init__(connection)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        super(_AssertNumQueriesInContext, self).__exit__(exc_type, exc_value, traceback)
+        super().__exit__(exc_type, exc_value, traceback)
         if exc_type is None:
             executed = len(self)
             self.test_case.assertIn(
-                executed, self.range,
-                '{1} queries executed, {2.range} expected{0}Captured queries were:{0}{3}'.format(
-                    os.linesep, executed, self, os.linesep.join(
-                        query['sql'] for query in self.captured_queries)))
+                executed,
+                self.range,
+                f'{executed} queries executed, {self.range} expected{os.linesep}'
+                f'Captured queries were:{os.linesep}'
+                f"{os.linesep.join(query['sql'] for query in self.captured_queries)}")
 
 
 class ClearSiteCacheMixin(object):
@@ -51,11 +47,11 @@ class ClearSiteCacheMixin(object):
 
     def setUp(self):
         self.clear_site_cache()
-        super(ClearSiteCacheMixin, self).setUp()
+        super().setUp()
 
     def assertNumQueries(self, *args, **kwargs):
         self.clear_site_cache()
-        return super(ClearSiteCacheMixin, self).assertNumQueries(*args, **kwargs)
+        return super().assertNumQueries(*args, **kwargs)
 
 
 class FixFlushMixin(object):
@@ -79,14 +75,14 @@ class FixFlushMixin(object):
 class FormWizardMixin(object):
 
     def assertWizardSteps(self, response, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             self.assertEqual(getattr(response.context['wizard']['steps'], key), value, msg=key)
 
     def post_wizard(self, url, step, data=None, raw_data=None, **kwargs):
         from formtools.wizard.views import normalize_name
         name = normalize_name(resolve(reverse(url)).func.__name__)
-        step_data = {'{0}-{1}'.format(step, k): v for k, v in data.iteritems()} if data else {}
-        step_data['{0}-current_step'.format(name)] = step
+        step_data = {f'{step}-{k}': v for k, v in data.items()} if data else {}
+        step_data[f'{name}-current_step'] = step
         step_data.update(raw_data or {})
         return self.post(url, step_data, **kwargs)
 
@@ -105,7 +101,7 @@ class QueriesMixin(object):
 class UrlMixin(object):
 
     def resolve(self, value, qs=None, urlconf=None, args=None, kwargs=None, current_app=None):
-        if isinstance(value, string_types) and '/' in value:
+        if isinstance(value, str) and '/' in value:
             url = value
         elif hasattr(value, 'get_absolute_url'):
             url = value.get_absolute_url()
@@ -116,8 +112,20 @@ class UrlMixin(object):
 
 class RestAPIMixin(UrlMixin):
 
-    def _call(self, method, url, data, status, qs=None, urlconf=None, args=None, kwargs=None,
-              current_app=None, msg=lambda r: getattr(r, 'data', r), **call_kwargs):
+    def _call(
+        self,
+        method,
+        url,
+        data,
+        status,
+        qs=None,
+        urlconf=None,
+        args=None,
+        kwargs=None,
+        current_app=None,
+        msg=lambda r: getattr(r, 'data', r),
+        **call_kwargs
+    ):
         url = self.resolve(url, qs, urlconf, args, kwargs, current_app)
         response = getattr(self.client, method)(url, data, **call_kwargs)
         self.assertEqual(response.status_code, status, msg(response))

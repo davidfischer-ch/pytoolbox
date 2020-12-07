@@ -1,21 +1,11 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from pytoolbox import module
-
-try:
-    import enum
-    _Enum = enum.Enum
-except ImportError:
-    _Enum = object
+import enum
 
 from . import tag
 
-_all = module.All(globals())
+__all__ = ['Image', 'Orientation']
 
 
-class Orientation(_Enum):
+class Orientation(enum.Enum):
     NORMAL = 1
     HOR_FLIP = 2
     ROT_180_CCW = 3
@@ -41,7 +31,7 @@ class Image(tag.TagSet):
     }
 
     def __init__(self, metadata, orientation=None):
-        super(Image, self).__init__(metadata)
+        super().__init__(metadata)
         self._orientation = None if orientation is None else Orientation(orientation)
 
     @property
@@ -63,7 +53,7 @@ class Image(tag.TagSet):
         data = self.metadata['Exif.Image.Orientation'].data
         try:
             return Orientation(data)
-        except:
+        except Exception:  # pylint:disable=broad-except
             return None
 
     @property
@@ -73,6 +63,3 @@ class Image(tag.TagSet):
     @property
     def width(self):
         return self.clean_number(self.metadata.exiv2.get_pixel_width())
-
-
-__all__ = _all.diff(globals())

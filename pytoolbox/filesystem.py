@@ -1,38 +1,27 @@
-# -*- encoding: utf-8 -*-
-
 """
 Module related to file system and path operations.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import collections, copy, errno, os, shutil, tempfile, time, uuid
-from codecs import open  # pylint:disable=redefined-builtin
+import collections, copy, errno, grp, os, pwd, shutil, tempfile, time, uuid
 
 import magic
 
 from . import module
 from .datetime import datetime_now
-from .encoding import string_types, to_unicode
 from .regex import from_path_patterns
-
-try:
-    PermissionError
-except NameError:
-    PermissionError = None
 
 _all = module.All(globals())
 
 
 def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
     """
-    Change owner/group of a path, can be recursive. Both can be a name, an id or None to leave it
-    unchanged.
+    Change owner/group of a path, can be recursive.
+    Both can be a name, an id or None to leave it unchanged.
     """
     uid = to_user_id(user)
     gid = to_group_id(group)
     if recursive:
-        for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
+        for dirpath, _, filenames in os.walk(path, **walk_kwargs):
             os.chown(dirpath, uid, gid)
             for filename in filenames:
                 os.chown(os.path.join(dirpath, filename), uid, gid)
@@ -40,33 +29,39 @@ def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
         os.chown(path, uid, gid)
 
 
-def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
+def find_recursive(directory, patterns, regex=False, **walk_kwargs):
     """
-    Yield filenames matching any of the patterns. Patterns will be compiled to regular expressions,
-    if necessary.
+    Yield filenames matching any of the patterns.
+    Patterns will be compiled to regular expressions, if necessary.
 
-    If `unix_wildcards` is set to True, then any string pattern will be converted from
-    the unix-style wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
+    If `regex` is set to True, then any string pattern will be converted from the unix-style
+    wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
 
     **Example usage**
 
     >>> import re
-    >>> print(next(find_recursive('/etc', '*/interfaces*')))
-    /etc/network/interfaces
-    >>> filenames = list(find_recursive('/etc/network', ['*/interfaces*', '*/*.jpg']))
-    >>> '/etc/network/interfaces' in filenames
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> next(find_recursive(directory, '*/collections*'))
+    '.../pytoolbox/collections.py'
+    >>> filenames = sorted(find_recursive(directory, ['*/django*', '*/*.py']))
+    >>> [Path(f).name for f in filenames[-4:]]
+    ['unittest.py', 'validation.py', 'virtualenv.py', 'voluptuous.py']
+    >>> str(directory / 'aws' / 's3.py') in filenames
     True
-    >>> '/etc/network/interfaces.d' in filenames  # Its a directory
+    >>> str(directory / 'django') in filenames  # Its a directory
     False
-    >>> a = set(find_recursive('/etc', re.compile('.*/host.*')))
-    >>> b = set(find_recursive('/etc', ['.*/host.*'], unix_wildcards=False))
-    >>> len(a) > 0
+    >>> a_files = set(find_recursive(directory, re.compile(r'.*/st.+\\.py$')))
+    >>> b_files = set(find_recursive(directory, ['.*/st.+\\.py$'], regex=True))
+    >>> a_files == b_files
     True
-    >>> a == b
-    True
+    >>> [Path(f).name for f in sorted(a_files)]
+    ['storage.py', 'states.py', 'string.py']
     """
-    patterns = from_path_patterns(patterns, unix_wildcards=unix_wildcards)
-    for dirpath, dirnames, filenames in os.walk(directory, **walk_kwargs):
+    patterns = from_path_patterns(patterns, regex=regex)
+    for dirpath, _, filenames in os.walk(directory, **walk_kwargs):
         for filename in filenames:
             filename = os.path.join(dirpath, filename)
             if any(p.match(filename) for p in patterns):
@@ -74,8 +69,24 @@ def find_recursive(directory, patterns, unix_wildcards=True, **walk_kwargs):
 
 
 def file_mime(path, mime=True):
+    """
+    Return file mime type.
+
+    **Example usage**
+
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> file_mime(directory / '..' / 'setup.cfg')
+    'text/plain'
+    >>> file_mime(directory / 'filesystem.py') in ('text/plain', 'text/x-python')
+    True
+    >>> file_mime('missing-file') is None
+    True
+    """
     try:
-        return to_unicode(magic.from_file(path, mime=mime))
+        return magic.from_file(str(path), mime=mime)
     except OSError:
         return None
 
@@ -86,12 +97,18 @@ def first_that_exist(*paths):
 
     **Example usage**
 
-    >>> print(first_that_exist('', '/etc', '.'))
-    /etc
-    >>> print(first_that_exist('does_not_exist.com', '', '..'))
-    ..
-    >>> print(first_that_exist('does_not_exist.ch'))
-    None
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> first_that_exist('', '/etc', '.')
+    '/etc'
+    >>> first_that_exist('', directory) == directory
+    True
+    >>> first_that_exist('does_not_exist.com', '', '..')
+    '..'
+    >>> first_that_exist('does_not_exist.ch') is None
+    True
     """
     for path in paths:
         if os.path.exists(path):
@@ -99,8 +116,15 @@ def first_that_exist(*paths):
     return None
 
 
-def from_template(template, destination, values, is_file=True, jinja2=False, pre_func=None,
-                  post_func=None):
+def from_template(
+    template,
+    destination,
+    values,
+    is_file=True,
+    jinja2=False,
+    pre_func=None,
+    post_func=None
+):
     """
     Return a `template` rendered with `values` using string.format or jinja2 as the template engine.
 
@@ -112,36 +136,38 @@ def from_template(template, destination, values, is_file=True, jinja2=False, pre
 
     >>> template = '{{username={user}; password={pass}}}'
     >>> values = {'user': 'tabby', 'pass': 'miaow', 'other': 10}
-    >>> open('config.template', 'w', 'utf-8').write(template)
+    >>> with open('config.template', 'w') as f:
+    ...     f.write(template)
+    36
 
     The behavior when all keys are given (and even more):
 
     >>> _ = from_template('config.template', 'config', values)
-    >>> print(open('config', 'r', 'utf-8').read())
-    {username=tabby; password=miaow}
+    >>> open('config').read()
+    '{username=tabby; password=miaow}'
 
     >>> _ = from_template(template, 'config', values, is_file=False)
-    >>> print(open('config', 'r', 'utf-8').read())
-    {username=tabby; password=miaow}
+    >>> open('config').read()
+    '{username=tabby; password=miaow}'
 
     >>> def post_func(content, values, jinja2):
     ...     return content.replace('tabby', 'tikky')
-    >>> print(from_template(template, None, values, is_file=False, post_func=post_func))
-    {username=tikky; password=miaow}
+    >>> from_template(template, None, values, is_file=False, post_func=post_func)
+    '{username=tikky; password=miaow}'
 
     The behavior if a value for a key is missing:
 
-    >>> from_template('config.template', 'config', {'pass': 'miaow', 'other': 10})  # doctest: +ELLIPSIS
+    >>> from_template('config.template', 'config', {'pass': 'miaow', 'other': 10})
     Traceback (most recent call last):
         ...
     KeyError: ...'user'
-    >>> print(open('config', 'r', 'utf-8').read())
-    {username=tabby; password=miaow}
+    >>> open('config').read()
+    '{username=tabby; password=miaow}'
 
     >>> os.remove('config.template')
     >>> os.remove('config')
     """
-    content = open(template, 'r', 'utf-8').read() if is_file else template
+    content = open(template, 'r').read() if is_file else template
     if pre_func:
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
@@ -152,7 +178,7 @@ def from_template(template, destination, values, is_file=True, jinja2=False, pre
     if post_func:
         content = post_func(content, values=values, jinja2=jinja2)
     if destination:
-        with open(destination, 'w', 'utf-8') as f:
+        with open(destination, 'w') as f:
             f.write(content)
     return content
 
@@ -174,71 +200,107 @@ def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
             else:
                 yield f.read()
     else:
-        yield path_or_data.encode(encoding) if isinstance(path_or_data, string_types) else path_or_data
+        yield path_or_data.encode(encoding) if isinstance(path_or_data, str) else path_or_data
 
 
-def get_size(path, **walk_kwargs):
+def get_size(path, patterns='*', regex=False, **walk_kwargs):
     """
     Returns the size of a file or directory.
 
-    If given `path` is a directory (or symlink to a directory), then returned value is computed by summing the size of
-    all files, and that recursively.
-    """
-    if os.path.isfile(path):
-        return os.stat(path).st_size
-    size = 0
-    for dirpath, dirnames, filenames in os.walk(path, **walk_kwargs):
-        for filename in filenames:
-            size += os.stat(os.path.join(dirpath, filename)).st_size
-    return size
-
-
-def makedirs(path, parent=False):
-    """
-    Recursively make directories (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if directory found and re-raise any other type of exception.
+    If given `path` is a directory (or symlink to a directory), then returned value is computed by
+    summing the size of all files, and that recursively.
 
     **Example usage**
 
-    >>> import shutil
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> get_size(directory / '..' / 'setup.py')
+    7928
+    >>> get_size(directory/ '..', '*.yml')
+    647
+    >>> 75000 < get_size(directory/ '..', '.*/v.*\\.py', regex=True) < 80000
+    True
+    """
+    if os.path.isfile(path):
+        return os.stat(path).st_size
+    return sum(
+        os.stat(f).st_size
+        for f in find_recursive(path, patterns, regex=regex, **walk_kwargs))
+
+
+def makedirs(path, mode=0o777, parent=False):
+    """
+    Recursively make directories (which may already exists) without throwing an exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type
+    of exception (raised by `os.makedirs`).
+
+    **Example usage**
+
+    >>> import os, shutil
+    >>> from pathlib import Path
+    >>>
+    >>> filesystem_py = Path(__file__).resolve()
+    >>>
     >>> makedirs('/etc')
     False
     >>> makedirs('/tmp/salut/mec')
     True
-    >>> shutil.rmtree('/tmp/salut/mec')
+    >>> shutil.rmtree('/tmp/salut')
+    >>>
+    >>> makedirs('/tmp/some/path/file.txt', parent=True)
+    True
+    >>> os.path.exists('/tmp/some/path')
+    True
+    >>> os.path.exists('/tmp/some/path/file.txt')
+    False
+    >>> shutil.rmtree('/tmp/some')
+    >>>
+    >>> makedirs(filesystem_py)
+    Traceback (most recent call last):
+        ...
+    FileExistsError: ...
     """
     if parent:
         path = os.path.dirname(path)
     try:
-        os.makedirs(path)
+        os.makedirs(path, mode=mode)
         return True
     except OSError as e:
-        # File exists
-        if e.errno == errno.EEXIST:
+        # Directory exists
+        if e.errno == errno.EEXIST and os.path.isdir(path):
             return False
         raise  # Re-raise exception if a different error occurred
-try_makedirs = makedirs
 
 
-def recursive_copy(source_path, destination_path, progress_callback=None, ratio_delta=0.01,
-                   time_delta=1, check_size=True, remove_on_error=True):
+def recursive_copy(  # pylint:disable=too-many-locals
+    source_path,
+    destination_path,
+    progress_callback=None,
+    ratio_delta=0.01,
+    time_delta=1,
+    check_size=True,
+    remove_on_error=True
+):
     """
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
 
-    Given `progress_callback` will be called with *start_date*, *elapsed_time*, *eta_time*, *src_size*, *dst_size* and
-    *ratio*. Set `remove_on_error` to remove the destination directory in case of error.
+    Given `progress_callback` will be called with *start_date*, *elapsed_time*, *eta_time*,
+    *src_size*, *dst_size* and *ratio*. Set `remove_on_error` to remove the destination directory
+    in case of error.
 
     This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
-    At the end of the copy, if the size of the destination directory is not equal to the source then a `IOError` is
-    raised.
+    At the end of the copy, if the size of the destination directory is not equal to the source
+    then a `IOError` is raised.
     """
     try:
         start_date, start_time = datetime_now(), time.time()
         src_size, dst_size = get_size(source_path), 0
 
         # Recursive copy of a directory of files
-        for src_root, dirnames, filenames in os.walk(source_path):
+        for src_root, _, filenames in os.walk(source_path):
             for filename in filenames:
                 dst_root = src_root.replace(source_path, destination_path)
                 src_path = os.path.join(src_root, filename)
@@ -260,19 +322,33 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
                     except ZeroDivisionError:
                         ratio = 1.0
                     elapsed_time = time.time() - start_time
+
                     # Update status of job only if delta time or delta ratio is sufficient
-                    if progress_callback is not None and \
-                            ratio - prev_ratio > ratio_delta and elapsed_time - prev_time > time_delta:
+                    if (
+                        progress_callback is not None
+                        and ratio - prev_ratio > ratio_delta
+                        and elapsed_time - prev_time > time_delta
+                    ):
                         prev_ratio = ratio
                         prev_time = elapsed_time
                         eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
-                        progress_callback(start_date, elapsed_time, eta_time, src_size, dst_size, ratio)
+                        progress_callback(
+                            start_date,
+                            elapsed_time,
+                            eta_time,
+                            src_size,
+                            dst_size,
+                            ratio)
+
                     block_length = len(block)
                     block_pos += block_length
                     dst_size += block_length
+
                     if not block:
                         break  # End of input reached
+
                     dst_file.write(block)
+
                 # FIXME maybe a finally block for that
                 src_file.close()
                 dst_file.close()
@@ -281,13 +357,11 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
         if check_size:
             dst_size = get_size(destination_path)
             if dst_size != src_size:
-                raise IOError(
-                    'Destination size does not match source ({0} vs {1})'
-                    .format(src_size, dst_size))
+                raise IOError(f'Destination size does not match source ({src_size} vs {dst_size})')
 
         elapsed_time = time.time() - start_time
         return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
-    except:
+    except Exception:
         if remove_on_error:
             shutil.rmtree(destination_path, ignore_errors=True)
         raise
@@ -296,11 +370,14 @@ def recursive_copy(source_path, destination_path, progress_callback=None, ratio_
 def remove(path, recursive=False):
     """
     Remove a file/directory (which may not exists) without throwing an exception.
-    Returns True if operation is successful, False if file/directory not found and re-raise any other type of exception.
+    Returns True if operation is successful, False if file/directory not found and re-raise any
+    other type of exception.
 
     **Example usage**
 
-    >>> open('remove.example', 'w', encoding='utf-8').write('salut les pépés')
+    >>> with open('remove.example', 'w') as f:
+    ...     f.write('salut les pépés')
+    15
     >>> remove('remove.example')
     True
     >>> remove('remove.example')
@@ -308,7 +385,11 @@ def remove(path, recursive=False):
 
     >>> for file_name in ('remove/a', 'remove/b/c', 'remove/d/e/f'):
     ...     _ = makedirs(os.path.dirname(file_name))
-    ...     open(file_name, 'w', encoding='utf-8').write('salut les pépés')
+    ...     with open(file_name, 'w') as f:
+    ...         f.write('salut les pépés')
+    15
+    15
+    15
     >>> remove('remove/d/e', recursive=True)
     True
     >>> remove('remove/d/e', recursive=True)
@@ -325,8 +406,8 @@ def remove(path, recursive=False):
         except Exception as e:
             # Is a directory and recursion is allowed
             if recursive and (
-                isinstance(e, OSError) and e.errno == errno.EISDIR or
-                PermissionError is not None and isinstance(e, PermissionError)
+                isinstance(e, OSError) and e.errno == errno.EISDIR  # pylint:disable=no-member
+                or PermissionError is not None and isinstance(e, PermissionError)
             ):
                 shutil.rmtree(path)
                 return True
@@ -336,7 +417,6 @@ def remove(path, recursive=False):
         if e.errno == errno.ENOENT:
             return False
         raise  # Re-raise exception if a different error occurred
-try_remove = remove
 
 
 def symlink(source, link_name):
@@ -387,39 +467,57 @@ def symlink(source, link_name):
         link_name = os.path.expanduser(link_name)
         os.symlink(source, link_name)
         return True
-    except OSError as e1:
+    except OSError as e1:  # pylint:disable=invalid-name
         # File exists
         if e1.errno == errno.EEXIST:
             try:
                 if os.path.samefile(source, link_name):
                     return False
-            except OSError as e2:
+            except OSError as e2:  # pylint:disable=invalid-name
                 # Handle broken symlink that point to same target
                 target = os.path.expanduser(os.readlink(link_name))
                 if e2.errno == errno.ENOENT:
                     if target == source:
                         return False
-                    else:
-                        raise OSError(errno.EEXIST, 'File exists')
+                    raise OSError(errno.EEXIST, 'File exists')  # pylint:disable=raise-missing-from
                 raise
         raise  # Re-raise exception if a different error occurred
-try_symlink = symlink
 
 
-try:
-    import pwd, grp
-except ImportError:
-    pass
-else:
-    def to_user_id(user):
-        if isinstance(user, string_types):
-            return pwd.getpwnam(user).pw_uid
-        return -1 if user is None else user
+def to_user_id(user):
+    """
+    Return user ID.
 
-    def to_group_id(group):
-        if isinstance(group, string_types):
-            return grp.getgrnam(group).gr_gid
-        return -1 if group is None else group
+    **Example usage**
+
+    >>> to_user_id('root')
+    0
+    >>> to_user_id(0)
+    0
+    >>> to_user_id(None)
+    -1
+    """
+    if isinstance(user, str):
+        return pwd.getpwnam(user).pw_uid
+    return -1 if user is None else user
+
+
+def to_group_id(group):
+    """
+    Return group ID.
+
+    **Example usage**
+
+    >>> to_group_id('root')
+    0
+    >>> to_group_id(0)
+    0
+    >>> to_group_id(None)
+    -1
+    """
+    if isinstance(group, str):
+        return grp.getgrnam(group).gr_gid
+    return -1 if group is None else group
 
 
 class TempStorage(object):
@@ -431,11 +529,12 @@ class TempStorage(object):
     As a context manager:
 
     >>> import os
-    >>> from pytoolbox.unittest import asserts
     >>> with TempStorage() as tmp:
     ...     directory = tmp.create_tmp_directory()
-    ...     asserts.true(os.path.isdir(directory))
-    >>> asserts.false(os.path.isdir(directory))
+    ...     os.path.isdir(directory)
+    True
+    >>> os.path.isdir(directory)
+    False
     """
     def __init__(self, root=None):
         self.root = root or tempfile.gettempdir()
@@ -445,7 +544,7 @@ class TempStorage(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, kind, value, traceback):
         self.remove_all()
 
     def create_tmp_directory(self, path='tmp-{uuid}', key=None, user=None, group=None):
@@ -453,10 +552,10 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> directory = tmp.create_tmp_directory()
-        >>> asserts.true(os.path.isdir(directory))
+        >>> os.path.isdir(directory)
+        True
         >>> tmp.remove_all()
         """
         directory = os.path.join(self.root, path.format(uuid=uuid.uuid4().hex))
@@ -466,32 +565,47 @@ class TempStorage(object):
         chown(directory, user, group, recursive=True)
         return directory
 
-    def create_tmp_file(self, path='tmp-{uuid}', extension=None, encoding='utf-8', key=None,
-                        user=None, group=None, return_file=True):
+    def create_tmp_file(
+        self,
+        path='tmp-{uuid}',
+        extension=None,
+        encoding='utf-8',
+        key=None,
+        user=None,
+        group=None,
+        return_file=True
+    ):
         """
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> path = tmp.create_tmp_file(encoding=None, return_file=False)
-        >>> asserts.true(os.path.isfile(path))
+        >>> os.path.isfile(path)
+        True
         >>> with tmp.create_tmp_file(extension='txt') as f:
-        ...     asserts.true(os.path.isfile(f.name))
-        ...     f.write('Je suis une théière')
+        ...     assert os.path.isfile(f.name)
+        ...     length = f.write('Je suis une théière')
         ...     path = f.name
-        >>> asserts.equal(open(path, encoding='utf-8').read(), 'Je suis une théière')
+        >>> length
+        19
+        >>> open(path).read()
+        'Je suis une théière'
         >>> tmp.remove_all()
         """
         mode = 'w' if encoding else 'wb'
         path = os.path.join(
             self.root,
-            path.format(uuid=uuid.uuid4().hex) + ('.%s' % extension if extension else ''))
+            path.format(uuid=uuid.uuid4().hex) + (f'.{extension}' if extension else ''))
+
         self._path_to_key[path] = key
         self._paths_by_key[key].add(path)
+
         with open(path, mode, encoding=encoding):
             pass
+
         chown(path, user, group)
+
         return open(path, mode, encoding=encoding) if return_file else path
 
     def remove_by_path(self, path):
@@ -517,15 +631,17 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_by_key(10)
-        >>> asserts.true(os.path.isdir(d1))
-        >>> asserts.false(os.path.isdir(d2))
+        >>> os.path.isdir(d1)
+        True
+        >>> os.path.isdir(d2)
+        False
         >>> tmp.remove_by_key()
-        >>> asserts.false(os.path.isdir(d1))
+        >>> os.path.isdir(d1)
+        False
         """
         paths = self._paths_by_key[key]
         for path in copy.copy(paths):
@@ -539,16 +655,17 @@ class TempStorage(object):
         **Example usage**
 
         >>> import os
-        >>> from pytoolbox.unittest import asserts
         >>> tmp = TempStorage()
         >>> d1 = tmp.create_tmp_directory()
         >>> d2 = tmp.create_tmp_directory(key=10)
         >>> tmp.remove_all()
-        >>> asserts.false(os.path.isdir(d1))
-        >>> asserts.false(os.path.isdir(d2))
+        >>> os.path.isdir(d1)
+        False
+        >>> os.path.isdir(d2)
+        False
         >>> tmp.remove_all()
         """
-        for key in self._paths_by_key.copy().iterkeys():
+        for key in self._paths_by_key.copy().keys():
             self.remove_by_key(key)
 
 

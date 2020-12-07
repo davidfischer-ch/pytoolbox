@@ -1,20 +1,11 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import copy
 
 from pytoolbox import types
 
-from . import base
 
-
-class TestTypes(base.TestCase):
-
-    tags = ('types', )
-
-    def test_Missing(self):
-        self.equal('{0}'.format(types.Missing), 'Missing')
-        self.false(bool(types.Missing))
-        self.is_missing(copy.copy(types.Missing))
-        self.is_missing(copy.deepcopy(types.Missing))
+def test_missing():
+    assert f'{types.Missing}' == 'Missing'
+    assert types.Missing is not False
+    assert bool(types.Missing) is False
+    assert copy.copy(types.Missing) is types.Missing
+    assert copy.deepcopy(types.Missing) is types.Missing

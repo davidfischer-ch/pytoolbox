@@ -17,18 +17,18 @@ def get_bucket_location(s3, bucket_name):
 
 
 def get_object_url(bucket_name, location, key):
-    return 'https://s3-{1}.amazonaws.com/{0}/{2}'.format(bucket_name, location, key)
+    return f'https://s3-{location}.amazonaws.com/{bucket_name}/{key}'
 
 
-def list_objects(s3, bucket_name, prefix='', patterns='*', unix_wildcards=True):
+def list_objects(s3, bucket_name, prefix='', patterns='*', regex=False):
     if prefix and prefix[-1] != '/':
         prefix += '/'
-    patterns = from_path_patterns(patterns, unix_wildcards=unix_wildcards)
+    patterns = from_path_patterns(patterns, regex=regex)
     for page in s3.get_paginator('list_objects').paginate(Bucket=bucket_name, Prefix=prefix):
         try:
             objects = page['Contents']
         except KeyError:
-            raise StopIteration
+            return
         for obj in objects:
             key = obj['Key']
             if any(p.match(key) for p in patterns):
@@ -60,15 +60,22 @@ def read_object(s3, bucket_name, path, file=None, fail=True):
         raise
 
 
-def remove_objects(s3, bucket_name, prefix='', patterns=r'*', callback=lambda obj: True,
-                   simulate=False, unix_wildcards=True):
+def remove_objects(
+    s3,
+    bucket_name,
+    prefix='',
+    patterns=r'*',
+    callback=lambda obj: True,
+    regex=False,
+    simulate=False
+):
     """
     Remove objects matching pattern, by chunks of 1000 to be efficient.
 
     * Set `callback` to a function returning True if given object has to be removed.
     """
     objects = []
-    for obj in list_objects(s3, bucket_name, prefix, patterns, unix_wildcards=unix_wildcards):
+    for obj in list_objects(s3, bucket_name, prefix, patterns, regex=regex):
         if callback(obj):
             key = obj['Key']
             objects.append({'Key': key})

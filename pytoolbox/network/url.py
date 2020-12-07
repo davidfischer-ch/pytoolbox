@@ -1,10 +1,8 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from urlparse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit
 
 from pytoolbox import string
+
+__all__ = ['with_subdomain']
 
 
 def with_subdomain(url, subdomain=None):

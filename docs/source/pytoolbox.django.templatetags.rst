@@ -2,6 +2,6 @@ pytoolbox.django.templatetags module
 ====================================
 
 .. automodule:: pytoolbox.django.templatetags
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 
 # **************************************************************************************************
 #                              PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2018 David Fischer. All rights reserved.
+#  Copyright      : Copyright (c) 2012-2020 David Fischer. All rights reserved.
 #
 # **************************************************************************************************
 #
@@ -24,114 +23,173 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-from __future__ import absolute_import, division, print_function
-
-import itertools, os, setuptools, shutil, subprocess, sys
-from codecs import open  # pylint:disable=redefined-builtin
-from setuptools.command import develop, install, test
+import itertools, setuptools, subprocess, sys
+from pathlib import Path
+from setuptools.command import develop, install
 
 import pytoolbox
 
-try:
-    # Check if import succeed and print the exception because setup() stack-trace is useless
-    from tests import pytoolbox_runtests  # noqa
-except Exception as e:
-    sys.stderr.write(
-        'WARNING importing pytoolbox_runtests raised the following error: '
-        '{0}{1.linesep}'.format(e, os))
-
-PY2 = sys.version_info[0] < 3
+if sys.argv[-1] == 'test':
+    sys.exit('Run pytest instead.')
 
 install_requires = [
     'argparse',
     'pyaml',
     'python-magic',
     'pytz',
-    'requests',
-    'six'
+    'requests'
 ]
 
 try:
-    import grp  # noqa
+    import grp
+    _ = grp
 except ImportError:
     # Required on Windows
     install_requires.append('python-magic-bin')
 
 extras_require = {
-    'atlassian': ['jira'],
-    'aws': ['boto3'],
-    'django': ['django'],
-    'django_filter': ['django-filter'],
-    'django_formtools': ['django-formtools'],
-    'flask': ['flask'],
-    'imaging': ['pillow'],
-    'jinja2': ['jinja2'],
-    'logging': ['termcolor'],
-    'mongo': ['celery', 'passlib', 'pymongo'],
-    'network': ['tldextract'],
-    'pandas': ['ezodf', 'pandas'],
-    'rest_framework': ['django-oauth-toolkit', 'djangorestframework>=3'],
-    'selenium': ['selenium'],
-    'smpte2022': ['fastxor'],
-    'unittest': ['mock', 'nose'],
-    'vision': ['dlib', 'keras', 'numpy', 'opencv-python', 'tensorflow'],
-    'voluptuous': ['voluptuous']
+    'atlassian': [
+        'jira'
+    ],
+    'aws': [
+        'boto3'
+    ],
+    'django': [
+        'django'
+    ],
+    'django_filter': [
+        'django-filter'
+    ],
+    'django_formtools': [
+        'django-formtools'
+    ],
+    'flask': [
+        'flask'
+    ],
+    'imaging': [
+        'pillow'
+    ],
+    'jinja2': [
+        'jinja2'
+    ],
+    'logging': [
+        'termcolor'
+    ],
+    'network': [
+        'tldextract'
+    ],
+    'pandas': [
+        'ezodf',
+        'lxml',
+        'pandas'
+    ],
+    'rest_framework': [
+        'django-oauth-toolkit',
+        'djangorestframework>=3'
+    ],
+    'selenium': [
+        'selenium'
+    ],
+    'smpte2022': [
+        'fastxor'
+    ],
+    'unittest': [
+        'mock'
+    ],
+    'vision': [
+        'dlib',
+        'keras',
+        'numpy',
+        'opencv-python',
+        'tensorflow'
+    ],
+    'voluptuous': [
+        'voluptuous'
+    ]
 }
 
-# Why not installing following packages for python 3 ?
-#
-# * hashlib, ipaddr: Part of python 3 standard library
-# * sudo pip-3.3 install kitchen -> AttributeError: 'module' object has no attribute 'imap'
+features = ['all'] + sorted(extras_require) + ['doc', 'test']
 
-if PY2:
-    try:
-        import hashlib  # noqa
-    except ImportError:
-        install_requires.append('hashlib')
-    install_requires.extend([
-        'backports.lzma',
-        'ipaddr',
-        'kitchen'
-    ])
+labels = {
+    # Features
+    'all': 'All Modules',
+    'atlassian': 'Atlassian',
+    'aws': 'AWS',
+    'django': 'Django',
+    'django_filter': 'Django Filter',
+    'django_formtools': 'Django Form Tools',
+    'flask': 'Flask',
+    'imaging': 'Imaging',
+    'jinja2': 'Jinja2',
+    'logging': 'Logging',
+    'network': 'Networking',
+    'pandas': 'Pandas',
+    'rest_framework': 'Django REST Framework',
+    'selenium': 'Selenium',
+    'smpte2022': 'SMPTE-2022',
+    'unittest': 'Unit Test',
+    'vision': 'Vision',
+    'voluptuous': 'Voluptuous',
+
+    # Actions
+    'doc': 'Pytoolbox Docs',
+    'test': 'Pytoolbox Tests',
+}
+
+extras_require.update({
+    'all': sorted(set(itertools.chain.from_iterable(extras_require.values()))),
+    'doc': [
+        'sphinx>=1.3.1',
+        'sphinx_rtd_theme'
+    ],
+    'test': [
+        'coverage>=5.3<6',         # 30-11-2020 Released 13-09-2020
+        'pylint>=2.6<3',           # 30-11-2020 Released 21-08-2020
+        'pytest>=6.1.2<7',         # 30-11-2020 Released 28-10-2020
+        'pytest-cov>=2.10.1<3',    # 30-11-2020 Released 14-08-2020
+        'pytest-flake8>=1.0.6<2',  # 30-11-2020 Released 13-05-2020
+        'pytest-pylint>=0.18.0<1'  # 30-11-2020 Released 09-11-2020
+    ]
+})
 
 
-def get_command_with_extras(cls, extras_require):
+def get_command_with_extras(cls):
 
     class WithExtra(cls):
 
-        user_options = list(itertools.chain(cls.user_options, [
-            ('extra-all', None, 'Install dependencies for all features.')
-        ], [
-            (
-                'extra-{0}'.format(e.replace('_', '-')), None,
-                'Install dependencies for the feature {0}.'.format(e)
-            ) for e in sorted(extras_require.keys())
-        ]))
-        boolean_options = list(itertools.chain(
-            getattr(cls, 'boolean_options', []), ['extra-all'], [o[0] for o in user_options]
-        ))
+        user_options = [
+            *cls.user_options,
+            *[
+                (
+                    f"extra-{feature.replace('_', '-')}", None,
+                    f'Install dependencies for {labels[feature]}.'
+                ) for feature in features
+            ]
+        ]
+
+        boolean_options = [
+            *getattr(cls, 'boolean_options', []),
+            'extra-all',
+            *[o[0] for o in user_options]
+        ]
 
         def initialize_options(self):
             cls.initialize_options(self)
-            self.extra_all = None
-            for extra in extras_require.keys():
-                setattr(self, 'extra_{0}'.format(extra), None)
+            for feature in features:
+                setattr(self, f'extra_{feature}', None)
 
         def finalize_options(self):
             cls.finalize_options(self)
-            for extra in extras_require.keys():
-                if (
-                    (self.extra_all or getattr(self, 'extra_{0}'.format(extra))) and
-                    extra in extras_require
-                ):
-                    print('Enable dependencies for feature/module {0}'.format(extra))
+            for feature in features:
+                if getattr(self, f'extra_{feature}'):
+                    print(f'Enable dependencies for {labels[feature]}')
                     self.distribution.install_requires.extend(
-                        self.distribution.extras_require[extra])
+                        self.distribution.extras_require[feature])
 
     return WithExtra
 
 
-class docs(setuptools.Command):
+class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
 
     description = 'Generate documentation using Sphinx'
     user_options = []
@@ -142,38 +200,35 @@ class docs(setuptools.Command):
     def finalize_options(self):
         pass
 
-    def run(self):
-        from pytoolbox import encoding, filesystem
-        from pytoolbox.subprocess import cmd
-
-        encoding.configure_unicode()
-
-        docs_directory = os.path.join(os.path.dirname(__file__), 'docs')
-        source_directory = os.path.join(docs_directory, 'source')
-        package_directory = os.path.join(os.path.dirname(__file__), 'pytoolbox')
+    def run(self):  # pylint:disable=no-self-use
+        from pytoolbox import filesystem
+        project = Path(__file__).resolve().parent
+        source = project / 'docs' / 'source'
 
         # Cleanup previously generated restructured files
-        for path in filesystem.find_recursive(
-            source_directory, r'^pytoolbox.*\.rst$', unix_wildcards=False
-        ):
-            os.remove(path)
+        for path in filesystem.find_recursive(source, r'^pytoolbox.*\.rst$', regex=True):
+            filesystem.remove(path)
 
-        cmd([
-            'sphinx-apidoc', '--force', '--module-first', '--separate', '-o',
-            source_directory, package_directory
-        ])
-        shutil.rmtree(os.path.join(docs_directory, 'build', 'html'), ignore_errors=True)
-        subprocess.check_call(['make', 'html'], cwd=docs_directory)
+        subprocess.run([
+            'sphinx-apidoc',
+            '--force',
+            '--module-first',
+            '--separate',
+            '-o', source,
+            project / 'pytoolbox'
+        ], check=True)
+        filesystem.remove(project / 'docs' / 'build' / 'html', recursive=True)
+        subprocess.run(['make', 'html'], cwd=project / 'docs', check=True)
 
 
 setuptools.setup(
     cmdclass={
-        'docs': docs,
-        'develop': get_command_with_extras(develop.develop, extras_require),
-        'install': get_command_with_extras(install.install, extras_require),
-        'test': get_command_with_extras(test.test, extras_require)
+        'docs': DocsCommand,
+        'develop': get_command_with_extras(develop.develop),
+        'install': get_command_with_extras(install.install)
     },
     name='pytoolbox',
+    python_requires='>=3.6',
     version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={
@@ -182,13 +237,7 @@ setuptools.setup(
     },
     extras_require=extras_require,
     install_requires=install_requires,
-    tests_require=[
-        'coverage', 'mock', 'nose', 'nose-exclude',
-        'sphinx>=1.3.1', 'sphinx_rtd_theme'  # This is for the documentation
-    ],
-    test_suite='tests.pytoolbox_runtests.main',
-    use_2to3=True,
-    use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
+    tests_require=extras_require['test'],
 
     # Meta-data for upload to PyPI
     author='David Fischer',
@@ -203,24 +252,32 @@ setuptools.setup(
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     description='Toolbox for Python scripts',
     keywords=[
-        'celery', 'ffmpeg', 'django', 'flask', 'json', 'juju', 'mock', 'mongodb', 'pil', 'rsync',
-        'rtp', 'selenium', 'smpte 2022-1', 'screen', 'subprocess'
+        'celery',
+        'ffmpeg',
+        'django',
+        'flask',
+        'json',
+        'juju',
+        'mock',
+        'pillow',
+        'rsync',
+        'rtp',
+        'selenium',
+        'smpte 2022-1',
+        'screen',
+        'subprocess'
     ],
     license='EUPL 1.1',
-    long_description=open('README.rst', 'r', encoding='utf-8').read(),
+    long_description=open('README.rst', 'r').read(),
     url='https://github.com/davidfischer-ch/pytoolbox'
 )

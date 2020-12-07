@@ -1,15 +1,9 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime
 
-from pytoolbox import exceptions, module
-from pytoolbox.encoding import string_types
-
+from pytoolbox import exceptions
 from . import camera, image, lens, photo, tag
 
-_all = module.All(globals())
+__all__ = ['Metadata']
 
 
 class Metadata(object):
@@ -21,9 +15,9 @@ class Metadata(object):
     tag_class = tag.Tag
 
     def __init__(self, path=None, buf=None, orientation=None, gexiv2_version='0.10'):
-        import gi
+        import gi  # pylint:disable=import-error
         gi.require_version('GExiv2', gexiv2_version)
-        from gi.repository import GExiv2
+        from gi.repository import GExiv2  # pylint:disable=import-error
         self.path = path
         self.exiv2 = GExiv2.Metadata()
         if buf:
@@ -48,19 +42,22 @@ class Metadata(object):
     def tags(self):
         return {k: self[k] for k in self.exiv2.get_tags()}
 
-    def get_date(self, keys=('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'), fail=True):
-        for key in ([keys] if isinstance(keys, string_types) else keys):
+    def get_date(self, keys=('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')):
+        if isinstance(keys, str):
+            keys = [keys]
+        for key in keys:
             date = self[key].data
             if isinstance(date, datetime.datetime):
                 return date
+        return None
 
     def rewrite(self, path=None, save=False):
         """
         Iterate over all tags and rewrite them to fix issues (e.g. GExiv2: Invalid ifdId 103 (23)).
         """
-        tags = {k: str(v.data) for k, v in self.tags.iteritems()}
+        tags = {k: str(v.data) for k, v in self.tags.items()}
         self.exiv2.clear()
-        for key, value in tags.iteritems():
+        for key, value in tags.items():
             self[key] = value
         if save:
             self.save_file(path=path)
@@ -69,6 +66,3 @@ class Metadata(object):
         if not path and not self.path:
             raise exceptions.UndefinedPathError()
         return self.exiv2.save_file(path=path or self.path)
-
-
-__all__ = _all.diff(globals())

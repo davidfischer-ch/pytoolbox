@@ -1,10 +1,4 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pytoolbox.comparison import SlotsEqualityMixin
-
-from . import base
 
 
 class Point2D(SlotsEqualityMixin):
@@ -32,27 +26,25 @@ class Point3D(SlotsEqualityMixin):
         self.name = name
 
 
-class TestSlotsEqualityMixin(base.TestCase):
+def test_equality_same_class():
+    point_1 = Point2D(10, -3, 'dot')
+    point_2 = Point2D(10, -3, 'dot')
+    point_3 = Point2D(10, -4, 'dot')
+    if not (point_1 == point_2 and point_1 != point_3):
+        raise ValueError()
 
-    tags = ('comparison', )
 
-    def test_equality_same_class(self):
-        p1 = Point2D(10, -3, 'dot')
-        p2 = Point2D(10, -3, 'dot')
-        p3 = Point2D(10, -4, 'dot')
-        self.equal(p1, p2)
-        self.not_equal(p1, p3)
+def test_equality_inheritance():
+    point_1 = Point2D(10, -3, 'dot')
+    point_2 = Point2Dv2(10, -3, 'dot')
+    point_3 = Point2Dv2(10, -4, 'dot')
+    if not (point_1 == point_2 and point_1 != point_3):
+        raise AssertionError()
 
-    def test_equality_inheritance(self):
-        p1 = Point2D(10, -3, 'dot')
-        p2 = Point2Dv2(10, -3, 'dot')
-        p3 = Point2Dv2(10, -4, 'dot')
-        self.equal(p1, p2)
-        self.not_equal(p1, p3)
 
-    def test_equality_different_class(self):
-        p1 = Point2D(10, -3, 'dot')
-        p2 = Point3D(10, -3, 5, 'dot')
-        p3 = Point3D(10, -4, 2, 'dot')
-        self.not_equal(p1, p2)
-        self.not_equal(p1, p3)
+def test_equality_different_class():
+    point_1 = Point2D(10, -3, 'dot')
+    point_2 = Point3D(10, -3, 5, 'dot')
+    point_3 = Point3D(10, -4, 2, 'dot')
+    if point_1 in (point_2, point_3):
+        raise AssertionError()

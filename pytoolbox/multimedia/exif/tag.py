@@ -1,17 +1,11 @@
-# -*- encoding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import datetime, re
 from fractions import Fraction
 
-from pytoolbox import decorators, module
+from pytoolbox import decorators
 from pytoolbox.datetime import str_to_datetime, str_to_time
-from pytoolbox.encoding import string_types
+from . import brand  # pylint:disable=unused-import
 
-from . import brand
-
-_all = module.All(globals())
+__all__ = ['Tag', 'TagSet']
 
 
 class Tag(object):
@@ -53,7 +47,7 @@ class Tag(object):
         self.key = key
 
     def __repr__(self):
-        return '<{0.__class__.__name__} {0.key}: {1}>'.format(self, str(self.data)[:20])
+        return f'<{self.__class__.__name__} {self.key}: {str(self.data)[:20]}>'
 
     @property
     def data(self):
@@ -76,8 +70,9 @@ class Tag(object):
 
     @property
     def brand(self):
-        if self.group not in self.group_to_brand_blacklist:
-            return self.brand_class(self.group)
+        if self.group in self.group_to_brand_blacklist:
+            return None
+        return self.brand_class(self.group)
 
     @property
     def group(self):
@@ -96,24 +91,24 @@ class Tag(object):
         tag_type = self.metadata.exiv2.get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
-        except KeyError:
+        except KeyError as e:
             if tag_type:
-                raise KeyError('Unknow tag type {0}'.format(tag_type))
+                raise KeyError(f'Unknow tag type {tag_type}') from e
         return bytes
 
     def clean(self, data):
-        if isinstance(data, string_types):
+        if isinstance(data, str):
             data = data.strip()
         if self.type == datetime.time:
             return str_to_time(data)
-        elif self.type == datetime.datetime or isinstance(data, string_types):
+        if self.type == datetime.datetime or isinstance(data, str):
             cleaned_data = self.date_clean_regex.sub('', data)
             for date_format in self.date_formats:
                 date = str_to_datetime(cleaned_data, date_format, fail=False)
                 if date:
                     return date
-        assert not data or \
-            isinstance(data, self.type), '{0.key} {0.type} {1} {2}'.format(self, data, type(data))
+        assert not data or isinstance(data, self.type), \
+            f'{self.key} {self.type} {data} {type(data)}'
         return data
 
     def get_type_hook(self):
@@ -129,6 +124,3 @@ class TagSet(object):
 
     def __init__(self, metadata):
         self.metadata = metadata
-
-
-__all__ = _all.diff(globals())
