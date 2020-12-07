@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 from pytoolbox import exceptions
 
 
@@ -23,5 +23,5 @@ def test_message_mixin_to_string_missing_key():
         'Ten equals {ten} an empty dict {dict} a string is a {string}',
         ten=10,
         dict={})
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         str(ex)

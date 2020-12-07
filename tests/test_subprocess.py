@@ -1,6 +1,6 @@
 import mock
 
-from pytest import raises
+import pytest
 from pytoolbox import regex, subprocess
 from pytoolbox.validation import validate_list
 
@@ -48,7 +48,7 @@ def test_retry_first_try():
 
 def test_retry_missing_binary_no_retry():
     log = mock.Mock()
-    with raises(OSError):
+    with pytest.raises(OSError):
         subprocess.cmd('hfuejnvwqkdivengz', log=log, tries=5)
     validate_list(log.call_args_list, [
         r"call\(u*'Execute hfuejnvwqkdivengz'\)",

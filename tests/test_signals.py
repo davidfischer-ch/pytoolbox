@@ -1,6 +1,6 @@
 import os, signal, unittest
 
-from pytest import raises
+import pytest
 from pytoolbox import exceptions, signals
 
 
@@ -62,7 +62,7 @@ class TestSignals(unittest.TestCase):
     def test_callback_unauthorized_append(self):
         self.name = 'test_callback_unauthorized_append'
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
-        with raises(exceptions.MultipleSignalHandlersError):
+        with pytest.raises(exceptions.MultipleSignalHandlersError):
             signals.register_callback(
                 signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
         os.kill(os.getpid(), signal.SIGTERM)

@@ -37,7 +37,8 @@ class FFmpeg(object):
         """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
         return raw_cmd(
             itertools.chain([self.executable], arguments),
-            stderr=subprocess.PIPE, universal_newlines=True)
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
 
     def encode(  # pylint:disable=too-many-locals
         self,
@@ -63,7 +64,11 @@ class FFmpeg(object):
                 output.create_directory()
 
         statistics = self.statistics_class(
-            inputs, outputs, in_options, out_options, **(statistics_kwargs or {}))
+            inputs,
+            outputs,
+            in_options,
+            out_options,
+            **(statistics_kwargs or {}))
 
         process = self._get_process(arguments, **(process_kwargs or {}))
         try:

@@ -1,6 +1,6 @@
 import math, os
 
-from pytest import raises
+import pytest
 from pytoolbox import filesystem
 from pytoolbox.serialization import PickleableObject
 
@@ -35,7 +35,7 @@ def test_pickleable_object():
     assert os.path.exists('test.pkl') is False
     assert point_2._pickle_path == 'test2.pkl'  # pylint:disable=protected-access
     del point_2._pickle_path
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         point_2.write()
     os.remove('test2.pkl')
     filesystem.remove('test3.pkl')
@@ -55,5 +55,5 @@ def test_pickleable_object():
     }
 
     os.remove('test3.pkl')
-    with raises(IOError):
+    with pytest.raises(IOError):
         MyPoint.read('test3.pkl')

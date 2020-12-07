@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 from pytoolbox.private import _parse_kwargs_string
 
 
@@ -13,10 +13,10 @@ def test_parse_kwargs_string():
 
 
 def test_parse_kwargs_string_key_error():
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         _parse_kwargs_string(' pi=3.1416; ru=2', pi=float)
 
 
 def test_parse_kwargs_string_value_error():
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         _parse_kwargs_string(' a_number=yeah', a_number=int)

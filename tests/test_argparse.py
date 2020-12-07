@@ -1,19 +1,19 @@
 import argparse, os
 
-from pytest import raises
+import pytest
 from pytoolbox import types
 from pytoolbox.argparse import is_dir, is_file, FullPaths
 
 
 def test_is_dir():
     assert is_dir('/home') == '/home'
-    with raises(argparse.ArgumentTypeError):
+    with pytest.raises(argparse.ArgumentTypeError):
         is_dir('sjdsajkd')
 
 
 def test_is_file():
     assert is_file('/etc/hosts') == '/etc/hosts'
-    with raises(argparse.ArgumentTypeError):
+    with pytest.raises(argparse.ArgumentTypeError):
         is_file('wdjiwdji')
 
 
