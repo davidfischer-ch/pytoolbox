@@ -6,7 +6,7 @@ from .types import isiterable
 _all = module.All(globals())
 
 
-def chain(*objects, **kwargs):
+def chain(*objects, callback=isiterable):
     """
     Chain the objects, handle non iterable objects gracefully.
 
@@ -22,9 +22,6 @@ def chain(*objects, **kwargs):
         ...
     TypeError: 'int' object is not iterable
     """
-    callback = kwargs.pop('callback', isiterable)
-    if kwargs:
-        raise TypeError(f'Invalid arguments for {chain} {kwargs.keys()}')
     return itertools.chain.from_iterable(o if callback(o) else [o] for o in objects)
 
 
