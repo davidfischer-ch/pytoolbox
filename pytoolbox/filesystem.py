@@ -69,8 +69,24 @@ def find_recursive(directory, patterns, regex=False, **walk_kwargs):
 
 
 def file_mime(path, mime=True):
+    """
+    Return file mime type.
+
+    **Example usage**
+
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> file_mime(directory / 'filesystem.py')
+    'text/x-python'
+    >>> file_mime(directory / '..' / 'setup.cfg')
+    'text/plain'
+    >>> file_mime('missing-file') is None
+    True
+    """
     try:
-        return magic.from_file(path, mime=mime)
+        return magic.from_file(str(path), mime=mime)
     except OSError:
         return None
 
