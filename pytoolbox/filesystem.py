@@ -97,8 +97,14 @@ def first_that_exist(*paths):
 
     **Example usage**
 
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
     >>> first_that_exist('', '/etc', '.')
     '/etc'
+    >>> first_that_exist('', directory) == directory
+    True
     >>> first_that_exist('does_not_exist.com', '', '..')
     '..'
     >>> first_that_exist('does_not_exist.ch') is None
