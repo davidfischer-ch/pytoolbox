@@ -40,19 +40,18 @@ How to install it ?
 
 Install some packages that are not handled by pip::
 
-    sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
-    sudo apt-get install ffmpeg git-core python3-dev python3-gi python3-pip screen
+    $ sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
+    $ sudo apt-get install ffmpeg git-core python3-dev python3-gi python3-pip screen
 
 Make sure that pip is up-to-date (PIPception)::
 
-    source /some/python3/venv
-    pip install --upgrade pip
+    $ source /some/python3/venv/bin/active
+    $ pip install --upgrade pip
 
 Then, you only need to run ``setup.py``::
 
-    source /some/python3/venv
-    python setup.py test
-    python setup.py install
+    $ source /some/python3/venv/bin/activate
+    $ python setup.py install
 
 --------------------------------
 How to enable features/modules ?
@@ -60,12 +59,12 @@ How to enable features/modules ?
 
 Example::
 
-    python setup.py install --help
+    $ python setup.py install --help
 
-Common commands: (see '--help-commands' for more)
+    Common commands: (see '--help-commands' for more)
 
-  setup.py build      will build the package underneath 'build/'
-  setup.py install    will install the package
+      setup.py build      will build the package underneath 'build/'
+      setup.py install    will install the package
 
     Global options:
       --verbose (-v)  run verbosely (default)
@@ -75,30 +74,27 @@ Common commands: (see '--help-commands' for more)
       --no-user-cfg   ignore pydistutils.cfg in your home directory
 
     Options for 'WithExtra' command:
-      --prefix                             installation prefix
-      --exec-prefix                        (Unix only) prefix for platform-specific files
-      --home                               (Unix only) home directory to install under
-      --install-base                       base installation directory (instead of --prefix or --home)
       ...
-      --extra-all                          Install dependencies for all features.
-      --extra-atlassian                    Install dependencies for the feature atlassian.
-      --extra-aws                          Install dependencies for the feature aws.
-      --extra-django                       Install dependencies for the feature django.
-      --extra-django-filter                Install dependencies for the feature django_filter.
-      --extra-django-formtools             Install dependencies for the feature django_formtools.
-      --extra-flask                        Install dependencies for the feature flask.
-      --extra-imaging                      Install dependencies for the feature imaging.
-      --extra-jinja2                       Install dependencies for the feature jinja2.
-      --extra-logging                      Install dependencies for the feature logging.
-      --extra-mongo                        Install dependencies for the feature mongo.
-      --extra-network                      Install dependencies for the feature network.
-      --extra-pandas                       Install dependencies for the feature pandas.
-      --extra-rest-framework               Install dependencies for the feature rest_framework.
-      --extra-selenium                     Install dependencies for the feature selenium.
-      --extra-smpte2022                    Install dependencies for the feature smpte2022.
-      --extra-unittest                     Install dependencies for the feature unittest.
-      --extra-vision                       Install dependencies for the feature vision.
-      --extra-voluptuous                   Install dependencies for the feature voluptuous.
+      --extra-all                          Install dependencies for All Modules.
+      --extra-atlassian                    Install dependencies for Atlassian.
+      --extra-aws                          Install dependencies for AWS.
+      --extra-django                       Install dependencies for Django.
+      --extra-django-filter                Install dependencies for Django Filter.
+      --extra-django-formtools             Install dependencies for Django Form Tools.
+      --extra-flask                        Install dependencies for Flask.
+      --extra-imaging                      Install dependencies for Imaging.
+      --extra-jinja2                       Install dependencies for Jinja2.
+      --extra-logging                      Install dependencies for Logging.
+      --extra-network                      Install dependencies for Networking.
+      --extra-pandas                       Install dependencies for Pandas.
+      --extra-rest-framework               Install dependencies for Django REST Framework.
+      --extra-selenium                     Install dependencies for Selenium.
+      --extra-smpte2022                    Install dependencies for SMPTE-2022.
+      --extra-unittest                     Install dependencies for Unit Test.
+      --extra-vision                       Install dependencies for Vision.
+      --extra-voluptuous                   Install dependencies for Voluptuous.
+      --extra-doc                          Install dependencies for Pytoolbox Docs.
+      --extra-test                         Install dependencies for Pytoolbox Tests.
 
     usage: setup.py [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
        or: setup.py --help [cmd1 cmd2 ...]
@@ -106,11 +102,11 @@ Common commands: (see '--help-commands' for more)
        or: setup.py cmd --help
 
 
-    python setup.py install --extra-smpte2022
+    $ python setup.py install --extra-smpte2022
 
 Another way to do this, with ``pip``::
 
-    pip install -e .[django,flask,mongo,smpte2022] --use-mirrors
+    $ pip install -e .[django,flask,mongo,smpte2022]
 
 -----------------------
 How to check coverage ?
@@ -118,14 +114,15 @@ How to check coverage ?
 
 ::
 
-    source /some/python3/venv
-    python setup.py test
-    xdg-open tests/cover/index.html
+    $ source /some/python3/venv/bin/activate
+    $ pip install -e .[all,test]
+    $ pytest
+    $ xdg-open htmlcov/index.html
 
 Remarks:
 
 * All Django related modules are excluded from tests!
-* However I am using them with Django 1.8 up to 3.0.5.
+* However I am using them with Django 1.8 up to 3.1.0.
 
 ---------------
 How to use it ?
@@ -133,9 +130,8 @@ How to use it ?
 
 Here is an example ``hello.py`` using the cmd function provided by ``pytoolbox``::
 
-    from pytoolbox.subprocess import cmd
-
-    print(cmd('echo Hello World!')['stdout'])
+    $ from pytoolbox.subprocess import cmd
+    $ print(cmd('echo Hello World!')['stdout'])
 
 -------------------------------
 How to generate documentation ?
@@ -146,10 +142,9 @@ In fact most of this documentation is extracted from the docstrings of the code.
 
 Here is the procedure::
 
-    source /some/python3/venv
-    pip install sphinx
-    python setup.py docs
-    xdg-open docs/build/html/index.html
+    $ source /some/python3/venv/bin/activate
+    $ pip install -e .[docs]
+    $ xdg-open docs/build/html/index.html
 
 -------------------------------------------------
 How to add it to dependencies of my own project ?
@@ -164,8 +159,8 @@ Here is an example ``setup.py`` for a project called *my-cool-project*::
 		  version='0.8',
 		  author='Firstname Lastname',
 		  author_email='author@something.com',
-		  install_requires=['...', 'pytoolbox', '...'],
-		  tests_require=['nose'],
+		  install_requires=['...', 'pytoolbox>=14<15', '...'],
+		  tests_require=['...', 'pytest', '...'],
 		  license='GPLv3',
 		  url='https://github.com/nickname/my-cool-project',
 		  packages=['my_cool_project'])
@@ -175,4 +170,4 @@ See `pip vcs support <http://www.pip-installer.org/en/latest/logic.html#vcs-supp
 
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
-2014 - 2020 David Fischer
+2014 - 2021 David Fischer
