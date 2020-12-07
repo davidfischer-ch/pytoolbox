@@ -197,45 +197,73 @@ def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
         yield path_or_data.encode(encoding) if isinstance(path_or_data, str) else path_or_data
 
 
-def get_size(path, **walk_kwargs):
+def get_size(path, patterns='*', regex=False, **walk_kwargs):
     """
     Returns the size of a file or directory.
 
     If given `path` is a directory (or symlink to a directory), then returned value is computed by
     summing the size of all files, and that recursively.
-    """
-    if os.path.isfile(path):
-        return os.stat(path).st_size
-    size = 0
-    for dirpath, _, filenames in os.walk(path, **walk_kwargs):
-        for filename in filenames:
-            size += os.stat(os.path.join(dirpath, filename)).st_size
-    return size
-
-
-def makedirs(path, parent=False):
-    """
-    Recursively make directories (which may already exists) without throwing an exception.
-    Returns True if operation is successful, False if directory found and re-raise any other type
-    of exception.
 
     **Example usage**
 
-    >>> import shutil
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> get_size(directory / '..' / 'setup.py')
+    7928
+    >>> get_size(directory/ '..', '*.yml')
+    647
+    >>> get_size(directory/ '..', '.*/v.*\\.py', regex=True)
+    75566
+    """
+    if os.path.isfile(path):
+        return os.stat(path).st_size
+    return sum(
+        os.stat(f).st_size
+        for f in find_recursive(path, patterns, regex=regex, **walk_kwargs))
+
+
+def makedirs(path, mode=0o777, parent=False):
+    """
+    Recursively make directories (which may already exists) without throwing an exception.
+    Returns True if operation is successful, False if directory found and re-raise any other type
+    of exception (raised by `os.makedirs`).
+
+    **Example usage**
+
+    >>> import os, shutil
+    >>> from pathlib import Path
+    >>>
+    >>> filesystem_py = Path(__file__).resolve()
+    >>>
     >>> makedirs('/etc')
     False
     >>> makedirs('/tmp/salut/mec')
     True
-    >>> shutil.rmtree('/tmp/salut/mec')
+    >>> shutil.rmtree('/tmp/salut')
+    >>>
+    >>> makedirs('/tmp/some/path/file.txt', parent=True)
+    True
+    >>> os.path.exists('/tmp/some/path')
+    True
+    >>> os.path.exists('/tmp/some/path/file.txt')
+    False
+    >>> shutil.rmtree('/tmp/some')
+    >>>
+    >>> makedirs(filesystem_py)
+    Traceback (most recent call last):
+        ...
+    FileExistsError: ...
     """
     if parent:
         path = os.path.dirname(path)
     try:
-        os.makedirs(path)
+        os.makedirs(path, mode=mode)
         return True
     except OSError as e:
-        # File exists
-        if e.errno == errno.EEXIST:
+        # Directory exists
+        if e.errno == errno.EEXIST and os.path.isdir(path):
             return False
         raise  # Re-raise exception if a different error occurred
 
@@ -451,12 +479,36 @@ def symlink(source, link_name):
 
 
 def to_user_id(user):
+    """
+    Return user ID.
+
+    **Example usage**
+
+    >>> to_user_id('root')
+    0
+    >>> to_user_id(0)
+    0
+    >>> to_user_id(None)
+    -1
+    """
     if isinstance(user, str):
         return pwd.getpwnam(user).pw_uid
     return -1 if user is None else user
 
 
 def to_group_id(group):
+    """
+    Return group ID.
+
+    **Example usage**
+
+    >>> to_group_id('root')
+    0
+    >>> to_group_id(0)
+    0
+    >>> to_group_id(None)
+    -1
+    """
     if isinstance(group, str):
         return grp.getgrnam(group).gr_gid
     return -1 if group is None else group

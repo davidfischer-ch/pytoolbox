@@ -41,7 +41,7 @@ def setup_logging(
 
     Setup a console output for logger with name *test*:
 
-    >>> log = setup_logging('test', reset=True, console=True, fmt=None, datefmt=None)
+    >>> log = setup_logging('a', reset=True, console=True, fmt=None, datefmt=None)
     >>> log.info('this is my info')
     this is my info
     >>> log.debug('this is my debug')
@@ -49,18 +49,38 @@ def setup_logging(
     >>> log.setLevel(logging.INFO)
     >>> log.debug('this is my hidden debug')
     >>> log.handlers = []  # Remove handlers manually: pas de bras, pas de chocolat !
-    >>> log.debug('no handlers, no messages ;-)')
+    >>> log.info('no handlers, no messages ;-)')
+
+    Colorize:
+
+    >>> log = setup_logging('foo', console=True, colorize=True, fmt='%(levelname)-8s - %(message)s')
+    >>> log.warning('Attention please!')
+    WARNING  - \x1b[33mAttention please!\x1b[0m
 
     Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
 
-    >>> _ = setup_logging('test', console=True, fmt=None, datefmt=None)
-    >>> _ = setup_logging('test', console=True, fmt=None, datefmt=None)
+    >>> log = setup_logging('test', console=True, fmt=None, datefmt=None)
+    >>> log = setup_logging('test', console=True, fmt=None, datefmt=None)
     >>> log.info('double message, tu radote pépé')
     double message, tu radote pépé
     double message, tu radote pépé
+
+    Resetting works as expected:
+
     >>> _ = setup_logging('test', reset=True, console=True, fmt=None, datefmt=None)
     >>> log.info('single message')
     single message
+
+    Logging to a file instead:
+
+    >>> import os, tempfile
+    >>>
+    >>> with tempfile.NamedTemporaryFile('r') as f:
+    ...     log = setup_logging('my-logger', path=f.name)
+    ...     log.info('Ceci va probablement jamais être lu!')
+    ...     lines = f.read().split(os.linesep)
+    ...
+    >>> assert 'INFO     - Ceci va probablement jamais être lu!' in lines[0]
     """
     log = logging.getLogger(name_or_log) if isinstance(name_or_log, str) else name_or_log
     if reset:
