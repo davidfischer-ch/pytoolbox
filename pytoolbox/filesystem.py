@@ -80,7 +80,7 @@ def file_mime(path, mime=True):
     >>>
     >>> file_mime(directory / '..' / 'setup.cfg')
     'text/plain'
-    >>> file_mime(directory / 'filesystem.py') in ('text/plan', 'text/x-python')
+    >>> file_mime(directory / 'filesystem.py') in ('text/plain', 'text/x-python')
     True
     >>> file_mime('missing-file') is None
     True
