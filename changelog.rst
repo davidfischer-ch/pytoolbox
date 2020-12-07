@@ -2,6 +2,51 @@
 changelog
 =========
 
+Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
+
+-------
+v14.0.0
+-------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
+
+Major compatibility breaks
+==========================
+
+- Drop Python 2.7 - 3.5 compatibility
+- Drop module encoding
+- Drop module mongo
+- Drop function network.http.get_request_data
+- Drop function unittest.{mock_cmd,runtests} (and dependency to nose)
+- Remove unused arguments on some functions
+
+Minor compatibility breaks
+==========================
+
+- Function multimedia.exif.brand.Brand.clean: Raise exceptions.InvalidBrandError
+
+Features
+========
+
+- Rewrite code in Python 3 thanks to 2to3 and a lot of edits
+- Rewrite tests in Python 3 and with pytest in replacement to unittest (and nose)
+- Seamlessly download tests assets (small.mp4, ffmpeg, ffprobe) from S3
+- Test on recent Python releases from 3.6 to 3.8 (3.9 will come next)
+- Temporarily removed PyPy 3.6 from test matrix due to tensorflow (work in progress)
+
+Fix and enhancements
+====================
+
+- setup.py an extra "all" one can install with pip install .[all]
+- Separate requirements in three major groups: features, test and docs
+- Make some functions compatible with pathlib.Path (work in progress)
+- Check code quality with pylint and flake8 (they are top notch)
+- Remove doctests boilerplate code and make them more robust
+- Fix deprecation issues by reimplementing some functions
+- Fix code smells and silent irrelevant warnings
+- Update Travis CI configuration: Define distribution, update script, ...
+- Generate documentation with python setup.py docs
+
 -------
 v13.5.0
 -------
