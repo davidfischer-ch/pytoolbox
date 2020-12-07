@@ -220,8 +220,8 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     7928
     >>> get_size(directory/ '..', '*.yml')
     647
-    >>> get_size(directory/ '..', '.*/v.*\\.py', regex=True)
-    75566
+    >>> 75000 < get_size(directory/ '..', '.*/v.*\\.py', regex=True) < 80000
+    True
     """
     if os.path.isfile(path):
         return os.stat(path).st_size
