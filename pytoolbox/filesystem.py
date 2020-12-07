@@ -78,10 +78,10 @@ def file_mime(path, mime=True):
     >>>
     >>> directory = Path(__file__).resolve().parent
     >>>
-    >>> file_mime(directory / 'filesystem.py')
-    'text/x-python'
     >>> file_mime(directory / '..' / 'setup.cfg')
     'text/plain'
+    >>> file_mime(directory / 'filesystem.py') in ('text/plan', 'text/x-python')
+    True
     >>> file_mime('missing-file') is None
     True
     """
