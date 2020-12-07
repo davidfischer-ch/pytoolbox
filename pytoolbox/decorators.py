@@ -1,7 +1,6 @@
 import functools, os, warnings
 
-from . import console, module
-from .subprocess import cmd
+from . import console, module, subprocess as py_subprocess
 
 _all = module.All(globals())
 
@@ -105,7 +104,7 @@ def disable_iptables(f):
     def wrapper(*args, **kwargs):
         try:
             try:
-                cmd('sudo service iptables stop', shell=True)
+                py_subprocess.cmd('sudo service iptables stop', shell=True)
                 print('Disable iptables')
                 has_iptables = True
             except Exception:  # pylint:disable=broad-except
@@ -114,7 +113,7 @@ def disable_iptables(f):
         finally:
             if has_iptables:
                 print('Enable iptables')
-                cmd('sudo service iptables start', shell=True)
+                py_subprocess.cmd('sudo service iptables start', shell=True)
     return wrapper
 
 

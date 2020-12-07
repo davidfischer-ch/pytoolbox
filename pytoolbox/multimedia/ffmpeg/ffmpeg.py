@@ -1,8 +1,7 @@
 import errno, itertools, re, select, subprocess, sys, time
 from pathlib import Path
 
-from pytoolbox import filesystem
-from pytoolbox.subprocess import kill, make_async, raw_cmd, to_args_list
+from pytoolbox import filesystem, subprocess as py_subprocess
 from . import encode, ffprobe  # pylint:disable=unused-import
 
 __all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
@@ -35,7 +34,7 @@ class FFmpeg(object):
 
     def __call__(self, *arguments):
         """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
-        return raw_cmd(
+        return py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
             stderr=subprocess.PIPE,
             universal_newlines=True)
@@ -85,7 +84,7 @@ class FFmpeg(object):
             yield statistics.end(returncode)
         except Exception as e:
             traceback = sys.exc_info()[2]
-            kill(process)
+            py_subprocess.kill(process)
             raise e.with_traceback(traceback) if hasattr(e, 'with_traceback') else e
 
     @staticmethod
@@ -118,8 +117,8 @@ class FFmpeg(object):
         """
         inputs = self._clean_medias_argument(inputs)
         outputs = self._clean_medias_argument(outputs)
-        in_options = to_args_list(in_options)
-        out_options = to_args_list(out_options)
+        in_options = py_subprocess.to_args_list(in_options)
+        out_options = py_subprocess.to_args_list(out_options)
         args = [self.executable, '-y']
         args.extend(in_options)
         for the_input in inputs:
@@ -143,6 +142,10 @@ class FFmpeg(object):
     @staticmethod
     def _get_process(arguments, **process_kwargs):
         """Return an encoding process with stderr made asynchronous."""
-        process = raw_cmd(arguments, stderr=subprocess.PIPE, close_fds=True, **process_kwargs)
-        make_async(process.stderr)
+        process = py_subprocess.raw_cmd(
+            arguments,
+            stderr=subprocess.PIPE,
+            close_fds=True,
+            **process_kwargs)
+        py_subprocess.make_async(process.stderr)
         return process

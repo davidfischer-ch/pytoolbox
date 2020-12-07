@@ -2,9 +2,8 @@
 
 import argparse, json, os, socket, random, subprocess, sys, time, uuid, yaml
 
-from . import console, filesystem, module
+from . import console, filesystem, module, subprocess as py_subprocess  # pylint:disable=reimported
 from .argparse import FullPaths, is_dir
-from .subprocess import cmd
 
 _all = module.All(globals())
 
@@ -87,7 +86,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
         # FIXME Automate yes answer to destroy-environment
         method = subprocess.check_call if fail else subprocess.call
         return method(arguments)
-    result = cmd(arguments, fail=False, log=log, env=env, **kwargs)
+    result = py_subprocess.cmd(arguments, fail=False, log=log, env=env, **kwargs)
 
     if result['returncode'] != 0 and fail:
         raise RuntimeError(f"Subprocess failed {' '.join(arguments)} : {result['stderr']}.")
@@ -533,7 +532,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         """
         Calls the `command` and returns a dictionary with `stdout`, `stderr`, and the `returncode`.
         """
-        return cmd(command, log=self.debug if logging else None, **kwargs)
+        return py_subprocess.cmd(command, log=self.debug if logging else None, **kwargs)
 
     def template_to_config(self, template, config, values):
         filesystem.from_template(template, config, values)
@@ -919,7 +918,7 @@ class Environment(object):  # pylint:disable=too-many-public-methods
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
-                    for number, unit_dict in units_dict.items():
+                    for number, unit_dict in list(units_dict.items()):
                         if num_units == 0:
                             break
                         if number in units_number_to_keep:

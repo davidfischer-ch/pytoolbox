@@ -3,8 +3,8 @@ from pathlib import Path
 
 from xml.dom import minidom
 
+from pytoolbox import subprocess as py_subprocess
 from pytoolbox.datetime import parts_to_time, secs_to_time
-from pytoolbox.subprocess import raw_cmd
 from . import miscellaneous, utils
 
 __all__ = ['DURATION_REGEX', 'FFprobe']
@@ -25,7 +25,7 @@ class FFprobe(object):
 
     def __call__(self, *arguments):
         """Call FFprobe with given arguments and return the output (unicode string)."""
-        process = raw_cmd(
+        process = py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,

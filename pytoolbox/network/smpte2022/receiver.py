@@ -350,8 +350,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
         if self.delay_units == self.PACKETS:
             start, end = self.position, (self.position + self.delay_value) & RtpPacket.S_MASK
-            cross_items = list(self.crosses.items())
-            for media_sequence, cross in cross_items:
+            for media_sequence, cross in list(self.crosses.items()):
                 if not self.validity_window(media_sequence, start, end):
                     del self.cols[cross['col_sequence']]
                     del self.rows[cross['row_sequence']]

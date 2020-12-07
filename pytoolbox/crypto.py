@@ -39,10 +39,10 @@ def checksum(
     'ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef'
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
-    >>> checksum(directory / 'juju.py', is_path=True)
-    'd0e07485ed0979d231610f7a1b526075bbbace53cf4866ea3c7a79fd6727e384'
-    >>> checksum(directory / 'juju.py', is_path=True, chunk_size=1024)
-    'd0e07485ed0979d231610f7a1b526075bbbace53cf4866ea3c7a79fd6727e384'
+    >>> checksum(directory / '..' / 'setup.py', is_path=True)
+    'c43c47f9f79ebf224e71845d48287cf09665ca179fad8b62b174a970815f8485'
+    >>> checksum(directory / '..' / 'setup.py', is_path=True, chunk_size=997)
+    'c43c47f9f79ebf224e71845d48287cf09665ca179fad8b62b174a970815f8485'
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
@@ -96,10 +96,10 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     'abdd1818289725c072eff0f5ce185457679650be'
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
-    >>> githash(directory / 'juju.py', is_path=True)
-    '2ec61e252ab85f03f94c5294bc882aafa3cd4b88'
-    >>> githash(directory / 'juju.py', is_path=True, chunk_size=256)
-    '2ec61e252ab85f03f94c5294bc882aafa3cd4b88'
+    >>> githash(directory / '..' / 'setup.py', is_path=True)
+    'fb01bcb372344e1864e8edaf0456a70ff1471324'
+    >>> githash(directory / '..' / 'setup.py', is_path=True, chunk_size=256)
+    'fb01bcb372344e1864e8edaf0456a70ff1471324'
     """
     hasher = hashlib.sha1()
     if is_path:

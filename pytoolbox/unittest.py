@@ -8,11 +8,6 @@ from .types import Missing
 _all = module.All(globals())
 
 
-def mock_cmd(stdout='', stderr='', returncode=0):
-    import mock
-    return mock.Mock(return_value={'stdout': stdout, 'stderr': stderr, 'returncode': returncode})
-
-
 def with_tags(tags=None, required=None):
     def _with_tags(f):
         f.tags = set([tags] if isinstance(tags, str) else tags or [])
