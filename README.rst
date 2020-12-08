@@ -11,13 +11,6 @@ Pytoolbox
 .. image:: https://coveralls.io/repos/davidfischer-ch/pytoolbox/badge.png
    :target: https://coveralls.io/r/davidfischer-ch/pytoolbox
 
-.. image:: https://landscape.io/github/davidfischer-ch/pytoolbox/master/landscape.png
-   :target: https://landscape.io/github/davidfischer-ch/pytoolbox/master
-
-.. image:: https://badge.waffle.io/davidfischer-ch/pytoolbox.png?label=ready&title=Ready
-   :target: https://waffle.io/davidfischer-ch/pytoolbox
-   :alt: 'Stories in Ready'
-
 Afraid of red status ? Please click on the link, sometimes this is not my fault ;-)
 
 This module is a Toolbox for Python scripts.
