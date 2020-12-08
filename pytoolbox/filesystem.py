@@ -218,8 +218,8 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     >>>
     >>> get_size(directory / '..' / 'setup.py')
     7928
-    >>> get_size(directory/ '..', '*.yml')
-    642
+    >>> get_size(directory/ '..', '*.cfg')
+    105
     >>> 75000 < get_size(directory/ '..', '.*/v.*\\.py', regex=True) < 80000
     True
     """
