@@ -1,4 +1,4 @@
-import re
+import abc, re
 
 __all__ = ['Equipement']
 
