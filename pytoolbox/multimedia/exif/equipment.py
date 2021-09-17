@@ -24,7 +24,7 @@ class Equipement(object, metaclass=abc.ABCMeta):
         return f'<{self.__class__.__name__} {self.brand} {self.model}>'
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def brand(self):
         pass
 
@@ -35,12 +35,12 @@ class Equipement(object, metaclass=abc.ABCMeta):
         return self._model
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def _model(self):
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def tags(self):
         pass
 
