@@ -69,6 +69,7 @@ class LiveClient(common.FindMixin):
         except exceptions.TimeoutException:  # pylint:disable=no-member
             if fail:
                 raise
+        return None
 
     def wait_for_id(self, element_id, inverse=False, prefix=True, timeout=5, fail=True):
         return self.wait_for_css(f'#{element_id}', inverse, prefix, timeout, fail)

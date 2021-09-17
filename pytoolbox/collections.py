@@ -106,7 +106,7 @@ class pygal_deque(collections.deque):  # pylint:disable=invalid-name
 
     last = None
 
-    def append(self, value):  # pylint:disable=arguments-differ
+    def append(self, value):  # pylint:disable=arguments-renamed
         if value != self.last and value is not None:
             try:
                 self[-1] = self.last

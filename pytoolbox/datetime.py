@@ -96,6 +96,7 @@ def str_to_datetime(
     except ValueError:
         if fail and date != '0000:00:00 00:00:00':
             raise
+    return None
 
 
 def multiply_time(value, factor, as_delta=False):

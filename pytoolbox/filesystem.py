@@ -169,7 +169,11 @@ def from_template(
     >>> os.remove('config.template')
     >>> os.remove('config')
     """
-    content = open(template, 'r').read() if is_file else template
+    if is_file:
+        with open(template, 'r') as f:
+            content = f.read()
+    else:
+        content = template
     if pre_func:
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
@@ -220,7 +224,7 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     >>> directory = Path(__file__).resolve().parent
     >>>
     >>> get_size(directory / '..' / 'setup.py')
-    7928
+    7982
     >>> get_size(directory/ '..', '*.cfg')
     105
     >>> 75000 < get_size(directory/ '..', '.*/v.*\\.py', regex=True) < 80000
@@ -312,8 +316,8 @@ def recursive_copy(  # pylint:disable=too-many-locals
                 # Initialize block-based copy
                 makedirs(os.path.dirname(dst_path))
                 block_size = 1024 * 1024
-                src_file = open(src_path, 'rb')
-                dst_file = open(dst_path, 'wb')
+                src_file = open(src_path, 'rb')  # pylint: disable=consider-using-with
+                dst_file = open(dst_path, 'wb')  # pylint: disable=consider-using-with
 
                 # Block-based copy loop
                 block_pos = prev_ratio = prev_time = 0
@@ -609,7 +613,9 @@ class TempStorage(object):
 
         chown(path, user, group)
 
-        return open(path, mode, encoding=encoding) if return_file else path
+        if return_file:
+            return open(path, mode, encoding=encoding)  # pylint: disable=consider-using-with
+        return path
 
     def remove_by_path(self, path):
         """

@@ -23,7 +23,7 @@ class WebElement(common.FindMixin, webelement.WebElement):
         component = self.get_attribute('data-component')
         if component:
             try:
-                self.__class__ = next(
+                self.__class__ = next(  # pylint: disable=invalid-class-object
                     c for c in type(self).__subclasses__() if c.component == component)
             except StopIteration:
                 self._specialize_default(component)

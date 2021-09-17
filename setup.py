@@ -221,6 +221,9 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
         subprocess.run(['make', 'html'], cwd=project / 'docs', check=True)
 
 
+with open('README.rst', 'r') as f:
+    long_description = f.read()
+
 setuptools.setup(
     cmdclass={
         'docs': DocsCommand,
@@ -278,6 +281,6 @@ setuptools.setup(
         'subprocess'
     ],
     license='EUPL 1.1',
-    long_description=open('README.rst', 'r').read(),
+    long_description=long_description,
     url='https://github.com/davidfischer-ch/pytoolbox'
 )

@@ -50,6 +50,7 @@ class JiraProject(object):
         except StopIteration:
             if fail:
                 raise
+        return None
 
     def get_field_value(self, issue, name, default=None):
         field_id = self.get_field(name)['id']
