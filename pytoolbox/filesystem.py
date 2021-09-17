@@ -123,14 +123,16 @@ def from_template(
     is_file=True,
     jinja2=False,
     pre_func=None,
-    post_func=None
+    post_func=None,
+    directories='.'
 ):
     """
-    Return a `template` rendered with `values` using string.format or jinja2 as the template engine.
+    Return a `template` rendered with `values` using string.format or Jinja2 as the template engine.
 
     * Set `destination` to a filename to store the output, to a Falsy value to skip this feature.
     * Set `is_file` to False to use value of `template` as the content and not a filename to read.
     * Set `{pre,post}_func` to a callback function with the signature f(content, values, jinja2)
+    * Set `directories` to the paths where the Jinja2 loader will lookup for *base* templates.
 
     **Example usage**
 
@@ -171,8 +173,9 @@ def from_template(
     if pre_func:
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
-        from jinja2 import Template
-        content = Template(content).render(**values)
+        from jinja2 import Environment, FileSystemLoader
+        loader = FileSystemLoader(directories)
+        content = Environment(loader=loader).from_string(content).render(**values)
     else:
         content = content.format(**values)
     if post_func:
