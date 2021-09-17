@@ -10,8 +10,9 @@ _all = module.All(globals())
 
 def download(url, path):
     """Read the content of given `url` and save it as a file `path`."""
-    with open(path, 'wb') as f:
-        f.write(urllib.request.urlopen(url).read())
+    with open(path, 'wb') as target:
+        with urllib.request.urlopen(url) as source
+            target.write(source.read())
 
 
 def iter_download_core(url, code=200, chunk_size=102400, **kwargs):
@@ -53,7 +54,7 @@ def iter_download_to_file(
                     file_hash.update(chunk)
                 file_hash_digest = file_hash.hexdigest() if file_hash else None
                 yield position, length, chunk, downloaded, file_hash_digest
-                file = file or open(path, 'wb')
+                file = file or open(path, 'wb')  # pylint: disable=consider-using-with
                 file.write(chunk)
         finally:
             if file:

@@ -92,7 +92,8 @@ class FFmpeg(object):
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
-            match = FRAME_MD5_REGEX.search(open(checksum_filename, 'r').read())
+            with open(checksum_filename, 'r') as f:
+                match = FRAME_MD5_REGEX.search(f.read())
             return match.group() if match else None
 
     def _clean_medias_argument(self, value):
@@ -138,6 +139,7 @@ class FFmpeg(object):
         except IOError as e:
             if e.errno != errno.EAGAIN:
                 raise
+        return None
 
     @staticmethod
     def _get_process(arguments, **process_kwargs):

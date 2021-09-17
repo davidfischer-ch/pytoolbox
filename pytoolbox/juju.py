@@ -178,7 +178,8 @@ def add_environment(
     except RuntimeError as e:
         if 'configuration error' in str(e):
             del environments_dict['environments'][environment]
-            open(environments, 'w', encoding='utf-8').write(yaml.safe_dump(environments_dict))
+            with open(environments, 'w', encoding='utf-8') as f:
+                f.write(yaml.safe_dump(environments_dict))
             raise ValueError(f'Cannot add environment {environment} ({e}).') from e
         raise
 
@@ -740,7 +741,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         if not status_dict:
             return default
         try:
-            return status_dict['services'][service]
+            return status_dict['services'][service]  # pylint: disable=unsubscriptable-object
         except KeyError as e:
             if fail:
                 raise RuntimeError(
@@ -1233,7 +1234,7 @@ class SimulatedUnits(object):
         for number, unit in self.units.items():
             unit.tick()
             if unit.state == STOPPED:
-                del self.units[number]
+                del self.units[number]  # pylint: disable=unecessary-dict-index-lookup
 
 
 __all__ = _all.diff(globals())
