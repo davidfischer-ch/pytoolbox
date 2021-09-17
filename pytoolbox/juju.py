@@ -1234,7 +1234,7 @@ class SimulatedUnits(object):
         for number, unit in self.units.items():
             unit.tick()
             if unit.state == STOPPED:
-                del self.units[number]  # pylint: disable=unecessary-dict-index-lookup
+                del self.units[number]  # pylint: disable=unnecessary-dict-index-lookup
 
 
 __all__ = _all.diff(globals())
