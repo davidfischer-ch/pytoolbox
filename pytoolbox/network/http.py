@@ -11,7 +11,7 @@ _all = module.All(globals())
 def download(url, path):
     """Read the content of given `url` and save it as a file `path`."""
     with open(path, 'wb') as target:
-        with urllib.request.urlopen(url) as source
+        with urllib.request.urlopen(url) as source:
             target.write(source.read())
 
 
