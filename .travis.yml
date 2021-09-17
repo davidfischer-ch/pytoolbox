@@ -13,6 +13,10 @@ python:
 install:
   - travis_retry sudo apt-get update -qq
   - travis_retry sudo apt-get install -qq cmake screen
+
+  # For tensorflow, see https://github.com/tensorflow/tensorflow/issues/45930
+  - travis_retry sudo apt-get install -qq cuda-cudart-11-0 libcufft10 libcurand10 libcusolver-11-0 libcudnn8 libcublas-11-0 libcusparse-11-0
+
   - travis_retry pip install --upgrade pip setuptools wheel
   - travis_retry pip install bson coveralls  # for valid_uuid(objectid_allowed=True) and coverage report
   - travis_retry pip install -U -e .[all,test]
