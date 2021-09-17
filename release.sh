@@ -36,10 +36,6 @@ error()
     exit $2
 }
 
-sudo python2 setup.py test || warning 'Python 2 unit-test of pytoolbox failed'
-sudo python3 setup.py test || warning 'Python 3 unit-test of pytoolbox failed'
-python3 setup.py docs || warning 'Sphinx is not fully happy with our docstrings'
-
 version=$(cat 'pytoolbox/__init__.py' | grep '__version__ = ' | cut -d'=' -f2 | sed "s:'::g;s: ::g")
 echo "Release version $version, press enter to continue ..."
 read a
@@ -48,6 +44,5 @@ git push || error 'Unable to push to GitHub' 1
 git tag "$version" && git push origin "$version" || error 'Unable to add release tag' 2
 
 rm -rf dist/ 2>/dev/null
-python2 setup.py sdist bdist_wheel || error 'Unable to build for Python 2' 3
 python3 setup.py sdist bdist_wheel || error 'Unable to build for Python 3' 4
 twine upload dist/* --skip-existing || error 'Unable to upload to PyPI' 5
