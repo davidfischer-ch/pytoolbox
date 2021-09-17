@@ -40,9 +40,9 @@ def checksum(
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
     >>> checksum(directory / '..' / 'setup.py', is_path=True)
-    'c43c47f9f79ebf224e71845d48287cf09665ca179fad8b62b174a970815f8485'
+    '3b2d631c2e99f04d8ead9b2f10f0c85adbfac48e60435515f6d014420571081c'
     >>> checksum(directory / '..' / 'setup.py', is_path=True, chunk_size=997)
-    'c43c47f9f79ebf224e71845d48287cf09665ca179fad8b62b174a970815f8485'
+    '3b2d631c2e99f04d8ead9b2f10f0c85adbfac48e60435515f6d014420571081c'
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
@@ -97,9 +97,9 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
     >>> githash(directory / '..' / 'setup.py', is_path=True)
-    'fb01bcb372344e1864e8edaf0456a70ff1471324'
+    'd303eef5ad68fb6abe3d483a79b76c5a475852e3'
     >>> githash(directory / '..' / 'setup.py', is_path=True, chunk_size=256)
-    'fb01bcb372344e1864e8edaf0456a70ff1471324'
+    'd303eef5ad68fb6abe3d483a79b76c5a475852e3'
     """
     hasher = hashlib.sha1()
     if is_path:
