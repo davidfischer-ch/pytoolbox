@@ -5,6 +5,19 @@ changelog
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 -------
+v14.0.1
+-------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.0...14.0.1
+
+Fix and enhancements
+====================
+
+- Function filesystem.from_template: Add directories optional argument
+- Fix Keras imports (because they changed)
+- Fix newer pylint errors
+
+-------
 v14.0.0
 -------
 
