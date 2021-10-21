@@ -9,7 +9,7 @@ from django.db import models
 from django.core import validators as dj_validators
 from django.db.models.fields import files
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pytoolbox import module
 from pytoolbox.django.core import validators

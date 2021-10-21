@@ -2,7 +2,7 @@
     :file:`apps.py` ::
 
         from django import apps
-        from django.utils.translation import ugettext_lazy as _
+        from django.utils.translation import gettext_lazy as _
 
         from . import signals
 

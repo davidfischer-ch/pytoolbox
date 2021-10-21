@@ -3,7 +3,7 @@ import copy, re
 from django.core import validators
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils.deconstruct import deconstructible
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 __all__ = ['EmptyValidator', 'KeysValidator', 'MD5ChecksumValidator']
 

@@ -5,7 +5,7 @@ powered API `serializers <http://www.django-rest-framework.org/tutorial/1-serial
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import smart_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pytoolbox.django.models import utils
 
