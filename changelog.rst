@@ -5,6 +5,17 @@ changelog
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 -------
+v14.0.2
+-------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.0...14.0.1
+
+Fix and enhancements
+====================
+
+- Fix Django deprecation warning (ugettext_lazy -> gettext_lazy)
+
+-------
 v14.0.1
 -------
 
