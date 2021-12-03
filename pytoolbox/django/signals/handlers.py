@@ -44,7 +44,8 @@ __all__ = [
     'logger',
     'clean_files_delete_handler',
     'create_site',
-    'setup_postgresql_hstore_extension'
+    'setup_postgresql_hstore_extension',
+    'strip_strings_and_validate_model'
 ]
 
 logger = logging.getLogger(__name__)
