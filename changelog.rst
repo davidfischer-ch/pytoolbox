@@ -5,6 +5,28 @@ changelog
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 -------
+v14.1.0
+-------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.0.2
+
+Minor compatibility breaks
+==========================
+
+- Module dango.models.fields: Apply NullifyMixin to StripCharField and StripTextField
+
+Features
+========
+
+- Module django.models.fields: Add NullifyMixin, CharField and TextField
+
+Fix and enhancements
+====================
+
+- Module django.signals: Fix strip_strings_and_validate_model not importable from django.signals
+- Module django.models.fields: Fix StripMixin not fair play with inheritance
+
+-------
 v14.0.2
 -------
 
