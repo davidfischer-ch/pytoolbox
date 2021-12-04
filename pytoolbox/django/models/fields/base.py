@@ -20,11 +20,19 @@ _all = module.All(globals())
 
 # Char & Text
 
-class StripCharField(mixins.OptionsMixin, mixins.StripMixin, models.CharField):
+class CharField(mixins.OptionsMixin, mixins.NullifyMixin, models.CharField):
     pass
 
 
-class StripTextField(mixins.OptionsMixin, mixins.StripMixin, models.TextField):
+class TextField(mixins.OptionsMixin, mixins.NullifyMixin, models.TextField):
+    pass
+
+
+class StripCharField(mixins.OptionsMixin, mixins.StripMixin, mixins.NullifyMixin, models.CharField):
+    pass
+
+
+class StripTextField(mixins.OptionsMixin, mixins.StripMixin, mixins.NullifyMixin, models.TextField):
     pass
 
 
