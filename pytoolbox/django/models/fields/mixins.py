@@ -16,6 +16,16 @@ class LowerCaseMixin(object):
         return value
 
 
+class NullifyMixin(object):
+
+    def pre_save(self, model_instance, add):
+        value = super().pre_save(model_instance, add)
+        if not value and self.null:
+            value = None
+            setattr(model_instance, self.attname, value)
+        return value
+
+
 class OptionsMixin(object):
 
     default_options = {}
