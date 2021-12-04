@@ -17,6 +17,7 @@ class LowerCaseMixin(object):
 
 
 class NullifyMixin(object):
+    """Replace falsy values by None if NULL is allowed."""
 
     def pre_save(self, model_instance, add):
         value = super().pre_save(model_instance, add)

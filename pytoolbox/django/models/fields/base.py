@@ -21,19 +21,19 @@ _all = module.All(globals())
 # Char & Text
 
 class CharField(mixins.OptionsMixin, mixins.NullifyMixin, models.CharField):
-    pass
+    """A CharFiled with OptionsMixin and NullifyMixin applied."""
 
 
 class TextField(mixins.OptionsMixin, mixins.NullifyMixin, models.TextField):
-    pass
+    """A TextField with OptionsMixin and NullifyMixin applied."""
 
 
 class StripCharField(mixins.OptionsMixin, mixins.StripMixin, mixins.NullifyMixin, models.CharField):
-    pass
+    """A CharFiled with OptionsMixin, StripMixin and NullifyMixin applied."""
 
 
 class StripTextField(mixins.OptionsMixin, mixins.StripMixin, mixins.NullifyMixin, models.TextField):
-    pass
+    """A TextField with OptionsMixin, StripMixin and NullifyMixin applied."""
 
 
 class ExtraChoicesField(StripCharField):
@@ -105,6 +105,7 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
 
 
 class URLField(StripCharField, models.URLField):
+    """An URLFIeld with StripCharField behavior inside."""
 
     default_options = {'max_length': 8000}  # http://tools.ietf.org/html/rfc7230#section-3.1.1
 
@@ -129,6 +130,7 @@ class FieldFile(files.FieldFile):
 
 
 class FileField(mixins.OptionsMixin, models.FileField):
+    """A FileField with OptionsMixin applied."""
 
     attr_class = FieldFile
 
