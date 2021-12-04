@@ -41,7 +41,7 @@ class StripMixin(object):
     default_validators = [validators.EmptyValidator()]
 
     def pre_save(self, model_instance, add):
-        value = getattr(model_instance, self.attname)
+        value = super().pre_save(model_instance, add)
         if value:
             value = value.strip()
             setattr(model_instance, self.attname, value)
