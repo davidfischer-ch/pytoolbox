@@ -19,7 +19,7 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library supports Python 3.6, 3.7, 3.8... and PyPy 3.6.
+This library supports Python 3.7, 3.8, 3.9, 3.10.
 
 ------------------------------------
 What the release number stands for ?
@@ -33,18 +33,24 @@ How to install it ?
 
 Install some packages that are not handled by pip::
 
-    $ sudo apt-get install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
-    $ sudo apt-get install ffmpeg git-core python3-dev python3-gi python3-pip screen
+    $ sudo apt install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
+    $ sudo apt install ffmpeg git-core python3-dev python3-gi python3-pip screen
+
+If using the vision feature, then you have to install some requirements for dlib::
+
+    $ sudo apt install build-essential cmake pkg-config
+
+See https://learnopencv.com/install-dlib-on-ubuntu/ for an up-to-date procedure.
 
 Make sure that pip is up-to-date (PIPception)::
 
     $ source /some/python3/venv/bin/active
-    $ pip install --upgrade pip
+    $ pip install --upgrade pip setuptools wheel
 
 Then, you only need to run ``setup.py``::
 
     $ source /some/python3/venv/bin/activate
-    $ python setup.py install
+    $ pip install .
 
 --------------------------------
 How to enable features/modules ?
@@ -163,4 +169,4 @@ See `pip vcs support <http://www.pip-installer.org/en/latest/logic.html#vcs-supp
 
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
-2014 - 2021 David Fischer
+2014 - 2022 David Fischer
