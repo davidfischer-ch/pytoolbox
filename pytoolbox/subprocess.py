@@ -169,7 +169,7 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
 
     # log the execution
     if log_debug:
-        # FIXME simplify this
+        # TODO simplify this
         log_debug('Execute {0}{1}{2}'.format(
             '' if input is None else 'echo {0}|'.format(repr(input)),
             args_string,
@@ -234,7 +234,7 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
         do_retry = trial < tries - 1
         delay = random.uniform(delay_min, delay_max)
         if log_warning:
-            # FIXME simplify this
+            # TODO simplify this
             log_warning('Attempt {0} out of {1}: {2}'.format(trial + 1, tries,
                         'Will retry in {0} seconds'.format(delay) if do_retry else 'Failed'))
 

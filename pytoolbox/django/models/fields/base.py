@@ -120,7 +120,7 @@ class FieldFile(files.FieldFile):
 
     @basename.setter
     def basename(self, value):
-        # FIXME use storage.get_valid_name
+        # TODO use storage.get_valid_name
         self.name = self.field.upload_to(self.instance, os.path.basename(value))
         setattr(self.instance, self.field.name, self.name)
 

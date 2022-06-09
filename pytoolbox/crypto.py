@@ -73,8 +73,8 @@ def get_password_generator(characters=string.ascii_letters + string.digits, leng
         lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)))
 
 
-# FIXME implement githash class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
-# FIXME add length optional argument to implement chunk'ed update()
+# TODO implement githash class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
+# TODO add length optional argument to implement chunk'ed update()
 def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     """
     Return the blob of some data.

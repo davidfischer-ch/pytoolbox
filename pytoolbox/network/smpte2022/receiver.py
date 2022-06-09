@@ -415,7 +415,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 media.payload_type ^= friend.payload_type
                 media.timestamp ^= friend.timestamp
                 payload_size ^= friend.payload_size
-                # FIXME FIXME FIXME FIXME FIXME OPTIMIZATION FIXME FIXME FIXME FIXME
+                # TODO Optimize this
                 for index in range(min(len(media.payload), len(friend.payload))):
                     media.payload[index] ^= friend.payload[index]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK

@@ -71,9 +71,9 @@ disable=
         import-outside-toplevel,        # It can be used to break cycles, etc
         logging-format-interpolation,   # Its overkill for now
         logging-fstring-interpolation,  # Its overkill for now
-        missing-class-docstring,        # FIXME enable this sometime
-        missing-function-docstring,     # FIXME enable this sometime
-        missing-module-docstring,       # FIXME enable this sometime
+        missing-class-docstring,        # TODO enable this sometime
+        missing-function-docstring,     # TODO enable this sometime
+        missing-module-docstring,       # TODO enable this sometime
         multiple-imports,               # Its David Fischer style
         too-many-arguments,             # Its overkill for now
         useless-object-inheritance,     # Explicit is better than implicit https://stackoverflow.com/questions/1238606

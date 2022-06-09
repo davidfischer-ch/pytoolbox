@@ -287,7 +287,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         >>> fec == FecPacket(header, len(header))
         True
         """
-        # FIXME map type string to enum
+        # TODO map type string to enum
         header = bytearray(self.HEADER_LENGTH)
         struct.pack_into(b'!H', header, 0, self.snbase & self.SNBL_MASK)
         struct.pack_into(b'!H', header, 2, self.length_recovery)

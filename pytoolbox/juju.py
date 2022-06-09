@@ -83,7 +83,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     env['JUJU_HOME'] = os.path.expanduser('~/.juju')
 
     if is_destroy:
-        # FIXME Automate yes answer to destroy-environment
+        # TODO Automate yes answer to destroy-environment
         method = subprocess.check_call if fail else subprocess.call
         return method(arguments)
     result = py_subprocess.cmd(arguments, fail=False, log=log, env=env, **kwargs)
@@ -362,7 +362,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
     def name_slug(self):
         return self.name.replace('/', '-')
 
-    # FIXME add cache decorator
+    # TODO add cache decorator
     @property
     def is_leader(self):
         """
@@ -400,13 +400,13 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             return self.cmd(['close-port', f'{port}/{protocol}'])
         return self.debug(f'Close port {port} ({protocol})')
 
-    # FIXME add memoize decorator
+    # TODO add memoize decorator
     def unit_get(self, attribute):
         if self.juju_ok:
             return self.cmd(['unit-get', attribute])['stdout'].strip()
         raise NotImplementedError('FIXME juju-less unit_get not yet implemented')
 
-    # FIXME add memoize decorator
+    # TODO add memoize decorator
     def relation_get(self, attribute=None, unit=None, relation_id=None):
         if self.juju_ok:
             command = ['relation-get']
@@ -416,14 +416,14 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             return self.cmd(command)['stdout'].strip()
         raise NotImplementedError('FIXME juju-less relation_get not yet implemented')
 
-    # FIXME add memoize decorator
+    # TODO add memoize decorator
     def relation_ids(self, relation_name=''):
         if self.juju_ok:
             result = self.cmd(['relation-ids', '--format', 'json', relation_name], fail=False)
             return json.loads(result['stdout']) if result['returncode'] == 0 else None
         raise NotImplementedError('FIXME juju-less relation_ids not yet implemented')
 
-    # FIXME add memoize decorator
+    # TODO add memoize decorator
     def relation_list(self, relation_id=None):
         if self.juju_ok:
             command = ['relation-list', '--format', 'json']
@@ -703,7 +703,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         remove=False,
         timeout=15
     ):
-        # FIXME simpler algorithm
+        # TODO simpler algorithm
         with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
             environments_dict = yaml.safe_load(f)
 
@@ -915,7 +915,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
                 units_number_to_keep = \
                     [int(n) for n in units_number_to_keep] if units_number_to_keep else []
 
-                # FIXME implement status comparison for sorting ??
+                # TODO implement status comparison for sorting ??
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
                     if num_units == 0:
                         break
@@ -951,13 +951,13 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
             return None
         if terminate:
             juju_do('destroy-unit', self.name, options=[name])
-            # FIXME ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
+            # TODO ideally a flag https://bugs.launchpad.net/juju-core/+bug/1206532
             time.sleep(delay_terminate)
             return self.destroy_machine(unit_dict['machine'])
         return juju_do('destroy-unit', self.name, options=[name])
 
     def get_unit(self, service, number, default=None, fail=True, timeout=None):
-        # FIXME maybe none if missing or something else
+        # TODO maybe none if missing or something else
         name = f'{service}/{number}'
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is not None:
@@ -1091,7 +1091,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         try:
             result = juju_do('add-relation', self.name, options=[member1, member2])
         except RuntimeError as e:
-            # FIXME get status of service before adding relation may be cleaner.
+            # TODO get status of service before adding relation may be cleaner.
             if 'already exists' not in str(e):
                 raise
         return result
@@ -1107,7 +1107,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         try:
             result = juju_do('remove-relation', self.name, options=[member1, member2])
         except RuntimeError as e:
-            # FIXME get status of service before removing relation may be cleaner.
+            # TODO get status of service before removing relation may be cleaner.
             if 'exists' not in str(e):
                 raise
         return result
@@ -1184,7 +1184,7 @@ class SimulatedUnits(object):
 
     def __init__(self, start_latency_range, stop_latency_range):
         self.start_latency_range = start_latency_range
-        self.stop_latency_range = stop_latency_range  # FIXME not yet used by this simulator ...
+        self.stop_latency_range = stop_latency_range  # TODO not yet used by this simulator ...
         self.units = {}
         self.number = 0
 
@@ -1214,7 +1214,7 @@ class SimulatedUnits(object):
         num_units = units_count - num_units
         destroyed = {}
         # Sort units by status to kill the useless units before any others !
-        # FIXME implement status comparison for sorting ??
+        # TODO implement status comparison for sorting ??
         for state in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
             if num_units == 0:
                 break

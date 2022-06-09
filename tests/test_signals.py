@@ -4,7 +4,7 @@ import pytest
 from pytoolbox import exceptions, signals
 
 
-# FIXME Convert to simple pytest tests
+# TODO Convert to simple pytest tests
 class TestSignals(unittest.TestCase):
 
     def append_list_callback(self, number):

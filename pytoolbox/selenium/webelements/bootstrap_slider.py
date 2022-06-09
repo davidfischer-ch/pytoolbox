@@ -12,14 +12,14 @@ class BootstrapSliderMixin(object):
         return int(value)
 
     def clear(self):
-        pass  # FIXME something to do?
+        pass  # TODO something to do?
 
     def send_keys(self, *value):
         if len(value) == 1:
             value = self.clean_value(value[0])
             slider_xpath = "..//*[contains(concat(' ', @class, ' '), ' slider-handle ')]"
             slider = next(e for e in self.find_xpath(slider_xpath) if e.is_displayed())
-            # FIXME detect step and make a loop to reach the target value
+            # TODO detect step and make a loop to reach the target value
             delta = value - self.get_attribute('value')
             if delta > 0:
                 slider.send_keys([Keys.RIGHT] * delta)

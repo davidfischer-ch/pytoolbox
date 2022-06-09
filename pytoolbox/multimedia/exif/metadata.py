@@ -32,7 +32,7 @@ class Metadata(object):
         self.photo = self.photo_class(self)
 
     def __getitem__(self, key):
-        # FIXME make it more strict and re-implement less strict self.get(key)
+        # TODO make it more strict and re-implement less strict self.get(key)
         return self.tag_class(self, key)
 
     def __setitem__(self, key, value):
