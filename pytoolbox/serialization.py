@@ -560,7 +560,7 @@ def dict_to_object(cls, the_dict, inspect_constructor):
     >>> dict_to_object(User, user_dict, inspect_constructor=False)
     Traceback (most recent call last):
         ...
-    TypeError: __init__() got an unexpected keyword argument 'unexpected'
+    TypeError: ...__init__() got an unexpected keyword argument 'unexpected'
     >>> asserts.dict_equal(
     ...     dict_to_object(User, user_dict, inspect_constructor=True).__dict__,
     ...     {'first_name': 'Victor', 'last_name': 'Fischer'})
