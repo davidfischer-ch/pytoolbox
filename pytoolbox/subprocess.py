@@ -169,11 +169,11 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
 
     # log the execution
     if log_debug:
-        # TODO simplify this
-        log_debug('Execute {0}{1}{2}'.format(
-            '' if input is None else 'echo {0}|'.format(repr(input)),
-            args_string,
-            '' if cli_input is None else ' < {0}'.format(repr(cli_input))))
+        log_debug(
+            'Execute ' +
+            ('' if input is None else f'echo {repr(input)} | ') +
+            args_string +
+            ('' if cli_input is None else f' < {repr(cli_input)}'))
 
     for trial in range(tries):  # noqa
         # create the sub-process
@@ -234,9 +234,9 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
         do_retry = trial < tries - 1
         delay = random.uniform(delay_min, delay_max)
         if log_warning:
-            # TODO simplify this
-            log_warning('Attempt {0} out of {1}: {2}'.format(trial + 1, tries,
-                        'Will retry in {0} seconds'.format(delay) if do_retry else 'Failed'))
+            log_warning(
+                f'Attempt {trial + 1} out of {tries}: ' +
+                (f'Will retry in {delay} seconds' if do_retry else 'Failed')
 
         # raise if this is the last try
         if fail and not do_retry:
@@ -254,7 +254,7 @@ def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None,
     if url is not None:
         with open(os.path.join(directory, '.git', 'config'), encoding='utf-8') as f:
             config = f.read()
-        regex = r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote)
+        regex = rf'\[remote "{remote}"\][^\[]+url\s+=\s+(\S+)'
         url = re.search(regex, config, re.MULTILINE).group(1)
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
 
