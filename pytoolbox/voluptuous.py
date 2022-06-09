@@ -74,10 +74,11 @@ def SHA256(value):  # pylint:disable=invalid-name
 
 def Version(digits=4, msg=None):  # pylint:disable=invalid-name
     assert 1 <= digits <= 4
+    pattern = r'^[0-9]+(\.[0-9]+){%d}\.[a-z0-9]+$'
 
     @functools.wraps(Version)
     def f(value):
-        if re.match(r'^[0-9]+(\.[0-9]+){%d}\.[a-z0-9]+$' % (digits - 2), value):
+        if re.match(pattern % (digits - 2), value):  # pylint:disable=consider-using-f-string
             return value
         raise VersionInvalid(msg or 'Incorrect version number')
     return f

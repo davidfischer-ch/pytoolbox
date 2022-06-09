@@ -11,7 +11,7 @@ class TestSignals(unittest.TestCase):
         self.flag = True
         self.list.append(number)
 
-    def raise_handler(self, signum, frame):  # pylint:disable=no-self-use
+    def raise_handler(self, signum, frame):
         raise AssertionError
 
     def set_flag_handler(self, signum, frame):  # pylint:disable=unused-argument
@@ -19,7 +19,7 @@ class TestSignals(unittest.TestCase):
 
     def set_flag_callback(self, *args, **kwargs):
         assert args == (None, )
-        assert kwargs == {}
+        assert not kwargs
         self.flag = True
 
     def setUp(self):

@@ -46,7 +46,7 @@ def test_should_run_with_extra():
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
 
-    def test_fast_class_skip(self):  # pylint:disable=no-self-use
+    def test_fast_class_skip(self):
 
         class TestCaseWithTags(FilterByTagsMixin):
             tags = {'c'}
@@ -108,7 +108,7 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         test(11, False, extra_tags={'r'}, skip_tags={'AnotherTestCase'})
 
     @with_tags(required='should-not-run')
-    def test_with_tags_decorator(self):  # pylint:disable=no-self-use
+    def test_with_tags_decorator(self):
         raise RuntimeError('This test should never run.')
 
 
