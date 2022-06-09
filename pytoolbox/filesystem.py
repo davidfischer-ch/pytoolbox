@@ -170,7 +170,7 @@ def from_template(
     >>> os.remove('config')
     """
     if is_file:
-        with open(template, 'r') as f:
+        with open(template, 'r', encoding='utf-8') as f:
             content = f.read()
     else:
         content = template
@@ -186,7 +186,7 @@ def from_template(
     if post_func:
         content = post_func(content, values=values, jinja2=jinja2)
     if destination:
-        with open(destination, 'w') as f:
+        with open(destination, 'w', encoding='utf-8') as f:
             f.write(content)
     return content
 
@@ -225,7 +225,7 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     >>> directory = Path(__file__).resolve().parent
     >>>
     >>> get_size(directory / '..' / 'setup.py')
-    7982
+    8032
     >>> get_size(directory/ '..', '*.cfg')
     105
     >>> 75000 < get_size(directory/ '..', '.*/v.*\\.py', regex=True) < 80000

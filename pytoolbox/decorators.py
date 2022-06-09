@@ -111,7 +111,7 @@ def disable_iptables(f):
                 has_iptables = False
             return f(*args, **kwargs)
         finally:
-            if has_iptables:
+            if has_iptables:  # pylint:disable=used-before-assignment
                 print('Enable iptables')
                 py_subprocess.cmd('sudo service iptables start', shell=True)
     return wrapper

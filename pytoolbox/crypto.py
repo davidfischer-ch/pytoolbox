@@ -40,9 +40,9 @@ def checksum(
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
     >>> checksum(directory / '..' / 'setup.py', is_path=True)
-    '3b2d631c2e99f04d8ead9b2f10f0c85adbfac48e60435515f6d014420571081c'
+    'a31ed7155061f7904c4b7f33b1c9ed42d7f64ef65756203494eb103d83ad6ce8'
     >>> checksum(directory / '..' / 'setup.py', is_path=True, chunk_size=997)
-    '3b2d631c2e99f04d8ead9b2f10f0c85adbfac48e60435515f6d014420571081c'
+    'a31ed7155061f7904c4b7f33b1c9ed42d7f64ef65756203494eb103d83ad6ce8'
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
@@ -97,18 +97,18 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
     >>> githash(directory / '..' / 'setup.py', is_path=True)
-    'd303eef5ad68fb6abe3d483a79b76c5a475852e3'
+    'c5a5958aaee1fe4aaefd8f53c707fc944bd58053'
     >>> githash(directory / '..' / 'setup.py', is_path=True, chunk_size=256)
-    'd303eef5ad68fb6abe3d483a79b76c5a475852e3'
+    'c5a5958aaee1fe4aaefd8f53c707fc944bd58053'
     """
     hasher = hashlib.sha1()
     if is_path:
-        hasher.update(('blob %d\0' % os.path.getsize(path_or_data)).encode('utf-8'))
+        hasher.update((f'blob {os.path.getsize(path_or_data)}\0').encode('utf-8'))
         for data_bytes in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
             hasher.update(data_bytes)
     else:
         data_bytes = next(filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size=None))
-        hasher.update(('blob %d\0' % len(data_bytes)).encode('utf-8'))
+        hasher.update((f'blob {len(data_bytes)}\0').encode('utf-8'))
         hasher.update(data_bytes)
     return hasher.hexdigest()
 
