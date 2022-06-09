@@ -5,8 +5,8 @@ Pytoolbox
 .. image:: https://badge.fury.io/py/pytoolbox.png
    :target: http://badge.fury.io/py/pytoolbox
 
-.. image:: https://secure.travis-ci.org/davidfischer-ch/pytoolbox.png
-   :target: http://travis-ci.org/davidfischer-ch/pytoolbox
+.. image:: https://app.travis-ci.com/davidfischer-ch/pytoolbox.png
+   :target: https://app.travis-ci.com/davidfischer-ch/pytoolbox
 
 .. image:: https://coveralls.io/repos/davidfischer-ch/pytoolbox/badge.png
    :target: https://coveralls.io/r/davidfischer-ch/pytoolbox
