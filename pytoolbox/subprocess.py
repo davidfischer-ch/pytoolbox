@@ -236,7 +236,7 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
         if log_warning:
             log_warning(
                 f'Attempt {trial + 1} out of {tries}: ' +
-                (f'Will retry in {delay} seconds' if do_retry else 'Failed')
+                (f'Will retry in {delay} seconds' if do_retry else 'Failed'))
 
         # raise if this is the last try
         if fail and not do_retry:
