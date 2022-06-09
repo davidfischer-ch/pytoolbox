@@ -542,23 +542,24 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         delay_format = '%.0f' if self.delay_units == self.PACKETS else '%.2f'
         delay_msg = f'{delay_format % self.current_delay} {self.DELAY_NAMES[self.delay_units]}'
 
-        return ("Name  Received Buffered Maximum Dropped{0}"
-                "Media %8d%9d%8d{0}"
-                "Col   %8d%9d%8d%8d{0}"
-                "Row   %8d%9d%8d%8d{0}"
-                "Cross         %9d%8d{0}"
-                "FEC statistics, media packets :{0}"
-                "Recovered Aborted Overwritten Missing{0}"
-                "%9d%8d%12d%8d{0}"
-                "Current position (media sequence) : %s{0}"
-                "Current delay (can be set) : %s{0}"
-                "FEC matrix size (LxD) : %sx%s = %s packets".format(os.linesep) %
-                (self.media_received, len(self.medias), self.max_media,
-                 self.col_received, len(self.cols), self.max_col, self.col_dropped,
-                 self.row_received, len(self.rows), self.max_row, self.row_dropped,
-                 len(self.crosses), self.max_cross, self.media_recovered,
-                 self.media_aborted_recovery, self.media_overwritten, self.media_missing,
-                 self.position, delay_msg, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
+        return (  # pylint:disable=consider-using-f-string
+            "Name  Received Buffered Maximum Dropped{0}"
+            "Media %8d%9d%8d{0}"
+            "Col   %8d%9d%8d%8d{0}"
+            "Row   %8d%9d%8d%8d{0}"
+            "Cross         %9d%8d{0}"
+            "FEC statistics, media packets :{0}"
+            "Recovered Aborted Overwritten Missing{0}"
+            "%9d%8d%12d%8d{0}"
+            "Current position (media sequence) : %s{0}"
+            "Current delay (can be set) : %s{0}"
+            "FEC matrix size (LxD) : %sx%s = %s packets".format(os.linesep) %
+            (self.media_received, len(self.medias), self.max_media,
+             self.col_received, len(self.cols), self.max_col, self.col_dropped,
+             self.row_received, len(self.rows), self.max_row, self.row_dropped,
+             len(self.crosses), self.max_cross, self.media_recovered,
+             self.media_aborted_recovery, self.media_overwritten, self.media_missing,
+             self.position, delay_msg, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Static >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

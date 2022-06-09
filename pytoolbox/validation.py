@@ -274,7 +274,7 @@ def valid_uuid(value, objectid_allowed=False, none_allowed=False):
     if value is None and none_allowed:
         return True
     try:
-        uuid.UUID('{{{0}}}'.format(value))
+        uuid.UUID('{{{0}}}'.format(value))  # pylint:disable=consider-using-f-string
     except ValueError:
         if not objectid_allowed:
             return False
