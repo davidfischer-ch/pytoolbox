@@ -177,9 +177,10 @@ def from_template(
     if pre_func:
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
-        from jinja2 import Environment, FileSystemLoader
+        from jinja2 import Environment, FileSystemLoader, StrictUndefined
         loader = FileSystemLoader(directories)
-        content = Environment(loader=loader).from_string(content).render(**values)
+        environment = Environment(loader=loader, undefined=StrictUndefined)
+        content = environment.from_string(content).render(**values)
     else:
         content = content.format(**values)
     if post_func:
