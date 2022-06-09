@@ -224,7 +224,7 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     ...         self.x = x
     ...         self.y = y
     >>> p1 = Point(name='My point', x=10, y=-5)
-    >>> with open('test.json', 'w') as f:
+    >>> with open('test.json', 'w', encoding='utf-8') as f:
     ...     f.write(object_to_json(p1, include_properties=False))
     38
 
@@ -305,7 +305,7 @@ class JsoneableObject(object):
     @classmethod
     def read(cls, path, store_path=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
-        with open(path, 'r') as f:
+        with open(path, encoding='utf-8') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
             if store_path:
                 the_object._json_path = path  # pylint:disable=all

@@ -25,7 +25,7 @@ def get_kernel_config(release=None, fail=True):
     {}
     """
     try:
-        with open(f'/boot/config-{release or os.uname().release}') as f:
+        with open(f'/boot/config-{release or os.uname().release}', encoding='utf-8') as f:
             config = configparser.ConfigParser()
             config.read_string(f'[kernel]{f.read()}')
     except IOError:

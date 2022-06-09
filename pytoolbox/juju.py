@@ -108,7 +108,7 @@ def load_unit_config(config, log=None):
         if hasattr(log, '__call__'):
             log(f'Load config from file {config}')
 
-        with open(config, 'r', encoding='utf-8') as f:
+        with open(config, encoding='utf-8') as f:
             options = yaml.safe_load(f)['options']
             config = {}
             for option in options:
@@ -144,7 +144,7 @@ def add_environment(
     default_series,
     environments=None
 ):
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
+    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.safe_load(f)
 
     if environment == 'default':
@@ -170,7 +170,7 @@ def add_environment(
 
     environments_dict['environments'][environment] = environment_dict
 
-    with open(environments, 'w') as f:
+    with open(environments, 'w', encoding='utf-8') as f:
         f.write(yaml.safe_dump(environments_dict))
 
     try:
@@ -185,7 +185,7 @@ def add_environment(
 
 
 def get_environment(environment, environments=None, get_status=False, status_timeout=None):
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
+    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.safe_load(f)
 
     environment = environments_dict['default'] if environment == 'default' else environment
@@ -201,7 +201,7 @@ def get_environment(environment, environments=None, get_status=False, status_tim
 
 
 def get_environments(environments=None, get_status=False, status_timeout=None):
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
+    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.safe_load(f)
 
     environments = {}
@@ -219,7 +219,7 @@ def get_environments(environments=None, get_status=False, status_timeout=None):
 
 
 def get_environments_count(environments=None):
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
+    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         return len(yaml.safe_load(f)['environments'])
 
 
@@ -523,7 +523,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         """
         if isinstance(metadata, str):
             self.debug(f'Load metadata from file {metadata}')
-            with open(metadata) as f:
+            with open(metadata, encoding='utf-8') as f:
                 metadata = yaml.safe_load(f)
         self.metadata = metadata
 
@@ -704,7 +704,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         timeout=15
     ):
         # FIXME simpler algorithm
-        with open(environments or DEFAULT_ENVIRONMENTS_FILE, 'r') as f:
+        with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
             environments_dict = yaml.safe_load(f)
 
         name = environments_dict['default'] if self.name == 'default' else self.name
@@ -727,7 +727,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
                 raise RuntimeError(f'Environment {name} not removed, it is still alive.')
 
             del environments_dict['environments'][name]
-            with open(environments, 'w') as f:
+            with open(environments, 'w', encoding='utf-8') as f:
                 f.write(yaml.safe_dump(environments_dict))
         return result
 

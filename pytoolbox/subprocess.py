@@ -252,7 +252,7 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
 
 def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
     if url is not None:
-        with open(os.path.join(directory, '.git', 'config')) as f:
+        with open(os.path.join(directory, '.git', 'config'), encoding='utf-8') as f:
             config = f.read()
         regex = r'\[remote "{0}"\][^\[]+url\s+=\s+(\S+)'.format(remote)
         url = re.search(regex, config, re.MULTILINE).group(1)

@@ -92,7 +92,7 @@ class FFmpeg(object):
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
-            with open(checksum_filename, 'r') as f:
+            with open(checksum_filename, encoding='utf-8') as f:
                 match = FRAME_MD5_REGEX.search(f.read())
             return match.group() if match else None
 

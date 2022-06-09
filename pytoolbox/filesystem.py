@@ -138,7 +138,7 @@ def from_template(
 
     >>> template = '{{username={user}; password={pass}}}'
     >>> values = {'user': 'tabby', 'pass': 'miaow', 'other': 10}
-    >>> with open('config.template', 'w') as f:
+    >>> with open('config.template', 'w', encoding='utf-8') as f:
     ...     f.write(template)
     36
 
@@ -170,7 +170,7 @@ def from_template(
     >>> os.remove('config')
     """
     if is_file:
-        with open(template, 'r', encoding='utf-8') as f:
+        with open(template, encoding='utf-8') as f:
             content = f.read()
     else:
         content = template
@@ -383,7 +383,7 @@ def remove(path, recursive=False):
 
     **Example usage**
 
-    >>> with open('remove.example', 'w') as f:
+    >>> with open('remove.example', 'w', encoding='utf-8') as f:
     ...     f.write('salut les pépés')
     15
     >>> remove('remove.example')
@@ -393,7 +393,7 @@ def remove(path, recursive=False):
 
     >>> for file_name in ('remove/a', 'remove/b/c', 'remove/d/e/f'):
     ...     _ = makedirs(os.path.dirname(file_name))
-    ...     with open(file_name, 'w') as f:
+    ...     with open(file_name, 'w', encoding='utf-8') as f:
     ...         f.write('salut les pépés')
     15
     15

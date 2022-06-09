@@ -44,7 +44,7 @@ class FFprobe(object):
         *mediaPresentationDuration*.
         """
         if isinstance(media, (str, Path)) and os.path.splitext(media)[1] == '.mpd':
-            with open(media) as f:
+            with open(media, encoding='utf-8') as f:
                 mpd = minidom.parse(f)
             if mpd.firstChild.nodeName == 'MPD':
                 match = self.duration_regex.search(

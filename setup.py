@@ -200,7 +200,7 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
     def finalize_options(self):
         pass
 
-    def run(self):  # pylint:disable=no-self-use
+    def run(self):
         from pytoolbox import filesystem
         project = Path(__file__).resolve().parent
         source = project / 'docs' / 'source'
@@ -221,7 +221,7 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
         subprocess.run(['make', 'html'], cwd=project / 'docs', check=True)
 
 
-with open('README.rst', 'r') as f:
+with open('README.rst', encoding='utf-8') as f:
     long_description = f.read()
 
 setuptools.setup(
