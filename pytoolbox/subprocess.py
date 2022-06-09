@@ -174,7 +174,7 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
             '' if input is None else f'echo {repr(input)} | ',
             args_string,
             '' if cli_input is None else f' < {repr(cli_input)}'
-        ])
+        ]))
 
     for trial in range(tries):  # noqa
         # create the sub-process
