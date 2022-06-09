@@ -12,5 +12,5 @@ class Disabled(setuptools.Command):  # pylint:disable=duplicate-code
     def finalize_options(self):
         """Finalize options."""
 
-    def run(self):  # pylint:disable=no-self-use
+    def run(self):
         sys.exit('This command is disabled!')
