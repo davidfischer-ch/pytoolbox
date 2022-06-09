@@ -169,11 +169,12 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
 
     # log the execution
     if log_debug:
-        log_debug(
-            'Execute ' +
-            ('' if input is None else f'echo {repr(input)} | ') +
-            args_string +
-            ('' if cli_input is None else f' < {repr(cli_input)}'))
+        log_debug(''.join([
+            'Execute ',
+            '' if input is None else f'echo {repr(input)} | ',
+            args_string,
+            '' if cli_input is None else f' < {repr(cli_input)}'
+        ])
 
     for trial in range(tries):  # noqa
         # create the sub-process
@@ -234,9 +235,10 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
         do_retry = trial < tries - 1
         delay = random.uniform(delay_min, delay_max)
         if log_warning:
-            log_warning(
-                f'Attempt {trial + 1} out of {tries}: ' +
-                (f'Will retry in {delay} seconds' if do_retry else 'Failed'))
+            log_warning(' '.join([
+                f'Attempt {trial + 1} out of {tries}:',
+                f'Will retry in {delay} seconds' if do_retry else 'Failed'
+            ]))
 
         # raise if this is the last try
         if fail and not do_retry:
