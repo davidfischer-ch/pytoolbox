@@ -4,6 +4,31 @@ changelog
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+--------------------
+v14.2.0 (2022-06-10)
+--------------------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.2.0...14.1.0
+
+Minor compatibility breaks
+==========================
+
+- Drop Python 3.6 compatibility
+- Function `filesystem.from_template`: Make Jinja2 template strict with undefined values
+- Module `argparse`: Return `pathlib.Path` instead of `str` (See commit 6acf8d13e2739a6e564b325bc035e33676c9ff07)
+
+Features
+========
+
+- Add some type hints (more to come)
+
+Fix and enhancements
+====================
+
+- Convert some FIXMEs to TODOs
+- Ensure Python 3.10 compatibility
+- Fix many linter issues
+
 -------
 v14.1.0
 -------
