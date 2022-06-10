@@ -228,7 +228,7 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     8015
     >>> get_size(directory/ '..', '*.cfg')
     105
-    >>> 45000 < get_size(directory/ '..', '.*/v[^/]+\\.py', regex=True) < 65000
+    >>> get_size(directory / '..', '.*/v[^/]+\\.py', regex=True) > 10000
     True
     """
     if os.path.isfile(path):
