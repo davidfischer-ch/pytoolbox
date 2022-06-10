@@ -4,19 +4,22 @@ Module related to parsing arguments from the command-line.
 **Example usage**
 
 >>> import argparse
+>>> from pathlib import Path
 >>> parser = argparse.ArgumentParser(
 ...     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 ...     epilog='My super cool software.')
 >>> x = parser.add_argument('directory', action=FullPaths, type=is_dir)
->>> parser.parse_args(['/usr/lib']).directory
+>>> str(parser.parse_args(['/usr/lib']).directory)
 '/usr/lib'
->>> assert parser.parse_args(['.']).directory == os.path.abspath(os.path.expanduser(os.getcwd()))
+>>> assert parser.parse_args(['.']).directory == Path(os.getcwd()).expanduser().resolve()
 >>> parser.parse_args(['/does_not_exist/'])
 Traceback (most recent call last):
     ...
 SystemExit: 2
 """
 
+from pathlib import Path
+from typing import Optional, Union
 import argparse, getpass, os, shutil
 
 from . import itertools, module
@@ -26,16 +29,18 @@ _all = module.All(globals())
 # Credits https://gist.github.com/brantfaircloth/1443543
 
 
-def is_dir(path):
+def is_dir(path: Union[str, Path]) -> Path:
     """Check if `path` is an actual directory and return it."""
-    if os.path.isdir(path):
+    path = Path(path)
+    if path.is_dir():
         return path
     raise argparse.ArgumentTypeError(f'{path} is not a directory')
 
 
-def is_file(path):
+def is_file(path: Union[str, Path]) -> Path:
     """Check if `path` is an actual file and return it."""
-    if os.path.isfile(path):
+    path = Path(path)
+    if path.is_file():
         return path
     raise argparse.ArgumentTypeError(f'{path} is not a file')
 
@@ -47,7 +52,7 @@ def multiple(f):
     return _multiple
 
 
-def password(value):
+def password(value: Optional[str]) -> str:
     return value or getpass.getpass('Password: ')
 
 
@@ -64,8 +69,8 @@ class FullPaths(argparse.Action):
     """Expand user/relative paths."""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        def fullpath(path):
-            return os.path.abspath(os.path.expanduser(path))
+        def fullpath(path: Union[str, Path]) -> Path:
+            return Path(path).expanduser().resolve()
         value = itertools.extract_single([fullpath(v) for v in itertools.chain(values)])
         setattr(namespace, self.dest, value)
 
