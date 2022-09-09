@@ -54,11 +54,11 @@ def _colorize(diff: Iterator[str]) -> Iterator[str]:
 
 # Versions -----------------------------------------------------------------------------------------
 
-def _eqn(a, b) -> Optional[bool]:
+def _eqn(a, b) -> Optional[bool]:  # pylint:disable=invalid-name
     return True if a == b else None
 
 
-def _nen(a, b) -> Optional[bool]:
+def _nen(a, b) -> Optional[bool]:  # pylint:disable=invalid-name
     return False if a == b else None
 
 
@@ -68,7 +68,11 @@ VERSION_OPERATIONS = {
 }
 
 
-def compare_versions(a: str, b: str, operator: str) -> Optional[bool]:
+def compare_versions(
+    a: str,  # pylint:disable=invalid-name
+    b: str,  # pylint:disable=invalid-name
+    operator: str
+) -> Optional[bool]:
     version_a = parse_version(a)
     version_b = parse_version(b)
     if type(version_a) is type(version_b):

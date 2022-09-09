@@ -92,7 +92,7 @@ def test_unified_diff_colorize():
 
 # Versions -----------------------------------------------------------------------------------------
 
-@mark.parametrize(('a', 'b', 'op', 'expected'), [
+@mark.parametrize(('version_a', 'version_b', 'operation', 'expected'), [
     ('master', 'master', '<', False),
     ('master', 'master', '<=', True),
     ('master', 'master', '==', True),
@@ -151,5 +151,5 @@ def test_unified_diff_colorize():
     ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>=', None),
     ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
 ])
-def test_compare_versions(a, b, op, expected):
-    assert comparison.compare_versions(a, b, op) == expected
+def test_compare_versions(version_a, version_b, operation, expected):
+    assert comparison.compare_versions(version_a, version_b, operation) == expected
