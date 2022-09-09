@@ -19,7 +19,7 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library supports Python 3.7, 3.8, 3.9, 3.10.
+This library supports Python 3.9 and 3.10.
 
 ------------------------------------
 What the release number stands for ?

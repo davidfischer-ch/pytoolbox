@@ -93,9 +93,6 @@ extras_require = {
     'smpte2022': [
         'fastxor'
     ],
-    'unittest': [
-        'mock'
-    ],
     'vision': [
         'dlib',
         'keras',
@@ -231,7 +228,7 @@ setuptools.setup(
         'install': get_command_with_extras(install.install)
     },
     name='pytoolbox',
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={
@@ -256,8 +253,6 @@ setuptools.setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: CPython',
