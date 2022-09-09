@@ -2,6 +2,7 @@ import inspect, itertools
 from collections import abc
 
 from . import module
+from .collections import merge_dicts
 
 _all = module.All(globals())
 
@@ -99,6 +100,41 @@ def isiterable(obj, blacklist=(bytes, str)):
     False
     """
     return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
+
+
+def merge_annotations(cls: type):
+    """
+    Merge annotations defined in all bases classes (using `__mro__`) into given `cls`.
+
+    Can be used as a decorator.
+
+    **Example usage**
+
+    >>> class Point2D(object):
+    ...     x: int
+    ...     y: int
+    ...
+    >>> class Point3D(Point2D):
+    ...     z: int
+    ...
+    >>> class Point4D(Point3D, Point2D):
+    ...     w: int
+    ...
+    >>> @merge_annotations
+    ... class Point4X(Point4D):
+    ...     x: float
+    ...     other: str
+    ...
+    >>> assert Point2D.__annotations__ == {'x': int, 'y': int}
+    >>> assert Point3D.__annotations__ == {'z': int}
+    >>> assert Point4D.__annotations__ == {'w': int}
+    >>> assert Point4X.__annotations__ == {'x': float, 'y': int, 'z': int, 'w': int, 'other': str}
+    """
+    cls.__annotations__ = merge_dicts(*[
+        getattr(base, '__annotations__', {})
+        for base in reversed(cls.__mro__)
+    ])
+    return cls
 
 
 def merge_bases_attribute(cls, attr_name, init, default, merge_func=lambda a, b: a + b):
