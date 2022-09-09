@@ -140,12 +140,15 @@ extras_require.update({
         'sphinx_rtd_theme'
     ],
     'test': [
-        'coverage>=5.3<6',         # 30-11-2020 Released 13-09-2020
-        'pylint>=2.6<3',           # 30-11-2020 Released 21-08-2020
-        'pytest>=6.1.2<7',         # 30-11-2020 Released 28-10-2020
-        'pytest-cov>=2.10.1<3',    # 30-11-2020 Released 14-08-2020
-        'pytest-flake8>=1.0.6<2',  # 30-11-2020 Released 13-05-2020
-        'pytest-pylint>=0.18.0<1'  # 30-11-2020 Released 09-11-2020
+        'coverage>=6.4.4<7',       # 01-09-2022 Released 16-08-2022
+        'flake8>=4,<5',            # 01-09-2022 Released 11-10-2021
+                                   # Bug https://github.com/tholo/pytest-flake8/issues/87
+                                   # Fix https://github.com/tholo/pytest-flake8/pull/88/files
+        'pylint>=2.15.0<3',        # 01-09-2022 Released 26-08-2022
+        'pytest>=7.1.2<8',         # 01-09-2022 Released 23-04-2022
+        'pytest-cov>=3.0.0<4',     # 01-09-2022 Released 04-10-2021
+        'pytest-flake8>=1.1.1<2',  # 01-09-2022 Released 18-03-2022
+        'pytest-pylint>=0.18.0<1'  # 01-09-2022 Released 09-11-2020
     ]
 })
 
