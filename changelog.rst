@@ -5,6 +5,24 @@ changelog
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 --------------------
+v14.3.0 (2022-09-09)
+--------------------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.3.0...14.2.0
+
+Minor compatibility breaks
+==========================
+
+- Drop Python 3.7 & 3.8 compatibility
+- Drop `logging` extra (`termcolor` is now installed by default)
+
+Features
+========
+
+- Add `types.merge_annotations` class decorator
+- Module `comparison`: Add `unified_diff`, `compare_versions` and `satisfy_version_constraints`
+
+--------------------
 v14.2.0 (2022-06-10)
 --------------------
 
