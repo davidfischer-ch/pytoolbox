@@ -37,7 +37,8 @@ install_requires = [
     'pyaml',
     'python-magic',
     'pytz',
-    'requests'
+    'requests',
+    'termcolor'
 ]
 
 try:
@@ -71,9 +72,6 @@ extras_require = {
     ],
     'jinja2': [
         'jinja2'
-    ],
-    'logging': [
-        'termcolor'
     ],
     'network': [
         'tldextract'
