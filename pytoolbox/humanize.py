@@ -11,6 +11,7 @@ DEFAULT_FILESIZE_ARGS = {
     'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')},
 }
 DEFAULT_FREQUENCY_UNITS = ('Hz', 'kHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz', 'YHz')
+DEFAULT_WEIGHT_UNITS = ('g', 'Kg', 'T', 'KT', 'MT', 'GT')
 DIGIT_REGEX = re.compile(r'(\d+)')
 
 
@@ -147,6 +148,39 @@ def naturalfrequency(
     '3210.84 kHz'
     """
     return _naturalnumber(hertz, base=1000, format=format, scale=scale, units=units)
+
+
+def naturalweight(
+    grams,
+    format='{sign}{value:.3g} {unit}',
+    scale=None,
+    units=DEFAULT_WEIGHT_UNITS
+):  # pylint:disable=dangerous-default-value,redefined-builtin
+    """
+    Return a human readable representation of a weight in `grams`.
+
+    The unit is taken from:
+    * The `scale` if not None (0=g, 1=Kg, 2=T, ...).
+    * The right scale from `units`.
+    **Example usage**
+    >>> naturalweight(-10_000)
+    '-10 Kg'
+    >>> naturalweight(0.233)
+    '0.233 g'
+    >>> naturalweight(69.5, format='{value:.2g} {unit}')
+    '70 g'
+    >>> naturalweight(999.9, format='{value:.0f}{unit}')
+    '1000g'
+    >>> naturalweight(545_000)
+    '545 Kg'
+    >>> naturalweight(3_210_000_000)
+    '3.21 KT'
+    >>> naturalweight(1_620_000, units=['Grams', 'kilo Grams'])
+    '1.62e+03 kilo Grams'
+    >>> naturalweight(502456123, scale=2, format='{value:.2f} {unit}')
+    '502.46 T'
+    """
+    return _naturalnumber(grams, base=1000, format=format, scale=scale, units=units)
 
 
 def natural_int_key(text):
