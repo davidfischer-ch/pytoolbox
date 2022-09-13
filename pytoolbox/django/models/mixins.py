@@ -110,7 +110,7 @@ class AutoUpdateFieldsMixin(object):
     default_force_update = False
 
     def __init__(self, *args, **kwargs):
-        super(AutoUpdateFieldsMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._setted_fields = set()
         self._fields_names = frozenset(f.attname for f in self._meta.fields)
 
