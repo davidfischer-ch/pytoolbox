@@ -298,7 +298,10 @@ class StateTransitionEventsMixin(object):
 
     def on_post_state_transition(self, args, kwargs):
         signals.post_state_transition.send(
-            instance=self, previous_state=self.previous_state, args=args, kwargs=kwargs)
+            instance=self,
+            previous_state=self.previous_state,
+            args=args,
+            kwargs=kwargs)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
