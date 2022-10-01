@@ -9,9 +9,9 @@ from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.templatetags.static import PrefixNode, StaticNode
 from django.utils.html import conditional_escape
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from pytoolbox import humanize, module
 from pytoolbox.datetime import secs_to_time as _secs_to_time
@@ -242,7 +242,7 @@ def timedelta(value, digits=0):
     if value in (None, string_if_invalid):
         return string_if_invalid
     seconds = value.total_seconds() if hasattr(value, 'total_seconds') else float(value)
-    return force_text(datetime.timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
+    return force_str(datetime.timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
 
 
 @register.filter
@@ -250,7 +250,7 @@ def verbose_name(instance):
     """Return the verbose name (singular) of a model."""
     if instance in (None, string_if_invalid):
         return string_if_invalid
-    return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
+    return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
 
 
 @register.filter
@@ -258,7 +258,7 @@ def verbose_name_plural(instance):
     """Return the verbose name (plural) of a model."""
     if instance in (None, string_if_invalid):
         return string_if_invalid
-    return constants.DEFFERED_REGEX.sub('', force_text(instance._meta.verbose_name))
+    return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
 
 
 # TAGS ---------------------------------------------------------------------------------------------
