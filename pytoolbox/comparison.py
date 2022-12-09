@@ -1,7 +1,11 @@
 from typing import Iterator, Optional, Type, Union
 import difflib, operator as op, os
 
-from packaging.version import parse as _parse_version, InvalidVersion, Version
+from packaging.version import (  # pylint:disable=ungrouped-imports
+    parse as _parse_version,
+    InvalidVersion,
+    Version
+)
 
 import termcolor
 
