@@ -1,3 +1,4 @@
+from typing import Optional
 import atexit, code, os, sys
 
 __all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell']
@@ -146,3 +147,30 @@ if __name__ == '__main__':
         print('You do not like my question')
 
     print(choice('Select a language', ['Italian', 'French']))
+
+
+def toggle_colors(
+    env: Optional[dict[str, str]] = None,
+    *,
+    colorize: bool,
+    disable_vars=('NO_COLOR', 'ANSI_COLORS_DISABLED'),
+    enable_vars=('FORCE_COLOR', )
+) -> dict[str, str]:
+    """
+    Return `env` (defaulting to `os.environ`) updated to enable or disable colors.
+
+    **Example usage**
+
+        >> os.environ = toggle_colors(colorize=True)
+
+    Then colors are guaranteed!
+    """
+    env = {
+        k: v for k, v in (env or os.environ).items()
+        if k not in disable_vars and k not in enable_vars
+    }
+    if colorize:
+        env[enable_vars[0]] = 'yes'
+    else:
+        env[disable_vars[0]] = 'yes'
+    return env

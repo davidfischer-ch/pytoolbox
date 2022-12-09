@@ -1,6 +1,9 @@
+import os
+from unittest.mock import patch
+
 from pytest import mark
 
-from pytoolbox import comparison
+from pytoolbox import comparison, console
 
 
 class Point2D(comparison.SlotsEqualityMixin):
@@ -73,12 +76,13 @@ def test_unified_diff():
 
 
 def test_unified_diff_colorize():
-    assert comparison.unified_diff(
-        'Some T',
-        'Other T',
-        fromfile='a.py',
-        tofile='b.py',
-        colorize=True) == ("""
+    with patch.dict(os.environ, console.toggle_colors(colorize=True), clear=True):
+        assert comparison.unified_diff(
+            'Some T',
+            'Other T',
+            fromfile='a.py',
+            tofile='b.py',
+            colorize=True) == ("""
 \x1b[31m--- a.py
 \x1b[0m
 \x1b[32m+++ b.py

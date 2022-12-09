@@ -40,6 +40,10 @@ class SlotsEqualityMixin(object):
 # Content ------------------------------------------------------------------------------------------
 
 def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) -> str:
+    """
+    Colorization is not guaranteed (your environment may disable it).
+    Use `pytoolbox.console.toggle_colors` appropriately to ensure it.
+    """
     diff = difflib.unified_diff(before.splitlines(), after.splitlines(), **kwargs)
     return os.linesep.join(_colorize(diff) if colorize else diff)
 

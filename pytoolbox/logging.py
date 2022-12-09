@@ -51,10 +51,13 @@ def setup_logging(
     >>> log.handlers = []  # Remove handlers manually: pas de bras, pas de chocolat !
     >>> log.info('no handlers, no messages ;-)')
 
-    Colorize:
+    Colorization is not guaranteed (your environment may disable it).
+    Use `pytoolbox.console.toggle_colors` appropriately to ensure it.
 
-    >>> log = setup_logging('foo', console=True, colorize=True, fmt='%(levelname)-8s - %(message)s')
-    >>> log.warning('Attention please!')
+    Colorize (test is disabled because pytest disable colored outputs):
+
+    >> log = setup_logging('foo', console=True, colorize=True, fmt='%(levelname)-8s - %(message)s')
+    >> log.warning('Attention please!')
     WARNING  - \x1b[33mAttention please!\x1b[0m
 
     Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
