@@ -1,6 +1,7 @@
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Union
 import difflib, operator as op, os
-from packaging.version import parse as parse_version, LegacyVersion, Version
+
+from packaging.version import parse as _parse_version, InvalidVersion, Version
 
 import termcolor
 
@@ -10,11 +11,10 @@ __all__ = [
     'SlotsEqualityMixin',
     'unified_diff',
     'VERSION_OPERATIONS',
-    'LegacyVersion',
     'Version',
     'compare_versions',
-    'parse_version',
-    'satisfy_version_constraints'
+    'satisfy_version_constraints',
+    'try_parse_version'
 ]
 
 
@@ -62,9 +62,9 @@ def _nen(a, b) -> Optional[bool]:  # pylint:disable=invalid-name
     return False if a == b else None
 
 
-VERSION_OPERATIONS = {
+VERSION_OPERATIONS: dict = {
     Version: {'<': op.lt, '<=': op.le, '==': op.eq, '!=': op.ne, '>=': op.ge, '>': op.gt},
-    LegacyVersion: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen}
+    str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen}
 }
 
 
@@ -73,8 +73,8 @@ def compare_versions(
     b: str,  # pylint:disable=invalid-name
     operator: str
 ) -> Optional[bool]:
-    version_a = parse_version(a)
-    version_b = parse_version(b)
+    version_a = try_parse_version(a)
+    version_b = try_parse_version(b)
     if type(version_a) is type(version_b):
         operation = VERSION_OPERATIONS[type(version_a)][operator]
         return operation(version_a, version_b) if operation else None
@@ -105,3 +105,10 @@ def satisfy_version_constraints(
     False
     """
     return all(compare_versions(version or default, *c.split(' ')[::-1]) for c in constraints or [])
+
+
+def try_parse_version(version: str) -> Union[Version, str]:
+    try:
+        return _parse_version(version)
+    except InvalidVersion:
+        return version
