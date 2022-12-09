@@ -1,4 +1,4 @@
-from typing import Iterator, Optional, Union
+from typing import Iterator, Optional, Type, Union
 import difflib, operator as op, os
 
 from packaging.version import parse as _parse_version, InvalidVersion, Version
@@ -67,6 +67,13 @@ VERSION_OPERATIONS: dict = {
     str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen}
 }
 
+try:
+    from packaging.version import LegacyVersion
+    VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
+    VersionType = Union[LegacyVersion, Version]
+except ImportError:
+    VersionType: Type = Version  # type: ignore[no-redef]
+
 
 def compare_versions(
     a: str,  # pylint:disable=invalid-name
@@ -107,7 +114,7 @@ def satisfy_version_constraints(
     return all(compare_versions(version or default, *c.split(' ')[::-1]) for c in constraints or [])
 
 
-def try_parse_version(version: str) -> Union[Version, str]:
+def try_parse_version(version: str) -> Union[VersionType, str]:
     try:
         return _parse_version(version)
     except InvalidVersion:
