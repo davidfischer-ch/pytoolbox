@@ -5,6 +5,30 @@ changelog
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 --------------------
+v14.4.0 (2022-12-09)
+--------------------
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.4.0...14.3.0
+
+Minor compatibility breaks
+==========================
+
+- Replace `comparison.parse_version` by `comparison.try_parse_version` with a fallback behavior
+
+Features
+========
+
+- Add function `humanize.naturalweight`
+- Add function `console.toggle_colors`
+- Module `comparison`: Add `unified_diff`, `compare_versions` and `satisfy_version_constraints`
+
+Fix and enhancements
+====================
+
+- Compatibility with latest Django releases
+- Compatibility with latest `packaging` module (`LegacyVersion` was dropped)
+
+--------------------
 v14.3.0 (2022-09-09)
 --------------------
 

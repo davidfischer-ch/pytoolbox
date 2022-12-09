@@ -159,6 +159,8 @@ def toggle_colors(
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.
 
+    Reference: https://github.com/termcolor/termcolor/blob/main/src/termcolor/termcolor.py
+
     **Example usage**
 
         >> os.environ = toggle_colors(colorize=True)
