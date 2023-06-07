@@ -110,7 +110,7 @@ class AutoUpdateFieldsMixin(object):
     default_force_update = False
 
     def __init__(self, *args, **kwargs):
-        super(AutoUpdateFieldsMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._setted_fields = set()
         self._fields_names = frozenset(f.attname for f in self._meta.fields)
 
@@ -298,7 +298,10 @@ class StateTransitionEventsMixin(object):
 
     def on_post_state_transition(self, args, kwargs):
         signals.post_state_transition.send(
-            instance=self, previous_state=self.previous_state, args=args, kwargs=kwargs)
+            instance=self,
+            previous_state=self.previous_state,
+            args=args,
+            kwargs=kwargs)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
