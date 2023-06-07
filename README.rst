@@ -114,6 +114,7 @@ How to check coverage ?
 
     $ source /some/python3/venv/bin/activate
     $ pip install -e .[all,test]
+    $ flake8 pytoolbox
     $ pytest
     $ xdg-open htmlcov/index.html
 
