@@ -74,7 +74,7 @@ class MapErrorsMixin(object):
 
     def add_error(self, field, error):
         field = self.errors_map.get(field, field)
-        return super(MapErrorsMixin, self).add_error(field, error)
+        return super().add_error(field, error)
 
 
 class ModelBasedFormCleanupMixin(object):

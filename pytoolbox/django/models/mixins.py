@@ -275,7 +275,7 @@ class UpdatePreconditionsMixin(object):
     def save(self, *args, **kwargs):
         args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
         try:
-            super(UpdatePreconditionsMixin, self).save(*args, **kwargs)
+            super().save(*args, **kwargs)
         except DatabaseError as e:
             if has_preconditions and 'did not affect' in '{0}'.format(e):
                 raise self.precondition_error_class()

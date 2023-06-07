@@ -43,7 +43,7 @@ class ExtraChoicesField(StripCharField):
         super().__init__(verbose_name=verbose_name, **kwargs)
 
     def deconstruct(self):
-        name, path, args, kwargs = super(ExtraChoicesField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         if self.extra_choices:
             kwargs['extra_choices'] = self.extra_choices
         return name, path, args, kwargs
@@ -52,7 +52,7 @@ class ExtraChoicesField(StripCharField):
         choices = self._choices
         try:
             self._choices = list(self.choices) + list(self.extra_choices)
-            return super(ExtraChoicesField, self).validate(value, model_instance)
+            return super().validate(value, model_instance)
         finally:
             self._choices = choices
 
