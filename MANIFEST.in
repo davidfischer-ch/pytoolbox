@@ -1,3 +1,2 @@
-include AUTHORS
-include changelog
+include *.md
 include *.rst

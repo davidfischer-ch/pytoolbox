@@ -1,10 +1,8 @@
-Main Developers
-===============
+# Main Developers
 
 * David Fischer @davidfischer-ch
 
-Contributors
-============
+# Contributors
 
 * Abdulhadi Mohamed @AbdulTheProgrammer
 * Dimitri Racordon @kyouko-taiga
