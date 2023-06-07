@@ -10,8 +10,7 @@ class Lens(equipment.Equipement):
 
     @property
     def brand(self):
-        brands = {t.brand for t in self.tags.values() if t.brand}
-        if brands:
+        if brands := {t.brand for t in self.tags.values() if t.brand}:
             assert len(brands) == 1, brands
             return next(iter(brands))
         # Extract brand from model

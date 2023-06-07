@@ -64,7 +64,7 @@ def frame_based_statistics(
     static_ffmpeg,
     small_mp4,
     tmp_path
-):  # pylint:disable=redefined-outer-name
+):  # pylint:disable=redefined-outer-name,too-few-public-methods
 
     class StaticEncodeStatisticsWithFrameBaseRatio(
         ffmpeg.FrameBasedRatioMixin,

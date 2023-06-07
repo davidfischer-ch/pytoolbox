@@ -1,6 +1,8 @@
 """
-Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
-powered API `metadata <https://github.com/tomchristie/django-rest-framework/blob/master/rest_framework/metadata.py>`_.
+Mix-ins for building your own
+`Django REST Framework <https://github.com/encode/django-rest-framework>`_ powered API
+`metadata <https://github.com/encode/django-rest-framework/blob/master/rest_framework/metadata.py>`_
+.
 """
 
 from rest_framework import serializers

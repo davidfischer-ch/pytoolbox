@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from pathlib import Path
 import logging, sys
 
 from .collections import merge_dicts
@@ -6,36 +9,18 @@ __all__ = ['setup_logging', 'ColorizeFilter']
 
 
 def setup_logging(
-    name_or_log='',
-    reset=False,
-    path=None,
-    console=False,
-    level=logging.DEBUG,
-    colorize=False,
-    color_by_level=None,
-    fmt='%(asctime)s %(levelname)-8s - %(message)s',
-    datefmt='%d/%m/%Y %H:%M:%S'
-):
+    name_or_log: str | logging.Logger = '',
+    reset: bool = False,
+    path: Path | str = None,
+    console: bool = False,
+    level: int | str = logging.DEBUG,
+    colorize: bool = False,
+    color_by_level: dict[int | str, str] = None,
+    fmt: str = '%(asctime)s %(levelname)-8s - %(message)s',
+    datefmt: str = '%d/%m/%Y %H:%M:%S'
+) -> logging.Logger:
     """
-    Setup logging (TODO).
-
-    :param name_or_log: TODO
-    :param reset: Unregister all previously registered handlers ?
-    :type reset: bool
-    :param path: TODO
-    :type name: str
-    :param console: Toggle console output (stdout)
-    :type console: bool
-    :param level: TODO
-    :type level: int
-    :param colorize: TODO
-    :type colorize: bool
-    :param color_by_level: TODO
-    :type color_by_level: dict
-    :param fmt: TODO
-    :type fmt: str
-    :param datefmt: TODO
-    :type datefmt: str
+    Setup logging.
 
     **Example usage**
 
@@ -96,13 +81,13 @@ def setup_logging(
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(handler)
     if console:
-        handler = logging.StreamHandler(sys.stdout)
+        handler = logging.StreamHandler(sys.stdout)  # pylint:disable=redefined-variable-type
         handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(handler)
     return log
 
 
-class ColorizeFilter(logging.Filter):
+class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
 
     color_by_level = {
         logging.DEBUG: 'cyan',
@@ -119,8 +104,7 @@ class ColorizeFilter(logging.Filter):
 
     def filter(self, record):
         record.raw_msg = record.msg
-        color = self.color_by_level.get(record.levelno)
-        if color:
+        if color := self.color_by_level.get(record.levelno):
             import termcolor
             record.msg = termcolor.colored(record.msg, color)
         return True

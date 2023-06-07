@@ -90,9 +90,9 @@ class FFprobe(object):
                     '-show_streams',
                     media.path
                 ]).decode('utf-8'))
-        except OSError as e:
+        except OSError as ex:
             # Executable does not exist
-            if fail or e.errno == errno.ENOENT:
+            if fail or ex.errno == errno.ENOENT:
                 raise
         except Exception:  # pylint:disable=broad-except
             if fail:

@@ -93,11 +93,11 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
             something[index]  # pylint:disable=pointless-statement
         else:
             something[index] = value
-    except Exception as e:  # pylint:disable=broad-except
-        if not isinstance(e, exception_cls):
+    except Exception as ex:  # pylint:disable=broad-except
+        if not isinstance(ex, exception_cls):
             raise ValueError(
-                f'Exception {e.__class__.__name__} is not '
-                f'an instance of {exception_cls.__name__}.') from e
+                f'Exception {ex.__class__.__name__} is not '
+                f'an instance of {exception_cls.__name__}.') from ex
         return
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')
 
@@ -117,8 +117,8 @@ def get_exception_with_traceback(exception):
 
     >>> try:
     ...     raise RuntimeError('yé')
-    ... except Exception as e:
-    ...     trace = get_exception_with_traceback(e)
+    ... except Exception as ex:
+    ...     trace = get_exception_with_traceback(ex)
     >>> 'Traceback' in trace
     True
     >>> "raise RuntimeError('yé')" in trace

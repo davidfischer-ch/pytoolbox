@@ -79,7 +79,8 @@ def create_site(sender, **kwargs):
 
     * Loading an initial fixture with the values for the site
     * The application `django-defaultsite <https://github.com/oppian/django-defaultsite>`_
-    * Other options discussed `here <https://groups.google.com/forum/#!topic/django-developers/X-ef0C0V8Rk>`_
+    * Other options discussed here:
+        `here <https://groups.google.com/forum/#!topic/django-developers/X-ef0C0V8Rk>`_
     """
     from django.contrib.sites import models as site_app
     site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}

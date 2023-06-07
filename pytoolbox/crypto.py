@@ -39,10 +39,10 @@ def checksum(
     'ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef'
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
-    >>> checksum(directory / '..' / 'setup.py', is_path=True)
-    '28ffad590e8d5cc888a6fcb77cab07252692d29802206ba81945afb69aab358d'
-    >>> checksum(directory / '..' / 'setup.py', is_path=True, chunk_size=997)
-    '28ffad590e8d5cc888a6fcb77cab07252692d29802206ba81945afb69aab358d'
+    >>> checksum(directory / '..' / 'LICENSE.rst', is_path=True)
+    '793b47e008d4261d4fdc5ed24d56eb8d879b9a2e72d37c24a6944558b87909f8'
+    >>> checksum(directory / '..' / 'LICENSE.rst', is_path=True, chunk_size=997)
+    '793b47e008d4261d4fdc5ed24d56eb8d879b9a2e72d37c24a6944558b87909f8'
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
@@ -96,10 +96,10 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     'abdd1818289725c072eff0f5ce185457679650be'
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
-    >>> githash(directory / '..' / 'setup.py', is_path=True)
-    '388b2b5ff8dc37a4f3f8997ff1ca47368a97d17b'
-    >>> githash(directory / '..' / 'setup.py', is_path=True, chunk_size=256)
-    '388b2b5ff8dc37a4f3f8997ff1ca47368a97d17b'
+    >>> githash(directory / '..' / 'LICENSE.rst', is_path=True)
+    'b699ab5e129290e7bce9cbbc70443bf1cdede4ea'
+    >>> githash(directory / '..' / 'LICENSE.rst', is_path=True, chunk_size=256)
+    'b699ab5e129290e7bce9cbbc70443bf1cdede4ea'
     """
     hasher = hashlib.sha1()
     if is_path:
@@ -119,7 +119,7 @@ def guess_algorithm(checksum, algorithms=None, unique=False):  # pylint:disable=
 
     **Example usage**
 
-    >>> algorithms = ('md4', 'md5', 'sha256', 'sha512', 'whirlpool')
+    >>> algorithms = ('md5', 'sha256', 'sha512')
     >>> long_checksum = '43d92a466b57e3744532eab7d760708028a7562d9678f6762bf341f29b921e42'
     >>> short_checksum = '2b31de8940dfd3286f70c316f701a54a'
     >>> guess_algorithm('', algorithms)
@@ -128,7 +128,7 @@ def guess_algorithm(checksum, algorithms=None, unique=False):  # pylint:disable=
     {'sha256'}
     >>> guess_algorithm(long_checksum, algorithms, unique=True).name
     'sha256'
-    >>> guess_algorithm(short_checksum, algorithms, unique=True) is None
+    >>> guess_algorithm('toto', algorithms, unique=True) is None
     True
 
     Following examples depends of your system, so they are disabled::
@@ -144,9 +144,9 @@ def guess_algorithm(checksum, algorithms=None, unique=False):  # pylint:disable=
     else:
         try:
             algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
-        except AttributeError as e:
+        except AttributeError as ex:
             raise NotImplementedError(
-                "Your version of hashlib doesn't implement algorithms_available") from e
+                "Your version of hashlib doesn't implement algorithms_available") from ex
     digest_size_to_algorithms = collections.defaultdict(set)
     for algorithm in algorithms:
         digest_size_to_algorithms[algorithm.digest_size].add(algorithm)

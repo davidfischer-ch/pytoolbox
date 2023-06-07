@@ -38,8 +38,8 @@ def list_objects(s3, bucket_name, prefix='', patterns='*', regex=False):
 def load_object_meta(s3, bucket_name, path, fail=True):
     try:
         return s3.head_object(Bucket=bucket_name, Key=path)
-    except ClientError as e:
-        if 'Not Found' in str(e) and not fail:
+    except ClientError as ex:
+        if 'Not Found' in str(ex) and not fail:
             return None
         raise
 
@@ -54,8 +54,8 @@ def read_object(s3, bucket_name, path, file=None, fail=True):
             s3.download_fileobj(bucket_name, path, file)
             file.seek(0)
             return file
-    except ClientError as e:
-        if 'Not Found' in str(e) and not fail:
+    except ClientError as ex:
+        if 'Not Found' in str(ex) and not fail:
             return None
         raise
 

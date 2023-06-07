@@ -1,3 +1,4 @@
+# pylint:disable=too-few-public-methods
 import os
 from unittest.mock import patch
 

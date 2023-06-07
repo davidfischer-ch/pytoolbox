@@ -1,6 +1,5 @@
 """
-Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
-powered API `serializers <http://www.django-rest-framework.org/tutorial/1-serialization/>`_.
+Mix-ins for building your own Django REST Framework powered API serializers.
 """
 
 from django.core.exceptions import ObjectDoesNotExist

@@ -4,7 +4,7 @@
 #                              PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2020 David Fischer. All rights reserved.
+#  Copyright      : Copyright (c) 2012-2023 David Fischer. All rights reserved.
 #
 # **************************************************************************************************
 #
@@ -23,9 +23,9 @@
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
 
-import itertools, setuptools, subprocess, sys
 from pathlib import Path
 from setuptools.command import develop, install
+import itertools, setuptools, subprocess, sys
 
 import pytoolbox
 
@@ -138,15 +138,17 @@ extras_require.update({
         'sphinx_rtd_theme'
     ],
     'test': [
-        'coverage>=6.4.4<7',       # 01-09-2022 Released 16-08-2022
-        'flake8>=4,<5',            # 01-09-2022 Released 11-10-2021
-                                   # Bug https://github.com/tholo/pytest-flake8/issues/87
-                                   # Fix https://github.com/tholo/pytest-flake8/pull/88/files
-        'pylint>=2.15.0<3',        # 01-09-2022 Released 26-08-2022
-        'pytest>=7.1.2<8',         # 01-09-2022 Released 23-04-2022
-        'pytest-cov>=3.0.0<4',     # 01-09-2022 Released 04-10-2021
-        'pytest-flake8>=1.1.1<2',  # 01-09-2022 Released 18-03-2022
-        'pytest-pylint>=0.18.0<1'  # 01-09-2022 Released 09-11-2020
+        'coverage>=7.2.7,<8',        # 07-06-2023 Released 29-05-2023
+        'flake8>=6,<7',              # 07-06-2023 Released 23-11-2022
+        'pylint>=2.17.4,<3',         # 07-06-2023 Released 06-05-2023
+        'pytest>=7.3.1,<8',          # 07-06-2023 Released 14-04-2023
+        'pytest-cov>=4.1.0,<5',      # 07-06-2023 Released 24-05-2023
+        'pytest-pylint>=0.19.0,<1',  # 07-06-2023 Released 10-09-2022
+
+         # 07-06-2023 Bug still not resolved
+         # Bug https://github.com/tholo/pytest-flake8/issues/87
+         # Fix https://github.com/tholo/pytest-flake8/pull/88/files
+         # 'pytest-flake8'
     ]
 })
 

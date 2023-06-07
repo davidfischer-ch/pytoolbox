@@ -20,8 +20,7 @@ class WebElement(common.FindMixin, webelement.WebElement):
         return self.clean_value(value) if name == 'value' else value
 
     def _specialize(self):
-        component = self.get_attribute('data-component')
-        if component:
+        if component := self.get_attribute('data-component'):
             try:
                 self.__class__ = next(  # pylint: disable=invalid-class-object
                     c for c in type(self).__subclasses__() if c.component == component)

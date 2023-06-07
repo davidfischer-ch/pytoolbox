@@ -1,4 +1,5 @@
-from typing import Optional
+from __future__ import annotations
+
 import atexit, code, os, sys
 
 __all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell']
@@ -28,12 +29,11 @@ def confirm(question=None, default=False, stream=sys.stdout):
     while True:
         stream.write(question)
         stream.flush()
-        answer = input()
-        if not answer:
+        if not (answer := input()):  # pylint:disable=bad-builtin
             return default
-        if answer.lower() in ('y', 'yes'):
+        if answer.lower() in ('y', 'yes'):  # pylint:disable=use-set-for-membership
             return True
-        if answer.lower() in ('n', 'no'):
+        if answer.lower() in ('n', 'no'):  # pylint:disable=use-set-for-membership
             return False
         stream.write(f'please enter y(es) or n(o).{os.linesep}')
         stream.flush()
@@ -64,9 +64,8 @@ def choice(question='', choices=tuple(), stream=sys.stdout):
 
     # loop until an acceptable choice has been answered
     while True:
-        ans = input(question)
-        if ans in choices:
-            return ans
+        if (answer := input(question)) in choices:  # pylint:disable=bad-builtin
+            return answer
         stream.write(f'Please choose between {choices_string}.{os.linesep}')
 
 
@@ -150,7 +149,7 @@ if __name__ == '__main__':
 
 
 def toggle_colors(
-    env: Optional[dict[str, str]] = None,
+    env: dict[str, str] | None = None,
     *,
     colorize: bool,
     disable_vars=('NO_COLOR', 'ANSI_COLORS_DISABLED'),

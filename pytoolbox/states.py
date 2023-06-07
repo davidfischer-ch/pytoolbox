@@ -43,8 +43,7 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
     @classmethod
     def get(cls, name):
         if name.lower() == name:
-            name = name.upper()
-            if name in cls.ALL_STATES:
+            if (name := name.upper()) in cls.ALL_STATES:
                 return name
             return getattr(cls, name + '_STATES', None)
         return None

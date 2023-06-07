@@ -76,16 +76,15 @@ class FFmpeg(object):
                 chunk = self._get_chunk(process)
                 yield statistics.progress(chunk or '')
                 if process_poll:
-                    returncode = process.poll()
-                    if returncode is not None:
+                    if (returncode := process.poll()) is not None:
                         break
                 if self.encode_poll_delay:
                     time.sleep(self.encode_poll_delay)
             yield statistics.end(returncode)
-        except Exception as e:
+        except Exception as ex:
             traceback = sys.exc_info()[2]
             py_subprocess.kill(process)
-            raise e.with_traceback(traceback) if hasattr(e, 'with_traceback') else e
+            raise ex.with_traceback(traceback) if hasattr(ex, 'with_traceback') else ex
 
     @staticmethod
     def get_frames_md5_checksum(filename):
@@ -136,8 +135,8 @@ class FFmpeg(object):
             if chunk is None or isinstance(chunk, str):
                 return chunk
             return chunk.decode(self.encoding)
-        except IOError as e:
-            if e.errno != errno.EAGAIN:
+        except IOError as ex:
+            if ex.errno != errno.EAGAIN:
                 raise
         return None
 

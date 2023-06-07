@@ -9,7 +9,7 @@ Recommended sub-classing order:
 - AutoUpdateFieldsMixin
 - AlwaysUpdateFieldsMixin
 - AutoRemovePKFromUpdateFieldsMixin
-- ValidateOnSaveMixin (will defeat the detection method of AutoUpdateFieldsMixin if placed before it)
+- ValidateOnSaveMixin (will defeat the detection method of AutoUpdateFieldsMixin if put before it)
 - UpdatePreconditionsMixin
 - StateTransitionPreconditionMixin
 - StateTransitionEventsMixin
@@ -156,9 +156,9 @@ class BetterUniquenessErrorsMixin(object):
     def save(self, *args, **kwargs):
         try:
             super().save(*args, **kwargs)
-        except IntegrityError as e:
+        except IntegrityError as ex:
             if self.unique_from_integrity_error:
-                match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', e.args[0])
+                match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', ex.args[0])
                 if match:
                     fields = {
                         f.strip().replace('_id', '')
@@ -169,11 +169,11 @@ class BetterUniquenessErrorsMixin(object):
                         if fields:
                             error = self.unique_error_message(self.__class__, fields)
                             raise ValidationError({fields[0]: error}) if len(fields) == 1 else error
-                        return self._handle_hidden_duplicate_key_error(e)
+                        return self._handle_hidden_duplicate_key_error(ex)
             raise
 
-    def _handle_hidden_duplicate_key_error(self, e):
-        raise e
+    def _handle_hidden_duplicate_key_error(self, ex):
+        raise ex
 
     def _perform_unique_checks(self, unique_checks):
         errors_by_field = super()._perform_unique_checks(unique_checks)
@@ -276,8 +276,8 @@ class UpdatePreconditionsMixin(object):
         args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
         try:
             super().save(*args, **kwargs)
-        except DatabaseError as e:
-            if has_preconditions and 'did not affect' in '{0}'.format(e):
+        except DatabaseError as ex:
+            if has_preconditions and 'did not affect' in str(ex):
                 raise self.precondition_error_class()
             raise
 
@@ -342,10 +342,10 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         """
         Add state precondition if state will be saved and state is not enforced by preconditions.
         """
-        args, kwargs, has_preconditions = super().pop_preconditions(*args, **kwargs)
+        args, kwargs, _ = super().pop_preconditions(*args, **kwargs)
         if (
-            kwargs.pop('check_state', self.check_state) and
-            'state' in kwargs.get('update_fields', ['state'])
+            kwargs.pop('check_state', self.check_state)
+            and 'state' in kwargs.get('update_fields', ['state'])
         ):
             pre_excludes, pre_filters = self._preconditions
             if not any(f.startswith('state') for f in itertools.chain(pre_excludes, pre_filters)):

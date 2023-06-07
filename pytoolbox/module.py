@@ -1,7 +1,7 @@
 __all__ = ['All']
 
 
-class All(object):
+class All(object):  # pylint:disable=too-few-public-methods
 
     def __init__(self, globals_):
         self.init_keys = set(globals_.keys())

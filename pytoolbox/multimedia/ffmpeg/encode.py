@@ -16,7 +16,7 @@ ENCODING_REGEX = re.compile(
 )
 
 
-class EncodeState(object):
+class EncodeState(object):  # pylint:disable=too-few-public-methods
     NEW = 'NEW'
     STARTED = 'STARTED'
     PROCESSING = 'PROCESSING'
@@ -97,8 +97,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
     def progress(self, chunk):
         self.state = self.states.PROCESSING
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
-        ffmpeg_statistics = self._parse_chunk(chunk)
-        if ffmpeg_statistics:
+        if ffmpeg_statistics := self._parse_chunk(chunk):
             self.output.duration = ffmpeg_statistics['time']
             self.frame = ffmpeg_statistics['frame']
             self.frame_rate = ffmpeg_statistics['frame_rate']
@@ -153,8 +152,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
 
     def _parse_chunk(self, chunk):
         self.process_output += chunk
-        match = self.encoding_regex.match(chunk.strip())
-        if not match:
+        if not (match := self.encoding_regex.match(chunk.strip())):
             return None
         ffmpeg_statistics = match.groupdict()
         try:
@@ -175,7 +173,8 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
         return method(value, as_delta=True)
 
 
-class FrameBasedRatioMixin(object):
+class FrameBasedRatioMixin(object):  # pylint:disable=too-few-public-methods
+    # pylint:disable=no-member
     """
     Compute ratio based on estimated input number of frames and current output number of frames.
     Fall-back to super's ratio computation method.

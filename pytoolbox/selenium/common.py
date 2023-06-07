@@ -1,3 +1,5 @@
+# pylint:disable=no-member
+
 from . import exceptions
 
 __all__ = ['FindMixin']
@@ -10,7 +12,7 @@ class FindMixin(object):
         if elements:
             return elements if force_list or len(elements) > 1 else elements[0]
         if fail:
-            raise exceptions.NoSuchElementException(criteria)  # pylint:disable=no-member
+            raise exceptions.NoSuchElementException(criteria)
         return None
 
     def find_css(self, css_selector, prefix=True, force_list=False, fail=True):

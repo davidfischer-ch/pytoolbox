@@ -1,9 +1,11 @@
-from pytoolbox.selenium import Keys
+# pylint:disable=no-member
+
+from pytoolbox.selenium import common, Keys
 
 __all__ = ['BootstrapSliderMixin']
 
 
-class BootstrapSliderMixin(object):
+class BootstrapSliderMixin(common.FindMixin):
 
     component = 'bootstrapSlider'
 

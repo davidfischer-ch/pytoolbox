@@ -1,6 +1,5 @@
 """
-Mix-ins for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
-powered API `views <http://www.django-rest-framework.org/tutorial/3-class-based-views/>`_.
+Mix-ins for building your own Django REST Framework powered API views.
 """
 
 from django.contrib.auth.views import redirect_to_login
@@ -51,8 +50,8 @@ class RedirectToLoginMixin(object):
         response = super().finalize_response(request, response, *args, **kwargs)
         logged = request.user.is_authenticated
         if (
-            not (logged if isinstance(logged, bool) else logged()) and
-            isinstance(response.accepted_renderer, self.redirected_classes)
+            not (logged if isinstance(logged, bool) else logged())
+            and isinstance(response.accepted_renderer, self.redirected_classes)
         ):
             response = redirect_to_login(request.path)
             response.data = {}

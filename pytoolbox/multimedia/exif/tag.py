@@ -8,7 +8,7 @@ from . import brand  # pylint:disable=unused-import
 __all__ = ['Tag', 'TagSet']
 
 
-class Tag(object):
+class Tag(object):  # pylint:disable=too-few-public-methods
 
     brand_class = brand.Brand
     date_formats = ['%Y%m%d %H%M%S', '%Y%m%d']
@@ -51,12 +51,11 @@ class Tag(object):
 
     @property
     def data(self):
-        type_hook = self.get_type_hook()
-        if type_hook:
+        if type_hook := self.get_type_hook():
             try:
                 return self.clean(type_hook(self.key))
-            except UnicodeDecodeError as e:
-                return e
+            except UnicodeDecodeError as ex:
+                return ex
         return self.data_bytes
 
     @property
@@ -91,9 +90,9 @@ class Tag(object):
         tag_type = self.metadata.exiv2.get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
-        except KeyError as e:
+        except KeyError as ex:
             if tag_type:
-                raise KeyError(f'Unknow tag type {tag_type}') from e
+                raise KeyError(f'Unknow tag type {tag_type}') from ex
         return bytes
 
     def clean(self, data):
@@ -104,8 +103,7 @@ class Tag(object):
         if self.type == datetime.datetime or isinstance(data, str):
             cleaned_data = self.date_clean_regex.sub('', data)
             for date_format in self.date_formats:
-                date = str_to_datetime(cleaned_data, date_format, fail=False)
-                if date:
+                if date := str_to_datetime(cleaned_data, date_format, fail=False):
                     return date
         assert not data or isinstance(data, self.type), \
             f'{self.key} {self.type} {data} {type(data)}'
@@ -116,7 +114,7 @@ class Tag(object):
         return getattr(self.metadata.exiv2, name) if name else None
 
 
-class TagSet(object):
+class TagSet(object):  # pylint:disable=too-few-public-methods
 
     @staticmethod
     def clean_number(number):

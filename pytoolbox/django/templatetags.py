@@ -40,18 +40,21 @@ except Exception:
         pass  # Use default
 
 
-# ====================   =====================   ===============   ===============   =====================
-# description            decorator               arguments         input             output
-# ====================   =====================   ===============   ===============   =====================
-# only accept string     @stringfilter           -                 is a string [1]   return ...
-# do not add < > ' " &   is_safe=True            -                 of any type       return ...
-# add HTML < > ' " &     needs_autoescape=True   autoescape=None   esc(...) [2]      return mark_safe(...)
-# ====================   =====================   ===============   ===============   =====================
+# ==================== ===================== =============== =============== =====================
+# description          decorator             arguments       input           output
+# ==================== ===================== =============== =============== =====================
+# only accept string   @stringfilter         -               is a string [1] return ...
+# do not add < > ' " & is_safe=True          -               of any type     return ...
+# add HTML < > ' " &   needs_autoescape=True autoescape=None esc(...) [2]    return mark_safe(...)
+# ==================== ===================== =============== =============== =====================
 #
 # [1] Types of string passed to a template code:
-#     1. Raw str or unicode. They’re escaped on output if auto-escaping is in effect and presented unchanged, otherwise
-#     2. Already marker as safe (SafeBytes/Text, base: SafeData) commonly used for output that contains raw HTML to keep
-#     3. Marked as needing escaping, always escaped on output, regardless in autoescape block or not, EscapeBytes/Text
+#     1. Raw str or unicode. They’re escaped on output if auto-escaping is in effect and presented
+#        unchanged, otherwise
+#     2. Already marker as safe (SafeBytes/Text, base: SafeData) commonly used for output that
+#        contains raw HTML to keep
+#     3. Marked as needing escaping, always escaped on output, regardless in autoescape block or
+#        not, EscapeBytes/Text
 # [2]: esc = conditional_escape if autoescape else lambda x: x
 
 register = template.Library()

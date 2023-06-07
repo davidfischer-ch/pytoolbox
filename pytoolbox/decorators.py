@@ -5,7 +5,7 @@ from . import console, module, subprocess as py_subprocess
 _all = module.All(globals())
 
 
-class cached_property(object):  # pylint:disable=invalid-name
+class cached_property(object):  # pylint:disable=invalid-name,too-few-public-methods
     """
     Decorator that converts a method with a single self argument into a property
     cached on the instance.
@@ -45,7 +45,7 @@ def deprecated(func):
     return _deprecated
 
 
-class hybridmethod(object):  # pylint:disable=invalid-name
+class hybridmethod(object):  # pylint:disable=invalid-name,too-few-public-methods
     """
     Decorator that allows a method to be both used as a class method and an instance method.
 

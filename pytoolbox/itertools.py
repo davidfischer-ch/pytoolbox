@@ -40,10 +40,7 @@ def chunk(objects, length, of_type=list):
     [{0}, {1}, {(2, 3)}]
     """
     iterable = iter(objects)
-    while True:
-        data = of_type(itertools.islice(iterable, 0, length))
-        if not data:
-            break
+    while (data := of_type(itertools.islice(iterable, 0, length))):
         yield data
 
 

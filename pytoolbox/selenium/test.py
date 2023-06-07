@@ -1,3 +1,5 @@
+# pylint:disable=no-member
+
 from . import client  # pylint:disable=unused-import
 
 __all__ = ['LiveTestCaseMixin']

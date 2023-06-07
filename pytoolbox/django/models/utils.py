@@ -38,8 +38,8 @@ def get_instance(app_label, model, pk):
 def try_get_field(instance, field_name):
     try:
         return getattr(instance, field_name)
-    except Exception as e:
-        if e.__class__.__name__ != 'RelatedObjectDoesNotExist':
+    except Exception as ex:
+        if ex.__class__.__name__ != 'RelatedObjectDoesNotExist':
             raise
 
 

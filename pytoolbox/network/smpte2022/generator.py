@@ -38,14 +38,12 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, L, D):  # pylint:disable=invalid-name,too-many-instance-attributes
+    def __init__(self, L: int, D: int):  # pylint:disable=invalid-name,too-many-instance-attributes
         """
         Construct a FecGenerator.
 
         :param L: Horizontal size of the FEC matrix (columns)
-        :type L: int
         :param D: Vertical size of the FEC matrix (rows)
-        :type D: int
         """
         self._L, self._D = L, D  # pylint:disable=invalid-name
         self._col_sequence = self._row_sequence = 1
@@ -56,7 +54,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @staticmethod
-    def on_new_col(col):
+    def on_new_col(col: FecPacket):
         """
         Called by FecGenerator when a new column FEC packet is generated and available for output.
 
@@ -67,9 +65,6 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
             You can `monkey patch <http://stackoverflow.com/questions/5626193>`_ it.
 
         :param col: Generated column FEC packet
-        :type col: FecPacket
-        :param caller: The generator that fired this method / event
-        :type caller: FecGenerator
         """
         print(
             f'New COL FEC packet '
@@ -79,7 +74,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
             f'trec={col.timestamp_recovery}')
 
     @staticmethod
-    def on_new_row(row):
+    def on_new_row(row: FecPacket):
         """
         Called by FecGenerator when a new row FEC packet is generated and available for output.
 
@@ -90,9 +85,6 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
             You can `monkey patch <http://stackoverflow.com/questions/5626193>`_ it.
 
         :param row: Generated row FEC packet
-        :type row: FecPacket
-        :param caller: The generator that fired this method / event
-        :type caller: FecGenerator
         """
         print(
             f'New ROW FEC packet '
@@ -101,7 +93,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
             f'LxD={row.L}x{row.D} '
             f'trec={row.timestamp_recovery}')
 
-    def on_reset(self, media):
+    def on_reset(self, media: RtpPacket):
         """
         Called by FecGenerator when the algorithm is reseted (an incoming media is out of sequence).
 
@@ -112,20 +104,16 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
             You can `monkey patch <http://stackoverflow.com/questions/5626193>`_ it.
 
         :param media: Out of sequence media packet
-        :type row: RtpPacket
-        :param caller: The generator that fired this method / event
-        :type caller: FecGenerator
         """
         print(
             f'Media seq={media.sequence} is out of sequence '
             f'(expected {self._media_sequence}) : FEC algorithm reseted !')
 
-    def put_media(self, media):
+    def put_media(self, media: RtpPacket):
         """
         Put an incoming media packet.
 
         :param media: Incoming media packet
-        :type media: RtpPacket
 
         **Example usage**
 

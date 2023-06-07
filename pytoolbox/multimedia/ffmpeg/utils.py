@@ -17,8 +17,7 @@ def is_pipe(path):
 
 
 def to_bit_rate(bit_rate):
-    match = BIT_RATE_REGEX.match(bit_rate)
-    if match:
+    if match := BIT_RATE_REGEX.match(bit_rate):
         match = match.groupdict()
         return int(float(match['value']) * BIT_RATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
     if bit_rate == 'N/A':
@@ -39,8 +38,7 @@ def to_frame_rate(frame_rate):
 
 
 def to_size(size):
-    match = SIZE_REGEX.match(size)
-    if match:
+    if match := SIZE_REGEX.match(size):
         match = match.groupdict()
         return int(float(match['value']) * SIZE_COEFFICIENT_FOR_UNIT[match['units'][0].lower()])
     raise ValueError(size)

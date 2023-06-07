@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 import errno, fcntl, grp, logging, multiprocessing, os, pwd, random, re
 import setuptools.archive_util, shlex, shutil, subprocess, threading, time
 
@@ -23,11 +26,11 @@ except ImportError:
 def kill(process):
     try:
         process.kill()
-    except OSError as e:
-        if e.errno != errno.ESRCH:
+    except OSError as ex:
+        if ex.errno != errno.ESRCH:
             raise
-    except Exception as e:  # pylint:disable=broad-except
-        if not NoSuchProcess or not isinstance(e, NoSuchProcess):
+    except Exception as ex:  # pylint:disable=broad-except
+        if not NoSuchProcess or not isinstance(ex, NoSuchProcess):
             raise
 
 
@@ -58,8 +61,8 @@ def read_async(fd):  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
-    except IOError as e:
-        if e.errno == errno.EAGAIN:
+    except IOError as ex:
+        if ex.errno == errno.EAGAIN:
             return ''
         raise
 
@@ -99,19 +102,19 @@ def _communicate_with_timeout(*, data, process, input):  # pylint:disable=redefi
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
-def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
-    command,
-    user=None,
-    input=None,  # pylint:disable=redefined-builtin
-    cli_input=None,
-    cli_output=False,
-    communicate=True,
-    timeout=None,
-    fail=True,
-    log=None,
-    tries=1,
-    delay_min=5,
-    delay_max=10,
+def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
+    command: str | list[str],
+    user: str | None = None,
+    input: str | None = None,  # pylint:disable=redefined-builtin
+    cli_input: str | None = None,
+    cli_output: bool = False,
+    communicate: bool = True,
+    timeout: float | None = None,
+    fail: bool = True,
+    log: Callable | logging.Logger | None = None,
+    tries: int = 1,
+    delay_min: float = 5,
+    delay_max: float = 10,
     **kwargs
 ):
     """
@@ -119,33 +122,23 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
 
     Returned returncode, stdout and stderr will be None if `communicate` is set to False.
 
+    :param command: The command to execute.
     :param user: If set, this will use ``sudo -u <user> ...`` to execute `command` as `user`.
-    :type user: unicode
     :param input: If set, sended to stdin (if `communicate` is True).
-    :type input: unicode
     :param cli_input: If set, sended to stdin (no condition).
-    :type cli_input: unicode
     :param cli_output: Set to True to output (in real-time) stdout to stdout and stderr to stderr.
-    :type cli_output: bool
     :param fail: Set to False to avoid the exception `subprocess.CalledProcessError`.
-    :type fail: bool
     :param log: A function to log/print details about what is executed/any failure, can be a logger.
-    :type log: callable, logging.Logger
     :param communicate: Set to True to communicate with the process, this is a locking call
                         (if timeout is None).
-    :type communicate: bool
     :param timeout: Time-out for the communication with the process, in seconds.
-    :type timeout: float
     :param tries: How many times you want the command to be retried ?
-    :type tries: int
     :param delay_min: Minimum delay to sleep after every attempt communicate must be True.
-    :type delay: float, int
     :param delay_max: Maximum delay to sleep after every attempt communicate must be True.
-    :type delay: float, int
+    :param kwargs: Any argument of the :mod:`subprocess`.Popen constructor
+                   excepting stdin, stdout and stderr
 
-    * Delay will be a random number in range (`delay_min`, `delay_max`)
-    * Set kwargs with any argument of the :mod:`subprocess`.Popen constructor excepting
-      stdin, stdout and stderr.
+    The delay will be a random number in range (`delay_min`, `delay_max`).
 
     """
 
@@ -184,13 +177,13 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
                 stdin=subprocess.PIPE,
                 stdout=None if cli_output else subprocess.PIPE,
                 stderr=None if cli_output else subprocess.PIPE, **kwargs)
-        except OSError as e:
+        except OSError as ex:
             # unable to execute the program (e.g. does not exist)
             if log_exception:
-                log_exception(e)
+                log_exception(ex)
             if fail:
                 raise
-            return {'process': None, 'stdout': '', 'stderr': e, 'returncode': 2}
+            return {'process': None, 'stdout': '', 'stderr': ex, 'returncode': 2}
 
         # write to stdin (answer to questions, ...)
         if cli_input is not None:
@@ -210,10 +203,10 @@ def cmd(  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
                 try:
                     process.terminate()
                     thread.join()
-                except OSError as e:
+                except OSError as ex:
                     # Manage race condition with process that may terminate just after the call to
                     # thread.is_alive() !
-                    if e.errno != errno.ESRCH:
+                    if ex.errno != errno.ESRCH:
                         raise
             stdout, stderr = data['stdout'], data['stderr']
         else:
@@ -315,7 +308,7 @@ def make(
 
 # --------------------------------------------------------------------------------------------------
 
-def rsync(  # pylint:disable=too-many-locals
+def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     source,
     destination,
     source_is_dir=False,

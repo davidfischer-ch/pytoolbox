@@ -15,8 +15,8 @@ def download(url, path):
             target.write(source.read())
 
 
-def iter_download_core(url, code=200, chunk_size=102400, **kwargs):
-    response = requests.get(url, stream=bool(chunk_size), **kwargs)
+def iter_download_core(url, code=200, chunk_size=102400, timeout=None, **kwargs):
+    response = requests.get(url, stream=bool(chunk_size), timeout=timeout, **kwargs)
     length = response.headers.get('content-length')
     if response.status_code != code:
         raise BadHTTPResponseCodeError(url=url, code=code, r_code=response.status_code)

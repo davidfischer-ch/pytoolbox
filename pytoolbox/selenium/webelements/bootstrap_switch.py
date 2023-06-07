@@ -1,9 +1,11 @@
-from pytoolbox.selenium import Keys
+# pylint:disable=no-member
+
+from pytoolbox.selenium import common, Keys
 
 __all__ = ['BootstrapSwitchMixin']
 
 
-class BootstrapSwitchMixin(object):
+class BootstrapSwitchMixin(common.FindMixin):
 
     component = 'bootstrapSwitch'
     key_map = {True: Keys.RIGHT, False: Keys.LEFT}

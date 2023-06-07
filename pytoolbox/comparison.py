@@ -1,4 +1,6 @@
-from typing import Iterator, Optional, Type, Union
+from __future__ import annotations
+
+from collections.abc import Iterator
 import difflib, operator as op, os
 
 from packaging.version import (  # pylint:disable=ungrouped-imports
@@ -62,32 +64,25 @@ def _colorize(diff: Iterator[str]) -> Iterator[str]:
 
 # Versions -----------------------------------------------------------------------------------------
 
-def _eqn(a, b) -> Optional[bool]:  # pylint:disable=invalid-name
+def _eqn(a, b) -> bool | None:  # pylint:disable=invalid-name
     return True if a == b else None
 
 
-def _nen(a, b) -> Optional[bool]:  # pylint:disable=invalid-name
+def _nen(a, b) -> bool | None:  # pylint:disable=invalid-name
     return False if a == b else None
 
 
-VERSION_OPERATIONS: dict = {
+VERSION_OPERATIONS: dict = {  # pylint:disable=consider-using-namedtuple-or-dataclass
     Version: {'<': op.lt, '<=': op.le, '==': op.eq, '!=': op.ne, '>=': op.ge, '>': op.gt},
     str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen}
 }
-
-try:
-    from packaging.version import LegacyVersion
-    VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
-    VersionType = Union[LegacyVersion, Version]
-except ImportError:
-    VersionType: Type = Version  # type: ignore[no-redef]
 
 
 def compare_versions(
     a: str,  # pylint:disable=invalid-name
     b: str,  # pylint:disable=invalid-name
     operator: str
-) -> Optional[bool]:
+) -> bool | None:
     version_a = try_parse_version(a)
     version_b = try_parse_version(b)
     if type(version_a) is type(version_b):
@@ -97,7 +92,7 @@ def compare_versions(
 
 
 def satisfy_version_constraints(
-    version: Optional[str],
+    version: str | None,
     constraints: tuple[str, ...], *,
     default='<undefined>',
 ) -> bool:
@@ -122,7 +117,7 @@ def satisfy_version_constraints(
     return all(compare_versions(version or default, *c.split(' ')[::-1]) for c in constraints or [])
 
 
-def try_parse_version(version: str) -> Union[VersionType, str]:
+def try_parse_version(version: str) -> Version | str:
     try:
         return _parse_version(version)
     except InvalidVersion:

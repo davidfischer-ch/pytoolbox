@@ -12,8 +12,8 @@ def propagate_handler(signum, frame):
     for handler in reversed(handlers_by_signal[signum]):
         try:
             handler(signum, frame)
-        except Exception as e:  # pylint:disable=broad-except
-            errors[handler] = e
+        except Exception as ex:  # pylint:disable=broad-except
+            errors[handler] = ex
     if errors:
         raise RuntimeError(errors)
 

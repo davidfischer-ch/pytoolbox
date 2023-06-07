@@ -132,8 +132,8 @@ class ValidationErrorsMixin(object):
     def form_valid(self, form):
         try:
             return super().form_valid(form)
-        except ValidationError as e:
-            for field, error in exceptions.iter_validation_errors(e):
+        except ValidationError as ex:
+            for field, error in exceptions.iter_validation_errors(ex):
                 if field:
                     form.add_error(field, error)
                 else:

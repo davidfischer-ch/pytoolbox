@@ -547,8 +547,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         """
         TODO
         """
-        delta = media_sequence - self.snbase
-        if delta < 0:
+        if (delta := media_sequence - self.snbase) < 0:
             delta += RtpPacket.S_MASK + 1
         if delta % self.offset != 0:
             return None
@@ -637,8 +636,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         >>> fec.missing
         [65533, 65530]
         """
-        j = self.compute_j(media_sequence)
-        if j is None:
+        if (j := self.compute_j(media_sequence)) is None:
             raise ValueError(self.ER_J)
         if media_sequence not in self.missing:
             self.missing.append(media_sequence)
@@ -648,8 +646,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         """
         TODO
         """
-        j = self.compute_j(media_sequence)
-        if j is None:
+        if (j := self.compute_j(media_sequence)) is None:
             raise ValueError(self.ER_J)
         self.missing.remove(media_sequence)
         return j

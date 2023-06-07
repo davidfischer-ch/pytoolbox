@@ -43,10 +43,9 @@ def findall_partial(string, regex_parts):
     >>> [embed_in_regex(s, r, i) for s, r, i in findall_partial('59:1', TIME_REGEX_PARTS)]
     [(3, '[0-2][0-9]:59:1[0-9]')]
     """
-    for index in range(0, len(regex_parts) - len(string) + 1):  # noqa
+    for index in range(0, len(regex_parts) - len(string) + 1):
         regex = regex_parts[index:index + len(string)]
-        match = re.search(''.join(regex), string)
-        if match:
+        if re.search(''.join(regex), string):
             yield string, regex_parts, index
 
 

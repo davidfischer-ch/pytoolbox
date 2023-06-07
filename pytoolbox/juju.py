@@ -68,7 +68,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
 
         $ echo 'StrictHostKeyChecking no' >> ~/.ssh/config
     """
-    is_destroy = (command == 'destroy-environment')
+    is_destroy = command == 'destroy-environment'
     arguments = ['sudo', 'juju', command] if command in SUPER_COMMANDS else ['juju', command]
 
     if isinstance(environment, str) and environment != 'default':
@@ -115,7 +115,7 @@ def load_unit_config(config, log=None):
                 config[option] = options[option]['default']
 
     for option, value in config.items():
-        if str(value).lower() in ('false', 'true'):
+        if str(value).lower() in ('false', 'true'):  # pylint:disable=use-set-for-membership
             config[option] = str(value).lower() == 'true'
             if hasattr(log, '__call__'):
                 log(f'Convert boolean option {option} {value} -> {config[option]}')
@@ -175,12 +175,12 @@ def add_environment(
 
     try:
         return juju_do('bootstrap', environment)
-    except RuntimeError as e:
-        if 'configuration error' in str(e):
+    except RuntimeError as ex:
+        if 'configuration error' in str(ex):
             del environments_dict['environments'][environment]
             with open(environments, 'w', encoding='utf-8') as f:
                 f.write(yaml.safe_dump(environments_dict))
-            raise ValueError(f'Cannot add environment {environment} ({e}).') from e
+            raise ValueError(f'Cannot add environment {environment} ({ex}).') from ex
         raise
 
 
@@ -191,8 +191,8 @@ def get_environment(environment, environments=None, get_status=False, status_tim
     environment = environments_dict['default'] if environment == 'default' else environment
     try:
         environment_dict = environments_dict['environments'][environment]
-    except KeyError as e:
-        raise ValueError(f'No environment with name {environment}.') from e
+    except KeyError as ex:
+        raise ValueError(f'No environment with name {environment}.') from ex
 
     if get_status:
         environment_dict['status'] = Environment(name=environment).status(timeout=status_timeout)
@@ -244,7 +244,7 @@ def get_ip():
     return __get_ip
 
 
-class CharmConfig(object):
+class CharmConfig(object):  # pylint:disable=too-few-public-methods
 
     def __init__(self):
         self.verbose = False
@@ -330,8 +330,8 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.name = os.environ['JUJU_UNIT_NAME']
             self.private_address = socket.getfqdn(self.unit_get('private-address'))
             self.public_address = socket.getfqdn(self.unit_get('public-address'))
-        except (subprocess.CalledProcessError, OSError) as e:
-            reason = e
+        except (subprocess.CalledProcessError, OSError) as ex:
+            reason = ex
             self.juju_ok = False
             if default_config is not None:
                 self.load_config(default_config)
@@ -371,15 +371,14 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         By convention, the leader is the unit with the *smallest* id (the *oldest* unit).
         """
         try:
-            rel_ids = self.relation_ids('peer')
-            if not rel_ids:
+            if not (rel_ids := self.relation_ids('peer')):
                 return True  # no peer relation, so we're a leader that feels alone !
             assert len(rel_ids) == 1, f'Expect only 1 peer relation id: {rel_ids}'
             peers = self.relation_list(rel_ids[0])
             self.debug(f'us={self.name} peers={peers}')
             return len(peers) == 0 or self.name <= min(peers)
-        except Exception as e:  # pylint:disable=broad-except
-            self.remark(f'Bug during leader detection: {repr(e)}')
+        except Exception as ex:  # pylint:disable=broad-except
+            self.remark(f'Bug during leader detection: {repr(ex)}')
             return True
 
     # Maps calls to charm helpers functions and replace them if called in standalone ---------------
@@ -559,9 +558,9 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.hook(f'Execute {self.__class__.__name__} hook {hook_name}')
             getattr(self, f"hook_{hook_name.replace('-', '_')}")()
             self.save_local_config()
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as ex:
             self.log('Exception caught:')
-            self.log(e.output)
+            self.log(ex.output)
             raise
         finally:
             self.hook(f'Exiting {self.__class__.__name__} hook {hook_name}')
@@ -644,8 +643,6 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         """
         Bootstrap an environment, (optional) terminate all machines and other associated resources
         before the bootstrap.
-
-        :param kwargs: Extra arguments for juju_do(), options is not allowed.
         """
         if cleanup:
             print(f'Cleanup and bootstrap environment {self.name}')
@@ -663,9 +660,9 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
             self.sync_tools(all_tools=True)
         try:
             result = juju_do('bootstrap', self.name)
-        except RuntimeError as e:
+        except RuntimeError as ex:
             result = None
-            if 'already' not in str(e):
+            if 'already' not in str(ex):
                 raise
 
         if not wait_started:
@@ -737,15 +734,14 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('get', self.name, options=[service], fail=fail)
 
     def get_service(self, service, default=None, fail=True, timeout=15):
-        status_dict = self.status(fail=fail, timeout=timeout)
-        if not status_dict:
+        if not (status_dict := self.status(fail=fail, timeout=timeout)):
             return default
         try:
             return status_dict['services'][service]  # pylint: disable=unsubscriptable-object
-        except KeyError as e:
+        except KeyError as ex:
             if fail:
                 raise RuntimeError(
-                    f'Service {service} not found in environment {self.name}.') from e
+                    f'Service {service} not found in environment {self.name}.') from ex
         return default
 
     def expose_service(self, service, fail=True):
@@ -774,7 +770,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         to=None,
         units_number_to_keep=None,
         timeout=None
-    ):  # pylint:disable=invalid-name,too-many-branches,too-many-locals
+    ):  # pylint:disable=invalid-name,too-many-arguments,too-many-branches,too-many-locals
         """
         Ensure `num_units` units of `service` into `environment` by adding new or destroying useless
         units first !
@@ -900,16 +896,14 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
                     )
 
             elif units_count < num_units:
-
-                num_units = num_units - units_count
-                if num_units:  # avoid to add units if number of units to add is 0
+                # avoid to add units if number of units to add is 0
+                if num_units := num_units - units_count:
                     results['add_units'] = self.add_units(
                         service or charm,
                         num_units=num_units,
                         to=to)
 
             elif units_count > num_units:
-
                 num_units = units_count - num_units
                 destroyed = {}
                 units_number_to_keep = \
@@ -963,10 +957,10 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         if service_dict is not None:
             try:
                 return service_dict['units'][name]
-            except KeyError as e:
+            except KeyError as ex:
                 if fail:
                     raise RuntimeError(
-                        f'No unit with name {name} on environment {self.name}.') from e
+                        f'No unit with name {name} on environment {self.name}.') from ex
         return default
 
     def get_unit_public_address(self, service, number):
@@ -980,8 +974,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         # public-address may report a private address (172.x.x.x) with non-local deployments see
         # OSCIED #132, so we need this workaround (which cannot be used for local deployments).
         machine_number = self.get_unit(service, number)['machine']
-        status_dict = self.status()
-        if status_dict:
+        if status_dict := self.status():
             return status_dict['machines'][machine_number]['dns-name']
         raise ValueError(f'Unable to get public address of unit {service}/{number}')
 
@@ -1029,7 +1022,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         local=False,
         release=None,
         repository=None
-    ):  # pylint:disable=invalid-name
+    ):  # pylint:disable=invalid-name,too-many-arguments
         service = service or charm
         if not charm:
             raise ValueError('Charm is required.')
@@ -1090,9 +1083,9 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         result = None
         try:
             result = juju_do('add-relation', self.name, options=[member1, member2])
-        except RuntimeError as e:
+        except RuntimeError as ex:
             # TODO get status of service before adding relation may be cleaner.
-            if 'already exists' not in str(e):
+            if 'already exists' not in str(ex):
                 raise
         return result
 
@@ -1106,9 +1099,9 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         member2 = service2 if relation2 is None else f'{service2}:{relation2}'
         try:
             result = juju_do('remove-relation', self.name, options=[member1, member2])
-        except RuntimeError as e:
+        except RuntimeError as ex:
             # TODO get status of service before removing relation may be cleaner.
-            if 'exists' not in str(e):
+            if 'exists' not in str(ex):
                 raise
         return result
 

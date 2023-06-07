@@ -53,9 +53,8 @@ class Brand(object):
     @classmethod
     def clean(cls, brand):
         brand = brand.strip() if brand else brand
-        if not brand:
+        if not brand:  # pylint:disable=consider-using-assignment-expr
             return None
-        brand = cls.clean_map.get(brand.lower(), brand)
-        if brand not in cls.brands:
+        if (brand := cls.clean_map.get(brand.lower(), brand)) not in cls.brands:
             raise exceptions.InvalidBrandError(brand=brand, brands=cls.brands)
         return brand

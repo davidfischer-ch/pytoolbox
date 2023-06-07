@@ -1,3 +1,5 @@
+# pylint:disable=no-member
+
 import functools, inspect, io, itertools, os, pprint, time, unittest
 
 from . import module
@@ -262,7 +264,7 @@ class MissingMixin(object):
         return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
-class SnakeCaseMixin(object):
+class SnakeCaseMixin(object):  # pylint:disable=too-few-public-methods
 
     def __getattr__(self, name):
         if name.lower() == name:

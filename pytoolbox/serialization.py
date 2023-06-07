@@ -72,8 +72,8 @@ def to_file(
         backup_path = f'{path}.bkp'
         try:
             shutil.copy2(path, backup_path)
-        except IOError as e:
-            if e.errno != errno.ENOENT:
+        except IOError as ex:
+            if ex.errno != errno.ENOENT:
                 raise
             backup_path = None
     write_path = f'{path}.tmp' if safe else path

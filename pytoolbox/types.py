@@ -150,7 +150,7 @@ def merge_bases_attribute(cls, attr_name, init, default, merge_func=lambda a, b:
     return value
 
 
-class DummyObject(object):
+class DummyObject(object):  # pylint:disable=too-few-public-methods
     """
     Easy way to generate a dynamic object with the attributes defined at instantiation.
 

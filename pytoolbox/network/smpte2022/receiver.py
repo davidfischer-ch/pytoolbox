@@ -1,4 +1,6 @@
-import collections, os
+from __future__ import annotations
+
+import collections, io, os
 
 from pytoolbox.network.ip import IPSocket
 from pytoolbox.network.rtp import RtpPacket
@@ -126,12 +128,11 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, output):
+    def __init__(self, output: io.StringIO):
         """
         Construct a new FecReceiver and register `output`.
 
         :param output: Where to output payload of the recovered stream.
-        :type output: IOBase
 
         **Example usage**
 
@@ -186,7 +187,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
-    def current_delay(self):
+    def current_delay(self) -> int:
         """Return current delay based on the length of the media buffer."""
         if len(self.medias) == 0:
             return 0
@@ -199,7 +200,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def set_delay(self, value, units):
+    def set_delay(self, value, units) -> None:
         """Set desired size for the internal media buffer."""
         if units == self.PACKETS:
             self.delay_value = value
@@ -216,9 +217,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         if onlyMP2TS:
             if not media.validMP2T:
                 raise ValueError(self.ER_VALID_RTP_MP2TS)
-        else:
-            if not media.valid:
-                raise ValueError(self.ER_VALID_RTP)
+        elif not media.valid:
+            raise ValueError(self.ER_VALID_RTP)
 
         # Put the media packet into medias buffer
         if media.sequence in self.medias:
@@ -228,14 +228,16 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
             self.max_media = len(self.medias)
         self.media_received += 1
 
-        cross = self.crosses.get(media.sequence)
-        if cross:
+        if cross := self.crosses.get(media.sequence):
             # Simulate the recovery of a media packet to update buffers and potentially start
             self.recover_media_packet(media.sequence, cross, None)  # a recovery cascade !
 
         self.out()  # FIXME maybe better to call it from another thread
 
-    def put_fec(self, fec):  # pylint:disable=too-many-branches,too-many-statements
+    def put_fec(  # pylint:disable=too-many-branches,too-many-statements
+        self,
+        fec: FecPacket
+    ) -> None:
         """
         Put an incoming FEC packet, the algorithm will do the following according to these
         scenarios:
@@ -266,8 +268,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
             if media_test not in self.medias:
                 media_lost = media_test
                 # TODO
-                cross = self.crosses.get(media_test)
-                if not cross:
+                if not (cross := self.crosses.get(media_test)):
                     cross = {'col_sequence': None, 'row_sequence': None}
                     self.crosses[media_test] = cross
                     if len(self.crosses) > self.max_cross:
@@ -301,7 +302,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         if len(fec.missing) == 0:
             return
 
-        # FIXME check if 10*delay_value is a good way to avoid removing early fec packets !
+        # FIXME check if 10 * delay_value is a good way to avoid removing early fec packets !
         # The fec packet is useless if it needs an already output'ed media packet to do recovery
         drop = not self.validity_window(
             fec.snbase,
@@ -331,7 +332,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
             self.out()  # FIXME maybe better to call it from another thread
         # [3] More than one media packet is missing, fec packet stored for future recovery
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush all buffers and output media packets to registered output (``self.output``)."""
         try:
             self.flushing = True
@@ -340,7 +341,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         finally:
             self.flushing = False
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Remove FEC packets that are stored / waiting but useless."""
         if self.flushing:
             raise ValueError(self.ER_FLUSHING)
@@ -360,12 +361,12 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
         raise ValueError(self.ER_DELAY_UNITS.format(self.delay_units))
 
-    def recover_media_packet(
+    def recover_media_packet(  # pylint:disable=too-many-branches,too-many-statements
         self,
         media_sequence,
-        cross,
-        fec
-    ):  # pylint:disable=too-many-branches,too-many-locals,too-many-statements
+        cross: dict,
+        fec: FecPacket | None
+    ) -> None:
         """
         Recover a missing media packet helped by a FEC packet, this method is also called to
         register an incoming media packet if it is registered as missing.
@@ -406,9 +407,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 if media_test == media_sequence:
                     media_test = (media_test + fec.offset) & RtpPacket.S_MASK
                     continue
-                friend = self.medias[media_test]
                 # Unable to recover the media packet if any of the friend media packets is missing
-                if not friend:
+                if not (friend := self.medias[media_test]):
                     self.media_aborted_recovery += 1
                     aborted = True
                     break
@@ -446,10 +446,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         if fec_col:
             if len(fec_col.missing) == 1:
                 # Cascade !
-                cascade_media_sequence = fec_col.missing[0]
-                if cascade_media_sequence:
-                    cascade_cross = self.crosses.get(cascade_media_sequence)
-                    if cascade_cross:
+                if cascade_media_sequence := fec_col.missing[0]:
+                    if cascade_cross := self.crosses.get(cascade_media_sequence):
                         self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_col)
                     else:
                         raise NotImplementedError(
@@ -463,10 +461,8 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         if fec_row:
             if len(fec_row.missing) == 1:
                 # Cascade !
-                cascade_media_sequence = fec_row.missing[0]
-                if cascade_media_sequence:
-                    cascade_cross = self.crosses.get(cascade_media_sequence)
-                    if cascade_cross:
+                if cascade_media_sequence := fec_row.missing[0]:
+                    if cascade_cross := self.crosses.get(cascade_media_sequence):
                         self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_row)
                     else:
                         raise NotImplementedError(
@@ -477,7 +473,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 else:
                     raise NotImplementedError(self.ER_GET_ROW_CASCADE.format(os.linesep, fec_row))
 
-    def out(self):
+    def out(self) -> None:
         """Extract packets to output in order to keep a 'certain' amount of them in the buffer."""
         units = self.PACKETS if self.flushing else self.delay_units
         value = 0 if self.flushing else self.delay_value
@@ -494,8 +490,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
                 self.startup = False
 
-                media = self.medias.get(self.position)
-                if media:
+                if media := self.medias.get(self.position):
                     self.lostogram[lostogram_counter] += 1
                     lostogram_counter = 0
                     del self.medias[media.sequence]
@@ -506,8 +501,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                     lostogram_counter += 1
 
                 # Remove any fec packet linked to current media packet
-                cross = self.crosses.get(self.position)
-                if cross:
+                if cross := self.crosses.get(self.position):
                     del self.crosses[self.position]
                     if cross['col_sequence'] and cross['col_sequence'] in self.cols:
                         del self.cols[cross['col_sequence']]

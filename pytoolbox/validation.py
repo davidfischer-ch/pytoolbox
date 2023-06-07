@@ -8,7 +8,7 @@ from .private import InvalidId, ObjectId
 _all = module.All(globals())
 
 
-class CleanAttributesMixin(object):
+class CleanAttributesMixin(object):  # pylint:disable=too-few-public-methods
     """
     Put validation logic, cleanup code, ... into a method clean_<attribute_name> and this method
     will be called every time the attribute is set.
@@ -34,13 +34,12 @@ class CleanAttributesMixin(object):
     AssertionError
     """
     def __setattr__(self, name, value):
-        cleanup_method = getattr(self, 'clean_' + name, None)
-        if cleanup_method:
+        if cleanup_method := getattr(self, 'clean_' + name, None):
             value = cleanup_method(value)
         super().__setattr__(name, value)
 
 
-class StrongTypedMixin(object):
+class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
     """
     Annotate arguments of the class __init__ with types and then you'll get a class with type
     checking.
@@ -68,8 +67,7 @@ class StrongTypedMixin(object):
     AssertionError: Attribute locale must be set to an instance of (<class 'str'>, <class 'list'>)
     """
     def __setattr__(self, name, value):
-        the_type = self.__init__.__annotations__.get(name)
-        if the_type:
+        if the_type := self.__init__.__annotations__.get(name):
             default = inspect.signature(self.__init__).parameters[name].default
             if value != default:
                 assert isinstance(value, the_type), \
@@ -234,9 +232,9 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
         try:
             conn.request('HEAD', url.path)
             return conn.getresponse().status != 404
-        except socket.error as e:
+        except socket.error as ex:
             # Resource does not exist
-            if isinstance(e, socket.timeout) or e.errno in excepted_errnos:
+            if isinstance(ex, socket.timeout) or ex.errno in excepted_errnos:
                 return False
             raise  # Re-raise exception if a different error occurred
         finally:

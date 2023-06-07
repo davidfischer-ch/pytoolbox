@@ -17,6 +17,7 @@ install:
   - travis_retry pip install -U -e .[all,test]
 
 script:
+  - flake8 pytoolbox
   - pytest
 
 after_success:

@@ -8,7 +8,10 @@ from . import utils
 _all = module.All(globals())
 
 
-class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+class BaseInfo(  # pylint:disable=too-few-public-methods
+    validation.CleanAttributesMixin,
+    comparison.SlotsEqualityMixin
+):
 
     defaults = {}
     attr_name_template = '{name}'
@@ -23,7 +26,7 @@ class BaseInfo(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
         setattr(self, name, value)
 
 
-class Codec(BaseInfo):
+class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
 
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 

@@ -200,10 +200,7 @@ def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     if is_path:
         with open(path_or_data, 'rb') as f:
             if chunk_size is not None:
-                while True:
-                    data = f.read(chunk_size)
-                    if not data:
-                        break
+                while data := f.read(chunk_size):
                     yield data
             else:
                 yield f.read()
@@ -224,10 +221,10 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     >>>
     >>> directory = Path(__file__).resolve().parent
     >>>
-    >>> get_size(directory / '..' / 'setup.py')
-    8102
-    >>> get_size(directory/ '..', '*.cfg')
-    105
+    >>> get_size(directory / '..' / 'LICENSE.rst')
+    5747
+    >>> get_size(directory / '..', '*.rst') > 1000
+    True
     >>> get_size(directory / '..', '.*/v[^/]+\\.py', regex=True) > 10000
     True
     """
@@ -275,9 +272,9 @@ def makedirs(path, mode=0o777, parent=False):
     try:
         os.makedirs(path, mode=mode)
         return True
-    except OSError as e:
+    except OSError as ex:
         # Directory exists
-        if e.errno == errno.EEXIST and os.path.isdir(path):
+        if ex.errno == errno.EEXIST and os.path.isdir(path):
             return False
         raise  # Re-raise exception if a different error occurred
 
@@ -363,8 +360,7 @@ def recursive_copy(  # pylint:disable=too-many-locals
 
         # Output directory sanity check
         if check_size:
-            dst_size = get_size(destination_path)
-            if dst_size != src_size:
+            if (dst_size := get_size(destination_path)) != src_size:
                 raise IOError(f'Destination size does not match source ({src_size} vs {dst_size})')
 
         elapsed_time = time.time() - start_time
@@ -411,18 +407,20 @@ def remove(path, recursive=False):
         try:
             os.remove(path)
             return True
-        except Exception as e:
+        except Exception as ex:
             # Is a directory and recursion is allowed
             if recursive and (
-                isinstance(e, OSError) and e.errno == errno.EISDIR  # pylint:disable=no-member
-                or PermissionError is not None and isinstance(e, PermissionError)
+                isinstance(ex, OSError)
+                and ex.errno == errno.EISDIR  # pylint:disable=no-member
+                or PermissionError is not None
+                and isinstance(ex, PermissionError)
             ):
                 shutil.rmtree(path)
                 return True
             raise  # Re-raise exception if a different error occurred
-    except OSError as e:
+    except OSError as ex:
         # File does not exist
-        if e.errno == errno.ENOENT:
+        if ex.errno == errno.ENOENT:
             return False
         raise  # Re-raise exception if a different error occurred
 

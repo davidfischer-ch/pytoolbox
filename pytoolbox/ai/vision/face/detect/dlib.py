@@ -125,7 +125,7 @@ class DlibFaceDetector(object):
             landmarks = self.find_landmarks(image, box)
 
         landmarks = np.float32(landmarks)
-        landmark_indices = np.array(landmark_indices)
+        landmark_indices = np.array(landmark_indices)  # pylint:disable=redefined-variable-type
 
         H = cv2.getAffineTransform(       # pylint:disable=invalid-name,no-member
             landmarks[landmark_indices],  # pylint:disable=unsubscriptable-object
@@ -166,8 +166,8 @@ class DlibFaceDetector(object):
         """
         try:
             return self.detector(image, 1)
-        except Exception as e:  # pylint:disable=broad-except
-            print(f"Warning: {e}")
+        except Exception as ex:  # pylint:disable=broad-except
+            print(f"Warning: {ex}")
             # In rare cases, exceptions are thrown.
             return []
 

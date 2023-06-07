@@ -1,3 +1,4 @@
+# pylint:disable=too-few-public-methods
 from pytoolbox import module
 from pytoolbox.unittest import asserts
 

@@ -1,7 +1,5 @@
 """
-Extra `permission policies <http://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/>`_
-for building your own `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_
-powered API.
+Extra permission policies for building your own Django REST Framework powered API.
 """
 
 from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope
