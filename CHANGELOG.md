@@ -2,6 +2,25 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.5.0 (2023-06-07)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.4.0
+
+### Minor compatibility breaks
+
+- Bye bye Django 3 and less
+
+### Features
+
+- Make code compatible with Django 4+
+
+### Fix and enhancements
+
+- Usage of `super()` magic
+- Upgrade testing stack especially pylint with its dozen tests
+- Apply recommendations from linters (or silent it...)
+- Convert Changelog and Authors in Markdown
+
 ## v14.4.0 (2022-12-09)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.4.0...14.3.0
