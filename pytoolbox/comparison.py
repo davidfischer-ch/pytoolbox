@@ -81,9 +81,9 @@ VERSION_OPERATIONS: dict = {  # pylint:disable=consider-using-namedtuple-or-data
 try:
     from packaging.version import LegacyVersion
     VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
-    ParseVersionTypes = LegacyVersion | Version | str
+    ParseVersionTypes = str | Version | LegacyVersion
 except ImportError:
-    ParseVersionTypes = Version | str
+    ParseVersionTypes = str | Version
 
 
 def compare_versions(
