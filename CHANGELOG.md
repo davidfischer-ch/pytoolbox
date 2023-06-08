@@ -2,9 +2,17 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.5.1 (2023-06-08)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.5.1
+
+### Fix and enhancements
+
+- Make code compatible with legacy versions of `packaging`
+
 ## v14.5.0 (2023-06-07)
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.4.0
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.4.0...14.5.0
 
 ### Minor compatibility breaks
 
@@ -23,7 +31,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.4.0
 
 ## v14.4.0 (2022-12-09)
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.4.0...14.3.0
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.3.0...14.4.0
 
 ### Minor compatibility breaks
 
@@ -42,7 +50,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.4.0...14.3.0
 
 ## v14.3.0 (2022-09-09)
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.3.0...14.2.0
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.2.0...14.3.0
 
 ### Minor compatibility breaks
 
@@ -58,7 +66,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.3.0...14.2.0
 
 ## v14.2.0 (2022-06-10)
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.2.0...14.1.0
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.2.0
 
 ### Minor compatibility breaks
 
@@ -78,7 +86,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.2.0...14.1.0
 
 ## v14.1.0
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.0.2
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.2...14.1.0
 
 ### Minor compatibility breaks
 
@@ -95,7 +103,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.0.2
 
 ## v14.0.2
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.0...14.0.1
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.1...14.0.2
 
 ## Fix and enhancements
 
