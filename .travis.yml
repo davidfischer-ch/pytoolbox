@@ -8,6 +8,7 @@ python:
   - 3.9
   - 3.10
   #- pypy3 FIXME https://github.com/davidfischer-ch/pytoolbox/issues/43
+cache: pip
 
 install:
   - travis_retry sudo apt-get update -qq
