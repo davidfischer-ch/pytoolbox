@@ -78,6 +78,14 @@ VERSION_OPERATIONS: dict = {  # pylint:disable=consider-using-namedtuple-or-data
 }
 
 
+try:
+    from packaging.version import LegacyVersion
+    VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
+    ParseVersionTypes = LegacyVersion | Version | str
+except ImportError:
+    ParseVersionTypes = Version | str
+
+
 def compare_versions(
     a: str,  # pylint:disable=invalid-name
     b: str,  # pylint:disable=invalid-name
@@ -117,7 +125,7 @@ def satisfy_version_constraints(
     return all(compare_versions(version or default, *c.split(' ')[::-1]) for c in constraints or [])
 
 
-def try_parse_version(version: str) -> Version | str:
+def try_parse_version(version: str) -> ParseVersionTypes:
     try:
         return _parse_version(version)
     except InvalidVersion:
