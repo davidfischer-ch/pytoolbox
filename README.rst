@@ -33,13 +33,18 @@ How to install it ?
 
 Install some packages that are not handled by pip::
 
-    $ sudo apt install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
+    $ sudo apt install liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
     $ sudo apt install ffmpeg git-core python3-dev python3-gi python3-pip screen
 
-If using the exif feature, then you'll find useful to read PyGObject's documentation.
-See https://pygobject.readthedocs.io/en/latest/getting_started.html.
+If planning to use the `imaging` extra, especially the `exif` classes, then you'll have to install::
 
-If using the vision feature, then you have to install some requirements for dlib::
+    $ sudo apt install libcairo2 libcairo2-dev libexiv2-dev libgexiv2-dev libgirepository1.0-dev
+
+The gir1.2-gexiv2-0.10 should also be installed, maybe its already the case.
+
+You may find useful to read `PyGObject's documentation <https://pygobject.readthedocs.io/en/latest/getting_started.html>`_.
+
+If planning to use the vision feature, then you have to install some requirements for dlib::
 
     $ sudo apt install build-essential cmake pkg-config
 
