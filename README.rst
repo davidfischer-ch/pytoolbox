@@ -36,6 +36,9 @@ Install some packages that are not handled by pip::
     $ sudo apt install gir1.2-gexiv2-0.10 libexiv2-dev liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
     $ sudo apt install ffmpeg git-core python3-dev python3-gi python3-pip screen
 
+If using the exif feature, then you'll find useful to read PyGObject's documentation.
+See https://pygobject.readthedocs.io/en/latest/getting_started.html.
+
 If using the vision feature, then you have to install some requirements for dlib::
 
     $ sudo apt install build-essential cmake pkg-config
