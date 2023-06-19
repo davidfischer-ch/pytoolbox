@@ -7,6 +7,7 @@ language: python
 python:
   - 3.9
   - 3.10
+  - 3.11
   #- pypy3 FIXME https://github.com/davidfischer-ch/pytoolbox/issues/43
 cache: pip
 
