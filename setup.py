@@ -68,7 +68,8 @@ extras_require = {
         'flask'
     ],
     'imaging': [
-        'pillow'
+        'pillow',
+        'PyGObject'
     ],
     'jinja2': [
         'jinja2'
