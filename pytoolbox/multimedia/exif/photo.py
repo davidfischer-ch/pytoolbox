@@ -27,37 +27,37 @@ class Photo(TagSet):
         return ExposureMode(self.metadata['Exif.Photo.ExposureMode'].data)
 
     @property
-    def exposure_time(self) -> Fraction:
+    def exposure_time(self) -> Fraction | None:
         value = self.metadata['Exif.Photo.ExposureTime'].data
-        assert isinstance(value, Fraction)
+        assert value is None or isinstance(value, Fraction), type(value)
         return value
 
     @property
-    def fnumber(self) -> Fraction:
+    def fnumber(self) -> Fraction | None:
         value = self.clean_number(self.metadata['Exif.Photo.FNumber'].data)
-        assert isinstance(value, Fraction), value
+        assert value is None or isinstance(value, Fraction), type(value)
         return value
 
     @property
-    def focal_length(self) -> Fraction:
+    def focal_length(self) -> Fraction | None:
         value = self.clean_number(self.metadata['Exif.Photo.FocalLength'].data)
-        assert isinstance(value, Fraction), value
+        assert value is None or isinstance(value, Fraction), type(value)
         return value
 
     @property
-    def iso_speed(self) -> int:
+    def iso_speed(self) -> int | None:
         value = self.clean_number(self.metadata['Exif.Photo.ISOSpeedRatings'].data)
-        assert isinstance(value, int)
+        assert value is None or isinstance(value, int), type(value)
         return value
 
     @property
-    def sensing_method(self) -> int:
+    def sensing_method(self) -> int | None:
         value = self.metadata['Exif.Photo.SensingMethod'].data
-        assert isinstance(value, int)
+        assert value is None or isinstance(value, int), type(value)
         return value
 
     @property
-    def white_balance(self) -> int:
+    def white_balance(self) -> int | None:
         value = self.metadata['Exif.Photo.WhiteBalance'].data
-        assert isinstance(value, int)
+        assert value is None or isinstance(value, int), type(value)
         return value
