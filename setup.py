@@ -146,6 +146,9 @@ extras_require.update({
         'pytest-cov>=4.1.0,<5',      # 07-06-2023 Released 24-05-2023
         'pytest-pylint>=0.19.0,<1',  # 07-06-2023 Released 10-09-2022
 
+        # For MyPy
+        'PyGObject-stubs>=2.8.0',
+
          # 07-06-2023 Bug still not resolved
          # Bug https://github.com/tholo/pytest-flake8/issues/87
          # Fix https://github.com/tholo/pytest-flake8/pull/88/files
