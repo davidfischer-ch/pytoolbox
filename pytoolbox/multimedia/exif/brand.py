@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pytoolbox import collections, exceptions
 
 __all__ = ['Brand']
@@ -26,6 +28,7 @@ class Brand(object):
         'Sony Ericsson',
         'Tamron'
     ])
+
     clean_map = collections.merge_dicts({b.lower(): b for b in brands}, {
         # maps the group of Exif.Group.Label
         'canoncs': 'Canon',
@@ -47,11 +50,11 @@ class Brand(object):
         'tamron': 'Tamron'
     })
 
-    def __new__(cls, brand):
+    def __new__(cls, brand: str):
         return cls.clean(brand)
 
     @classmethod
-    def clean(cls, brand):
+    def clean(cls, brand: str) -> str | None:
         brand = brand.strip() if brand else brand
         if not brand:  # pylint:disable=consider-using-assignment-expr
             return None

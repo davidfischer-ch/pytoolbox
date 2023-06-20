@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import enum
 
-from . import tag
+from .tag import TagSet
 
 __all__ = ['Image', 'Orientation']
 
@@ -16,7 +18,7 @@ class Orientation(enum.Enum):
     ROT_270_CW = 8
 
 
-class Image(tag.TagSet):
+class Image(TagSet):
 
     ORIENTATION_TO_ROTATION = {
         None: 0,
@@ -30,24 +32,26 @@ class Image(tag.TagSet):
         Orientation.ROT_270_CW: -270
     }
 
-    def __init__(self, metadata, orientation=None):
+    def __init__(self, metadata, orientation: Orientation | int | None = None):
         super().__init__(metadata)
         self._orientation = None if orientation is None else Orientation(orientation)
 
     @property
-    def copyright(self):
+    def copyright(self) -> str:
         return self.metadata['Iptc.Application2.Copyright'].data
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self.metadata['Exif.Image.ImageDescription'].data
 
     @property
-    def height(self):
-        return self.clean_number(self.metadata.exiv2.get_pixel_height())
+    def height(self) -> int:
+        value = self.clean_number(self.metadata.exiv2.get_pixel_height())
+        assert isinstance(value, int)
+        return value
 
     @property
-    def orientation(self):
+    def orientation(self) -> Orientation | None:
         if self._orientation is not None:
             return self._orientation
         data = self.metadata['Exif.Image.Orientation'].data
@@ -57,9 +61,11 @@ class Image(tag.TagSet):
             return None
 
     @property
-    def rotation(self):
+    def rotation(self) -> int:
         return self.ORIENTATION_TO_ROTATION[self.orientation]
 
     @property
-    def width(self):
-        return self.clean_number(self.metadata.exiv2.get_pixel_width())
+    def width(self) -> int:
+        value = self.clean_number(self.metadata.exiv2.get_pixel_width())
+        assert isinstance(value, int), value
+        return value

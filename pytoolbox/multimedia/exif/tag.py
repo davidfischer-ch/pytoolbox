@@ -1,16 +1,20 @@
-import datetime, re
+from __future__ import annotations
+
+from collections.abc import Callable
 from fractions import Fraction
+import datetime, re
 
 from pytoolbox import decorators
 from pytoolbox.datetime import str_to_datetime, str_to_time
-from . import brand  # pylint:disable=unused-import
+
+from .brand import Brand
 
 __all__ = ['Tag', 'TagSet']
 
 
-class Tag(object):  # pylint:disable=too-few-public-methods
+class Tag(object):
 
-    brand_class = brand.Brand
+    brand_class = Brand
     date_formats = ['%Y%m%d %H%M%S', '%Y%m%d']
     date_clean_regex = re.compile(r'[:-]')
     group_to_brand_blacklist = frozenset(['aux', 'crs', 'exifEX', 'Image', 'Photo'])
@@ -64,29 +68,29 @@ class Tag(object):  # pylint:disable=too-few-public-methods
         return tag_raw.get_data() if tag_raw else None
 
     @decorators.cached_property
-    def description(self):
+    def description(self) -> str:
         return self.metadata.exiv2.get_tag_description(self.key)
 
     @property
-    def brand(self):
+    def brand(self) -> Brand | None:
         if self.group in self.group_to_brand_blacklist:
             return None
         return self.brand_class(self.group)
 
     @property
-    def group(self):
+    def group(self) -> str:
         return self.key.split('.')[-2]
 
     @decorators.cached_property
-    def label(self):
+    def label(self) -> str:
         return self.metadata.exiv2.get_tag_label(self.key) or self.key.split('.')[-1]
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.metadata.exiv2.get_tag_raw(self.key).get_size()
 
     @decorators.cached_property
-    def type(self):
+    def type(self) -> type:
         tag_type = self.metadata.exiv2.get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
@@ -109,16 +113,16 @@ class Tag(object):  # pylint:disable=too-few-public-methods
             f'{self.key} {self.type} {data} {type(data)}'
         return data
 
-    def get_type_hook(self):
+    def get_type_hook(self) -> Callable | None:
         name = self.type_to_hook.get(self.type)
         return getattr(self.metadata.exiv2, name) if name else None
 
 
 class TagSet(object):  # pylint:disable=too-few-public-methods
 
-    @staticmethod
-    def clean_number(number):
-        return number if number and number > 0 else None
-
     def __init__(self, metadata):
         self.metadata = metadata
+
+    @staticmethod
+    def clean_number(number) -> int | Fraction | None:
+        return number if number and number > 0 else None

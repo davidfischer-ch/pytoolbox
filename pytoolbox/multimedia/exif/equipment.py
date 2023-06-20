@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import abc, re
+
+from .brand import Brand
 
 __all__ = ['Equipement']
 
@@ -25,24 +29,24 @@ class Equipement(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def brand(self):
+    def brand(self) -> Brand | None:
         pass
 
     @property
-    def model(self):
+    def model(self) -> str | None:
         if self.brand and self._model:
             return re.sub(fr'{self.brand}\s+', '', self._model, 1, re.IGNORECASE)
         return self._model
 
     @property
     @abc.abstractmethod
-    def _model(self):
+    def tags(self) -> dict:
         pass
+
+    def refresh(self) -> None:
+        self.__dict__.pop('tags', None)
 
     @property
     @abc.abstractmethod
-    def tags(self):
+    def _model(self) -> str | None:
         pass
-
-    def refresh(self):
-        self.__dict__.pop('tags', None)

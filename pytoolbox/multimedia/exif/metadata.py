@@ -1,6 +1,10 @@
+from __future__ import annotations
+
+from pathlib import Path
 import datetime
 
 from pytoolbox import exceptions
+
 from . import camera, image, lens, photo, tag
 
 __all__ = ['Metadata']
@@ -14,10 +18,16 @@ class Metadata(object):
     photo_class = photo.Photo
     tag_class = tag.Tag
 
-    def __init__(self, path=None, buf=None, orientation=None, gexiv2_version='0.10'):
-        import gi  # pylint:disable=import-error
+    def __init__(
+        self,
+        path: Path | None = None,
+        buf=None,
+        orientation: image.Orientation | int | None = None,
+        gexiv2_version: str = '0.10'
+    ):
+        import gi
         gi.require_version('GExiv2', gexiv2_version)
-        from gi.repository import GExiv2  # pylint:disable=import-error
+        from gi.repository import GExiv2
         self.path = path
         self.exiv2 = GExiv2.Metadata()
         if buf:
@@ -31,27 +41,31 @@ class Metadata(object):
         self.lens = self.lens_class(self)
         self.photo = self.photo_class(self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> tag.Tag:
         # TODO make it more strict and re-implement less strict self.get(key)
         return self.tag_class(self, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value):
         self.exiv2[key] = value
 
     @property
-    def tags(self):
+    def tags(self) -> dict:
         return {k: self[k] for k in self.exiv2.get_tags()}
 
-    def get_date(self, keys=('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')):
+    def get_date(
+        self,
+        keys: tuple[str, ...] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')
+    ) -> datetime.datetime | None:
+
         if isinstance(keys, str):
-            keys = [keys]
+            keys = tuple(keys)
         for key in keys:
             date = self[key].data
             if isinstance(date, datetime.datetime):
                 return date
         return None
 
-    def rewrite(self, path=None, save=False):
+    def rewrite(self, path: Path | None = None, save: bool = False) -> None:
         """
         Iterate over all tags and rewrite them to fix issues (e.g. GExiv2: Invalid ifdId 103 (23)).
         """
@@ -62,7 +76,7 @@ class Metadata(object):
         if save:
             self.save_file(path=path)
 
-    def save_file(self, path=None):
+    def save_file(self, path: Path | None = None):
         if not path and not self.path:
             raise exceptions.UndefinedPathError()
         return self.exiv2.save_file(path=path or self.path)
