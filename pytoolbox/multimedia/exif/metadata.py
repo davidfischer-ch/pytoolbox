@@ -27,7 +27,7 @@ class Metadata(object):
     ):
         import gi
         gi.require_version('GExiv2', gexiv2_version)
-        from gi.repository import GExiv2
+        from gi.repository import GExiv2  # type: ignore[attr-defined]
         self.path = path
         self.exiv2 = GExiv2.Metadata()
         if buf:
@@ -46,11 +46,11 @@ class Metadata(object):
         return self.tag_class(self, key)
 
     def __setitem__(self, key: str, value):
-        self.exiv2[key] = value
+        self.exiv2[key] = value  # pylint: disable=unsupported-assignment-operation
 
     @property
     def tags(self) -> dict:
-        return {k: self[k] for k in self.exiv2.get_tags()}
+        return {k: self[k] for k in self.exiv2.get_tags()}  # pylint: disable=no-member
 
     def get_date(
         self,
