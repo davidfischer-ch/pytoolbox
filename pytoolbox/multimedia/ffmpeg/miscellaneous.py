@@ -278,7 +278,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
             filesystem.makedirs(self.directory)
 
     def to_args(self, is_input: bool) -> list[str]:
-        return self.options + ['-i', str(self.path)] if is_input else [str(self.path)]
+        return self.options + (['-i', str(self.path)] if is_input else [str(self.path)])
 
 
 __all__ = _all.diff(globals())
