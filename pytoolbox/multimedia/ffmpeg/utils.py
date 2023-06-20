@@ -1,4 +1,7 @@
-import numbers, re
+from __future__ import annotations
+
+from pathlib import Path
+import re
 
 from pytoolbox import module
 
@@ -12,23 +15,21 @@ SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
 WIDTH, HEIGHT = range(2)  # noqa
 
 
-def is_pipe(path):
+def is_pipe(path: Path | str) -> bool:
     return isinstance(path, str) and bool(PIPE_REGEX.match(path))
 
 
-def to_bit_rate(bit_rate):
+def to_bit_rate(bit_rate: str) -> int | None:
     if match := BIT_RATE_REGEX.match(bit_rate):
-        match = match.groupdict()
-        return int(float(match['value']) * BIT_RATE_COEFFICIENT_FOR_UNIT[match['units'][0]])
+        data = match.groupdict()
+        return int(float(data['value']) * BIT_RATE_COEFFICIENT_FOR_UNIT[data['units'][0]])
     if bit_rate == 'N/A':
         return None
     raise ValueError(bit_rate)
 
 
-def to_frame_rate(frame_rate):
-    if isinstance(frame_rate, numbers.Number):
-        return frame_rate
-    if '/' in frame_rate:
+def to_frame_rate(frame_rate: float | str) -> float | None:
+    if isinstance(frame_rate, str) and '/' in frame_rate:
         try:
             num, denom = frame_rate.split('/')
             return float(num) / float(denom)
@@ -37,10 +38,10 @@ def to_frame_rate(frame_rate):
     return float(frame_rate)
 
 
-def to_size(size):
+def to_size(size: str) -> int:
     if match := SIZE_REGEX.match(size):
-        match = match.groupdict()
-        return int(float(match['value']) * SIZE_COEFFICIENT_FOR_UNIT[match['units'][0].lower()])
+        data = match.groupdict()
+        return int(float(data['value']) * SIZE_COEFFICIENT_FOR_UNIT[data['units'][0].lower()])
     raise ValueError(size)
 
 

@@ -1,4 +1,6 @@
-import os
+from __future__ import annotations
+
+from pathlib import Path
 
 from pytoolbox import comparison, filesystem, module, validation
 from pytoolbox.subprocess import to_args_list
@@ -16,11 +18,11 @@ class BaseInfo(  # pylint:disable=too-few-public-methods
     defaults = {}
     attr_name_template = '{name}'
 
-    def __init__(self, info):
+    def __init__(self, info: dict):
         for attr in get_slots(self):
             self._set_attribute(attr, info)
 
-    def _set_attribute(self, name, info):
+    def _set_attribute(self, name: str, info: dict) -> None:
         """Set attribute `name` value from the `info` or ``self.defaults`` dictionary."""
         value = info.get(self.attr_name_template.format(name=name), self.defaults.get(name))
         setattr(self, name, value)
@@ -33,8 +35,8 @@ class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
     attr_name_template = 'codec_{name}'
 
     @staticmethod
-    def clean_time_base(value):
-        return utils.to_frame_rate(value)
+    def clean_time_base(value) -> float | None:
+        return None if value is None else utils.to_frame_rate(value)
 
 
 class Format(BaseInfo):
@@ -54,31 +56,31 @@ class Format(BaseInfo):
     )
 
     @staticmethod
-    def clean_bit_rate(value):
+    def clean_bit_rate(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_duration(value):
+    def clean_duration(value) -> float | None:
         return None if value is None else float(value)
 
     @staticmethod
-    def clean_nb_programs(value):
+    def clean_nb_programs(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_nb_streams(value):
+    def clean_nb_streams(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_probe_score(value):
+    def clean_probe_score(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_size(value):
+    def clean_size(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_start_time(value):
+    def clean_start_time(value) -> float | None:
         return None if value is None else float(value)
 
 
@@ -88,7 +90,7 @@ class Stream(BaseInfo):
 
     codec_class = Codec
 
-    def __init__(self, info):  # pylint:disable=super-init-not-called
+    def __init__(self, info: dict):  # pylint:disable=super-init-not-called
         for attr in get_slots(self):
             if attr == 'codec':
                 self.codec = self.codec_class(info)
@@ -96,15 +98,15 @@ class Stream(BaseInfo):
                 self._set_attribute(attr, info)
 
     @staticmethod
-    def clean_avg_frame_rate(value):
+    def clean_avg_frame_rate(value) -> float | None:
         return None if value is None else utils.to_frame_rate(value)
 
     @staticmethod
-    def clean_index(value):
+    def clean_index(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_r_frame_rate(value):
+    def clean_r_frame_rate(value: str) -> float | None:
         return None if value is None else utils.to_frame_rate(value)
 
 
@@ -126,39 +128,39 @@ class AudioStream(Stream):
     )
 
     @staticmethod
-    def clean_bit_rate(value):
+    def clean_bit_rate(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_bits_per_sample(value):
+    def clean_bits_per_sample(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_channels(value):
+    def clean_channels(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_duration(value):
+    def clean_duration(value) -> float | None:
         return None if value is None else float(value)
 
     @staticmethod
-    def clean_duration_ts(value):
+    def clean_duration_ts(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_nb_frames(value):
+    def clean_nb_frames(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_sample_rate(value):
+    def clean_sample_rate(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_start_pts(value):
+    def clean_start_pts(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_start_time(value):
+    def clean_start_time(value) -> float | None:
         return None if value is None else float(value)
 
 
@@ -167,19 +169,19 @@ class SubtitleStream(Stream):
     __slots__ = ('duration', 'duration_ts', 'start_pts', 'start_time', 'tags')
 
     @staticmethod
-    def clean_duration(value):
+    def clean_duration(value) -> float | None:
         return None if value is None else float(value)
 
     @staticmethod
-    def clean_duration_ts(value):
+    def clean_duration_ts(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_start_pts(value):
+    def clean_start_pts(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_start_time(value):
+    def clean_start_time(value) -> float | None:
         return None if value is None else float(value)
 
 
@@ -203,40 +205,40 @@ class VideoStream(Stream):
     )
 
     @staticmethod
-    def clean_bit_rate(value):
+    def clean_bit_rate(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_bit_per_raw_sample(value):
+    def clean_bit_per_raw_sample(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_duration(value):
+    def clean_duration(value) -> float | None:
         return None if value is None else float(value)
 
     @staticmethod
-    def clean_duration_ts(value):
+    def clean_duration_ts(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_height(value):
+    def clean_height(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_level(value):
+    def clean_level(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_nb_frames(value):
+    def clean_nb_frames(value) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_width(value):
+    def clean_width(value) -> int | None:
         return None if value is None else int(value)
 
     @property
-    def rotation(self):
-        tags = self.tags  # pylint:disable=no-member
+    def rotation(self) -> int:
+        tags = self.tags  # type: ignore[attr-defined]  # pylint:disable=no-member
         return int(0 if tags is None else tags.get('rotate', 0))
 
 
@@ -244,39 +246,39 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     __slots__ = ('path', 'options')
 
-    def __init__(self, path, options=None):
-        self.path = path
-        self.options = options
-        self._size = None
+    def __init__(self, path: Path | str, options=None):
+        self.path: Path | str = path
+        self.options: list[str] = options
+        self._size: int | None = None
 
     @property
-    def directory(self):
-        return None if self.is_pipe else os.path.abspath(os.path.dirname(self.path))
+    def directory(self) -> Path | None:
+        return None if self.is_pipe else Path(self.path).resolve().parent
 
     @property
-    def is_pipe(self):
+    def is_pipe(self) -> bool:
         return utils.is_pipe(self.path)
 
     @property
-    def size(self):
+    def size(self) -> int:
         if self._size is None:
             return 0 if self.is_pipe else filesystem.get_size(self.path)
         return self._size
 
     @size.setter
-    def size(self, value):
+    def size(self, value: int | None):
         self._size = value
 
     @staticmethod
-    def clean_options(value):
+    def clean_options(value) -> list[str]:
         return to_args_list(value)
 
-    def create_directory(self):
+    def create_directory(self) -> None:
         if not self.is_pipe:
             filesystem.makedirs(self.directory)
 
-    def to_args(self, is_input):
-        return self.options + (['-i', self.path] if is_input else [self.path])
+    def to_args(self, is_input: bool) -> list[str]:
+        return self.options + ['-i', str(self.path)] if is_input else [str(self.path)]
 
 
 __all__ = _all.diff(globals())

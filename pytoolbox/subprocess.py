@@ -67,13 +67,13 @@ def read_async(fd):  # pylint:disable=invalid-name
         raise
 
 
-def to_args_list(args):
+def to_args_list(args) -> list[str]:
     if not args:
         return []
     return shlex.split(args) if isinstance(args, str) else [str(a) for a in args]
 
 
-def to_args_string(args):
+def to_args_string(args) -> str:
     if not args:
         return ''
     return args if isinstance(args, str) else ' '.join(quote(str(a)) for a in args)
