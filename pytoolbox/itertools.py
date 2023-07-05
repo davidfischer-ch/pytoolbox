@@ -29,6 +29,8 @@ def chunk(objects, length, of_type=list):
     """
     Yield successive chunks of defined `length` from `objects`. Last chunk may be smaller.
 
+    Python 3.12 introduced :func:`itertools.batched` (but without `of_type` conversion).
+
     **Example usage**
 
     >>> iterable = iter(list(range(7)))
