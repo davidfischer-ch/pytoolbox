@@ -135,8 +135,8 @@ labels = {
 extras_require.update({
     'all': sorted(set(itertools.chain.from_iterable(extras_require.values()))),
     'doc': [
-        'sphinx>=1.3.1',
-        'sphinx_rtd_theme'
+        'sphinx>=6',
+        'sphinx-rtd-theme>=1.2.2'
     ],
     'test': [
         'coverage>=7.2.7,<8',        # 07-06-2023 Released 29-05-2023
