@@ -14,6 +14,7 @@ cache: pip
 install:
   - travis_retry sudo apt-get update -qq
   - travis_retry sudo apt-get install -qq cmake ffmpeg screen
+  - travis_retry sudo apt-get install -qq liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
   - travis_retry sudo apt-get install -qq libcairo2 libcairo2-dev libexiv2-dev libgexiv2-dev libgirepository1.0-dev
   - travis_retry pip install --upgrade pip setuptools wheel
   - travis_retry pip install bson coveralls  # for valid_uuid(objectid_allowed=True) and coverage report

@@ -10,6 +10,24 @@ build:
   tools:
     python: "3.11"
 
+  apt_packages:
+    # Core
+    - liblzma-dev
+    - libxml2-dev
+    - libxslt-dev
+    - libyaml-dev
+    - libz-dev
+
+    # For PyGObject
+    # See https://pygobject.readthedocs.io/en/latest/getting_started.html#ubuntu-getting-started
+    - libcairo2
+    - libcairo2-dev
+    - libgirepository1.0-dev
+
+    # For GExiv2
+    - libexiv2-dev
+    - libgexiv2-dev
+
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
   configuration: docs/source/conf.py
