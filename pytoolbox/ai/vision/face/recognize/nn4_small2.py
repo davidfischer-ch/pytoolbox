@@ -10,11 +10,13 @@ from keras.layers import (
     BatchNormalization,
     concatenate,
     Conv2D,
+    Dense,
+    Flatten,
     Input,
+    Lambda,
     MaxPooling2D,
     ZeroPadding2D
 )
-from keras.layers.core import Lambda, Flatten, Dense
 from keras.models import Model
 
 from pytoolbox.ai.vision import utils
