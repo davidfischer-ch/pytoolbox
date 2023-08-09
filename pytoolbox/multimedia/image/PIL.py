@@ -9,6 +9,7 @@ _all = module.All(globals())
 from PIL import Image  # noqa pylint:disable=wrong-import-position
 
 TRANSPOSE_SEQUENCES = {
+    # pylint:disable=no-member
     None: [],
     1: [],
     2: [Image.FLIP_LEFT_RIGHT],
