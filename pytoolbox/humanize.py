@@ -1,41 +1,49 @@
+from __future__ import annotations
+
+from typing import Final
 import math, re
 
 from . import module
 
 _all = module.All(globals())
 
-DEFAULT_BITRATE_UNITS = ('bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s')
-DEFAULT_FILESIZE_ARGS = {  # pylint:disable=consider-using-namedtuple-or-dataclass
+DEFAULT_BITRATE_UNITS: Final[tuple[str, ...]] = (
+    'bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s'
+)
+# pylint:disable=consider-using-namedtuple-or-dataclass)
+DEFAULT_FILESIZE_ARGS: Final[dict[str, dict[str, int | tuple[str, ...]]]] = {
     'gnu': {'base': 1000, 'units': ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')},
     'nist': {'base': 1024, 'units': ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')},
-    'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')},
+    'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')}
 }
-DEFAULT_FREQUENCY_UNITS = ('Hz', 'kHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz', 'YHz')
-DEFAULT_WEIGHT_UNITS = ('g', 'Kg', 'T', 'KT', 'MT', 'GT')
-DIGIT_REGEX = re.compile(r'(\d+)')
+DEFAULT_FREQUENCY_UNITS: Final[tuple[str, ...]] = (
+    'Hz', 'kHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz', 'YHz'
+)
+DEFAULT_WEIGHT_UNITS: Final[tuple[str, ...]] = ('g', 'Kg', 'T', 'KT', 'MT', 'GT')
+DIGIT_REGEX: Final[re.Pattern] = re.compile(r'(\d+)')
 
 
 def _naturalnumber(
-    number,
-    base,
-    units,
-    format='{sign}{value:.3g} {unit}',
-    scale=None
-):  # pylint:disable=redefined-builtin
+    number: int | float,
+    base: int,
+    units: tuple[str, ...],
+    fmt: str = '{sign}{value:.3g} {unit}',
+    scale: int | None = None
+) -> str:
     sign, number = '' if number >= 0 else '-', abs(number)
     if scale is None:
         scale = min(int(math.log(max(1, number), base)), len(units) - 1)
     unit = units[scale]
     value = number / (base ** scale)
-    return format.format(sign=sign, value=value, unit=unit)
+    return fmt.format(sign=sign, value=value, unit=unit)
 
 
 def naturalbitrate(
-    bps,
-    format='{sign}{value:.3g} {unit}',
-    scale=None,
-    units=DEFAULT_BITRATE_UNITS
-):  # pylint:disable=redefined-builtin
+    bps: int | float,
+    fmt: str = '{sign}{value:.3g} {unit}',
+    scale: int | None = None,
+    units: tuple[str, ...] = DEFAULT_BITRATE_UNITS
+) -> str:
     """
     Return a human readable representation of a bit rate taking `bps` as the rate in bits/s.
 
@@ -50,9 +58,9 @@ def naturalbitrate(
     '-10 bit/s'
     >>> naturalbitrate(0.233)
     '0.233 bit/s'
-    >>> naturalbitrate(69.5, format='{value:.2g} {unit}')
+    >>> naturalbitrate(69.5, fmt='{value:.2g} {unit}')
     '70 bit/s'
-    >>> naturalbitrate(999.9, format='{value:.0f}{unit}')
+    >>> naturalbitrate(999.9, fmt='{value:.0f}{unit}')
     '1000bit/s'
     >>> naturalbitrate(1060)
     '1.06 kb/s'
@@ -60,19 +68,19 @@ def naturalbitrate(
     '3.21 Mb/s'
     >>> naturalbitrate(16262710, units=['bps', 'Kbps'])
     '1.63e+04 Kbps'
-    >>> naturalbitrate(3210837, scale=1, format='{value:.2f} {unit}')
+    >>> naturalbitrate(3210837, scale=1, fmt='{value:.2f} {unit}')
     '3210.84 kb/s'
     """
-    return _naturalnumber(bps, base=1000, format=format, scale=scale, units=units)
+    return _naturalnumber(bps, base=1000, fmt=fmt, scale=scale, units=units)
 
 
-def naturalfilesize(
-    bytes,
-    system='nist',
-    format='{sign}{value:.3g} {unit}',
-    scale=None,
-    args=DEFAULT_FILESIZE_ARGS
-):  # pylint:disable=dangerous-default-value,redefined-builtin
+def naturalfilesize(  # pylint:disable=dangerous-default-value
+    size_bytes: int | float,
+    system: str = 'nist',
+    fmt: str = '{sign}{value:.3g} {unit}',
+    scale: int | None = None,
+    args: dict[str, dict[str, int | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS
+) -> str:
     """
     Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
 
@@ -94,9 +102,9 @@ def naturalfilesize(
     '0.233 B'
     >>> naturalfilesize(1)
     '1 B'
-    >>> naturalfilesize(69.5, format='{value:.2g} {unit}')
+    >>> naturalfilesize(69.5, fmt='{value:.2g} {unit}')
     '70 B'
-    >>> naturalfilesize(999.9, format='{value:.0f}{unit}')
+    >>> naturalfilesize(999.9, fmt='{value:.0f}{unit}')
     '1000B'
     >>> naturalfilesize(1060)
     '1.04 kB'
@@ -104,22 +112,26 @@ def naturalfilesize(
     '1.06 KiB'
     >>> naturalfilesize(3210837)
     '3.06 MB'
-    >>> naturalfilesize(3210837, scale=1, format='{value:.2f} {unit}')
+    >>> naturalfilesize(3210837, scale=1, fmt='{value:.2f} {unit}')
     '3135.58 kB'
     >>> naturalfilesize(16262710, system=None, args={'base': 1000, 'units': ['B', 'K']})
     '1.63e+04 K'
     >>> naturalfilesize(314159265358979323846, system='gnu')
     '314 E'
     """
-    return _naturalnumber(bytes, format=format, scale=scale, **(args[system] if system else args))
+    return _naturalnumber(  # type: ignore[arg-type]
+        size_bytes,
+        fmt=fmt,
+        scale=scale,
+        **(args[system] if system else args))
 
 
 def naturalfrequency(
-    hertz,
-    format='{sign}{value:.3g} {unit}',
-    scale=None,
-    units=DEFAULT_FREQUENCY_UNITS
-):  # pylint:disable=dangerous-default-value,redefined-builtin
+    hertz: int | float,
+    fmt: str = '{sign}{value:.3g} {unit}',
+    scale: int | None = None,
+    units: tuple[str, ...] = DEFAULT_FREQUENCY_UNITS
+) -> str:  # pylint:disable=dangerous-default-value
     """
     Return a human readable representation of a frequency taking `hertz` as the frequency in Hz.
 
@@ -134,9 +146,9 @@ def naturalfrequency(
     '-10 Hz'
     >>> naturalfrequency(0.233)
     '0.233 Hz'
-    >>> naturalfrequency(69.5, format='{value:.2g} {unit}')
+    >>> naturalfrequency(69.5, fmt='{value:.2g} {unit}')
     '70 Hz'
-    >>> naturalfrequency(999.9, format='{value:.0f}{unit}')
+    >>> naturalfrequency(999.9, fmt='{value:.0f}{unit}')
     '1000Hz'
     >>> naturalfrequency(1060)
     '1.06 kHz'
@@ -144,18 +156,18 @@ def naturalfrequency(
     '3.21 MHz'
     >>> naturalfrequency(16262710, units=['Hertz', 'kilo Hertz'])
     '1.63e+04 kilo Hertz'
-    >>> naturalfrequency(3210837, scale=1, format='{value:.2f} {unit}')
+    >>> naturalfrequency(3210837, scale=1, fmt='{value:.2f} {unit}')
     '3210.84 kHz'
     """
-    return _naturalnumber(hertz, base=1000, format=format, scale=scale, units=units)
+    return _naturalnumber(hertz, base=1000, fmt=fmt, scale=scale, units=units)
 
 
 def naturalweight(
-    grams,
-    format='{sign}{value:.3g} {unit}',
-    scale=None,
-    units=DEFAULT_WEIGHT_UNITS
-):  # pylint:disable=dangerous-default-value,redefined-builtin
+    grams: int | float,
+    fmt: str = '{sign}{value:.3g} {unit}',
+    scale: int | None = None,
+    units: tuple[str, ...] = DEFAULT_WEIGHT_UNITS
+) -> str:  # pylint:disable=dangerous-default-value
     """
     Return a human readable representation of a weight in `grams`.
 
@@ -167,9 +179,9 @@ def naturalweight(
     '-10 Kg'
     >>> naturalweight(0.233)
     '0.233 g'
-    >>> naturalweight(69.5, format='{value:.2g} {unit}')
+    >>> naturalweight(69.5, fmt='{value:.2g} {unit}')
     '70 g'
-    >>> naturalweight(999.9, format='{value:.0f}{unit}')
+    >>> naturalweight(999.9, fmt='{value:.0f}{unit}')
     '1000g'
     >>> naturalweight(545_000)
     '545 Kg'
@@ -177,13 +189,13 @@ def naturalweight(
     '3.21 KT'
     >>> naturalweight(1_620_000, units=['Grams', 'kilo Grams'])
     '1.62e+03 kilo Grams'
-    >>> naturalweight(502456123, scale=2, format='{value:.2f} {unit}')
+    >>> naturalweight(502456123, scale=2, fmt='{value:.2f} {unit}')
     '502.46 T'
     """
-    return _naturalnumber(grams, base=1000, format=format, scale=scale, units=units)
+    return _naturalnumber(grams, base=1000, fmt=fmt, scale=scale, units=units)
 
 
-def natural_int_key(text):
+def natural_int_key(text: str) -> list[int | str]:
     """
     Function to be called as the key argument for list.sort() or sorted() in order to sort
     collections containing textual numbers on a more intuitive way.
