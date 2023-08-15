@@ -2,6 +2,25 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.6.0 (2023-08-15)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.5.1
+
+### Minor comptability breaks
+
+- Functions `humanize.natural*`: Rename `format` arguments to `fmt`
+
+### Features
+
+- Module `humanize`: Add functions `parse_*`
+
+### Fix and enhancements
+
+- Ensure Python 3.11 compatibility
+- Explain how to bother with GExiv2
+- Add more type hints (especially `humanize` and `multimedia.exif`)
+- Add `PyGObject` to requirements for `imaging` feature
+
 ## v14.5.1 (2023-06-08)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.5.1
