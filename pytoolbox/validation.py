@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import errno
 import inspect
 import http.client
@@ -25,6 +24,7 @@ class CleanAttributesMixin(object):  # pylint:disable=too-few-public-methods
     **Example usage**
 
     >>> class Settings(CleanAttributesMixin):
+    ...
     ...     def __init__(self, locale, broker):
     ...        self.locale = locale
     ...        self.broker = broker
@@ -33,7 +33,7 @@ class CleanAttributesMixin(object):  # pylint:disable=too-few-public-methods
     ...         value = str(value)
     ...         assert len(value) == 2
     ...         return value
-
+    ...
     >>> settings = Settings('fr', {})
     >>> settings = Settings(10, {})
     >>> assert isinstance(settings.locale, str)

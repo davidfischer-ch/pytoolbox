@@ -47,12 +47,15 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     Media packets are sorted by the buffer, so, it's time to test this feature:
 
-    >>> import io, random
+    >>> import io
+    >>> import random
+    >>>
     >>> output = io.StringIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1000, FecReceiver.PACKETS)
     >>> source = list(range(30))
     >>> random.shuffle(source)
+    >>>
     >>> for i in source:
     ...     receiver.put_media(RtpPacket.create(i, i * 100, RtpPacket.MP2T_PT, str(i)), True)
     >>> receiver.flush()
@@ -61,22 +64,30 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     Testing FEC algorithm correctness:
 
-    >>> import io, os, random
+    >>> import io
+    >>> import os
+    >>> import random
+    >>>
     >>> output = io.BytesIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1024, FecReceiver.PACKETS)
     >>> L, D = 4, 5
+    >>>
     >>> # Generate a [D][L] matrix of randomly generated RTP packets
     >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + random.randint(0, 50),
     ...           RtpPacket.MP2T_PT, bytearray(os.urandom(random.randint(50, 100))))
     ...           for i in range(L)] for j in range(D)]
+    >>>
     >>> assert len(matrix) == D and len(matrix[0]) == L
+    >>>
     >>> # Retrieve the first column of the matrix
     >>> for column in matrix:
     ...     for media in column:
     ...         if media.sequence != 0:
     ...             receiver.put_media(media, True)
+    >>>
     >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, L, D, [p[0] for p in matrix[0:]])
+    >>>
     >>> print('dir={0} snbase={1} offset={2} na={3}'.format(
     ...     fec.direction, fec.snbase, fec.offset, fec.na))
     dir=0 snbase=0 offset=4 na=5

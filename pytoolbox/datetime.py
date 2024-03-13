@@ -225,12 +225,12 @@ def time_ratio(numerator, denominator, zero_div_result=1.0):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
+    >>> import pytest
     >>> time_ratio('0:30:00', '01:30:00')
     0.33...
     >>> time_ratio('0:00:05', '00:00:00')
     1.0
-    >>> with asserts.raises(ValueError):
+    >>> with pytest.raises(ValueError):
     ...     time_ratio('01:42:34', 'N/A')
     """
     try:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import abc
+from typing import TypeVar
 import inspect
 import itertools
 
@@ -8,6 +9,8 @@ from . import module
 from .collections import merge_dicts
 
 _all = module.All(globals())
+
+GenericType = TypeVar('GenericType', bound=type)
 
 
 def get_arguments_names(function):
@@ -105,7 +108,7 @@ def isiterable(obj, blacklist=(bytes, str)):
     return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
 
 
-def merge_annotations(cls: type):
+def merge_annotations(cls: GenericType) -> GenericType:
     """
     Merge annotations defined in all bases classes (using `__mro__`) into given `cls`.
 

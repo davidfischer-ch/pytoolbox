@@ -238,13 +238,13 @@ def to_dict_of_values(iterable, type=list, method=list.append):  # pylint:disabl
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.dict_equal(
-    ...     to_dict_of_values([('odd', 1), ('odd', 3), ('even', 0), ('even', 2)]),
-    ...     {'even': [0, 2], 'odd': [1, 3]})
-    >>> asserts.dict_equal(
-    ...     to_dict_of_values((('a', 1), ('a', 1), ('a', 2)), type=set, method=set.add),
-    ...     {'a': {1, 2}})
+    >>> assert to_dict_of_values([('odd', 1), ('odd', 3), ('even', 0), ('even', 2)]) == {
+    ...     'even': [0, 2],
+    ...     'odd': [1, 3]
+    ... }
+    >>> assert to_dict_of_values((('a', 1), ('a', 1), ('a', 2)), type=set, method=set.add) == {
+    ...     'a': {1, 2}
+    ... }
     """
     dict_of_values = collections.defaultdict(type)
     for key, value in iterable:

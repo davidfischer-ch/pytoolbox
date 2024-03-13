@@ -389,8 +389,11 @@ def remove(path, recursive=False):
 
     **Example usage**
 
-    >>> with open('remove.example', 'w', encoding='utf-8') as f:
-    ...     f.write('salut les pépés')
+    >>> from pathlib import Path
+    >>>
+    >>> import pytest
+    >>>
+    >>> Path('remove.example').write_text('salut les pépés', encoding='utf-8')
     15
     >>> remove('remove.example')
     True
@@ -408,8 +411,8 @@ def remove(path, recursive=False):
     True
     >>> remove('remove/d/e', recursive=True)
     False
-    >>> from pytoolbox.unittest import asserts
-    >>> asserts.raises(OSError, remove, 'remove/b')
+    >>> with pytest.raises(OSError):
+    ...     remove('remove/b')
     >>> remove('remove', recursive=True)
     True
     """

@@ -105,7 +105,8 @@ def progress_bar(
 
     **Example usage**
 
-    >>> import functools, time
+    >>> import functools
+    >>> import time
     >>> progress = functools.partial(progress_bar, template='[{done}{todo}]', stream=sys.stdout)
     >>> progress(time.time(), 10, 15, size=30)
     [====================          ]

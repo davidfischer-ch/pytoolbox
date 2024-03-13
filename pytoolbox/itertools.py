@@ -74,11 +74,14 @@ def throttle(objects, min_delay):
 
     **Example usage**
 
-    >>> import datetime, time
+    >>> import datetime
+    >>> import time
+    >>>
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
+    ...
     >>> list(throttle(list(range(10)), datetime.timedelta(minutes=1)))
     [0, 9]
     >>> list(throttle(slow_range(3), '00:00:00.2'))

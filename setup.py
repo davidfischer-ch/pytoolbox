@@ -78,6 +78,9 @@ extras_require = {
     'jinja2': [
         'jinja2'
     ],
+    'mongodb': [
+        'pymongo'
+    ],
     'network': [
         'tldextract'
     ],
@@ -122,6 +125,7 @@ labels = {
     'imaging': 'Imaging',
     'jinja2': 'Jinja2',
     'logging': 'Logging',
+    'mongodb': 'MongoDB',
     'network': 'Networking',
     'pandas': 'Pandas',
     'rest_framework': 'Django REST Framework',
@@ -149,6 +153,8 @@ extras_require.update({
         'pytest>=7.3.1,<8',          # 07-06-2023 Released 14-04-2023
         'pytest-cov>=4.1.0,<5',      # 07-06-2023 Released 24-05-2023
         'pytest-pylint>=0.19.0,<1',  # 07-06-2023 Released 10-09-2022
+
+        'types-pytz',
 
         # For MyPy
         'PyGObject-stubs>=2.8.0',

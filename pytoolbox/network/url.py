@@ -13,17 +13,10 @@ def with_subdomain(url, subdomain=None):
 
     **Example usage**
 
-    >>> from pytoolbox.unittest import asserts
-    >>> eq = asserts.equal
-    >>> asserts.equal(
-    ...     with_subdomain('http://app.website.com/page'),
-    ...     'http://website.com/page')
-    >>> asserts.equal(
-    ...     with_subdomain('http://app.website.com/page', 'help'),
-    ...     'http://help.website.com/page')
-    >>> asserts.equal(
-    ...     with_subdomain('https://app.website.com#d?page=1', 'help'),
-    ...     'https://help.website.com#d?page=1')
+    >>> sub = with_subdomain
+    >>> assert sub('http://app.website.com/page') == 'http://website.com/page'
+    >>> assert sub('http://app.website.com/page', 'help') == 'http://help.website.com/page'
+    >>> assert sub('https://app.website.com#d?page=1', 'help'), 'https://help.website.com#d?page=1'
     """
     import tldextract
     components = list(urlsplit(url))

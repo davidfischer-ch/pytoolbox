@@ -62,7 +62,8 @@ def setup_logging(
 
     Logging to a file instead:
 
-    >>> import os, tempfile
+    >>> import os
+    >>> import tempfile
     >>>
     >>> with tempfile.NamedTemporaryFile('r') as f:
     ...     log = setup_logging('my-logger', path=f.name)
