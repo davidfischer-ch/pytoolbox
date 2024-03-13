@@ -10,7 +10,7 @@ from .collections import merge_dicts
 
 _all = module.All(globals())
 
-GenericType = TypeVar('GenericType', bound=type)
+GenericType = TypeVar('GenericType', bound=type)  # pylint:disable=invalid-name
 
 
 def get_arguments_names(function):
