@@ -5,8 +5,8 @@ Pytoolbox
 .. image:: https://badge.fury.io/py/pytoolbox.png
    :target: http://badge.fury.io/py/pytoolbox
 
-.. image:: https://app.travis-ci.com/davidfischer-ch/pytoolbox.png
-   :target: https://app.travis-ci.com/davidfischer-ch/pytoolbox
+.. image:: https://github.com/davidfischer-ch/pytoolbox/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/davidfischer-ch/pytoolbox
 
 .. image:: https://coveralls.io/repos/davidfischer-ch/pytoolbox/badge.png
    :target: https://coveralls.io/r/davidfischer-ch/pytoolbox
@@ -19,7 +19,7 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library supports Python 3.9 and 3.10.
+This library supports Python 3.11 and more recent.
 
 ------------------------------------
 What the release number stands for ?
