@@ -1,8 +1,18 @@
 """
 Module related to file system and path operations.
 """
+from __future__ import annotations
 
-import collections, copy, errno, grp, os, pwd, shutil, tempfile, time, uuid
+import collections
+import copy
+import errno
+import grp
+import os
+import pwd
+import shutil
+import tempfile
+import time
+import uuid
 
 import magic
 

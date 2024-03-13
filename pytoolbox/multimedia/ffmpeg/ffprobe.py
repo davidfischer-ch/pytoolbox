@@ -1,10 +1,19 @@
-import datetime, errno, itertools, json, math, os, re, subprocess
-from pathlib import Path
+from __future__ import annotations
 
+from pathlib import Path
 from xml.dom import minidom
+import datetime
+import errno
+import itertools
+import json
+import math
+import os
+import re
+import subprocess
 
 from pytoolbox import subprocess as py_subprocess
 from pytoolbox.datetime import parts_to_time, secs_to_time
+
 from . import miscellaneous, utils
 
 __all__ = ['DURATION_REGEX', 'FFprobe']

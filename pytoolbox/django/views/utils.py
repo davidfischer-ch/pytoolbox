@@ -1,6 +1,7 @@
 """
 Some utilities related to the view layer.
 """
+from __future__ import annotations
 
 from django.http import Http404
 

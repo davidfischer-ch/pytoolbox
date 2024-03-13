@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-import logging, sys
+import logging
+import sys
 
 from .collections import merge_dicts
 

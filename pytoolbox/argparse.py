@@ -17,11 +17,13 @@ Traceback (most recent call last):
     ...
 SystemExit: 2
 """
-
 from __future__ import annotations
 
 from pathlib import Path
-import argparse, getpass, os, shutil
+import argparse
+import getpass
+import os
+import shutil
 
 from . import itertools, module
 

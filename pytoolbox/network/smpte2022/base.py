@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import struct
 
 from fastxor import fast_xor_inplace  # pylint:disable=no-name-in-module

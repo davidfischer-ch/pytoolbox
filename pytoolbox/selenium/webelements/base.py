@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from selenium.webdriver.remote import webelement
 
 from pytoolbox.selenium import common, exceptions

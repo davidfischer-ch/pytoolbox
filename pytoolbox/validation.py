@@ -1,4 +1,13 @@
-import errno, inspect, http.client, os, re, socket, uuid
+from __future__ import annotations
+
+
+import errno
+import inspect
+import http.client
+import os
+import re
+import socket
+import uuid
 from urllib.parse import urlparse
 
 from . import module

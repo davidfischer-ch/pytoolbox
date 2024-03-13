@@ -1,5 +1,8 @@
-import platform, tarfile
+from __future__ import annotations
+
 from pathlib import Path
+import platform
+import tarfile
 
 import pytest
 from pytoolbox import filesystem

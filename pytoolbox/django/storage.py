@@ -1,8 +1,10 @@
 """
 Extra storages and mix-ins for building your own storages.
 """
+from __future__ import annotations
 
-import logging, time
+import logging
+import time
 
 from django.core.files.storage import FileSystemStorage
 

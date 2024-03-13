@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from selenium import webdriver
 
 from . import common, select, webelements

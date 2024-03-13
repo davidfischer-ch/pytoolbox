@@ -1,4 +1,12 @@
-import functools, os, sys, time, urllib.request, urllib.error, urllib.parse
+from __future__ import annotations
+
+import functools
+import os
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import requests
 

@@ -1,4 +1,7 @@
-import setuptools, sys
+from __future__ import annotations
+
+import setuptools
+import sys
 
 
 class Disabled(setuptools.Command):  # pylint:disable=duplicate-code

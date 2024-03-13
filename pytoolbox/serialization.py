@@ -1,4 +1,11 @@
-import errno, inspect, json, os, pickle, shutil
+from __future__ import annotations
+
+import errno
+import inspect
+import json
+import os
+import pickle
+import shutil
 
 from . import filesystem, module
 from .private import ObjectId

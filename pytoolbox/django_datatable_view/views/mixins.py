@@ -3,6 +3,7 @@ Mix-ins for building your own
 `Django Datatable View <https://github.com/pivotal-energy-solutions/django-datatable-view>`_
 powered views.
 """
+from __future__ import annotations
 
 __all__ = ['MultiTablesMixin']
 

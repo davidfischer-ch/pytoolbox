@@ -1,4 +1,7 @@
-import itertools, os
+from __future__ import annotations
+
+import itertools
+import os
 
 from .filesystem import find_recursive
 from .subprocess import rsync

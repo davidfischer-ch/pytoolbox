@@ -1,4 +1,8 @@
-import os, signal, unittest
+from __future__ import annotations
+
+import os
+import signal
+import unittest
 
 import pytest
 from pytoolbox import exceptions, signals

@@ -1,8 +1,10 @@
 """
 Extra fields for your models.
 """
+from __future__ import annotations
 
-import math, os
+import math
+import os
 
 from django.conf import settings
 from django.db import models

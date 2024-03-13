@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-import atexit, code, os, sys
+import atexit
+import code
+import os
+import sys
 
 __all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell']
 

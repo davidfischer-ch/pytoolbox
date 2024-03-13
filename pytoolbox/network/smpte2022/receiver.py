@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-import collections, io, os
+import collections
+import io
+import os
 
 from pytoolbox.network.ip import IPSocket
 from pytoolbox.network.rtp import RtpPacket
+
 from .base import FecPacket
 
 __all__ = ['FecReceiver']

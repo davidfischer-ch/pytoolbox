@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own models fields.
 """
+from __future__ import annotations
 
 from pytoolbox.django.core import validators
 

@@ -1,8 +1,21 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-import errno, fcntl, grp, logging, multiprocessing, os, pwd, random, re
-import setuptools.archive_util, shlex, shutil, subprocess, threading, time
+import errno
+import fcntl
+import grp
+import logging
+import multiprocessing
+import os
+import pwd
+import random
+import re
+import setuptools.archive_util
+import shlex
+import shutil
+import subprocess
+import threading
+import time
 
 from . import filesystem, module
 

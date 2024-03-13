@@ -2,6 +2,7 @@
 Mix-ins for building your own `Django Form Tools <https://github.com/django/django-formtools>`_
 powered views.
 """
+from __future__ import annotations
 
 from pytoolbox.django import forms
 

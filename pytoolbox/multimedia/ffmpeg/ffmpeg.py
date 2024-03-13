@@ -1,7 +1,16 @@
-import errno, itertools, re, select, subprocess, sys, time
+from __future__ import annotations
+
 from pathlib import Path
+import errno
+import itertools
+import re
+import select
+import subprocess
+import sys
+import time
 
 from pytoolbox import filesystem, subprocess as py_subprocess
+
 from . import encode, ffprobe  # pylint:disable=unused-import
 
 __all__ = ['FRAME_MD5_REGEX', 'FFmpeg']

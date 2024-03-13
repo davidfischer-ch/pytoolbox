@@ -1,4 +1,8 @@
-import inspect, io, traceback
+from __future__ import annotations
+
+import inspect
+import io
+import traceback
 
 from . import module
 

@@ -1,4 +1,6 @@
 # pylint:disable=no-member
+from __future__ import annotations
+
 
 from pytoolbox.selenium import common, Keys
 

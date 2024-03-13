@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from selenium.webdriver.support import select
 
 __all__ = ['Select']

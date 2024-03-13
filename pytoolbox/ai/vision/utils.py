@@ -1,6 +1,10 @@
-import os, tempfile
+from __future__ import annotations
 
-import cv2, numpy as np
+import os
+import tempfile
+
+import cv2
+import numpy as np
 
 from pytoolbox.network.http import download_ext
 

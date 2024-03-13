@@ -1,6 +1,7 @@
 """
 Throttling classes implementing various throttling policies.
 """
+from __future__ import annotations
 
 import time
 

@@ -1,4 +1,7 @@
-import collections, math
+from __future__ import annotations
+
+import collections
+import math
 
 from . import module
 from .datetime import total_seconds

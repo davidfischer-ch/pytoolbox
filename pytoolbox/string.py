@@ -1,4 +1,7 @@
-import os, re
+from __future__ import annotations
+
+import os
+import re
 
 from . import module
 

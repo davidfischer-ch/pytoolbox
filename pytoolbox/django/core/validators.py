@@ -1,4 +1,7 @@
-import copy, re
+from __future__ import annotations
+
+import copy
+import re
 
 from django.core import validators
 from django.core.exceptions import ImproperlyConfigured, ValidationError

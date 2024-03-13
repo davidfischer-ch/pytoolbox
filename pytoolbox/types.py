@@ -1,5 +1,8 @@
-import inspect, itertools
+from __future__ import annotations
+
 from collections import abc
+import inspect
+import itertools
 
 from . import module
 from .collections import merge_dicts

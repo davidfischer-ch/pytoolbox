@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own views.
 """
+from __future__ import annotations
 
 import os
 

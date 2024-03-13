@@ -1,6 +1,11 @@
-import datetime, re, time
+from __future__ import annotations
+
+import datetime
+import re
+import time
 
 from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
+
 from . import ffprobe, utils
 
 __all__ = ['ENCODING_REGEX', 'EncodeState', 'EncodeStatistics', 'FrameBasedRatioMixin']

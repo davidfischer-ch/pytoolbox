@@ -1,4 +1,10 @@
-import collections, hashlib, os, random, string
+from __future__ import annotations
+
+import collections
+import hashlib
+import os
+import random
+import string
 
 from . import filesystem
 

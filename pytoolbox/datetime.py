@@ -1,6 +1,9 @@
-import datetime, numbers
+from __future__ import annotations
+
 from calendar import timegm
 from time import mktime
+import datetime
+import numbers
 
 import pytz
 

@@ -1,6 +1,10 @@
 # pylint:disable=too-few-public-methods
-import datetime, shutil, uuid
+from __future__ import annotations
+
 from pathlib import Path
+import datetime
+import shutil
+import uuid
 
 import pytest
 from pytoolbox import filesystem

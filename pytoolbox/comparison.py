@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-import difflib, operator as op, os
+import difflib
+import operator as op
+import os
 
 from packaging.version import (  # pylint:disable=ungrouped-imports
     parse as _parse_version,

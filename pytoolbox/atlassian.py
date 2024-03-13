@@ -1,6 +1,7 @@
 """
 Module related to managing projects with Atlassian's products.
 """
+from __future__ import annotations
 
 from jira import JIRA
 

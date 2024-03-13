@@ -1,4 +1,8 @@
-import configparser, os, re
+from __future__ import annotations
+
+import configparser
+import os
+import re
 
 __all__ = ['CONFIG_PREFIX', 'DRIVER_IN_KERNEL', 'DRIVER_HAS_MODULE', 'get_kernel_config']
 

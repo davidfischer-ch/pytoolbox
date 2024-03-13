@@ -1,4 +1,7 @@
-import collections, inspect
+from __future__ import annotations
+
+import collections
+import inspect
 
 from . import module
 

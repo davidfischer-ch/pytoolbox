@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own test cases.
 """
+from __future__ import annotations
 
 import os
 

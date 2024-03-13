@@ -2,6 +2,7 @@
 Mix-ins for building your own `Django Filter <https://github.com/alex/django-filter>`_
 powered filters.
 """
+from __future__ import annotations
 
 __all__ = ['RaiseOnUnhandledFieldClassMixin']
 

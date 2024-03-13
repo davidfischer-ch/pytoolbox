@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pytoolbox.multimedia.x264 import ENCODING_REGEX
 
 

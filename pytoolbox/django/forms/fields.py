@@ -1,6 +1,7 @@
 """
 Extra fields for your forms.
 """
+from __future__ import annotations
 
 import copy
 

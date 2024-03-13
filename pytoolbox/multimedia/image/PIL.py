@@ -1,4 +1,5 @@
 # pylint:disable=invalid-name
+from __future__ import annotations
 
 import functools
 

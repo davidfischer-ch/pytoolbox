@@ -1,4 +1,8 @@
-import functools, os, warnings
+from __future__ import annotations
+
+import functools
+import os
+import warnings
 
 from . import console, module, subprocess as py_subprocess
 

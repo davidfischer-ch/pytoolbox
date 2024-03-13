@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from pytoolbox.private import _parse_kwargs_string
 

@@ -1,6 +1,7 @@
 """
 Meta-classes for enhancing your models.
 """
+from __future__ import annotations
 
 import abc
 

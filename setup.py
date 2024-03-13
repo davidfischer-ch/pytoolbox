@@ -22,10 +22,14 @@
 #     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
+from __future__ import annotations
 
 from pathlib import Path
 from setuptools.command import develop, install
-import itertools, setuptools, subprocess, sys
+import itertools
+import setuptools
+import subprocess
+import sys
 
 import pytoolbox
 

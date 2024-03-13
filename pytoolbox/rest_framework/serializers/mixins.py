@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own Django REST Framework powered API serializers.
 """
+from __future__ import annotations
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import smart_text

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django import dispatch as _dispatch
 
 from pytoolbox.django.models import utils as _utils

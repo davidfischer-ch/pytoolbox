@@ -1,6 +1,16 @@
 # pylint:disable=too-many-lines
+from __future__ import annotations
 
-import argparse, json, os, socket, random, subprocess, sys, time, uuid, yaml
+import argparse
+import json
+import os
+import socket
+import random
+import subprocess
+import sys
+import time
+import uuid
+import yaml
 
 from . import console, filesystem, module, subprocess as py_subprocess  # pylint:disable=reimported
 from .argparse import FullPaths, is_dir
