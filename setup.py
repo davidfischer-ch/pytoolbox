@@ -229,9 +229,7 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
         subprocess.run(['make', 'html'], cwd=project / 'docs', check=True)
 
 
-with open('README.rst', encoding='utf-8') as f:
-    long_description = f.read()
-
+long_description = Path('README.rst').read_text(encoding='utf-8')
 setuptools.setup(
     cmdclass={
         'docs': DocsCommand,
@@ -239,7 +237,7 @@ setuptools.setup(
         'install': get_command_with_extras(install.install)
     },
     name='pytoolbox',
-    python_requires='>=3.9',
+    python_requires='>=3.11',
     version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={
@@ -264,8 +262,8 @@ setuptools.setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'
