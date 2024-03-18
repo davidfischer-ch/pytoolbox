@@ -145,7 +145,7 @@ def download_ext(  # pylint:disable=too-many-locals
     ...         hash_algorithm=hashlib.md5,
     ...         expected_hash='efac5df252145c2d07b73e8177d15c8d')
     >>>
-    >>> download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4', code=404)
+    >>> download_ext('https://pytoolbox.s3-eu-west-1.amazonaws.com/missing', 'missing', code=404)
     (False, False, None)
     >>>
     >>> with asserts.raises(BadHTTPResponseCodeError):

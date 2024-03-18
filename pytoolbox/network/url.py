@@ -15,10 +15,12 @@ def with_subdomain(url, subdomain=None):
 
     >>> sub = with_subdomain
     >>> assert sub('http://app.website.com/page') == 'http://website.com/page'
+    >>> assert sub('http://some.app.website.com/page') == 'http://website.com/page'
     >>> assert sub('http://app.website.com/page', 'help') == 'http://help.website.com/page'
     >>> assert sub('https://app.website.com#d?page=1', 'help'), 'https://help.website.com#d?page=1'
     """
     import tldextract
     components = list(urlsplit(url))
-    components[1] = string.filterjoin((subdomain, ) + tldextract.extract(components[1])[1:], '.')
+    extracted = tldextract.extract(components[1])
+    components[1] = string.filterjoin((subdomain, extracted.domain, extracted.suffix), '.')
     return urlunsplit(components)
