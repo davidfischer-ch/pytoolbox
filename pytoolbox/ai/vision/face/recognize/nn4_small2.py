@@ -330,7 +330,10 @@ def create_model():  # pylint:disable=too-many-locals,too-many-statements
     reshape_layer = Flatten()(AveragePooling2D(pool_size=(3, 3), strides=(1, 1))(inception_5b))
     dense_layer = Dense(128, name='dense_layer')(reshape_layer)
 
-    outputs = Lambda(lambda x: K.l2_normalize(x, axis=1), name='norm_layer')(dense_layer)
+    outputs = Lambda(
+        lambda x: K.l2_normalize(x, axis=1),  # pylint:disable=no-member
+        name='norm_layer'
+    )(dense_layer)
 
     return Model(inputs=[inputs], outputs=outputs)
 
