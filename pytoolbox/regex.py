@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from typing import Any, Final, Literal, overload
 import fnmatch
 import re
 
@@ -13,8 +15,35 @@ __all__ = [
     'from_path_patterns'
 ]
 
-TIME_REGEX_PARTS = ['[0-2]', '[0-9]', ':', '[0-5]', '[0-9]', ':', '[0-5]', '[0-9]']
-UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+TIME_REGEX_PARTS: Final[list[str]] = [
+    '[0-2]', '[0-9]', ':',
+    '[0-5]', '[0-9]', ':',
+    '[0-5]', '[0-9]'
+]
+
+UUID_REGEX: Final[str] = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+
+@overload
+def embed_in_regex(
+    string: str,
+    regex_parts: list[str],
+    index: int,
+    *,
+    as_string: Literal[True] = True
+) -> tuple[int, str]:
+    ...
+
+
+@overload
+def embed_in_regex(
+    string: str,
+    regex_parts: list[str],
+    index: int,
+    *,
+    as_string: Literal[False]
+) -> tuple[int, list[str]]:
+    ...
 
 
 def embed_in_regex(string, regex_parts, index, as_string=True):
@@ -33,7 +62,7 @@ def embed_in_regex(string, regex_parts, index, as_string=True):
     return index, ''.join(regex) if as_string else regex
 
 
-def findall_partial(string, regex_parts):
+def findall_partial(string: str, regex_parts: list[str]) -> Iterator[tuple[str, list[str], int]]:
     """
     **Example usage**
 
@@ -52,7 +81,10 @@ def findall_partial(string, regex_parts):
             yield string, regex_parts, index
 
 
-def from_path_patterns(patterns, regex=False):
+def from_path_patterns(
+    patterns: re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str],
+    regex: bool = False
+) -> list[re.Pattern]:
     """
     Return patterns compiled to regular expressions, if necessary.
 
@@ -76,7 +108,7 @@ def from_path_patterns(patterns, regex=False):
     ...     ['a?c', 'foo?'])
     """
     return [
-        p if hasattr(p, 'match') else re.compile(p if regex else fnmatch.translate(p))
+        p if isinstance(p, re.Pattern) else re.compile(p if regex else fnmatch.translate(p))
         for p in chain(patterns)
     ]
 
@@ -85,14 +117,28 @@ class Match(object):
     """
     Assert that a given string meets some expectations.
 
-    Credits: https://kalnytskyi.com/howto/assert-str-matches-regex-in-pytest/
-    """
+    If this is not a string, then for sure its not equal.
 
-    def __init__(self, pattern, flags=0):
+    Credits: https://kalnytskyi.com/howto/assert-str-matches-regex-in-pytest/
+
+    **Example usage**
+
+    >>> assert 'foobar' == Match(r'foo')
+    >>> assert 'foobar' != Match(r'foo$')
+    >>> assert 'baz' != Match(r'foo')
+    >>> assert None != Match(r'foo')
+    >>> assert b'foo' != Match(r'foo.*')
+    >>> repr(Match(r'foo.+'))
+    'foo.+'
+    """
+    def __init__(self, pattern: str, flags: int = 0) -> None:
         self._regex = re.compile(pattern, flags)
 
-    def __eq__(self, actual):
-        return bool(self._regex.match(actual))
+    def __eq__(self, actual: Any) -> bool:
+        try:
+            return self._regex.match(actual) is not None
+        except TypeError:
+            return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._regex.pattern

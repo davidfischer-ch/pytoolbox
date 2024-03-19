@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
+from typing import Any, Final
 import os
 import re
 
@@ -7,33 +9,33 @@ from . import module
 
 _all = module.All(globals())
 
-ALL_CAP_REGEX = re.compile(r'([a-z0-9])([A-Z])')
-FIRST_CAP_REGEX = re.compile(r'(.)([A-Z][a-z]+)')
+ALL_CAP_REGEX: Final[re.Pattern] = re.compile(r'([a-z0-9])([A-Z])')
+FIRST_CAP_REGEX: Final[re.Pattern] = re.compile(r'(.)([A-Z][a-z]+)')
 
 
-def camel_to_dash(string):
+def camel_to_dash(string: str) -> str:
     """Convert camelCase to dashed-case."""
     sub_string = FIRST_CAP_REGEX.sub(r'\1-\2', string)
     dashed_case_str = ALL_CAP_REGEX.sub(r'\1-\2', sub_string).lower()
     return dashed_case_str.replace('--', '-')
 
 
-def camel_to_snake(string):
+def camel_to_snake(string: str) -> str:
     """Convert camelCase to snake_case."""
     sub_string = FIRST_CAP_REGEX.sub(r'\1_\2', string)
     snake_cased_str = ALL_CAP_REGEX.sub(r'\1_\2', sub_string).lower()
     return snake_cased_str.replace('__', '_')
 
 
-def dash_to_camel(string):
+def dash_to_camel(string: str) -> str:
     return _to_camel(string, '-')
 
 
-def snake_to_camel(string):
+def snake_to_camel(string: str) -> str:
     return _to_camel(string, '_')
 
 
-def _to_camel(string, separator):
+def _to_camel(string: str, separator: str) -> str:
     components = string.split(separator)
     preffix = suffix = ''
     if components[0] == '':
@@ -54,7 +56,11 @@ def _to_camel(string, separator):
     return preffix + camel_case_string + suffix
 
 
-def filterjoin(items, sep=' ', keep=lambda o: o):
+def filterjoin(
+    items: Iterable[Any],
+    sep: str = ' ',
+    keep: Callable[[Any], bool] = lambda o: bool(o)
+) -> str:
     """
     Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string
     and filter the items using the `keep` function.
@@ -62,7 +68,12 @@ def filterjoin(items, sep=' ', keep=lambda o: o):
     return sep.join(str(i) for i in items if keep(i))
 
 
-def to_lines(items, limit=80, start='\t', template='{0} '):
+def to_lines(
+    items: Iterable[Any],
+    limit: int = 80,
+    start: str = '\t',
+    template: str = '{0} '
+) -> str:
     """
     Convert items to string using `template`.
     Ensure lines length of maximum `limit`.

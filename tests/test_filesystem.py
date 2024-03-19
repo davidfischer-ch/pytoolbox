@@ -6,7 +6,7 @@ from unittest import mock
 from pytoolbox import filesystem
 
 
-def test_chown(tmp_path):
+def test_chown(tmp_path) -> None:
     file_a = tmp_path / 'a.txt'
     file_b = tmp_path / 'b.txt'
     file_c = tmp_path / 'other' / 'c.txt'

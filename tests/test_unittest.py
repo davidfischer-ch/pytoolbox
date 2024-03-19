@@ -6,7 +6,7 @@ from pytoolbox.types import Missing
 from pytoolbox.unittest import asserts, with_tags, FilterByTagsMixin, MissingMixin, SnakeCaseMixin
 
 
-def test_asserts():
+def test_asserts() -> None:
     asserts.true(True)
     asserts.false(False)
     with asserts.raises(AssertionError):
@@ -14,7 +14,7 @@ def test_asserts():
     asserts.is_none(None)
 
 
-def test_should_run():
+def test_should_run() -> None:
     assert FilterByTagsMixin.should_run(set(), set(), set(), set(), set()) is True
     assert FilterByTagsMixin.should_run(set(), set(), set(), set(), {'b'}) is True
     assert FilterByTagsMixin.should_run(set(), set(), set(), {'a'}, set()) is False
@@ -30,7 +30,7 @@ def test_should_run():
     assert FilterByTagsMixin.should_run({'a', 'b'}, set(), set(), {'b'}, {'b'}) is False
 
 
-def test_should_run_with_extra():
+def test_should_run_with_extra() -> None:
     assert FilterByTagsMixin.should_run(set(), set(), {'a'}, set(), set()) is True
     assert FilterByTagsMixin.should_run(set(), set(), {'a'}, set(), {'b'}) is True
     assert FilterByTagsMixin.should_run(set(), set(), {'a'}, {'a'}, set()) is False
@@ -48,7 +48,7 @@ def test_should_run_with_extra():
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
 
-    def test_fast_class_skip(self):
+    def test_fast_class_skip(self) -> None:
 
         class TestCaseWithTags(FilterByTagsMixin):
             tags = {'c'}
@@ -74,7 +74,7 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
             def test_2(self):
                 pass
 
-        def test(counter, skip, extra_tags=None, only_tags=None, skip_tags=None):
+        def test(counter, skip, extra_tags=None, only_tags=None, skip_tags=None) -> None:
             skipped = False
             try:
                 TestCaseWithTags.extra_tags = extra_tags or set()
@@ -110,13 +110,13 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         test(11, False, extra_tags={'r'}, skip_tags={'AnotherTestCase'})
 
     @with_tags(required='should-not-run')
-    def test_with_tags_decorator(self):
+    def test_with_tags_decorator(self) -> None:
         raise RuntimeError('This test should never run.')
 
 
 class TestMissingAndSnakeCaseMixins(MissingMixin, SnakeCaseMixin, unittest.TestCase):
 
-    def test_core(self):
+    def test_core(self) -> None:
         self.equal(10, 10)
         with self.raises(AssertionError):
             self.equal(10, 2)
@@ -126,6 +126,6 @@ class TestMissingAndSnakeCaseMixins(MissingMixin, SnakeCaseMixin, unittest.TestC
         self.true(True)
         self.false(False)
 
-    def test_missing(self):
+    def test_missing(self) -> None:
         self.is_missing(Missing)
         self.is_not_missing(None)

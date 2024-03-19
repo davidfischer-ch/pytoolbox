@@ -19,7 +19,9 @@ SystemExit: 2
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 import argparse
 import getpass
 import os
@@ -29,10 +31,12 @@ from . import itertools, module
 
 _all = module.All(globals())
 
+from argparse import Namespace  # pylint:disable=wrong-import-position
+
 # Credits https://gist.github.com/brantfaircloth/1443543
 
 
-def is_dir(path: str | Path) -> Path:
+def is_dir(path: Path | str) -> Path:
     """Check if `path` is an actual directory and return it."""
     path = Path(path)
     if path.is_dir():
@@ -40,7 +44,7 @@ def is_dir(path: str | Path) -> Path:
     raise argparse.ArgumentTypeError(f'{path} is not a directory')
 
 
-def is_file(path: str | Path) -> Path:
+def is_file(path: Path | str) -> Path:
     """Check if `path` is an actual file and return it."""
     path = Path(path)
     if path.is_file():
@@ -48,10 +52,10 @@ def is_file(path: str | Path) -> Path:
     raise argparse.ArgumentTypeError(f'{path} is not a file')
 
 
-def multiple(func):
+def multiple(func: Callable[[Any], Any]) -> Callable:
     """Return a list with the result of `func`(value) for value in values."""
     def _multiple(values):
-        return [func(v) for v in values] if isinstance(values, (list, tuple)) else func(values)
+        return [func(v) for v in values] if isinstance(values, list | tuple) else func(values)
     return _multiple
 
 
@@ -59,7 +63,7 @@ def password(value: str | None) -> str:
     return value or getpass.getpass('Password: ')
 
 
-def set_columns(value=None, default=120):
+def set_columns(value: int | None = None, *, default: int = 120):
     if value is None:
         try:
             value = shutil.get_terminal_size().columns
@@ -71,8 +75,8 @@ def set_columns(value=None, default=120):
 class FullPaths(argparse.Action):
     """Expand user/relative paths."""
 
-    def __call__(self, parser, namespace, values, option_string=None):
-        def fullpath(path: str | Path) -> Path:
+    def __call__(self, parser, namespace: Namespace, values, option_string=None):
+        def fullpath(path: Path | str) -> Path:
             return Path(path).expanduser().resolve()
         value = itertools.extract_single([fullpath(v) for v in itertools.chain(values)])
         setattr(namespace, self.dest, value)
@@ -80,7 +84,7 @@ class FullPaths(argparse.Action):
 
 class Range(object):  # pylint:disable=too-few-public-methods
 
-    def __init__(self, type, min, max):  # pylint:disable=redefined-builtin
+    def __init__(self, type, min, max) -> None:  # pylint:disable=redefined-builtin
         self.type = type
         self.min = min
         self.max = max
@@ -97,7 +101,7 @@ class Range(object):  # pylint:disable=too-few-public-methods
 
 class HelpArgumentParser(argparse.ArgumentParser):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         set_columns(kwargs.pop('columns', None))
         super().__init__(*args, formatter_class=HelpFormatter, **kwargs)
 

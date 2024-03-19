@@ -1,18 +1,31 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 import re
 
 from pytoolbox import module
 
 _all = module.All(globals())
 
-BIT_RATE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
-BIT_RATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000**2, 'g': 1000**3}
-PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
-SIZE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
-SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
-WIDTH, HEIGHT = range(2)  # noqa
+BIT_RATE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
+BIT_RATE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
+    'b': 1,
+    'k': 1000,
+    'm': 1000**2,
+    'g': 1000**3
+}
+PIPE_REGEX: Final[re.Pattern] = re.compile(r'^-$|^pipe:\d+$')
+SIZE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
+SIZE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
+    'b': 1,
+    'k': 1024,
+    'm': 1024**2,
+    'g': 1024**3
+}
+
+WIDTH: Final[int] = 0
+HEIGHT: Final[int] = 1
 
 
 def is_pipe(path: Path | str) -> bool:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 import logging
 import sys
 
@@ -12,11 +13,11 @@ __all__ = ['setup_logging', 'ColorizeFilter']
 def setup_logging(
     name_or_log: str | logging.Logger = '',
     reset: bool = False,
-    path: Path | str = None,
+    path: Path | str | None = None,
     console: bool = False,
     level: int | str = logging.DEBUG,
     colorize: bool = False,
-    color_by_level: dict[int | str, str] = None,
+    color_by_level: dict[int | str, str] | None = None,
     fmt: str = '%(asctime)s %(levelname)-8s - %(message)s',
     datefmt: str = '%d/%m/%Y %H:%M:%S'
 ) -> logging.Logger:
@@ -79,32 +80,32 @@ def setup_logging(
     if colorize:
         log.addFilter(ColorizeFilter(color_by_level=color_by_level))
     if path:
-        handler = logging.FileHandler(path)
-        handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
-        log.addHandler(handler)
+        file_handler = logging.FileHandler(path)
+        file_handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
+        log.addHandler(file_handler)
     if console:
-        handler = logging.StreamHandler(sys.stdout)  # pylint:disable=redefined-variable-type
-        handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
-        log.addHandler(handler)
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
+        log.addHandler(console_handler)
     return log
 
 
 class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
 
-    color_by_level = {
+    color_by_level: dict[int | str, str] = {
         logging.DEBUG: 'cyan',
         logging.ERROR: 'red',
         logging.INFO: 'white',
         logging.WARNING: 'yellow'
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.color_by_level = merge_dicts(
             self.color_by_level,
             kwargs.pop('color_by_level', None) or {})
         super().__init__(*args, **kwargs)
 
-    def filter(self, record):
+    def filter(self, record) -> Literal[True]:
         record.raw_msg = record.msg
         if color := self.color_by_level.get(record.levelno):
             import termcolor

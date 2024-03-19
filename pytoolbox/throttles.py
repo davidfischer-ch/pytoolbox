@@ -28,11 +28,11 @@ class TimeThrottle(object):
     [0, 1, 2]
     """
 
-    def __init__(self, min_time_delta):
-        self.min_time_delta = total_seconds(min_time_delta)
+    def __init__(self, min_time_delta) -> None:
+        self.min_time_delta: float = total_seconds(min_time_delta)
         self.previous_time = None
 
-    def is_throttled(self):
+    def is_throttled(self) -> bool:
         """Return a boolean indicating if you should throttle."""
         if not self.previous_time:
             self._update()

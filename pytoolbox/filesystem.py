@@ -3,12 +3,17 @@ Module related to file system and path operations.
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import Any, Protocol
+import contextlib
 import collections
 import copy
 import errno
 import grp
 import os
 import pwd
+import re
 import shutil
 import tempfile
 import time
@@ -23,7 +28,32 @@ from .regex import from_path_patterns
 _all = module.All(globals())
 
 
-def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
+class TemplateHookFunc(Protocol):  # pylint:disable=too-few-public-methods
+    def __call__(self, content: str, values: dict[str, Any], *, jinja2: bool = False) -> str:
+        ...
+
+
+@contextlib.contextmanager
+def chdir(path: Path):
+    """Set working directory then restore previous working directory value on exit."""
+    here = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(here)
+
+
+def chown(
+    path: Path,
+    user: int | str | None = None,
+    group: int | str | None = None,
+    *,
+    recursive: bool = False,
+    top_down: bool = True,
+    on_error: Callable | None = None,
+    follow_symlinks: bool = False
+) -> None:
     """
     Change owner/group of a path, can be recursive.
     Both can be a name, an id or None to leave it unchanged.
@@ -31,15 +61,30 @@ def chown(path, user=None, group=None, recursive=False, **walk_kwargs):
     uid = to_user_id(user)
     gid = to_group_id(group)
     if recursive:
-        for dirpath, _, filenames in os.walk(path, **walk_kwargs):
-            os.chown(dirpath, uid, gid)
+        # TODO When Python >= 3.12 then path.walk
+        for dirpath, _, filenames in os.walk(
+            path,
+            topdown=top_down,
+            onerror=on_error,
+            followlinks=follow_symlinks
+        ):
+            dir_path = Path(dirpath)
+            os.chown(dir_path, uid, gid)
             for filename in filenames:
-                os.chown(os.path.join(dirpath, filename), uid, gid)
+                os.chown(dir_path / filename, uid, gid)
     else:
         os.chown(path, uid, gid)
 
 
-def find_recursive(directory, patterns, regex=False, **walk_kwargs):
+def find_recursive(
+    directory: Path,
+    patterns: re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str],
+    *,
+    regex: bool = False,
+    top_down: bool = True,
+    on_error: Callable | None = None,
+    follow_symlinks: bool = False
+) -> Iterator[Path]:
     """
     Yield filenames matching any of the patterns.
     Patterns will be compiled to regular expressions, if necessary.
@@ -49,36 +94,43 @@ def find_recursive(directory, patterns, regex=False, **walk_kwargs):
 
     **Example usage**
 
-    >>> import re
     >>> from pathlib import Path
+    >>> import re
     >>>
     >>> directory = Path(__file__).resolve().parent
     >>>
-    >>> next(find_recursive(directory, '*/collections*'))
-    '.../pytoolbox/collections.py'
-    >>> filenames = sorted(find_recursive(directory, ['*/django*', '*/*.py']))
-    >>> [Path(f).name for f in filenames[-4:]]
-    ['unittest.py', 'validation.py', 'virtualenv.py', 'voluptuous.py']
-    >>> str(directory / 'aws' / 's3.py') in filenames
+    >>> next(find_recursive(directory, '*/collections*')) == directory / 'collections.py'
     True
-    >>> str(directory / 'django') in filenames  # Its a directory
+    >>> filenames = sorted(find_recursive(directory, ['*/django*', '*/*.py']))
+    >>> [f.name for f in filenames[-4:]]
+    ['unittest.py', 'validation.py', 'virtualenv.py', 'voluptuous.py']
+    >>> (directory / 'aws' / 's3.py') in filenames
+    True
+    >>> (directory / 'django') in filenames  # Its a directory
     False
     >>> a_files = set(find_recursive(directory, re.compile(r'.*/st.+\\.py$')))
     >>> b_files = set(find_recursive(directory, ['.*/st.+\\.py$'], regex=True))
     >>> a_files == b_files
     True
-    >>> [Path(f).name for f in sorted(a_files)]
+    >>> [f.name for f in sorted(a_files)]
     ['storage.py', 'states.py', 'string.py']
     """
     patterns = from_path_patterns(patterns, regex=regex)
-    for dirpath, _, filenames in os.walk(directory, **walk_kwargs):
+    # TODO When Python >= 3.12 then path.walk
+    for dirpath, _, filenames in os.walk(
+        directory,
+        topdown=top_down,
+        onerror=on_error,
+        followlinks=follow_symlinks
+    ):
+        dir_path = Path(dirpath)
         for filename in filenames:
-            filename = os.path.join(dirpath, filename)
-            if any(p.match(filename) for p in patterns):
-                yield filename
+            file_path = dir_path / filename
+            if any(p.match(str(file_path)) for p in patterns):
+                yield file_path
 
 
-def file_mime(path, mime=True):
+def file_mime(path: Path, *, mime: bool = True) -> str | None:
     """
     Return file mime type.
 
@@ -101,7 +153,7 @@ def file_mime(path, mime=True):
         return None
 
 
-def first_that_exist(*paths):
+def first_that_exist(*paths: Path) -> Path | None:
     """
     Returns the first file/directory that exist.
 
@@ -111,79 +163,71 @@ def first_that_exist(*paths):
     >>>
     >>> directory = Path(__file__).resolve().parent
     >>>
-    >>> first_that_exist('', '/etc', '.')
-    '/etc'
-    >>> first_that_exist('', directory) == directory
-    True
-    >>> first_that_exist('does_not_exist.com', '', '..')
-    '..'
-    >>> first_that_exist('does_not_exist.ch') is None
-    True
+    >>> assert first_that_exist(Path('foo'), directory) == directory
+    >>> assert first_that_exist(Path('does_not_exist.com'), Path('..')) == Path('..')
+    >>> assert first_that_exist(Path('does_not_exist.ch')) is None
     """
-    for path in paths:
-        if os.path.exists(path):
-            return path
-    return None
+    try:
+        return next(path for path in paths if path.exists())
+    except StopIteration:
+        return None
 
 
 def from_template(
-    template,
-    destination,
-    values,
-    is_file=True,
-    jinja2=False,
-    pre_func=None,
-    post_func=None,
-    directories='.'
-):
+    template: Path | str,
+    target: Path | None,
+    values: dict[str, Any],
+    *,
+    jinja2: bool = False,
+    pre_func: TemplateHookFunc | None = None,
+    post_func: TemplateHookFunc | None = None,
+    directories: Path | list[Path] = Path('.')
+) -> str:
     """
     Return a `template` rendered with `values` using string.format or Jinja2 as the template engine.
 
-    * Set `destination` to a filename to store the output, to a Falsy value to skip this feature.
-    * Set `is_file` to False to use value of `template` as the content and not a filename to read.
+    * Optionally set `target` to a path to store the output.
     * Set `{pre,post}_func` to a callback function with the signature f(content, values, jinja2)
     * Set `directories` to the paths where the Jinja2 loader will lookup for *base* templates.
 
     **Example usage**
 
+    >>> template_path = Path('config.template')
+    >>> target_path = Path('config')
+
     >>> template = '{{username={user}; password={pass}}}'
     >>> values = {'user': 'tabby', 'pass': 'miaow', 'other': 10}
-    >>> with open('config.template', 'w', encoding='utf-8') as f:
-    ...     f.write(template)
+    >>> template_path.write_text(template, encoding='utf-8')
     36
 
     The behavior when all keys are given (and even more):
 
-    >>> _ = from_template('config.template', 'config', values)
-    >>> open('config').read()
+    >>> _ = from_template(template_path, Path('config'), values)
+    >>> target_path.read_text(encoding='utf-8')
     '{username=tabby; password=miaow}'
 
-    >>> _ = from_template(template, 'config', values, is_file=False)
-    >>> open('config').read()
+    >>> _ = from_template(template, target_path, values)
+    >>> Path('config').read_text(encoding='utf-8')
     '{username=tabby; password=miaow}'
 
-    >>> def post_func(content, values, jinja2):
+    >>> def post_func(content: str, values: dict[str, Any], jinja2: bool) -> str:
     ...     return content.replace('tabby', 'tikky')
-    >>> from_template(template, None, values, is_file=False, post_func=post_func)
+    >>> from_template(template, None, values, post_func=post_func)
     '{username=tikky; password=miaow}'
 
     The behavior if a value for a key is missing:
 
-    >>> from_template('config.template', 'config', {'pass': 'miaow', 'other': 10})
+    >>> from_template(template_path, target_path, {'pass': 'miaow', 'other': 10})
     Traceback (most recent call last):
         ...
     KeyError: ...'user'
-    >>> open('config').read()
+    >>> target_path.read_text(encoding='utf-8')
     '{username=tabby; password=miaow}'
 
-    >>> os.remove('config.template')
-    >>> os.remove('config')
+    >>> template_path.unlink()
+    >>> target_path.unlink()
     """
-    if is_file:
-        with open(template, encoding='utf-8') as f:
-            content = f.read()
-    else:
-        content = template
+    content = template.read_text(encoding='utf-8') if isinstance(template, Path) else template
     if pre_func:
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
@@ -195,30 +239,39 @@ def from_template(
         content = content.format(**values)
     if post_func:
         content = post_func(content, values=values, jinja2=jinja2)
-    if destination:
-        with open(destination, 'w', encoding='utf-8') as f:
-            f.write(content)
+    if target:
+        target.write_text(content, encoding='utf-8')
     return content
 
 
-def get_bytes(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
+def get_bytes(
+    data: Path | bytes | str,
+    *,
+    encoding: str = 'utf-8',
+    chunk_size: int | None = None
+) -> Iterator[bytes]:
     """
     Yield the content read from the given `path` or the `data` converted to bytes.
 
     Remark: Value of `encoding` is used only if `data` is actually a string.
     """
-    if is_path:
-        with open(path_or_data, 'rb') as f:
+    if isinstance(data, Path):
+        with data.open('rb') as f:
             if chunk_size is not None:
                 while data := f.read(chunk_size):
                     yield data
             else:
                 yield f.read()
     else:
-        yield path_or_data.encode(encoding) if isinstance(path_or_data, str) else path_or_data
+        yield data.encode(encoding) if isinstance(data, str) else data
 
 
-def get_size(path, patterns='*', regex=False, **walk_kwargs):
+def get_size(
+    path: Path,
+    patterns: re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str] = '*',
+    regex: bool = False,
+    **walk_kwargs
+) -> int:
     """
     Returns the size of a file or directory.
 
@@ -238,14 +291,12 @@ def get_size(path, patterns='*', regex=False, **walk_kwargs):
     >>> get_size(directory / '..', '.*/v[^/]+\\.py', regex=True) > 10000
     True
     """
-    if os.path.isfile(path):
-        return os.stat(path).st_size
-    return sum(
-        os.stat(f).st_size
-        for f in find_recursive(path, patterns, regex=regex, **walk_kwargs))
+    if path.is_file():
+        return path.stat().st_size
+    return sum(f.stat().st_size for f in find_recursive(path, patterns, regex=regex, **walk_kwargs))
 
 
-def makedirs(path, mode=0o777, parent=False):
+def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
     """
     Recursively make directories (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if directory found and re-raise any other type
@@ -258,13 +309,13 @@ def makedirs(path, mode=0o777, parent=False):
     >>>
     >>> filesystem_py = Path(__file__).resolve()
     >>>
-    >>> makedirs('/etc')
+    >>> makedirs(Path('/etc'))
     False
-    >>> makedirs('/tmp/salut/mec')
+    >>> makedirs(Path('/tmp/salut/mec'))
     True
     >>> shutil.rmtree('/tmp/salut')
     >>>
-    >>> makedirs('/tmp/some/path/file.txt', parent=True)
+    >>> makedirs(Path('/tmp/some/path/file.txt'), parent=True)
     True
     >>> os.path.exists('/tmp/some/path')
     True
@@ -272,32 +323,33 @@ def makedirs(path, mode=0o777, parent=False):
     False
     >>> shutil.rmtree('/tmp/some')
     >>>
-    >>> makedirs(filesystem_py)
+    >>> makedirs(Path(filesystem_py))
     Traceback (most recent call last):
         ...
     FileExistsError: ...
     """
     if parent:
-        path = os.path.dirname(path)
+        path = path.parent
     try:
         os.makedirs(path, mode=mode)
         return True
     except OSError as ex:
         # Directory exists
-        if ex.errno == errno.EEXIST and os.path.isdir(path):
+        if ex.errno == errno.EEXIST and path.is_dir():
             return False
         raise  # Re-raise exception if a different error occurred
 
 
 def recursive_copy(  # pylint:disable=too-many-locals
-    source_path,
-    destination_path,
-    progress_callback=None,
-    ratio_delta=0.01,
-    time_delta=1,
-    check_size=True,
-    remove_on_error=True
-):
+    source_path: Path,
+    destination_path: Path,
+    *,
+    progress_callback: Callable | None = None,  # TODO type hinting callable arguments
+    ratio_delta: float = 0.01,
+    time_delta: float | int = 1,
+    check_size: bool = True,
+    remove_on_error: bool = True
+) -> dict[str, Any]:
     """
     Copy the content of a source directory to a destination directory.
     This function is based on a block-copy algorithm making progress update possible.
@@ -503,7 +555,7 @@ def symlink(source, link_name):
         raise  # Re-raise exception if a different error occurred
 
 
-def to_user_id(user):
+def to_user_id(user: int | str | None):
     """
     Return user ID.
 

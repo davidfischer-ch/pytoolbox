@@ -3,7 +3,7 @@ from __future__ import annotations
 from pytoolbox import string
 
 
-def test_camel_to_dash():
+def test_camel_to_dash() -> None:
     assert string.camel_to_dash('snakesOnAPlane') == 'snakes-on-a-plane'
     assert string.camel_to_dash('SnakesOnAPlane') == 'snakes-on-a-plane'
     assert string.camel_to_dash('-Snakes-On-APlane-') == '-snakes-on-a-plane-'
@@ -15,7 +15,7 @@ def test_camel_to_dash():
     assert string.camel_to_dash('iPHONEHysteria-') == 'i-phone-hysteria-'
 
 
-def test_camel_to_snake():
+def test_camel_to_snake() -> None:
     assert string.camel_to_snake('snakesOnAPlane') == 'snakes_on_a_plane'
     assert string.camel_to_snake('SnakesOnAPlane') == 'snakes_on_a_plane'
     assert string.camel_to_snake('_Snakes_On_APlane_') == '_snakes_on_a_plane_'
@@ -27,7 +27,7 @@ def test_camel_to_snake():
     assert string.camel_to_snake('iPHONEHysteria_') == 'i_phone_hysteria_'
 
 
-def test_dash_to_camel():
+def test_dash_to_camel() -> None:
     assert string.dash_to_camel('-snakes-on-a-plane-') == '-snakesOnAPlane-'
     assert string.dash_to_camel('snakes-on-a-plane') == 'snakesOnAPlane'
     assert string.dash_to_camel('Snakes-on-a-plane') == 'snakesOnAPlane'
@@ -39,7 +39,7 @@ def test_dash_to_camel():
     assert string.dash_to_camel('i-phone-hysteria-') == 'iPhoneHysteria-'
 
 
-def test_snake_to_camel():
+def test_snake_to_camel() -> None:
     assert string.snake_to_camel('_snakes_on_a_plane_') == '_snakesOnAPlane_'
     assert string.snake_to_camel('snakes_on_a_plane') == 'snakesOnAPlane'
     assert string.snake_to_camel('Snakes_on_a_plane') == 'snakesOnAPlane'

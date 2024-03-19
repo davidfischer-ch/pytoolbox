@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import Final
 import functools
 import os
 import sys
@@ -15,6 +18,8 @@ from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
 
 _all = module.All(globals())
 
+DEFAULT_CHUNK_SIZE: Final[int] = 100 * 1024
+
 
 def download(url, path):
     """Read the content of given `url` and save it as a file `path`."""
@@ -23,7 +28,14 @@ def download(url, path):
             target.write(source.read())
 
 
-def iter_download_core(url, code=200, chunk_size=102400, timeout=None, **kwargs):
+def iter_download_core(
+    url: str,
+    *,
+    code: int = 200,
+    chunk_size: int | None = DEFAULT_CHUNK_SIZE,
+    timeout: int | None = None,
+    **kwargs
+) -> Iterator[tuple[int, int, bytes]]:
     response = requests.get(url, stream=bool(chunk_size), timeout=timeout, **kwargs)
     length = response.headers.get('content-length')
     if response.status_code != code:
@@ -40,42 +52,44 @@ def iter_download_core(url, code=200, chunk_size=102400, timeout=None, **kwargs)
 
 
 def iter_download_to_file(
-    url,
-    path,
-    code=200,
-    chunk_size=102400,
-    force=True,
-    hash_algorithm=None,
-    expected_hash=None,
+    url: str,
+    path: Path,
+    *,
+    code: int = 200,
+    chunk_size: int | None = DEFAULT_CHUNK_SIZE,
+    force: bool = True,
+    hash_algorithm: Callable | str | None = None,
+    expected_hash: str | None = None,
     **kwargs
-):
+) -> Iterator[tuple[int, int, bytes | None, bool, str | None]]:
     position = length = 0
-    chunk = file_hash = None
-    downloaded = False
-    if force or not os.path.exists(path):
+    chunk: bytes | None = None
+    file_hasher = None
+    file_hash: str | None = None
+    downloaded: bool = False
+    if force or not path.exists():
         file = None
         try:
-            for position, length, chunk in iter_download_core(url, code, chunk_size, **kwargs):
+            for position, length, chunk in iter_download_core(
+                url=url,
+                code=code,
+                chunk_size=chunk_size,
+                **kwargs
+            ):
                 downloaded = True
                 if hash_algorithm:
-                    file_hash = file_hash or crypto.new(hash_algorithm)
-                    file_hash.update(chunk)
-                file_hash_digest = file_hash.hexdigest() if file_hash else None
-                yield position, length, chunk, downloaded, file_hash_digest
-                file = file or open(path, 'wb')  # pylint: disable=consider-using-with
+                    if file_hasher is None:
+                        file_hasher = crypto.new(hash_algorithm)
+                    file_hasher.update(chunk)  # type: ignore[attr-defined]
+                    file_hash = file_hasher.hexdigest()  # type: ignore[attr-defined]
+                yield position, length, chunk, downloaded, file_hash
+                file = file or path.open('wb')  # pylint: disable=consider-using-with
                 file.write(chunk)
         finally:
             if file:
                 file.close()
-        if file_hash:
-            file_hash = file_hash.hexdigest()
-
     elif hash_algorithm:
-        file_hash = crypto.checksum(
-            path,
-            is_path=True,
-            algorithm=hash_algorithm,
-            chunk_size=chunk_size)
+        file_hash = crypto.checksum(path, algorithm=hash_algorithm, chunk_size=chunk_size)
 
     if expected_hash and file_hash != expected_hash:
         raise CorruptedFileError(path=path, file_hash=file_hash, expected_hash=expected_hash)
@@ -85,16 +99,17 @@ def iter_download_to_file(
 
 
 def download_ext(  # pylint:disable=too-many-locals
-    url,
-    path,
-    code=200,
-    chunk_size=102400,
-    force=True,
-    hash_algorithm=None,
-    expected_hash=None,
-    progress_callback=None,
+    url: str,
+    path: Path,
+    *,
+    code: int = 200,
+    chunk_size: int | None = DEFAULT_CHUNK_SIZE,
+    force: bool = True,
+    hash_algorithm: Callable | str | None = None,
+    expected_hash: str | None = None,
+    progress_callback: Callable[[float, int, int, bytes | None], None] | None = None,
     **kwargs
-):
+) -> tuple[bool, bool, str | None]:
     """
     Read the content of given `url` and save it as a file `path`, extended version.
 
@@ -151,12 +166,19 @@ def download_ext(  # pylint:disable=too-many-locals
     >>> with asserts.raises(BadHTTPResponseCodeError):
     ...     download_ext('https://pytoolbox.s3-eu-west-1.amazonaws.com/missing', 'missing')
     """
-    downloaded = False
-    exists = os.path.exists(path)
-    file_hash = None
+    downloaded: bool = False
+    exists: bool = path.exists()
+    file_hash: str | None = None
     start_time = time.time()
     for position, length, chunk, downloaded, file_hash in iter_download_to_file(
-        url, path, code, chunk_size, force, hash_algorithm, expected_hash, **kwargs
+        url=url,
+        path=path,
+        code=code,
+        chunk_size=chunk_size,
+        force=force,
+        hash_algorithm=hash_algorithm,
+        exepcted_hash=expected_hash,
+        **kwargs
     ):
         if progress_callback:
             progress_callback(start_time, position, length, chunk)
@@ -165,7 +187,7 @@ def download_ext(  # pylint:disable=too-many-locals
 
 def download_ext_multi(
     resources,
-    chunk_size=1024 * 1024,
+    chunk_size: int | None = 1024 * 1024,
     progress_callback=console.progress_bar,
     progress_stream=sys.stdout,
     progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'

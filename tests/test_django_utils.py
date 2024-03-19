@@ -18,7 +18,7 @@ class MediaForm(object):
 
 
 @pytest.mark.skip(reason='Django modules testing disabled')
-def test_fields_to_values_lookup_dict():
+def test_fields_to_values_lookup_dict() -> None:
     from pytoolbox.django.utils import collections
     numbers = collections.FieldsToValuesLookupDict(
         'numbers', {'MediaForm.name': 1, 'Media.url': 2, 'url': 3})

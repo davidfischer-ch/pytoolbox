@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
+from pathlib import Path
+from typing import TypeAlias
 import errno
 import fcntl
 import grp
@@ -34,6 +36,13 @@ try:
     from shlex import quote
 except ImportError:
     from pipes import quote  # pylint: disable=deprecated-module
+
+
+# Better to warn user than letting converting to string Any!
+# None will be stripped automatically
+CallArgType: TypeAlias = int | float | str | Path | None
+CallArgsType: TypeAlias = str | Iterable[CallArgType]
+LoggerType: TypeAlias = Callable | logging.Logger | None
 
 
 def kill(process):
@@ -80,21 +89,21 @@ def read_async(fd):  # pylint:disable=invalid-name
         raise
 
 
-def to_args_list(args) -> list[str]:
+def to_args_list(args: CallArgsType) -> list[str]:
     if not args:
         return []
-    return shlex.split(args) if isinstance(args, str) else [str(a) for a in args]
+    return shlex.split(args) if isinstance(args, str) else [str(a) for a in args if a is not None]
 
 
-def to_args_string(args) -> str:
+def to_args_string(args: CallArgsType) -> str:
     if not args:
         return ''
-    return args if isinstance(args, str) else ' '.join(quote(str(a)) for a in args)
+    return args if isinstance(args, str) else ' '.join(quote(str(a)) for a in args if a is not None)
 
 
 # --------------------------------------------------------------------------------------------------
 
-def raw_cmd(arguments, shell=False, **kwargs):
+def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
     """
     Launch a subprocess.
 
@@ -116,7 +125,8 @@ def _communicate_with_timeout(*, data, process, input):  # pylint:disable=redefi
 
 
 def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
-    command: str | list[str],
+    command: CallArgsType,
+    *,
     user: str | None = None,
     input: str | None = None,  # pylint:disable=redefined-builtin
     cli_input: str | None = None,
@@ -124,12 +134,12 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     communicate: bool = True,
     timeout: float | None = None,
     fail: bool = True,
-    log: Callable | logging.Logger | None = None,
+    log: LoggerType = None,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
     **kwargs
-):
+) -> dict:
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -155,23 +165,18 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 
     """
 
-    # convert log argument to logging functions
+    # Convert log argument to logging functions
     log_debug = log_warning = log_exception = None
     if isinstance(log, logging.Logger):
         log_debug, log_warning, log_exception = log.debug, log.warning, log.exception
     elif hasattr(log, '__call__'):
         log_debug = log_warning = log_exception = log
 
-    # create a list and a string of the arguments
-    if isinstance(command, str):
-        if user is not None:
-            command = f'sudo -u {user} {command}'
-        args_list, args_string = shlex.split(command), command
-    else:
-        if user is not None:
-            command = ['sudo', '-u', user] + command
-        args_list = [str(a) for a in command if a is not None]
-        args_string = ' '.join([str(a) for a in command if a is not None])
+    # Process arguments
+    args_list = to_args_list(command)
+    if user is not None:
+        args_list = ['sudo', '-u', user, *command]
+    args_string = to_args_string(args_list)
 
     # log the execution
     if log_debug:
@@ -191,22 +196,21 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
                 stdout=None if cli_output else subprocess.PIPE,
                 stderr=None if cli_output else subprocess.PIPE, **kwargs)
         except OSError as ex:
-            # unable to execute the program (e.g. does not exist)
+            # Unable to execute the program (e.g. does not exist)
             if log_exception:
                 log_exception(ex)
             if fail:
                 raise
             return {'process': None, 'stdout': '', 'stderr': ex, 'returncode': 2}
 
-        # write to stdin (answer to questions, ...)
+        # Write to stdin (answer to questions, ...)
         if cli_input is not None:
             process.stdin.write(cli_input)
             process.stdin.flush()
 
-        # interact with the process and wait for the process to terminate
+        # Interact with the process and wait for the process to terminate
         if communicate:
-            data = {}
-
+            data: dict = {}
             thread = threading.Thread(
                 target=_communicate_with_timeout,
                 kwargs={'data': data, 'input': input, 'process': process})
@@ -258,23 +262,39 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 
 # --------------------------------------------------------------------------------------------------
 
-def git_add_submodule(directory, url=None, remote='origin', fail=True, log=None, **kwargs):
+def git_add_submodule(
+    directory: Path,
+    url: str | None = None,
+    *,
+    remote: str = 'origin',
+    fail: bool = True,
+    log: LoggerType = None,
+    **kwargs
+) -> dict:
     if url is not None:
-        with open(os.path.join(directory, '.git', 'config'), encoding='utf-8') as f:
-            config = f.read()
+        config = (directory / '.git/config').read_text(encoding='utf-8')
         regex = rf'\[remote "{remote}"\][^\[]+url\s+=\s+(\S+)'
-        url = re.search(regex, config, re.MULTILINE).group(1)
+        url = re.search(regex, config, re.MULTILINE).group(1)  # type: ignore[union-attr]
     return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
 
 
-def git_clone_or_pull(directory, url, bare=False, clone_depth=None, reset=True, fail=True, log=None,
-                      **kwargs):
-    if os.path.exists(directory):
+def git_clone_or_pull(
+    directory: Path,
+    url: str,
+    *,
+    bare: bool = False,
+    clone_depth: int | None = None,
+    reset: bool = True,
+    fail: bool = True,
+    log: LoggerType = None,
+    **kwargs
+) -> None:
+    if directory.exists():
         if reset and not bare:
             cmd(['git', 'reset', '--hard'], cwd=directory, fail=fail, log=log, **kwargs)
         cmd(['git', 'fetch' if bare else 'pull'], cwd=directory, fail=fail, log=log, **kwargs)
     else:
-        command = ['git', 'clone']
+        command: list[CallArgType] = ['git', 'clone']
         if bare:
             command.append('--bare')
         if clone_depth:
@@ -286,77 +306,79 @@ def git_clone_or_pull(directory, url, bare=False, clone_depth=None, reset=True, 
 # --------------------------------------------------------------------------------------------------
 
 def make(
-    archive,
-    path=None,
-    with_cmake=False,
-    configure_options='',
-    install=True,
-    remove_temporary=True,
-    make_options=f'-j{multiprocessing.cpu_count()}',
-    fail=True,
-    log=None,
+    archive: Path,
+    directory: Path,
+    *,
+    with_cmake: bool = False,
+    configure_options: str = '',
+    install: bool = True,
+    remove_temporary: bool = True,
+    make_options: str = f'-j{multiprocessing.cpu_count()}',
+    fail: bool = True,
+    log: LoggerType = None,
     **kwargs
-):
+) -> dict[str, dict]:
+    """Build and optionally install a piece of software from source."""
     results = {}
-    here = os.getcwd()
-    path = path or archive.split('.')[0]
-    shutil.rmtree(path, ignore_errors=True)
-    setuptools.archive_util.unpack_archive(archive, path)
-    os.chdir(path)
-    if with_cmake:
-        filesystem.makedirs('build')
-        os.chdir('build')
-        results['cmake'] = cmd('cmake -DCMAKE_BUILD_TYPE=RELEASE ..', fail=fail, log=log, **kwargs)
-    else:
-        results['configure'] = cmd(
-            f'./configure {configure_options}', fail=fail, log=log, **kwargs)
-    results['make'] = cmd(f'make {make_options}', fail=fail, log=log, **kwargs)
-    if install:
-        results['make install'] = cmd('make install', fail=fail, log=log, **kwargs)
-    os.chdir(here)
+    setuptools.archive_util.unpack_archive(archive, directory)
+    with filesystem.chdir(directory):
+        if with_cmake:
+            filesystem.makedirs(Path('build'))
+            os.chdir('build')
+            results['cmake'] = cmd(
+                'cmake -DCMAKE_BUILD_TYPE=RELEASE ..',
+                fail=fail,
+                log=log,
+                **kwargs)
+        else:
+            results['configure'] = cmd(
+                f'./configure {configure_options}',
+                fail=fail,
+                log=log,
+                **kwargs)
+        results['make'] = cmd(f'make {make_options}', fail=fail, log=log, **kwargs)
+        if install:
+            results['make install'] = cmd('make install', fail=fail, log=log, **kwargs)
     if remove_temporary:
-        shutil.rmtree(path)
+        shutil.rmtree(directory)
+
     return results
 
 
 # --------------------------------------------------------------------------------------------------
 
 def rsync(  # pylint:disable=too-many-arguments,too-many-locals
-    source,
-    destination,
-    source_is_dir=False,
-    destination_is_dir=False,
-    makedest=False,
-    archive=True,
-    delete=False,
-    exclude_vcs=False,
-    progress=False,
-    recursive=False,
-    simulate=False,
-    excludes=None,
-    includes=None,
-    rsync_path=None,
-    size_only=False,
-    extra=None,
-    extra_args=None,
-    fail=True,
-    log=None,
+    source: Path,
+    destination: Path,
+    *,
+    source_is_dir: bool = False,
+    destination_is_dir: bool = False,
+    archive: bool = True,
+    delete: bool = False,
+    exclude_vcs: bool = False,
+    progress: bool = False,
+    recursive: bool = False,
+    simulate: bool = False,
+    excludes: Iterable[str] | None = None,
+    includes: Iterable[str] | None = None,
+    rsync_path: Path | None = None,
+    size_only: bool = False,
+    extra: str | None = None,
+    extra_args: list[CallArgType] | None = None,
+    fail: bool = True,
+    log: LoggerType = None,
     **kwargs
-):
-    if makedest and not os.path.exists(destination):
-        # FIXME if dest = remote -> ssh to make dest else make dest
-        if extra is None or 'ssh' not in extra:
-            os.makedirs(destination)
+) -> dict:
+    """Execute the famous rsync remote (or local) synchronization tool."""
+    source_string = str(source)
+    if source.is_dir() or source_is_dir:
+        source_string += os.sep
 
-    source = os.path.normpath(source)
-    if os.path.isdir(source) or source_is_dir:
-        source = source + os.sep
+    destination_string = str(destination)
+    if destination.is_dir() or destination_is_dir:
+        destination_string += os.sep
 
-    destination = os.path.normpath(destination)
-    if os.path.isdir(destination) or destination_is_dir:
-        destination = destination + os.sep
-
-    command = [
+    command: list[CallArgType] = [
         'rsync',
         '-a' if archive else None,
         '--delete' if delete else None,
@@ -378,39 +400,50 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
         command += ['--exclude=.svn', '--exclude=.git']
     if extra_args is not None:
         command += extra_args
-    command += [source, destination]
+    command += [source_string, destination_string]
 
     return cmd([c for c in command if c], fail=fail, log=log, **kwargs)
 
 
-def screen_kill(name=None, fail=True, log=None, **kwargs):
+def screen_kill(name: str | None = None, *, fail: bool = True, log: LoggerType = None, **kwargs):
     """Kill all screen instances called `name` or all if `name` is None."""
     for instance_name in screen_list(name=name, log=log):
         cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, log=log, **kwargs)
 
 
-def screen_launch(name, command, fail=True, log=None, **kwargs):
+def screen_launch(
+    name: str,
+    command: CallArgsType,
+    *,
+    fail: bool = True,
+    log: LoggerType = None,
+    **kwargs
+):
     """Launch a new named screen instance."""
-    return cmd(
-        ['screen', '-dmS', name] + (command if isinstance(command, list) else [command]),
-        fail=fail,
-        log=log,
-        **kwargs)
+    return cmd(['screen', '-dmS', name, *to_args_list(command)], fail=fail, log=log, **kwargs)
 
 
-def screen_list(name=None, log=None, **kwargs):
+def screen_list(name: str | None = None, *, log: LoggerType = None, **kwargs) -> list[str]:
     """Returns a list containing all instances of screen. Can be filtered by `name`."""
     screens = cmd(['screen', '-ls', name], fail=False, log=log, **kwargs)['stdout']
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', screens.decode('utf-8'))
 
 
-def ssh(host, identity_file=None, remote_cmd=None, fail=True, log=None, **kwargs):
-    command = ['ssh']
+def ssh(
+    host: str,
+    identity_file: Path | None = None,
+    remote_cmd: str | None = None,
+    *,
+    fail: bool = True,
+    log=None,
+    **kwargs
+) -> dict:
+    command: list[CallArgType] = ['ssh']
     if identity_file is not None:
-        command += ['-i', identity_file]
-    command += [host]
+        command.extend(['-i', identity_file])
+    command.append(host)
     if remote_cmd is not None:
-        command += ['-n', remote_cmd]
+        command.extend(['-n', remote_cmd])
     return cmd([c for c in command if c], fail=fail, log=log, **kwargs)
 
 

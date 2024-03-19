@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import get_type_hints
+from typing import Any, get_type_hints
 from urllib.parse import urlparse
 import errno
 import inspect
@@ -43,7 +43,7 @@ class CleanAttributesMixin(object):  # pylint:disable=too-few-public-methods
         ...
     AssertionError
     """
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         if cleanup_method := getattr(self, 'clean_' + name, None):
             value = cleanup_method(value)
         super().__setattr__(name, value)
@@ -83,7 +83,7 @@ class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
         ...
     ValueError: Attribute locale must be set to an instance of str | list
     """
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         if the_type := get_type_hints(self.__init__).get(name):
             default = inspect.signature(self.__init__).parameters[name].default
             if value != default and not isinstance(value, the_type):
@@ -91,9 +91,9 @@ class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
         super().__setattr__(name, value)
 
 
-def valid_filename(path):
+def valid_filename(name: str) -> bool:
     """
-    Returns True if `path` is a valid file name.
+    Returns True if `name` is a valid file name.
 
     **Example usage**
 
@@ -103,12 +103,12 @@ def valid_filename(path):
     True
     """
     try:
-        return bool(re.match(r'[^\.]+\.[^\.]+', path))
+        return re.match(r'[^\.]+\.[^\.]+', name) is not None
     except Exception:  # pylint:disable=broad-except
         return False
 
 
-def valid_ip(address):
+def valid_ip(address: str) -> bool:
     """
     Returns True if `ip` is a valid IP address.
 
@@ -126,7 +126,7 @@ def valid_ip(address):
         return False
 
 
-def valid_email(email):
+def valid_email(email: str) -> bool:
     """
     Returns True if `email` is a valid e-mail address.
 
@@ -138,12 +138,12 @@ def valid_email(email):
     True
     """
     try:
-        return bool(re.match(r'[^@]+@[^@]+\.[^@]+', email))
+        return re.match(r'[^@]+@[^@]+\.[^@]+', email) is not None
     except Exception:  # pylint:disable=broad-except
         return False
 
 
-def valid_int(value):
+def valid_int(value: Any) -> bool:
     """
     Returns True if `value` is a valid integer (can be converted to an int).
 
@@ -161,7 +161,7 @@ def valid_int(value):
         return False
 
 
-def valid_port(port):
+def valid_port(port: int | str) -> bool:
     """
     Returns True if `port` is a valid port.
 
@@ -179,7 +179,7 @@ def valid_port(port):
         return False
 
 
-def valid_secret(secret, none_allowed):
+def valid_secret(secret: str | None, *, none_allowed: bool) -> bool:
     """
     Returns True if `secret` is a valid secret.
 
@@ -187,26 +187,35 @@ def valid_secret(secret, none_allowed):
 
     **Example usage**
 
-    >>> valid_secret('1234', False)
+    >>> valid_secret('1234', none_allowed=False)
     False
-    >>> valid_secret(None, True)
+    >>> valid_secret(None, none_allowed=True)
     True
-    >>> valid_secret(None, False)
+    >>> valid_secret(None, none_allowed=False)
     False
-    >>> valid_secret('my_password', False)
+    >>> valid_secret('my_password', none_allowed=False)
     True
     """
-    if secret is None and none_allowed:
-        return True
+    if secret is None:
+        return none_allowed
     try:
-        return bool(re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret))
+        return re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) is not None
     except Exception:  # pylint:disable=broad-except
         return False
 
 
-def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, default_port=80,
-              excepted_errnos=(errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH), timeout=None):
+def valid_uri(
+    uri: str,
+    *,
+    check_404: bool,
+    scheme_mandatory: bool = False,
+    port_mandatory: bool = False,
+    default_port: int = 80,
+    excepted_errnos: tuple[int, ...] = (errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH),
+    timeout: int | None = None
+) -> bool:
     """
+    Validate an URI.
 
     *Example usage**
 
@@ -258,7 +267,7 @@ def valid_uri(uri, check_404, scheme_mandatory=False, port_mandatory=False, defa
     return True
 
 
-def valid_uuid(value, objectid_allowed=False, none_allowed=False):
+def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool = False) -> bool:
     """
     Returns True if `id` is a valid UUID / ObjectId.
 
@@ -285,8 +294,8 @@ def valid_uuid(value, objectid_allowed=False, none_allowed=False):
     >>> valid_uuid(ObjectId().binary, objectid_allowed=True)
     True
     """
-    if value is None and none_allowed:
-        return True
+    if value is None:
+        return none_allowed
     try:
         uuid.UUID('{{{0}}}'.format(value))  # pylint:disable=consider-using-f-string
     except ValueError:
@@ -301,7 +310,7 @@ def valid_uuid(value, objectid_allowed=False, none_allowed=False):
     return True
 
 
-def validate_list(the_list, regexes):
+def validate_list(the_list: list[Any], regexes: list[re.Pattern | str]) -> bool:
     """
     Validate every element of `the_list` with corresponding regular expression picked-in from
     `regexes`.

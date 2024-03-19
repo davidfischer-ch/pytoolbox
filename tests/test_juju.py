@@ -16,7 +16,7 @@ N = '--num-units'
 R = '--repository'
 
 
-def test_environment_ensure_num_units():
+def test_environment_ensure_num_units() -> None:
     with mock.patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
 
