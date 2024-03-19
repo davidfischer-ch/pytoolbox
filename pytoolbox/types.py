@@ -114,8 +114,16 @@ def merge_annotations(cls: GenericType) -> GenericType:
 
     Can be used as a decorator.
 
+    If you only need to access merged annotations at runtime, then you can also rely on the standard
+    library to do so, Instead of using this function.
+
+    See https://docs.python.org/3/library/typing.html#introspection-helpers
+
     **Example usage**
 
+    >>> from __future__ import annotations
+    >>> from typing import Annotated
+    ...
     >>> class Point2D(object):
     ...     x: int
     ...     y: int
@@ -128,13 +136,19 @@ def merge_annotations(cls: GenericType) -> GenericType:
     ...
     >>> @merge_annotations
     ... class Point4X(Point4D):
-    ...     x: float
-    ...     other: str
+    ...     x: Annotated[float, 'overriden']  # type: ignore[assignment]
+    ...     o: str
     ...
-    >>> assert Point2D.__annotations__ == {'x': int, 'y': int}
-    >>> assert Point3D.__annotations__ == {'z': int}
-    >>> assert Point4D.__annotations__ == {'w': int}
-    >>> assert Point4X.__annotations__ == {'x': float, 'y': int, 'z': int, 'w': int, 'other': str}
+    >>> assert Point2D.__annotations__ == {'x': 'int', 'y': 'int'}
+    >>> assert Point3D.__annotations__ == {'z': 'int'}
+    >>> assert Point4D.__annotations__ == {'w': 'int'}
+    >>> assert Point4X.__annotations__ == {
+    ...     'x': "Annotated[float, 'overriden']",
+    ...     'y': 'int',
+    ...     'z': 'int',
+    ...     'w': 'int',
+    ...     'o': 'str'
+    ... }
     """
     cls.__annotations__ = merge_dicts(*[
         getattr(base, '__annotations__', {})
