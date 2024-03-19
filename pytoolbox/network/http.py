@@ -149,7 +149,7 @@ def download_ext(  # pylint:disable=too-many-locals
     (False, False, None)
     >>>
     >>> with asserts.raises(BadHTTPResponseCodeError):
-    ...     download_ext('http://techslides.com/monkey.mp4', 'monkey.mp4')
+    ...     download_ext('https://pytoolbox.s3-eu-west-1.amazonaws.com/missing', 'missing')
     """
     downloaded = False
     exists = os.path.exists(path)

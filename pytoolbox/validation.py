@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import get_type_hints
+from urllib.parse import urlparse
 import errno
 import inspect
 import http.client
@@ -7,7 +9,6 @@ import os
 import re
 import socket
 import uuid
-from urllib.parse import urlparse
 
 from . import module
 from .network.ip import ip_address
@@ -53,11 +54,18 @@ class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
     Annotate arguments of the class __init__ with types and then you'll get a class with type
     checking.
 
+    A more beefy alternative is pydantic.
+
     **Example usage**
 
     >>> class Settings(StrongTypedMixin):
-    ...     def __init__(self, *, locale: (str, list), broker: dict=None, debug: bool=True,
-    ...                  timezone=None):
+    ...     def __init__(
+    ...         self, *,
+    ...         locale: str | list,
+    ...         broker: dict | None = None,
+    ...         debug: bool = True,
+    ...         timezone: str | None = None
+    ...     ) -> None:
     ...        self.locale = locale
     ...        self.broker = broker
     ...        self.debug = debug
@@ -73,14 +81,13 @@ class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
     >>> settings = Settings(locale=10, broker={})
     Traceback (most recent call last):
         ...
-    AssertionError: Attribute locale must be set to an instance of (<class 'str'>, <class 'list'>)
+    ValueError: Attribute locale must be set to an instance of str | list
     """
     def __setattr__(self, name, value):
-        if the_type := self.__init__.__annotations__.get(name):
+        if the_type := get_type_hints(self.__init__).get(name):
             default = inspect.signature(self.__init__).parameters[name].default
-            if value != default:
-                assert isinstance(value, the_type), \
-                    f'Attribute {name} must be set to an instance of {the_type}'
+            if value != default and not isinstance(value, the_type):
+                raise ValueError(f'Attribute {name} must be set to an instance of {the_type}')
         super().__setattr__(name, value)
 
 

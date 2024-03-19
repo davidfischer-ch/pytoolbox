@@ -121,7 +121,6 @@ def merge_annotations(cls: GenericType) -> GenericType:
 
     **Example usage**
 
-    >>> from __future__ import annotations
     >>> from typing import Annotated
     ...
     >>> class Point2D(object):
