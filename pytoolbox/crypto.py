@@ -141,7 +141,7 @@ def githash(
 @overload
 def guess_algorithm(
     checksum_value: str,
-    algorithms: Iterable[Callable | str] | None = ...,
+    algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: Literal[False] = False
 ) -> Callable | None:
@@ -151,7 +151,7 @@ def guess_algorithm(
 @overload
 def guess_algorithm(
     checksum_value: str,
-    algorithms: Iterable[Callable | str] | None = ...,
+    algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: Literal[True]
 ) -> set[Callable]:

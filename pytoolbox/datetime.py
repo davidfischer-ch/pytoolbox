@@ -16,11 +16,11 @@ TimeValue: TypeAlias = datetime.datetime | datetime.timedelta | float | int | st
 
 @overload
 def datetime_now(
-    fmt: Literal[None] = ...,
+    fmt: Literal[None],
     *,
-    append_utc: bool = ...,
-    offset: datetime.timedelta | None = ...,
-    tz: Any = ...
+    append_utc: bool = False,
+    offset: datetime.timedelta | None = None,
+    tz: Any = pytz.utc
 ) -> str:
     ...
 
@@ -29,9 +29,9 @@ def datetime_now(
 def datetime_now(
     fmt: str = ...,
     *,
-    append_utc: bool = ...,
-    offset: datetime.timedelta | None = ...,
-    tz: Any = ...
+    append_utc: bool = False,
+    offset: datetime.timedelta | None = None,
+    tz: Any = pytz.utc
 ) -> datetime.datetime:
     ...
 
@@ -132,7 +132,7 @@ def multiply_time(
     value: TimeValue,
     factor: float,
     *,
-    as_delta: Literal[False] = ...
+    as_delta: Literal[False] = False
 ) -> datetime.time:
     ...
 
@@ -142,7 +142,7 @@ def multiply_time(
     value: TimeValue,
     factor: float,
     *,
-    as_delta: Literal[True] = ...
+    as_delta: Literal[True]
 ) -> datetime.timedelta:
     ...
 
@@ -176,7 +176,7 @@ def parts_to_time(
     seconds: int,
     microseconds: int,
     *,
-    as_delta: Literal[False] = ...
+    as_delta: Literal[False] = False
 ) -> datetime.time:
     ...
 
@@ -188,7 +188,7 @@ def parts_to_time(
     seconds: int | float,
     microseconds: int | float,
     *,
-    as_delta: Literal[True] = ...
+    as_delta: Literal[True]
 ) -> datetime.timedelta:
     ...
 
@@ -217,12 +217,12 @@ def parts_to_time(hours, minutes, seconds, microseconds, *, as_delta=False):
 
 
 @overload  # type: ignore[misc]
-def secs_to_time(value: float | int, *, as_delta: Literal[False] = ...) -> datetime.time:
+def secs_to_time(value: float | int, *, as_delta: Literal[False] = False) -> datetime.time:
     ...
 
 
 @overload
-def secs_to_time(value: float | int, *, as_delta: Literal[True] = ...) -> datetime.timedelta:
+def secs_to_time(value: float | int, *, as_delta: Literal[True]) -> datetime.timedelta:
     ...
 
 
@@ -253,8 +253,8 @@ def secs_to_time(value, *, as_delta=False):
 def str_to_time(  # type: ignore[misc]
     value: str,
     *,
-    defaults_to_zero: Literal[True] = ...,
-    as_delta: Literal[False] = ...
+    defaults_to_zero: Literal[True],
+    as_delta: Literal[False] = False
 ) -> datetime.time:
     ...
 
@@ -263,8 +263,8 @@ def str_to_time(  # type: ignore[misc]
 def str_to_time(
     value: str,
     *,
-    defaults_to_zero: Literal[True] = ...,
-    as_delta: Literal[True] = ...
+    defaults_to_zero: Literal[True],
+    as_delta: Literal[True]
 ) -> datetime.timedelta:
     ...
 
@@ -273,8 +273,8 @@ def str_to_time(
 def str_to_time(
     value: str,
     *,
-    defaults_to_zero: Literal[False] = ...,
-    as_delta: Literal[False] = ...
+    defaults_to_zero: Literal[False] = False,
+    as_delta: Literal[False] = False
 ) -> datetime.time | None:
     ...
 
@@ -283,8 +283,8 @@ def str_to_time(
 def str_to_time(
     value: str,
     *,
-    defaults_to_zero: Literal[False] = ...,
-    as_delta: Literal[True] = ...
+    defaults_to_zero: Literal[False] = False,
+    as_delta: Literal[True]
 ) -> datetime.timedelta | None:
     ...
 
@@ -392,7 +392,7 @@ def datetime_to_epoch(
     *,
     utc: bool = True,
     factor: int = 1
-):
+) -> int:
     """
     Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch.
     Default `factor` means that the result is in seconds.
