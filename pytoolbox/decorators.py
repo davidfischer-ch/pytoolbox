@@ -6,9 +6,17 @@ import functools
 import os
 import warnings
 
-from . import console, module, subprocess as py_subprocess
+from . import console, subprocess as py_subprocess
 
-_all = module.All(globals())
+__all__ = [
+    'cached_property',
+    'deprecated',
+    'hybridmethod',
+    'confirm_it',
+    'disable_iptables',
+    'root_required',
+    'run_once'
+]
 
 
 class cached_property(object):  # pylint:disable=invalid-name,too-few-public-methods
@@ -151,6 +159,3 @@ def run_once(func: Callable) -> Callable:
         return result
     wrapper.executed = False  # type: ignore[attr-defined]
     return wrapper
-
-
-__all__ = _all.diff(globals())

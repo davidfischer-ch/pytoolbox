@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, Final
 import datetime
 import shutil
 import uuid
@@ -10,14 +11,14 @@ import pytest
 from pytoolbox import filesystem
 from pytoolbox.multimedia import ffmpeg
 
-MPD_TEST = """<?xml version="1.0"?>
+MPD_TEST: Final[str] = """<?xml version="1.0"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" mediaPresentationDuration="PT0H6M7.83S">
   <useless text="testing encoding : ça va ou bien ?" />
 </MPD>
 """
 
 # This is ffprobe's result on small.mp4 to reverse engineer tests in case we loose it!
-SMALL_MP4_MEDIA_INFOS = {
+SMALL_MP4_MEDIA_INFOS: Final[dict[str, Any]] = {
     'format': {
         'bit_rate': '551193',
         'duration': '5.568000',
@@ -145,15 +146,38 @@ def test_to_size() -> None:
     assert ffmpeg.to_size('1935.9KB') == 1982361
 
 
-def test_media_pipe() -> None:
-    assert ffmpeg.Media(None).is_pipe is False
-    assert ffmpeg.Media('test-file.mp4').is_pipe is False
-    assert ffmpeg.Media(Path('other-file.mp4')).is_pipe is False
+def test_media(tmp_path: Path) -> None:
+    with pytest.raises(TypeError):
+        ffmpeg.Media(None)  # type: ignore[arg-type]
+
+    media = ffmpeg.Media('test-file.mp4')
+    assert media.path == Path('test-file.mp4')
+    assert media.is_pipe is False
+    assert media.size == 0
+
+    media = ffmpeg.Media(Path('other-file.mp4'))
+    assert media.path == Path('other-file.mp4')
+    assert media.is_pipe is False
+    assert media.size == 0
+
     for path in '-', 'pipe:3':
         media = ffmpeg.Media(path)
         assert media.directory is None
         assert media.is_pipe is True
         assert media.size == 0
+        assert media.create_directory() is False
+
+    media_path = tmp_path / 'some/test.txt'
+    media = ffmpeg.Media(media_path)
+    assert media.directory == tmp_path / 'some'
+    assert media.is_pipe is False
+    assert media.path == media_path
+    assert media.size == 0
+    assert media.create_directory() is True
+    assert (tmp_path / 'some').is_dir()
+    assert media.create_directory() is False
+    media_path.write_text('This is a text file.', encoding='utf-8')
+    assert media.size == 20
 
 
 def test_statistics_compute_ratio(statistics) -> None:

@@ -4,9 +4,19 @@ from pathlib import Path
 from typing import Final
 import re
 
-from pytoolbox import module
-
-_all = module.All(globals())
+__all__ = [
+    'BIT_RATE_REGEX',
+    'BIT_RATE_COEFFICIENT_FOR_UNIT',
+    'PIPE_REGEX',
+    'SIZE_REGEX',
+    'SIZE_COEFFICIENT_FOR_UNIT',
+    'WIDTH',
+    'HEIGHT',
+    'is_pipe',
+    'to_bit_rate',
+    'to_frame_rate',
+    'to_size'
+]
 
 BIT_RATE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
 BIT_RATE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
@@ -56,6 +66,3 @@ def to_size(size: str) -> int:
         data = match.groupdict()
         return int(float(data['value']) * SIZE_COEFFICIENT_FOR_UNIT[data['units'][0].lower()])
     raise ValueError(size)
-
-
-__all__ = _all.diff(globals())

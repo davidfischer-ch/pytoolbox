@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from typing import Any, Generator, Literal, TypeVar, overload
+from collections.abc import Callable, Generator, Iterable
+from typing import Any, Literal, Self, TypeVar, overload
 import inspect
 import itertools
-
-from typing_extensions import Self
 
 from . import module
 from .collections import merge_dicts
@@ -99,7 +97,7 @@ def get_subclasses(obj, *, nested=True):
     for subclass in obj.__subclasses__():
         yield subclass, subclass.__subclasses__()
         if nested:
-            for sub_subclass in get_subclasses(subclass, nested):
+            for sub_subclass in get_subclasses(subclass, nested=nested):
                 yield sub_subclass
 
 

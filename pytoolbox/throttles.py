@@ -5,11 +5,10 @@ from __future__ import annotations
 
 import time
 
-from . import module
 from .datetime import total_seconds
 from .types import Missing
 
-_all = module.All(globals())
+__all__ = ['TimeThrottle', 'TimeAndRatioThrottle']
 
 
 class TimeThrottle(object):
@@ -105,6 +104,3 @@ class TimeAndRatioThrottle(TimeThrottle):
     def _update(self, ratio):  # pylint:disable=arguments-differ
         super()._update()
         self.previous_ratio = ratio
-
-
-__all__ = _all.diff(globals())

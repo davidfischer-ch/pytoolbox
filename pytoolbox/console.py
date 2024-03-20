@@ -7,7 +7,7 @@ import code
 import os
 import sys
 
-__all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell']
+__all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell', 'toggle_colors']
 
 
 def confirm(
@@ -100,7 +100,8 @@ def print_error(message: str, exit_code: int | None = 1, stream: TextIO = sys.st
 
 
 def progress_bar(
-    start_time,  # pylint:disable=unused-argument
+    *,
+    start_time: float,  # pylint:disable=unused-argument
     current: int,
     total: int,
     size: int = 50,
@@ -118,11 +119,11 @@ def progress_bar(
     >>> import functools
     >>> import time
     >>> progress = functools.partial(progress_bar, template='[{done}{todo}]', stream=sys.stdout)
-    >>> progress(time.time(), 10, 15, size=30)
+    >>> progress(start_time=time.time(), current=10, total=15, size=30)
     [====================          ]
-    >>> progress(time.time(), 1, 6, size=10)
+    >>> progress(start_time=time.time(), current=1, total=6, size=10)
     [=         ]
-    >>> progress(time.time(), 3, 5, size=5, done='+', todo='-')
+    >>> progress(start_time=time.time(), current=3, total=5, size=5, done='+', todo='-')
     [+++--]
     """
     if total:

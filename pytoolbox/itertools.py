@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import itertools
 
-from . import module, throttles
+from . import throttles
 from .types import isiterable
 
-_all = module.All(globals())
+__all__ = ['chain', 'chunk', 'extract_single', 'throttle']
 
 
 def chain(*objects, callback=isiterable):
@@ -88,6 +88,3 @@ def throttle(objects, min_delay):
     [0, 1, 2]
     """
     return throttles.TimeThrottle(min_delay).throttle_iterable(objects)
-
-
-__all__ = _all.diff(globals())

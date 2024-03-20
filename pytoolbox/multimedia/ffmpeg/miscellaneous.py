@@ -3,20 +3,28 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from pytoolbox import comparison, filesystem, module, validation
-from pytoolbox.subprocess import to_args_list
+from pytoolbox import comparison, filesystem, validation
+from pytoolbox.subprocess import to_args_list, CallArgsType
 from pytoolbox.types import get_slots
 
 from . import utils
 
-_all = module.All(globals())
+__all__ = [
+    'BaseInfo',
+    'Codec',
+    'Format',
+    'Stream',
+    'AudioStream',
+    'SubtitleStream',
+    'VideoStream',
+    'Media'
+]
 
 
 class BaseInfo(  # pylint:disable=too-few-public-methods
     validation.CleanAttributesMixin,
     comparison.SlotsEqualityMixin
 ):
-
     defaults = {}
     attr_name_template: str = '{name}'
 
@@ -246,41 +254,54 @@ class VideoStream(Stream):
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
-    __slots__ = ('path', 'options')
+    __slots__ = ('_path', 'options', '_is_pipe')
 
-    def __init__(self, path: Path, options: list[int | float | str | Path] | None = None) -> None:
-        self.path: Path = path
-        self.options: list[int | float | str | Path] = options or []
+    def __init__(
+        self,
+        path: Path | str,
+        options: CallArgsType | None = None
+    ) -> None:
+        self._is_pipe: bool = utils.is_pipe(path)
+        self._path: Path | str = path if self._is_pipe else Path(path)
+        self.options: list[str] = options or []  # type: ignore[assignment]
         self._size: int | None = None
 
     @property
     def directory(self) -> Path | None:
-        return None if self.is_pipe else Path(self.path).resolve().parent
+        if self.is_pipe:
+            return None
+        assert isinstance(self.path, Path)
+        return self.path.resolve().parent
 
     @property
     def is_pipe(self) -> bool:
-        return utils.is_pipe(self.path)
+        return self._is_pipe
+
+    @property
+    def path(self) -> Path | str:
+        return self._path
 
     @property
     def size(self) -> int:
-        if self._size is None:
-            return 0 if self.is_pipe else filesystem.get_size(self.path)
-        return self._size
+        if self._size is not None:
+            return self._size
+        if self.is_pipe:
+            return 0
+        assert isinstance(self.path, Path)
+        return filesystem.get_size(self.path)
 
     @size.setter
-    def size(self, value: int | None):
+    def size(self, value: int | None) -> None:
         self._size = value
 
     @staticmethod
-    def clean_options(value: list[int | float | str | Path]) -> list[str]:
+    def clean_options(value: CallArgsType) -> list[str]:
         return to_args_list(value)
 
-    def create_directory(self) -> None:
-        if not self.is_pipe:
-            filesystem.makedirs(self.directory)
+    def create_directory(self) -> bool:
+        if (directory := self.directory) is not None:
+            return filesystem.makedirs(directory)
+        return False
 
     def to_args(self, is_input: bool) -> list[str]:
         return self.options + (['-i', str(self.path)] if is_input else [str(self.path)])
-
-
-__all__ = _all.diff(globals())

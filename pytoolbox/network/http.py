@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Final
+from typing import Final, Protocol, TextIO
 import functools
 import os
 import sys
@@ -12,6 +13,7 @@ import urllib.parse
 import urllib.request
 
 import requests
+from requests.auth import AuthBase
 
 from pytoolbox import console, crypto, filesystem, module
 from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
@@ -21,22 +23,84 @@ _all = module.All(globals())
 DEFAULT_CHUNK_SIZE: Final[int] = 100 * 1024
 
 
-def download(url, path):
+@dataclass(frozen=True, slots=True)
+class Resource(object):  # pylint:disable=too-many-instance-attributes
+    name: str
+    url: str
+    path: Path
+
+    hash_algorithm: Callable | str | None = None
+    expected_hash: str | None = None
+
+    allow_redirects: bool = True
+    auth: AuthBase | tuple[str, str] | None = None
+    cert: str | tuple[str, str] | None = None
+    cookies: dict[str, str] | None = None
+    headers: dict[str, str] | None = None
+    params: dict | list[tuple] | bytes | None = None
+    proxies: dict[str, str] | None = None
+    timeout: int | None = None
+    verify: bool = True
+
+
+class SingleProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
+    def __call__(self, start_time: float, position: int, length: int, chunk: bytes | None) -> None:
+        ...
+
+
+class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
+    def __call__(
+        self,
+        *,
+        start_time: float,
+        current: int,
+        total: int,
+        stream: TextIO,
+        template: str
+    ) -> None:
+        ...
+
+
+def download(url: str, path: Path) -> None:
     """Read the content of given `url` and save it as a file `path`."""
-    with open(path, 'wb') as target:
+    with path.open('wb') as target:
         with urllib.request.urlopen(url) as source:
             target.write(source.read())
 
+
+# TODO Unpacking Resource for declaring parameters in a DRY manner
+# I would like to make code DRY, such as unpacking Resource to define function's arguments
+# However its not possible as of today, see https://github.com/python/typing/issues/1495
 
 def iter_download_core(
     url: str,
     *,
     code: int = 200,
     chunk_size: int | None = DEFAULT_CHUNK_SIZE,
+
+    allow_redirects: bool = True,
+    auth: AuthBase | tuple[str, str] | None = None,
+    cert: str | tuple[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
+    headers: dict[str, str] | None = None,
+    params: dict | list[tuple] | bytes | None = None,
+    proxies: dict[str, str] | None = None,
     timeout: int | None = None,
-    **kwargs
+    verify: bool = True
 ) -> Iterator[tuple[int, int, bytes]]:
-    response = requests.get(url, stream=bool(chunk_size), timeout=timeout, **kwargs)
+    response = requests.get(
+        url=url,
+        allow_redirects=allow_redirects,
+        auth=auth,
+        cert=cert,
+        cookies=cookies,
+        headers=headers,
+        params=params,
+        proxies=proxies,
+        stream=bool(chunk_size),
+        timeout=timeout,
+        verify=verify
+    )
     length = response.headers.get('content-length')
     if response.status_code != code:
         raise BadHTTPResponseCodeError(url=url, code=code, r_code=response.status_code)
@@ -51,7 +115,7 @@ def iter_download_core(
             yield len(chunk), len(chunk), chunk
 
 
-def iter_download_to_file(
+def iter_download_to_file(  # pylint:disable=too-many-locals
     url: str,
     path: Path,
     *,
@@ -60,7 +124,16 @@ def iter_download_to_file(
     force: bool = True,
     hash_algorithm: Callable | str | None = None,
     expected_hash: str | None = None,
-    **kwargs
+
+    allow_redirects: bool = True,
+    auth: AuthBase | tuple[str, str] | None = None,
+    cert: str | tuple[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
+    headers: dict[str, str] | None = None,
+    params: dict | list[tuple] | bytes | None = None,
+    proxies: dict[str, str] | None = None,
+    timeout: int | None = None,
+    verify: bool = True
 ) -> Iterator[tuple[int, int, bytes | None, bool, str | None]]:
     position = length = 0
     chunk: bytes | None = None
@@ -74,7 +147,15 @@ def iter_download_to_file(
                 url=url,
                 code=code,
                 chunk_size=chunk_size,
-                **kwargs
+                allow_redirects=allow_redirects,
+                auth=auth,
+                cert=cert,
+                cookies=cookies,
+                headers=headers,
+                params=params,
+                proxies=proxies,
+                timeout=timeout,
+                verify=verify
             ):
                 downloaded = True
                 if hash_algorithm:
@@ -105,10 +186,20 @@ def download_ext(  # pylint:disable=too-many-locals
     code: int = 200,
     chunk_size: int | None = DEFAULT_CHUNK_SIZE,
     force: bool = True,
+
     hash_algorithm: Callable | str | None = None,
     expected_hash: str | None = None,
-    progress_callback: Callable[[float, int, int, bytes | None], None] | None = None,
-    **kwargs
+    progress_callback: SingleProgressCallback | None = None,
+
+    allow_redirects: bool = True,
+    auth: AuthBase | tuple[str, str] | None = None,
+    cert: str | tuple[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
+    headers: dict[str, str] | None = None,
+    params: dict | list[tuple] | bytes | None = None,
+    proxies: dict[str, str] | None = None,
+    timeout: int | None = None,
+    verify: bool = True
 ) -> tuple[bool, bool, str | None]:
     """
     Read the content of given `url` and save it as a file `path`, extended version.
@@ -127,26 +218,32 @@ def download_ext(  # pylint:disable=too-many-locals
     **Example usage**
 
     >>> import hashlib
+    >>> from pathlib import Path
+    >>>
     >>> from pytoolbox import filesystem
     >>> from pytoolbox.unittest import asserts
     >>>
     >>> _ = filesystem.remove('small.mp4')
     >>>
-    >>> url = 'https://pytoolbox.s3-eu-west-1.amazonaws.com/tests/small.mp4'
+    >>> base_url = 'https://pytoolbox.s3-eu-west-1.amazonaws.com'
     >>>
-    >>> download_ext(url, 'small.mp4')
+    >>> download_ext(f'{base_url}/tests/small.mp4', Path('small.mp4'))
     (False, True, None)
-    >>> download_ext(url, 'small.mp4', force=False)
+    >>> download_ext(f'{base_url}/tests/small.mp4', Path('small.mp4'), force=False)
     (True, False, None)
     >>>
-    >>> download_ext(url, 'small.mp4', force=False, hash_algorithm='md5',
-    ...              expected_hash='a3ac7ddabb263c2d00b73e8177d15c8d')
+    >>> download_ext(
+    ...     f'{base_url}/tests/small.mp4',
+    ...     Path('small.mp4'),
+    ...     force=False,
+    ...     hash_algorithm='md5',
+    ...     expected_hash='a3ac7ddabb263c2d00b73e8177d15c8d')
     (True, False, 'a3ac7ddabb263c2d00b73e8177d15c8d')
     >>>
     >>> def progress(start_time, position, length, chunk):
     ...     print('(%d, %d)' % (position, length))
     >>>
-    >>> download_ext(url, 'small.mp4', progress_callback=progress)
+    >>> download_ext(f'{base_url}/tests/small.mp4', Path('small.mp4'), progress_callback=progress)
     (102400, 383631)
     (204800, 383631)
     (307200, 383631)
@@ -155,16 +252,16 @@ def download_ext(  # pylint:disable=too-many-locals
     >>>
     >>> with asserts.raises(CorruptedFileError):
     ...     download_ext(
-    ...         url,
-    ...         'small.mp4',
+    ...         f'{base_url}/tests/small.mp4',
+    ...         Path('small.mp4'),
     ...         hash_algorithm=hashlib.md5,
     ...         expected_hash='efac5df252145c2d07b73e8177d15c8d')
     >>>
-    >>> download_ext('https://pytoolbox.s3-eu-west-1.amazonaws.com/missing', 'missing', code=404)
+    >>> download_ext(f'{base_url}/missing', Path('missing'), code=404)
     (False, False, None)
     >>>
     >>> with asserts.raises(BadHTTPResponseCodeError):
-    ...     download_ext('https://pytoolbox.s3-eu-west-1.amazonaws.com/missing', 'missing')
+    ...     download_ext(f'{base_url}/missing', Path('missing'))
     """
     downloaded: bool = False
     exists: bool = path.exists()
@@ -177,56 +274,68 @@ def download_ext(  # pylint:disable=too-many-locals
         chunk_size=chunk_size,
         force=force,
         hash_algorithm=hash_algorithm,
-        exepcted_hash=expected_hash,
-        **kwargs
+        expected_hash=expected_hash,
+        allow_redirects=allow_redirects,
+        auth=auth,
+        cert=cert,
+        cookies=cookies,
+        headers=headers,
+        params=params,
+        proxies=proxies,
+        timeout=timeout,
+        verify=verify
     ):
         if progress_callback:
-            progress_callback(start_time, position, length, chunk)
+            progress_callback(start_time=start_time, position=position, length=length, chunk=chunk)
     return exists, downloaded, file_hash
 
 
 def download_ext_multi(
-    resources,
+    resources: Iterable[Resource],
+    *,
+    code: int = 200,
     chunk_size: int | None = 1024 * 1024,
-    progress_callback=console.progress_bar,
+    force: bool = False,
+    progress_callback: MultiProgressCallback = console.progress_bar,
     progress_stream=sys.stdout,
-    progress_template='\r[{counter} of {total}] [{done}{todo}] {name}'
+    progress_template='\r[{counter} of {total}] [{done}{todo}] {resource.name}'
 ):
     """
     Download resources, showing a progress bar by default.
 
+    Create any required directories recursively.
+
     Each element should be a `dict` with the url, path and name keys.
     Any extra item is passed to :func:`iter_download_to_file` as extra keyword arguments.
     """
-    for counter, resource in enumerate(sorted(resources, key=lambda r: r['name']), 1):
-        kwargs = resource.copy()
-        start_time = time.time()
-        url = kwargs.pop('url')
-        path = kwargs.pop('path')
-        name = kwargs.pop('name')
-
+    resources = list(resources)  # Allow to pass an iterable and consome it once
+    for counter, resource in enumerate(resources, 1):
         callback = functools.partial(
             progress_callback,
+            start_time=time.time(),
             stream=progress_stream,
             template=progress_template.format(
+                resource=resource,
                 counter=counter,
                 done='{done}',
-                name=name,
                 todo='{todo}',
                 total=len(resources)))
 
-        if not os.path.exists(path):
-            filesystem.makedirs(os.path.dirname(path))
+        if not resource.path.exists():
+            filesystem.makedirs(resource.path, parent=True)
             try:
                 for returned in iter_download_to_file(
-                    url, path, chunk_size=chunk_size, force=False, **kwargs
+                    code=code,
+                    chunk_size=chunk_size,
+                    force=force,
+                    **asdict(resource)
                 ):
-                    callback(start_time, returned[0], returned[1])
+                    callback(current=returned[0], total=returned[1])
             except Exception:
-                filesystem.remove(path)
+                filesystem.remove(resource.path)
                 raise
 
-        callback(start_time, 1, 1)
+        callback(current=1, total=1)
         progress_stream.write(os.linesep)
 
 

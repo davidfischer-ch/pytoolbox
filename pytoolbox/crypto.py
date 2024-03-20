@@ -11,7 +11,7 @@ import string
 
 from . import filesystem
 
-__all__ = ['checksum', 'new', 'get_password_generator', 'githash', 'guess_algorithm']
+__all__ = ['new', 'checksum', 'get_password_generator', 'githash', 'guess_algorithm']
 
 
 def new(algorithm: Callable | str = hashlib.sha256) -> Callable:

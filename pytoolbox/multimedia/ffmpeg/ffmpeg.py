@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 import errno
 import itertools
 import re
@@ -15,7 +16,7 @@ from . import encode, ffprobe  # pylint:disable=unused-import
 
 __all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
 
-FRAME_MD5_REGEX = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
+FRAME_MD5_REGEX: Final[re.Pattern] = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
 
 class FFmpeg(object):
@@ -23,25 +24,24 @@ class FFmpeg(object):
     Encode a set of input files input to a set of output files and yields statistics about the
     encoding.
     """
-
-    executable = 'ffmpeg'
-    ffprobe_class = ffprobe.FFprobe
-    statistics_class = encode.EncodeStatistics
+    executable: Path | str = 'ffmpeg'
+    ffprobe_class: type = ffprobe.FFprobe
+    statistics_class: type = encode.EncodeStatistics
 
     def __init__(
         self,
-        executable=None,
-        chunk_read_timeout=0.5,
-        encode_poll_delay=0.5,
-        encoding='utf-8'
-    ):
+        executable: str | None = None,
+        chunk_read_timeout: float = 0.5,
+        encode_poll_delay: float = 0.5,
+        encoding: str = 'utf-8'
+    ) -> None:
         self.executable = executable or self.executable
         self.chunk_read_timeout = chunk_read_timeout
         self.encode_poll_delay = encode_poll_delay
         self.encoding = encoding
         self.ffprobe = self.ffprobe_class()
 
-    def __call__(self, *arguments):
+    def __call__(self, *arguments) -> subprocess.Popen:
         """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
         return py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
@@ -96,7 +96,7 @@ class FFmpeg(object):
             raise ex.with_traceback(traceback) if hasattr(ex, 'with_traceback') else ex
 
     @staticmethod
-    def get_frames_md5_checksum(filename):
+    def get_frames_md5_checksum(filename: Path) -> str | None:
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()

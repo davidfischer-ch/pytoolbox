@@ -269,6 +269,7 @@ def get_bytes(
 def get_size(
     path: Path,
     patterns: re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str] = '*',
+    *,
     regex: bool = False,
     **walk_kwargs
 ) -> int:
@@ -374,7 +375,7 @@ def recursive_copy(  # pylint:disable=too-many-locals
                 dst_path = os.path.join(dst_root, filename)
 
                 # Initialize block-based copy
-                makedirs(os.path.dirname(dst_path))
+                makedirs(dst_path, parent=True)
                 block_size = 1024 * 1024
                 src_file = open(src_path, 'rb')  # pylint: disable=consider-using-with
                 dst_file = open(dst_path, 'wb')  # pylint: disable=consider-using-with
@@ -433,7 +434,7 @@ def recursive_copy(  # pylint:disable=too-many-locals
         raise
 
 
-def remove(path, recursive=False):
+def remove(path: Path | str, *, recursive: bool = False):
     """
     Remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any
@@ -451,21 +452,20 @@ def remove(path, recursive=False):
     True
     >>> remove('remove.example')
     False
-
     >>> for file_name in ('remove/a', 'remove/b/c', 'remove/d/e/f'):
-    ...     _ = makedirs(os.path.dirname(file_name))
-    ...     with open(file_name, 'w', encoding='utf-8') as f:
-    ...         f.write('salut les pépés')
+    ...     file_path = Path(file_name)
+    ...     _ = makedirs(file_path, parent=True)
+    ...     file_path.write_text('salut les pépés', encoding='utf-8')
     15
     15
     15
-    >>> remove('remove/d/e', recursive=True)
+    >>> remove(Path('remove/d/e'), recursive=True)
     True
-    >>> remove('remove/d/e', recursive=True)
+    >>> remove(Path('remove/d/e'), recursive=True)
     False
     >>> with pytest.raises(OSError):
-    ...     remove('remove/b')
-    >>> remove('remove', recursive=True)
+    ...     remove(Path('remove/b'))
+    >>> remove(Path('remove'), recursive=True)
     True
     """
     try:

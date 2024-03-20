@@ -59,7 +59,7 @@ def _to_camel(string: str, separator: str) -> str:
 def filterjoin(
     items: Iterable[Any],
     sep: str = ' ',
-    keep: Callable[[Any], bool] = lambda o: bool(o)
+    keep: Callable[[Any], bool] = bool
 ) -> str:
     """
     Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string

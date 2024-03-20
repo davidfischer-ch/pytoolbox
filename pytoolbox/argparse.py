@@ -31,7 +31,7 @@ from . import itertools, module
 
 _all = module.All(globals())
 
-from argparse import Namespace  # pylint:disable=wrong-import-position
+from argparse import Namespace  # noqa, pylint:disable=wrong-import-position
 
 # Credits https://gist.github.com/brantfaircloth/1443543
 
@@ -63,13 +63,14 @@ def password(value: str | None) -> str:
     return value or getpass.getpass('Password: ')
 
 
-def set_columns(value: int | None = None, *, default: int = 120):
+def set_columns(value: int | None = None, *, default: int = 120) -> int:
     if value is None:
         try:
             value = shutil.get_terminal_size().columns
         except AttributeError:
             value = default
     os.environ['COLUMNS'] = str(value)
+    return value
 
 
 class FullPaths(argparse.Action):

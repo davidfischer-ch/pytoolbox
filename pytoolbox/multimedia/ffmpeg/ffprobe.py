@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 from xml.dom import minidom
 import datetime
 import errno
@@ -18,16 +19,16 @@ from . import miscellaneous, utils
 
 __all__ = ['DURATION_REGEX', 'FFprobe']
 
-DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+DURATION_REGEX: Final[re.Pattern] = re.compile(
+    r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 
 
 class FFprobe(object):
-
-    executable = 'ffprobe'
-    duration_regex = DURATION_REGEX
-    format_class = None
-    media_class = miscellaneous.Media
-    stream_classes = {'audio': None, 'subtitle': None, 'video': None}
+    executable: Path | str = 'ffprobe'
+    duration_regex: re.Pattern = DURATION_REGEX
+    format_class: type | None = None
+    media_class: type = miscellaneous.Media
+    stream_classes: dict[str, type | None] = {'audio': None, 'subtitle': None, 'video': None}
 
     def __init__(self, executable=None):
         self.executable = executable or self.executable

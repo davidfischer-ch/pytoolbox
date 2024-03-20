@@ -25,10 +25,11 @@ def test_chown(tmp_path) -> None:
 
     with mock.patch('os.chown') as chown:
         filesystem.chown(tmp_path, 100, 'root', recursive=True)
+
     chown.assert_has_calls([
-        mock.call(str(tmp_path), 100, 0),
-        mock.call(str(file_b), 100, 0),
-        mock.call(str(file_a), 100, 0),
-        mock.call(str(file_c.parent), 100, 0),
-        mock.call(str(file_c), 100, 0),
+        mock.call(tmp_path, 100, 0),
+        mock.call(file_b, 100, 0),
+        mock.call(file_a, 100, 0),
+        mock.call(file_c.parent, 100, 0),
+        mock.call(file_c, 100, 0),
     ], any_order=True)
