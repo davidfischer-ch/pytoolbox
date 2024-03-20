@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final
+from typing import Final, Type
 import errno
 import itertools
 import re
@@ -25,8 +25,8 @@ class FFmpeg(object):
     encoding.
     """
     executable: Path | str = 'ffmpeg'
-    ffprobe_class: type = ffprobe.FFprobe
-    statistics_class: type = encode.EncodeStatistics
+    ffprobe_class: Type[ffprobe.FFprobe] = ffprobe.FFprobe
+    statistics_class: Type[encode.EncodeStatistics] = encode.EncodeStatistics
 
     def __init__(
         self,

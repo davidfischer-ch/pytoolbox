@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Type
 
 from pytoolbox import comparison, filesystem, validation
 from pytoolbox.subprocess import to_args_list, CallArgsType
@@ -98,7 +98,7 @@ class Stream(BaseInfo):
 
     __slots__ = ('avg_frame_rate', 'codec', 'disposition', 'index', 'r_frame_rate', 'time_base')
 
-    codec_class: type = Codec
+    codec_class: Type[Codec] = Codec
 
     def __init__(self, info: dict[str, Any]) -> None:  # pylint:disable=super-init-not-called
         for attr in get_slots(self):

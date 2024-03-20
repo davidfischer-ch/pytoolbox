@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any, Type
 import inspect
 import io
 import traceback
@@ -10,26 +11,25 @@ _all = module.All(globals())
 
 
 class MessageMixin(Exception):
+    message: str
 
-    message = None
-
-    def __init__(self, message=None, **kwargs):
+    def __init__(self, message: str | None = None, **kwargs) -> None:
         if message is not None:
             self.message = message
         self.__dict__.update(kwargs)
         Exception.__init__(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
         return self.message.format(**{a: v for a, v in attributes if a[0] != '_'})
 
 
 class BadHTTPResponseCodeError(MessageMixin, Exception):
-    message = 'Download request {url} code {r_code} expected {code}.'
+    message: str = 'Download request {url} code {r_code} expected {code}.'
 
 
 class CorruptedFileError(MessageMixin, Exception):
-    message = 'File {path} is corrupted checksum {file_hash} expected {expected_hash}.'
+    message: str = 'File {path} is corrupted checksum {file_hash} expected {expected_hash}.'
 
 
 class ForbiddenError(Exception):
@@ -37,22 +37,28 @@ class ForbiddenError(Exception):
 
 
 class InvalidBrandError(MessageMixin, Exception):
-    message = 'Brand {brand} not in {brands}.'
+    message: str = 'Brand {brand} not in {brands}.'
 
 
 class InvalidIPSocketError(MessageMixin, Exception):
-    message = '{socket} is not a valid IP socket.'
+    message: str = '{socket} is not a valid IP socket.'
 
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
-    message = 'Signal {signum} already handled by {handlers}.'
+    message: str = 'Signal {signum} already handled by {handlers}.'
 
 
 class UndefinedPathError(Exception):
     pass
 
 
-def assert_raises_item(exception_cls, something, index, value=None, delete=False):
+def assert_raises_item(
+    exception_cls: Type[Exception],
+    something: Any,  # That has __getitem__
+    index: Any,
+    value: Any | None = None,
+    delete: bool = False
+) -> None:
     """
 
     **Example usage**
@@ -106,7 +112,7 @@ def assert_raises_item(exception_cls, something, index, value=None, delete=False
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')
 
 
-def get_exception_with_traceback(exception):
+def get_exception_with_traceback(exception: Exception) -> str:
     """
     Return a string with the exception traceback.
 

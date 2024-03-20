@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final
+from typing import Final, Type
 from xml.dom import minidom
 import datetime
 import errno
@@ -27,7 +27,7 @@ class FFprobe(object):
     executable: Path | str = 'ffprobe'
     duration_regex: re.Pattern = DURATION_REGEX
     format_class: type | None = None
-    media_class: type = miscellaneous.Media
+    media_class: Type[miscellaneous.Media] = miscellaneous.Media
     stream_classes: dict[str, type | None] = {'audio': None, 'subtitle': None, 'video': None}
 
     def __init__(self, executable=None):
