@@ -536,10 +536,10 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             if len(packet.payload) < size:
                 payload = payload + bytearray(size - len(packet.payload))
 
-            fast_xor_inplace(fec.payload_recovery, payload)
+            fast_xor_inplace(fec.payload_recovery, bytearray(payload))
             # NUMPY fec.payload_recovery = bytearray(
-            #     numpy.bitwise_xor(fec.payload_recovery, payload))
-            # XOR LOOP for i in xrange(min(size, len(packet.payload))):
+            #     numpy.bitwise_xor(fec.payload_recovery, bytearray(payload)))
+            # XOR LOOP for i in range(min(size, len(packet.payload))):
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
 
