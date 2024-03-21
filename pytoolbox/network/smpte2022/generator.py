@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from pytoolbox.network.rtp import RtpPacket
+
 from .base import FecPacket
 
 __all__ = ['FecGenerator']

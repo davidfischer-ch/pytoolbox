@@ -1,14 +1,14 @@
 """
 Throttling classes implementing various throttling policies.
 """
+from __future__ import annotations
 
 import time
 
-from . import module
 from .datetime import total_seconds
 from .types import Missing
 
-_all = module.All(globals())
+__all__ = ['TimeThrottle', 'TimeAndRatioThrottle']
 
 
 class TimeThrottle(object):
@@ -27,11 +27,11 @@ class TimeThrottle(object):
     [0, 1, 2]
     """
 
-    def __init__(self, min_time_delta):
-        self.min_time_delta = total_seconds(min_time_delta)
+    def __init__(self, min_time_delta) -> None:
+        self.min_time_delta: float = total_seconds(min_time_delta)
         self.previous_time = None
 
-    def is_throttled(self):
+    def is_throttled(self) -> bool:
         """Return a boolean indicating if you should throttle."""
         if not self.previous_time:
             self._update()
@@ -104,6 +104,3 @@ class TimeAndRatioThrottle(TimeThrottle):
     def _update(self, ratio):  # pylint:disable=arguments-differ
         super()._update()
         self.previous_ratio = ratio
-
-
-__all__ = _all.diff(globals())

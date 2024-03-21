@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Final
-import math, re
+import math
+import re
 
 from . import module
 

@@ -2,8 +2,11 @@
 Module containing extensions to validate data with
 `voluptuous <https://github.com/alecthomas/voluptuous>`_.
 """
+from __future__ import annotations
 
-import functools, re
+
+import functools
+import re
 
 import voluptuous
 

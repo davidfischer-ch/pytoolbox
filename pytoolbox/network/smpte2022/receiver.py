@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-import collections, io, os
+import collections
+import io
+import os
 
 from pytoolbox.network.ip import IPSocket
 from pytoolbox.network.rtp import RtpPacket
+
 from .base import FecPacket
 
 __all__ = ['FecReceiver']
@@ -44,12 +47,15 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     Media packets are sorted by the buffer, so, it's time to test this feature:
 
-    >>> import io, random
+    >>> import io
+    >>> import random
+    >>>
     >>> output = io.StringIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1000, FecReceiver.PACKETS)
     >>> source = list(range(30))
     >>> random.shuffle(source)
+    >>>
     >>> for i in source:
     ...     receiver.put_media(RtpPacket.create(i, i * 100, RtpPacket.MP2T_PT, str(i)), True)
     >>> receiver.flush()
@@ -58,22 +64,30 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     Testing FEC algorithm correctness:
 
-    >>> import io, os, random
+    >>> import io
+    >>> import os
+    >>> import random
+    >>>
     >>> output = io.BytesIO()
     >>> receiver = FecReceiver(output)
     >>> receiver.set_delay(1024, FecReceiver.PACKETS)
     >>> L, D = 4, 5
+    >>>
     >>> # Generate a [D][L] matrix of randomly generated RTP packets
     >>> matrix = [[RtpPacket.create(L * j + i, (L * j + i) * 100 + random.randint(0, 50),
     ...           RtpPacket.MP2T_PT, bytearray(os.urandom(random.randint(50, 100))))
     ...           for i in range(L)] for j in range(D)]
+    >>>
     >>> assert len(matrix) == D and len(matrix[0]) == L
+    >>>
     >>> # Retrieve the first column of the matrix
     >>> for column in matrix:
     ...     for media in column:
     ...         if media.sequence != 0:
     ...             receiver.put_media(media, True)
+    >>>
     >>> fec = FecPacket.compute(1, FecPacket.XOR, FecPacket.COL, L, D, [p[0] for p in matrix[0:]])
+    >>>
     >>> print('dir={0} snbase={1} offset={2} na={3}'.format(
     ...     fec.direction, fec.snbase, fec.offset, fec.na))
     dir=0 snbase=0 offset=4 na=5
@@ -224,8 +238,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         if media.sequence in self.medias:
             self.media_overwritten += 1
         self.medias[media.sequence] = media
-        if len(self.medias) > self.max_media:
-            self.max_media = len(self.medias)
+        self.max_media = max(self.max_media, len(self.medias))
         self.media_received += 1
 
         if cross := self.crosses.get(media.sequence):
@@ -271,8 +284,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 if not (cross := self.crosses.get(media_test)):
                     cross = {'col_sequence': None, 'row_sequence': None}
                     self.crosses[media_test] = cross
-                    if len(self.crosses) > self.max_cross:
-                        self.max_cross = len(self.crosses)
+                    self.max_cross = max(self.max_cross, len(self.crosses))
 
                 # Register the fec packet able to recover the missing media packet
                 if fec.direction == FecPacket.COL:
@@ -315,16 +327,14 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 self.col_dropped += 1
                 return
             self.cols[fec.sequence] = fec
-            if len(self.cols) > self.max_col:
-                self.max_col = len(self.cols)
+            self.max_col = max(self.max_col, len(self.cols))
 
         if fec.direction == FecPacket.ROW:
             if drop:
                 self.row_dropped += 1
                 return
             self.rows[fec.sequence] = fec
-            if len(self.rows) > self.max_row:
-                self.max_row = len(self.rows)
+            self.max_row = max(self.max_row, len(self.rows))
 
         # [2] Only on media packet missing, fec packet is able to recover it now !
         if len(fec.missing) == 1:
@@ -427,8 +437,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 if media.sequence in self.medias:
                     self.media_overwritten += 1
                 self.medias[media.sequence] = media
-                if len(self.medias) > self.max_media:
-                    self.max_media = len(self.medias)
+                self.max_media = max(self.max_media, len(self.medias))
                 if fec.direction == FecPacket.COL:
                     del self.cols[fec.sequence]
                 else:

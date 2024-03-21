@@ -33,6 +33,7 @@
             dj_signals.pre_save.connect(
                 strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
+from __future__ import annotations
 
 import logging
 

@@ -1,6 +1,7 @@
 """
 Decorators for enhancing your models.
 """
+from __future__ import annotations
 
 try:
     from django.urls import reverse

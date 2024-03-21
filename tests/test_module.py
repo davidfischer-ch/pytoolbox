@@ -1,4 +1,6 @@
 # pylint:disable=too-few-public-methods
+from __future__ import annotations
+
 from pytoolbox import module
 from pytoolbox.unittest import asserts
 
@@ -25,5 +27,5 @@ class _PrivateClass(_validation.CleanAttributesMixin):
 
 
 asserts.equal(
-    _all.diff(globals(), to_type=set),
+    set(_all.diff(globals())),
     {'public_variable', 'public_function', 'PublicClass', 'types'})

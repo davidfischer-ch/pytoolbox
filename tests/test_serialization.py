@@ -1,4 +1,7 @@
-import math, os
+from __future__ import annotations
+
+import math
+import os
 
 import pytest
 from pytoolbox import filesystem
@@ -17,7 +20,7 @@ class MyPoint(PickleableObject):
         return math.sqrt(self.x * self.x + self.y * self.y)
 
 
-def test_pickleable_object():
+def test_pickleable_object() -> None:
     point_1 = MyPoint(name='My point', x=6, y=-3)
     point_1.write('test.pkl')
     point_2 = MyPoint.read('test.pkl', store_path=True)

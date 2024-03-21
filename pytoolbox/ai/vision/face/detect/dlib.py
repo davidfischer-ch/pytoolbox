@@ -14,9 +14,12 @@
 
 # Original: https://github.com/krasserm/face-recognition/blob/master/align.py
 
-import bz2, tempfile
+import bz2
+import tempfile
 
-import cv2, dlib, numpy as np
+import cv2
+import dlib
+import numpy as np
 
 from pytoolbox.ai.vision import utils
 

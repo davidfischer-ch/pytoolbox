@@ -4,7 +4,8 @@
 
 # Contributors
 
-* Abdulhadi Mohamed @AbdulTheProgrammer
+* Abdulhadi Mohamed @aa6moham
 * Dimitri Racordon @kyouko-taiga
 * Guillaume Martres @smarter
-* Torbjörn Einarsson @TobbeEdgeware
+* Julius Milan @juliusmilan
+* Torbjörn Einarsson @tobbee

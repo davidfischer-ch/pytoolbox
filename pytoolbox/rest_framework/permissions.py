@@ -1,6 +1,7 @@
 """
 Extra permission policies for building your own Django REST Framework powered API.
 """
+from __future__ import annotations
 
 from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope
 from rest_framework import permissions

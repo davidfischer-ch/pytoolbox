@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest import mock
 
 import pytest
@@ -5,58 +7,59 @@ from pytoolbox import regex, subprocess
 from pytoolbox.validation import validate_list
 
 
-def test_to_args_list():
-    assert subprocess.to_args_list(None) == []
+def test_to_args_list() -> None:
+    # pylint:disable=use-implicit-booleaness-not-comparison
+    assert subprocess.to_args_list(None) == []  # Hidden feature one should not know:)
     assert subprocess.to_args_list('') == []
     assert subprocess.to_args_list([]) == []
     assert subprocess.to_args_list('tail -f "~/some file"') == ['tail', '-f', '~/some file']
-    assert subprocess.to_args_list([10, None, 'string "salut"']) == ['10', 'None', 'string "salut"']
+    assert subprocess.to_args_list([10, None, 'string "salut"']) == ['10', 'string "salut"']
 
 
-def test_to_args_string():
-    assert subprocess.to_args_string(None) == ''
+def test_to_args_string() -> None:
+    assert subprocess.to_args_string(None) == ''  # Hidden feature one should not know:)
     assert subprocess.to_args_string('') == ''
     assert subprocess.to_args_string([]) == ''
     assert subprocess.to_args_string('tail -f "~/some file"') == 'tail -f "~/some file"'
-    assert subprocess.to_args_string([10, None, 'string "salut"']) == '10 None \'string "salut"\''
+    assert subprocess.to_args_string([10, None, 'string "salut"']) == '10 \'string "salut"\''
 
 
-def test_cmd():
+def test_cmd() -> None:
     log = mock.Mock()
     subprocess.cmd(['echo', 'it seem to work'], log=log)
     assert subprocess.cmd('cat missing_file', fail=False, log=log)['returncode'] == 1
-    validate_list(log.call_args_list, [
-        r"call\(u*'Execute echo it seem to work'\)",
-        r"call\(u*'Execute cat missing_file'\)",
-        r"call\(u*'Attempt 1 out of 1: Failed'\)"
-    ])
+    assert log.call_args_list == [
+        mock.call("Execute echo 'it seem to work'"),
+        mock.call('Execute cat missing_file'),
+        mock.call('Attempt 1 out of 1: Failed')
+    ]
     assert subprocess.cmd('my.funny.missing.script.sh', fail=False)['stderr'] != ''
     result = subprocess.cmd(f'cat {__file__}')
     # There are at least 30 lines in this source file !
     assert len(result['stdout'].splitlines()) > 30
 
 
-def test_cmd_missing_binary():
+def test_cmd_missing_binary() -> None:
     assert subprocess.cmd('hfuejnvwqkdivengz', fail=False)['returncode'] == 2
 
 
-def test_retry_first_try():
+def test_retry_first_try() -> None:
     log = mock.Mock()
     subprocess.cmd('ls', log=log, tries=5, delay_min=1, delay_max=1)
-    validate_list(log.call_args_list, [r"call\(u*'Execute ls'\)"])
+    log.assert_called_once_with('Execute ls')
 
 
-def test_retry_missing_binary_no_retry():
+def test_retry_missing_binary_no_retry() -> None:
     log = mock.Mock()
     with pytest.raises(OSError):
         subprocess.cmd('hfuejnvwqkdivengz', log=log, tries=5)
     validate_list(log.call_args_list, [
-        r"call\(u*'Execute hfuejnvwqkdivengz'\)",
+        r"call\('Execute hfuejnvwqkdivengz'\)",
         r'call\(FileNotFoundError.*\)'
     ])
 
 
-def test_retry_no_success():
+def test_retry_no_success() -> None:
     log = mock.Mock()
     subprocess.cmd(
         'ls hfuejnvwqkdivengz',
@@ -66,16 +69,16 @@ def test_retry_no_success():
         delay_min=0.0,
         delay_max=0.95)
     validate_list(log.call_args_list, [
-        r"call\(u*'Execute ls hfuejnvwqkdivengz'\)",
-        r"call\(u*'Attempt 1 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\(u*'Attempt 2 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\(u*'Attempt 3 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\(u*'Attempt 4 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\(u*'Attempt 5 out of 5: Failed'\)"
+        r"call\('Execute ls hfuejnvwqkdivengz'\)",
+        r"call\('Attempt 1 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+        r"call\('Attempt 2 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+        r"call\('Attempt 3 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+        r"call\('Attempt 4 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+        r"call\('Attempt 5 out of 5: Failed'\)"
     ])
 
 
-def test_screen():
+def test_screen() -> None:
     try:
         # Launch some screens
         subprocess.screen_kill('my_1st_screen', fail=False)

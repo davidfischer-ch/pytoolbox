@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from pytoolbox.collections import pygal_deque
 
 
-def test_pygal_deque():
+def test_pygal_deque() -> None:
     data = pygal_deque(maxlen=4)
     data.append(5)
     assert data.list(fill=False) == [5]

@@ -1,30 +1,40 @@
-import datetime, errno, itertools, json, math, os, re, subprocess
-from pathlib import Path
+from __future__ import annotations
 
+from pathlib import Path
+from typing import Final, Type
 from xml.dom import minidom
+import datetime
+import errno
+import itertools
+import json
+import math
+import os
+import re
+import subprocess
 
 from pytoolbox import subprocess as py_subprocess
 from pytoolbox.datetime import parts_to_time, secs_to_time
+
 from . import miscellaneous, utils
 
 __all__ = ['DURATION_REGEX', 'FFprobe']
 
-DURATION_REGEX = re.compile(r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+DURATION_REGEX: Final[re.Pattern] = re.compile(
+    r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 
 
 class FFprobe(object):
+    executable: Path = Path('ffprobe')
+    duration_regex: re.Pattern = DURATION_REGEX
+    format_class: type | None = None
+    media_class: Type[miscellaneous.Media] = miscellaneous.Media
+    stream_classes: dict[str, type | None] = {'audio': None, 'subtitle': None, 'video': None}
 
-    executable = 'ffprobe'
-    duration_regex = DURATION_REGEX
-    format_class = None
-    media_class = miscellaneous.Media
-    stream_classes = {'audio': None, 'subtitle': None, 'video': None}
-
-    def __init__(self, executable=None):
+    def __init__(self, executable: Path | None = None) -> None:
         self.executable = executable or self.executable
 
-    def __call__(self, *arguments):
-        """Call FFprobe with given arguments and return the output (unicode string)."""
+    def __call__(self, *arguments) -> str:
+        """Call FFprobe with given arguments and return the output."""
         process = py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
             stdout=subprocess.PIPE,

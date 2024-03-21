@@ -1,6 +1,14 @@
 # pylint:disable=no-member
+from __future__ import annotations
 
-import functools, inspect, io, itertools, os, pprint, time, unittest
+import functools
+import inspect
+import io
+import itertools
+import os
+import pprint
+import time
+import unittest
 
 from . import module
 from .multimedia import ffmpeg

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from fractions import Fraction
-import datetime, re
+import datetime
+import re
 
 from pytoolbox import decorators
 from pytoolbox.datetime import str_to_datetime, str_to_time

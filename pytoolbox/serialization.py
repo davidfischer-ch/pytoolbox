@@ -1,4 +1,11 @@
-import errno, inspect, json, os, pickle, shutil
+from __future__ import annotations
+
+import errno
+import inspect
+import json
+import os
+import pickle
+import shutil
 
 from . import filesystem, module
 from .private import ObjectId
@@ -216,7 +223,6 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     Define the sample class, instantiate it and serialize it to a file:
 
     >>> import os
-    >>> from pytoolbox.unittest import asserts
     >>>
     >>> class Point(object):
     ...     def __init__(self, name=None, x=0, y=0):
@@ -231,9 +237,9 @@ def jsonfile_to_object(cls, path_or_file, inspect_constructor):
     Deserialize the freshly saved file:
 
     >>> p2 = jsonfile_to_object(Point, 'test.json', inspect_constructor=False)
-    >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
+    >>> assert p1.__dict__ == p2.__dict__
     >>> p2 = jsonfile_to_object(Point, open('test.json'), inspect_constructor=False)
-    >>> asserts.dict_equal(p1.__dict__, p2.__dict__)
+    >>> assert p1.__dict__ == p2.__dict__
     >>> os.remove('test.json')
     """
     if isinstance(path_or_file, str):

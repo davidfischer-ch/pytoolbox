@@ -1,18 +1,41 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 import re
 
-from pytoolbox import module
+__all__ = [
+    'BIT_RATE_REGEX',
+    'BIT_RATE_COEFFICIENT_FOR_UNIT',
+    'PIPE_REGEX',
+    'SIZE_REGEX',
+    'SIZE_COEFFICIENT_FOR_UNIT',
+    'WIDTH',
+    'HEIGHT',
+    'is_pipe',
+    'to_bit_rate',
+    'to_frame_rate',
+    'to_size'
+]
 
-_all = module.All(globals())
+BIT_RATE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
+BIT_RATE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
+    'b': 1,
+    'k': 1000,
+    'm': 1000**2,
+    'g': 1000**3
+}
+PIPE_REGEX: Final[re.Pattern] = re.compile(r'^-$|^pipe:\d+$')
+SIZE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
+SIZE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
+    'b': 1,
+    'k': 1024,
+    'm': 1024**2,
+    'g': 1024**3
+}
 
-BIT_RATE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
-BIT_RATE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1000, 'm': 1000**2, 'g': 1000**3}
-PIPE_REGEX = re.compile(r'^-$|^pipe:\d+$')
-SIZE_REGEX = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
-SIZE_COEFFICIENT_FOR_UNIT = {'b': 1, 'k': 1024, 'm': 1024**2, 'g': 1024**3}
-WIDTH, HEIGHT = range(2)  # noqa
+WIDTH: Final[int] = 0
+HEIGHT: Final[int] = 1
 
 
 def is_pipe(path: Path | str) -> bool:
@@ -43,6 +66,3 @@ def to_size(size: str) -> int:
         data = match.groupdict()
         return int(float(data['value']) * SIZE_COEFFICIENT_FOR_UNIT[data['units'][0].lower()])
     raise ValueError(size)
-
-
-__all__ = _all.diff(globals())

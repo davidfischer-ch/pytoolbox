@@ -4,7 +4,7 @@
 #                              PYTOOLBOX - TOOLBOX FOR PYTHON SCRIPTS
 #
 #  Main Developer : David Fischer (david.fischer.ch@gmail.com)
-#  Copyright      : Copyright (c) 2012-2023 David Fischer. All rights reserved.
+#  Copyright      : Copyright (c) 2012-2024 David Fischer. All rights reserved.
 #
 # **************************************************************************************************
 #
@@ -22,17 +22,21 @@
 #     22-07-2013, <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
 #
 # Retrieved from https://github.com/davidfischer-ch/pytoolbox.git
+from __future__ import annotations
 
 from pathlib import Path
 from setuptools.command import develop, install
-import itertools, setuptools, subprocess, sys
+import itertools
+import setuptools
+import subprocess
+import sys
 
 import pytoolbox
 
 if sys.argv[-1] == 'test':
     sys.exit('Run pytest instead.')
 
-install_requires = [
+install_requires: list[str] = [
     'argparse',
     'pyaml',
     'python-magic',
@@ -48,7 +52,7 @@ except ImportError:
     # Required on Windows
     install_requires.append('python-magic-bin')
 
-extras_require = {
+extras_require: dict[str, list[str]] = {
     'atlassian': [
         'jira'
     ],
@@ -73,6 +77,9 @@ extras_require = {
     ],
     'jinja2': [
         'jinja2'
+    ],
+    'mongodb': [
+        'pymongo'
     ],
     'network': [
         'tldextract'
@@ -104,9 +111,9 @@ extras_require = {
     ]
 }
 
-features = ['all'] + sorted(extras_require) + ['doc', 'test']
+features: list[str] = ['all'] + sorted(extras_require) + ['doc', 'test']
 
-labels = {
+labels: dict[str, str] = {
     # Features
     'all': 'All Modules',
     'atlassian': 'Atlassian',
@@ -118,6 +125,7 @@ labels = {
     'imaging': 'Imaging',
     'jinja2': 'Jinja2',
     'logging': 'Logging',
+    'mongodb': 'MongoDB',
     'network': 'Networking',
     'pandas': 'Pandas',
     'rest_framework': 'Django REST Framework',
@@ -135,29 +143,33 @@ labels = {
 extras_require.update({
     'all': sorted(set(itertools.chain.from_iterable(extras_require.values()))),
     'doc': [
-        'sphinx>=6',
-        'sphinx-rtd-theme>=1.2.2'
+        'sphinx>=7.2.6',           # 2024-03-19 Released 2023-09-14
+        'sphinx-rtd-theme>=2.0.0'  # 2024-03-19 Released 2023-11-28
     ],
     'test': [
-        'coverage>=7.2.7,<8',        # 07-06-2023 Released 29-05-2023
-        'flake8>=6,<7',              # 07-06-2023 Released 23-11-2022
-        'pylint>=2.17.4,<3',         # 07-06-2023 Released 06-05-2023
-        'pytest>=7.3.1,<8',          # 07-06-2023 Released 14-04-2023
-        'pytest-cov>=4.1.0,<5',      # 07-06-2023 Released 24-05-2023
-        'pytest-pylint>=0.19.0,<1',  # 07-06-2023 Released 10-09-2022
+        'colored>=2.2.4',         # 2024-03-19 Released 2023-12-19
+        'coverage>=7.4.4',        # 2024-03-19 Released 2024-03-14
+        'flake8>=7.0.0',          # 2024-03-19 Released 2024-01-05
+        'mypy>=1.9.0',            # 2024-03-19 Released 2024-03-08
+        'pylint>=3.1.0',          # 2024-03-19 Released 2024-02-25
+        'pytest>=8.1.1',          # 2024-03-19 Released 2024-03-09
+        'pytest-cov>=4.1.0',      # 2024-03-19 Released 2023-05-24
+        'pytest-pylint>=0.21.0',  # 2024-03-19 Released 2023-10-06
+        'pytest-ruff>=0.3.1',     # 2024-03-19 Released 2024-03-09
+        'ruff>=0.3.3',            # 2024-03-19 Released 2024-03-15
+        # The library is not yet ready to be processed by ruff...
 
-        # For MyPy
-        'PyGObject-stubs>=2.8.0',
-
-         # 07-06-2023 Bug still not resolved
-         # Bug https://github.com/tholo/pytest-flake8/issues/87
-         # Fix https://github.com/tholo/pytest-flake8/pull/88/files
-         # 'pytest-flake8'
+        # Stubs
+        'PyGObject-stubs>=2.10.0',          # 2024-03-19 Released 2023-11-16
+        'types-pytz>=2024.1.0.20240203',    # 2024-03-19 Released 2024-02-03
+        'types-PyYAML>=6.0.12.20240311',    # 2024-03-19 Released 2023-09-23
+        'types-requests>=2.31.0.20240311',  # 2024-03-19 Released 2023-10-18
+        'types-urllib3>=1.26.25.14'         # 2024-03-19 Released 2023-07-20
     ]
 })
 
 
-def get_command_with_extras(cls):
+def get_command_with_extras(cls: type) -> type:
 
     class WithExtra(cls):
 
@@ -225,9 +237,7 @@ class DocsCommand(setuptools.Command):  # pylint:disable=duplicate-code
         subprocess.run(['make', 'html'], cwd=project / 'docs', check=True)
 
 
-with open('README.rst', encoding='utf-8') as f:
-    long_description = f.read()
-
+long_description = Path('README.rst').read_text(encoding='utf-8')
 setuptools.setup(
     cmdclass={
         'docs': DocsCommand,
@@ -235,7 +245,7 @@ setuptools.setup(
         'install': get_command_with_extras(install.install)
     },
     name='pytoolbox',
-    python_requires='>=3.9',
+    python_requires='>=3.11',
     version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={
@@ -260,8 +270,8 @@ setuptools.setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'

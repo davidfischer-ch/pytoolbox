@@ -40,8 +40,8 @@ version=$(cat 'pytoolbox/__init__.py' | grep '__version__ = ' | cut -d'=' -f2 | 
 echo "Release version $version, press enter to continue ..."
 read a
 
-git push || error 'Unable to push to GitHub' 1
-git tag "$version" && git push origin "$version" || error 'Unable to add release tag' 2
+#git push || error 'Unable to push to GitHub' 1
+#git tag "$version" && git push origin "$version" || error 'Unable to add release tag' 2
 
 rm -rf dist/ 2>/dev/null
 python3 setup.py sdist bdist_wheel || error 'Unable to build for Python 3' 4

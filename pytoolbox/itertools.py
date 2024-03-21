@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import itertools
 
-from . import module, throttles
+from . import throttles
 from .types import isiterable
 
-_all = module.All(globals())
+__all__ = ['chain', 'chunk', 'extract_single', 'throttle']
 
 
 def chain(*objects, callback=isiterable):
@@ -72,17 +74,17 @@ def throttle(objects, min_delay):
 
     **Example usage**
 
-    >>> import datetime, time
+    >>> import datetime
+    >>> import time
+    >>>
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
+    ...
     >>> list(throttle(list(range(10)), datetime.timedelta(minutes=1)))
     [0, 9]
     >>> list(throttle(slow_range(3), '00:00:00.2'))
     [0, 1, 2]
     """
     return throttles.TimeThrottle(min_delay).throttle_iterable(objects)
-
-
-__all__ = _all.diff(globals())

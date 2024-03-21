@@ -1,13 +1,17 @@
-import collections, inspect
+from __future__ import annotations
 
-from . import module
+from typing import Any
+import collections
+import inspect
 
-_all = module.All(globals())
+__all__ = ['StateEnumMetaclass', 'StateEnumMergeMetaclass', 'StateEnum']
 
 
 class StateEnumMetaclass(type):
 
-    def __init__(cls, name, bases, cls_dict):
+    # TODO type hint class attributes?
+
+    def __init__(cls, name: str, bases: tuple[type, ...], cls_dict: dict[str, Any]) -> None:
         super().__init__(name, bases, cls_dict)
         if hasattr(cls, 'TRANSITIONS'):
             cls.ALL_STATES = frozenset(cls.TRANSITIONS.keys())
@@ -21,13 +25,15 @@ class StateEnumMetaclass(type):
 
 class StateEnumMergeMetaclass(StateEnumMetaclass):
 
-    def __init__(cls, name, bases, cls_dict):
+    # TODO type hint class attributes?
+
+    def __init__(cls, name: str, bases: tuple[type, ...], cls_dict: dict[str, Any]) -> None:
         # Retrieve base "state" classes attributes
         m_states, transitions = collections.defaultdict(set), collections.defaultdict(set)
         for base in bases:
             for key, value in (i for i in inspect.getmembers(base) if i[0].endswith('_STATES')):
                 m_states[key].update(value)
-            for key, values in base.TRANSITIONS.items():
+            for key, values in base.TRANSITIONS.items():  # type: ignore[attr-defined]
                 transitions[key].update(values)
         # Update "state" class attributes
         for key, value in m_states.items():
@@ -40,8 +46,10 @@ class StateEnumMergeMetaclass(StateEnumMetaclass):
 
 class StateEnum(object, metaclass=StateEnumMetaclass):
 
+    # TODO type hint class attributes?
+
     @classmethod
-    def get(cls, name):
+    def get(cls, name: str):  # TODO return type hint
         if name.lower() == name:
             if (name := name.upper()) in cls.ALL_STATES:
                 return name
@@ -49,7 +57,7 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
         return None
 
     @classmethod
-    def get_transit_from(cls, state, auto_inverse=False):
+    def get_transit_from(cls, state: str, *, auto_inverse: bool = False):  # TODO return type hint
         """
         Return a set with the states having a transition to given `state`.
 
@@ -63,6 +71,3 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
             return valid
         not_valid = cls.ALL_STATES - valid
         return (not_valid, False) if len(valid) > len(not_valid) else (valid, True)
-
-
-__all__ = _all.diff(globals())

@@ -1,11 +1,20 @@
-import collections, hashlib, os, random, string
+from __future__ import annotations
+
+from collections.abc import Callable, Iterable
+from pathlib import Path
+from typing import Literal, overload
+import collections
+import hashlib
+import os
+import random
+import string
 
 from . import filesystem
 
-__all__ = ['checksum', 'new', 'get_password_generator', 'githash', 'guess_algorithm']
+__all__ = ['new', 'checksum', 'get_password_generator', 'githash', 'guess_algorithm']
 
 
-def new(algorithm=hashlib.sha256):
+def new(algorithm: Callable | str = hashlib.sha256) -> Callable:
     """
     Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm`
     is a string else instantiate algorithm.
@@ -14,12 +23,12 @@ def new(algorithm=hashlib.sha256):
 
 
 def checksum(
-    path_or_data,
-    encoding='utf-8',
-    is_path=False,
-    algorithm=hashlib.sha256,
-    chunk_size=None
-):
+    path_or_data: Path | str,
+    *,
+    encoding: str = 'utf-8',
+    algorithm: Callable | str = hashlib.sha256,
+    chunk_size: int | None = None
+) -> str:
     """
     Return the result of hashing `data` by given hash `algorithm`.
 
@@ -39,18 +48,21 @@ def checksum(
     'ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef'
     >>> checksum('et ça fonctionne !\\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
-    >>> checksum(directory / '..' / 'LICENSE.rst', is_path=True)
+    >>> checksum(directory / '..' / 'LICENSE.rst')
     '793b47e008d4261d4fdc5ed24d56eb8d879b9a2e72d37c24a6944558b87909f8'
-    >>> checksum(directory / '..' / 'LICENSE.rst', is_path=True, chunk_size=997)
+    >>> checksum(directory / '..' / 'LICENSE.rst', chunk_size=997)
     '793b47e008d4261d4fdc5ed24d56eb8d879b9a2e72d37c24a6944558b87909f8'
     """
     hasher = new(algorithm)
-    for data in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
-        hasher.update(data)
-    return hasher.hexdigest()
+    for data in filesystem.get_bytes(path_or_data, encoding=encoding, chunk_size=chunk_size):
+        hasher.update(data)    # type: ignore[attr-defined]
+    return hasher.hexdigest()  # type: ignore[attr-defined]
 
 
-def get_password_generator(characters=string.ascii_letters + string.digits, length=16):
+def get_password_generator(
+    characters: str = string.ascii_letters + string.digits,
+    length: int = 16
+) -> collections.defaultdict[str, str]:
     """
     Return a dead simple password generator in the form of a dictionary with
     missing keys generated on the fly.
@@ -75,7 +87,12 @@ def get_password_generator(characters=string.ascii_letters + string.digits, leng
 
 # TODO implement githash class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
 # TODO add length optional argument to implement chunk'ed update()
-def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
+def githash(
+    path_or_data: Path | str,
+    *,
+    encoding: str = 'utf-8',
+    chunk_size: int | None = None
+) -> str:
     """
     Return the blob of some data.
 
@@ -96,26 +113,54 @@ def githash(path_or_data, encoding='utf-8', is_path=False, chunk_size=None):
     'abdd1818289725c072eff0f5ce185457679650be'
     >>> githash('et ça fonctionne !\\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
-    >>> githash(directory / '..' / 'LICENSE.rst', is_path=True)
+    >>> githash(directory / '..' / 'LICENSE.rst')
     'b699ab5e129290e7bce9cbbc70443bf1cdede4ea'
-    >>> githash(directory / '..' / 'LICENSE.rst', is_path=True, chunk_size=256)
+    >>> githash(directory / '..' / 'LICENSE.rst', chunk_size=256)
     'b699ab5e129290e7bce9cbbc70443bf1cdede4ea'
     """
     hasher = hashlib.sha1()
-    if is_path:
+    if isinstance(path_or_data, Path):
         hasher.update((f'blob {os.path.getsize(path_or_data)}\0').encode('utf-8'))
-        for data_bytes in filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size):
+        for data_bytes in filesystem.get_bytes(
+            path_or_data,
+            encoding=encoding,
+            chunk_size=chunk_size
+        ):
             hasher.update(data_bytes)
     else:
-        data_bytes = next(filesystem.get_bytes(path_or_data, encoding, is_path, chunk_size=None))
+        data_bytes = next(filesystem.get_bytes(
+            path_or_data,
+            encoding=encoding,
+            chunk_size=None
+        ))
         hasher.update((f'blob {len(data_bytes)}\0').encode('utf-8'))
         hasher.update(data_bytes)
     return hasher.hexdigest()
 
 
-def guess_algorithm(checksum, algorithms=None, unique=False):  # pylint:disable=redefined-outer-name
+@overload
+def guess_algorithm(
+    checksum_value: str,
+    algorithms: Iterable[Callable | str] | None = None,
+    *,
+    unique: Literal[False] = False
+) -> Callable | None:
+    ...
+
+
+@overload
+def guess_algorithm(
+    checksum_value: str,
+    algorithms: Iterable[Callable | str] | None = None,
+    *,
+    unique: Literal[True]
+) -> set[Callable]:
+    ...
+
+
+def guess_algorithm(checksum_value, algorithms=None, *, unique=False):
     """
-    Guess the algorithms that have produced the checksum, based on its size.
+    Guess the algorithms that have produced the checksum_value, based on its size.
 
     **Example usage**
 
@@ -138,7 +183,7 @@ def guess_algorithm(checksum, algorithms=None, unique=False):  # pylint:disable=
     >> {a.name for a in guess_algorithm(long_checksum))}
     {'sha256'}
     """
-    digest_size = len(checksum) / 2
+    digest_size = len(checksum_value) / 2
     if algorithms:
         algorithms = [hashlib.new(a) if isinstance(a, str) else a for a in algorithms]
     else:

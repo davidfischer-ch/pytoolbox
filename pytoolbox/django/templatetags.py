@@ -1,8 +1,11 @@
 """
 Pytoolbox's Template tag and filters.
 """
+from __future__ import annotations
 
-import datetime, os, re
+import datetime
+import os
+import re
 
 from django import template
 from django.conf import settings

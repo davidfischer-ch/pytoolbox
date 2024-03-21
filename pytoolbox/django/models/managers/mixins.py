@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own model managers.
 """
+from __future__ import annotations
 
 from pytoolbox import module
 from pytoolbox.django.models import utils

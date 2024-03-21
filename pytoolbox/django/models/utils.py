@@ -1,6 +1,7 @@
 """
 Some utilities related to the model layer.
 """
+from __future__ import annotations
 
 from pytoolbox import module
 

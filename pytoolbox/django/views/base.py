@@ -1,6 +1,7 @@
 """
 Extra views.
 """
+from __future__ import annotations
 
 from django.http import HttpResponseRedirect
 from django.views.generic.edit import DeleteView

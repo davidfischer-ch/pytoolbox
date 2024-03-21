@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import abc, re
+import abc
+import re
 
 from .brand import Brand
 

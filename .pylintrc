@@ -106,7 +106,6 @@ disable=
     wrong-import-order,             # "import setuptools, sys" should be placed before "import setuptools, sys" WTF
     logging-fstring-interpolation,  # Reasonable to use f-string in logging methods
     missing-docstring,              # Docstring for everything is overkill
-    multiple-imports,               # Its David Fischer style
     fixme,                          # We anticipate #3512 where it will become optional
     useless-object-inheritance,     # Explicit is better than implicit https://stackoverflow.com/questions/1238606
 

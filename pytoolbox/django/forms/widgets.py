@@ -1,6 +1,7 @@
 """
 Extra widgets for your forms.
 """
+from __future__ import annotations
 
 from django.forms import widgets
 from django.utils.html import mark_safe

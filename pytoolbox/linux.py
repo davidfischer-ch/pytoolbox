@@ -1,13 +1,19 @@
-import configparser, os, re
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Final
+import configparser
+import os
+import re
 
 __all__ = ['CONFIG_PREFIX', 'DRIVER_IN_KERNEL', 'DRIVER_HAS_MODULE', 'get_kernel_config']
 
-CONFIG_PREFIX = re.compile(r'^config_')
-DRIVER_IN_KERNEL = 'y'
-DRIVER_HAS_MODULE = 'm'
+CONFIG_PREFIX: Final[re.Pattern] = re.compile(r'^config_')
+DRIVER_IN_KERNEL: Final[str] = 'y'
+DRIVER_HAS_MODULE: Final[str] = 'm'
 
 
-def get_kernel_config(release=None, fail=True):
+def get_kernel_config(release: str | None = None, *, fail: bool = True) -> dict[str, str]:
     """
     Return a JSON string with the GNU/Linux Kernel configuration.
 
@@ -25,9 +31,9 @@ def get_kernel_config(release=None, fail=True):
     {}
     """
     try:
-        with open(f'/boot/config-{release or os.uname().release}', encoding='utf-8') as f:
-            config = configparser.ConfigParser()
-            config.read_string(f'[kernel]{f.read()}')
+        content = Path(f'/boot/config-{release or os.uname().release}').read_text(encoding='utf-8')
+        config = configparser.ConfigParser()
+        config.read_string(f'[kernel]{content}')
     except IOError:
         if fail:
             raise

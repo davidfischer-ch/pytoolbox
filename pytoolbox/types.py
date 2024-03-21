@@ -1,13 +1,19 @@
-import inspect, itertools
-from collections import abc
+from __future__ import annotations
+
+from collections.abc import Callable, Generator, Iterable
+from typing import Any, Literal, Self, TypeVar, overload
+import inspect
+import itertools
 
 from . import module
 from .collections import merge_dicts
 
 _all = module.All(globals())
 
+GenericType = TypeVar('GenericType', bound=type)  # pylint:disable=invalid-name
 
-def get_arguments_names(function):
+
+def get_arguments_names(function: Callable) -> list[str]:
     """
     Return a list with arguments names.
 
@@ -30,14 +36,14 @@ def get_arguments_names(function):
     return list(inspect.signature(function).parameters.keys())
 
 
-def get_properties(obj):
+def get_properties(obj: Any) -> Generator[tuple[str, Any], None, None]:
     return (
         (n, getattr(obj, n))
         for n, p in inspect.getmembers(obj.__class__, lambda m: isinstance(m, property))
     )
 
 
-def get_slots(obj):
+def get_slots(obj: Any) -> set[str]:
     """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
     return set(itertools.chain.from_iterable(
         getattr(cls, '__slots__', ())
@@ -45,7 +51,17 @@ def get_slots(obj):
     )
 
 
-def get_subclasses(obj, nested=True):
+@overload
+def get_subclasses(obj: Any, *, nested: Literal[True] = True) -> Iterable[type]:
+    ...
+
+
+@overload
+def get_subclasses(obj: Any, *, nested: Literal[False]) -> Iterable[tuple[type, list[type]]]:
+    ...
+
+
+def get_subclasses(obj, *, nested=True):
     """
     Walk the inheritance tree of ``obj``. Yield tuples with (class, subclasses).
 
@@ -81,11 +97,10 @@ def get_subclasses(obj, nested=True):
     for subclass in obj.__subclasses__():
         yield subclass, subclass.__subclasses__()
         if nested:
-            for sub_subclass in get_subclasses(subclass, nested):
-                yield sub_subclass
+            yield from get_subclasses(subclass, nested=nested)
 
 
-def isiterable(obj, blacklist=(bytes, str)):
+def isiterable(obj: Any, blacklist=bytes | str) -> bool:
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 
@@ -99,17 +114,24 @@ def isiterable(obj, blacklist=(bytes, str)):
     >>> isiterable({}, dict)
     False
     """
-    return isinstance(obj, abc.Iterable) and not isinstance(obj, blacklist)
+    return isinstance(obj, Iterable) and not isinstance(obj, blacklist)
 
 
-def merge_annotations(cls: type):
+def merge_annotations(cls: GenericType) -> GenericType:
     """
     Merge annotations defined in all bases classes (using `__mro__`) into given `cls`.
 
     Can be used as a decorator.
 
+    If you only need to access merged annotations at runtime, then you can also rely on the standard
+    library to do so, Instead of using this function.
+
+    See https://docs.python.org/3/library/typing.html#introspection-helpers
+
     **Example usage**
 
+    >>> from typing import Annotated
+    ...
     >>> class Point2D(object):
     ...     x: int
     ...     y: int
@@ -122,13 +144,19 @@ def merge_annotations(cls: type):
     ...
     >>> @merge_annotations
     ... class Point4X(Point4D):
-    ...     x: float
-    ...     other: str
+    ...     x: Annotated[float, 'overriden']  # type: ignore[assignment]
+    ...     o: str
     ...
-    >>> assert Point2D.__annotations__ == {'x': int, 'y': int}
-    >>> assert Point3D.__annotations__ == {'z': int}
-    >>> assert Point4D.__annotations__ == {'w': int}
-    >>> assert Point4X.__annotations__ == {'x': float, 'y': int, 'z': int, 'w': int, 'other': str}
+    >>> assert Point2D.__annotations__ == {'x': 'int', 'y': 'int'}
+    >>> assert Point3D.__annotations__ == {'z': 'int'}
+    >>> assert Point4D.__annotations__ == {'w': 'int'}
+    >>> assert Point4X.__annotations__ == {
+    ...     'x': "Annotated[float, 'overriden']",
+    ...     'y': 'int',
+    ...     'z': 'int',
+    ...     'w': 'int',
+    ...     'o': 'str'
+    ... }
     """
     cls.__annotations__ = merge_dicts(*[
         getattr(base, '__annotations__', {})
@@ -137,7 +165,13 @@ def merge_annotations(cls: type):
     return cls
 
 
-def merge_bases_attribute(cls, attr_name, init, default, merge_func=lambda a, b: a + b):
+def merge_bases_attribute(
+    cls: type,
+    attr_name: str,
+    init: Any,
+    default: Any,
+    merge_func: Callable[[Any, Any], Any] = lambda a, b: a + b
+) -> Any:
     """
     Merge all values of attribute defined in all bases classes (using `__mro__`).
     Return resulting value. Use default every time a class does not have given attribute.
@@ -162,7 +196,7 @@ class DummyObject(object):  # pylint:disable=too-few-public-methods
     >>> obj.bar is None
     True
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self.__dict__.update(kwargs)
 
 
@@ -207,20 +241,20 @@ class EchoObject(object):
     >>> type(MyEchoObject('name').x.y.z)
     <class 'pytoolbox.types.MyEchoObject'>
     """
-    attr_class = None
+    attr_class: type | None = None
 
-    def __init__(self, name, **attrs):
+    def __init__(self, name: str, **attrs) -> None:
         assert '_name' not in attrs
         self.__dict__.update(attrs)
         self._name = name
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return (self.attr_class or self.__class__)(f'{self._name}.{name}')
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         return (self.attr_class or self.__class__)(f'{self._name}[{repr(key)}]')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._name
 
 
@@ -251,18 +285,18 @@ class EchoDict(dict):
     >>> type(context['jet'])
     <class 'set'>
     """
-    item_class = EchoObject
+    item_class: type = EchoObject
 
-    def __init__(self, name, **items):
+    def __init__(self, name: str, **items) -> None:
         assert '_name' not in items
         super().__init__(**items)
         self._name = name
 
-    def __contains__(self, key):
+    def __contains__(self, key: Any) -> bool:
         """Always return True because missing items are generated."""
         return True
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         try:
             return super().__getitem__(key)
         except KeyError:
@@ -271,16 +305,16 @@ class EchoDict(dict):
 
 class MissingType(object):
 
-    def __copy__(self):
+    def __copy__(self) -> Self:
         return self
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo) -> Self:
         return self
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Missing'
 
 

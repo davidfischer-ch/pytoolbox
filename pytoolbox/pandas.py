@@ -1,4 +1,7 @@
-import ezodf, pandas as pd
+from __future__ import annotations
+
+import ezodf
+import pandas as pd
 
 
 def map_dict(df, key_column, value_column, dropna=True):

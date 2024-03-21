@@ -1,6 +1,7 @@
 """
 Some utilities related to the URLs.
 """
+from __future__ import annotations
 
 try:
     from django.urls import get_resolver

@@ -1,4 +1,6 @@
 # pylint:disable=too-few-public-methods
+from __future__ import annotations
+
 import os
 from unittest.mock import patch
 
@@ -32,7 +34,7 @@ class Point3D(comparison.SlotsEqualityMixin):
         self.name = name
 
 
-def test_equality_same_class():
+def test_equality_same_class() -> None:
     point_1 = Point2D(10, -3, 'dot')
     point_2 = Point2D(10, -3, 'dot')
     point_3 = Point2D(10, -4, 'dot')
@@ -40,7 +42,7 @@ def test_equality_same_class():
         raise ValueError()
 
 
-def test_equality_inheritance():
+def test_equality_inheritance() -> None:
     point_1 = Point2D(10, -3, 'dot')
     point_2 = Point2Dv2(10, -3, 'dot')
     point_3 = Point2Dv2(10, -4, 'dot')
@@ -48,7 +50,7 @@ def test_equality_inheritance():
         raise AssertionError()
 
 
-def test_equality_different_class():
+def test_equality_different_class() -> None:
     point_1 = Point2D(10, -3, 'dot')
     point_2 = Point3D(10, -3, 5, 'dot')
     point_3 = Point3D(10, -4, 2, 'dot')
@@ -58,7 +60,7 @@ def test_equality_different_class():
 
 # Content ------------------------------------------------------------------------------------------
 
-def test_unified_diff():
+def test_unified_diff() -> None:
     assert comparison.unified_diff(
         'Some T',
         'Other T',
@@ -76,7 +78,7 @@ def test_unified_diff():
 """).strip()
 
 
-def test_unified_diff_colorize():
+def test_unified_diff_colorize() -> None:
     with patch.dict(os.environ, console.toggle_colors(colorize=True), clear=True):
         assert comparison.unified_diff(
             'Some T',
@@ -156,5 +158,5 @@ def test_unified_diff_colorize():
     ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>=', None),
     ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
 ])
-def test_compare_versions(version_a, version_b, operation, expected):
+def test_compare_versions(version_a, version_b, operation, expected) -> None:
     assert comparison.compare_versions(version_a, version_b, operation) == expected

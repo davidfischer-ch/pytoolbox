@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own forms.
 """
+from __future__ import annotations
 
 from django.forms import fields
 

@@ -1,11 +1,21 @@
 from __future__ import annotations
 
-import atexit, code, os, sys
+from pathlib import Path
+from typing import Any, TextIO
+import atexit
+import code
+import os
+import sys
 
-__all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell']
+__all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell', 'toggle_colors']
 
 
-def confirm(question=None, default=False, stream=sys.stdout):
+def confirm(
+    question: str = 'Confirm',
+    *,
+    default: bool = False,
+    stream: TextIO = sys.stdout
+) -> bool:
     """
     Return True if user confirm the action, else False. `default` if user only press ENTER.
 
@@ -23,8 +33,6 @@ def confirm(question=None, default=False, stream=sys.stdout):
         Really, I am sure that is false ? [y/N]: y
         True
     """
-    if question is None:
-        question = 'Confirm'
     question = f"{question} ? [{'Y/n' if default else 'y/N'}]: "
     while True:
         stream.write(question)
@@ -39,7 +47,12 @@ def confirm(question=None, default=False, stream=sys.stdout):
         stream.flush()
 
 
-def choice(question='', choices=tuple(), stream=sys.stdout):
+def choice(
+    question: str = '',
+    *,
+    choices: tuple[str, ...] | list[str],
+    stream: TextIO = sys.stdout
+) -> str:
     """
     Prompt the user for a choice and return his/her answer.
 
@@ -47,29 +60,29 @@ def choice(question='', choices=tuple(), stream=sys.stdout):
 
     ::
 
-        >> choice('What is your favorite color?', ['blue', 'orange', 'red'])
+        >> choice('What is your favorite color?', choices=['blue', 'orange', 'red'])
         What is your favourite color? [blue, orange, red]: orange
         orange
-        >> choice(['male', 'female'])
+        >> choice(choices=['male', 'female'])
         [male, female]? female
         female
     """
 
-    # generate question and choices list
+    # Generate question and choices list
     choices_string = ', '.join(choices)
-    if question is None:
+    if not question:
         question = f'[{choices_string}]? '
     else:
         question = f'{question} [{choices_string}]: '
 
-    # loop until an acceptable choice has been answered
+    # Loop until an acceptable choice has been answered
     while True:
         if (answer := input(question)) in choices:  # pylint:disable=bad-builtin
             return answer
         stream.write(f'Please choose between {choices_string}.{os.linesep}')
 
 
-def print_error(message, exit_code=1, stream=sys.stderr):
+def print_error(message: str, exit_code: int | None = 1, stream: TextIO = sys.stderr) -> None:
     """
     Print an error message and exit if `exit_code` is not None.
 
@@ -87,28 +100,30 @@ def print_error(message, exit_code=1, stream=sys.stderr):
 
 
 def progress_bar(
-    start_time,  # pylint:disable=unused-argument
-    current,
-    total,
-    size=50,
-    done='=',
-    todo=' ',
-    template='\r[{done}{todo}]',
-    stream=sys.stdout
-):
+    *,
+    start_time: float,  # pylint:disable=unused-argument
+    current: int,
+    total: int,
+    size: int = 50,
+    done: str = '=',
+    todo: str = ' ',
+    template: str = '\r[{done}{todo}]',
+    stream: TextIO = sys.stdout
+) -> None:
     """
     Show a progress bar. Default `template` string starts with a carriage return to update progress
     on same line.
 
     **Example usage**
 
-    >>> import functools, time
+    >>> import functools
+    >>> import time
     >>> progress = functools.partial(progress_bar, template='[{done}{todo}]', stream=sys.stdout)
-    >>> progress(time.time(), 10, 15, size=30)
+    >>> progress(start_time=time.time(), current=10, total=15, size=30)
     [====================          ]
-    >>> progress(time.time(), 1, 6, size=10)
+    >>> progress(start_time=time.time(), current=1, total=6, size=10)
     [=         ]
-    >>> progress(time.time(), 3, 5, size=5, done='+', todo='-')
+    >>> progress(start_time=time.time(), current=3, total=5, size=5, done='+', todo='-')
     [+++--]
     """
     if total:
@@ -117,9 +132,16 @@ def progress_bar(
         stream.flush()
 
 
-def shell(banner=None, history_filename='~/.python_history', history_length=1000, imported=None):
+def shell(
+    banner: str | None = None,
+    *,
+    history_filename: Path = Path('~/.python_history'),
+    history_length: int = 1000,
+    imported: dict[str, Any] | None = None
+) -> None:
     """Execute an interactive shell with auto-completion and history (if available)."""
     # Setup auto-completion and file history, credits to @kyouko-taiga!
+    history_filename = history_filename.expanduser().resolve()
     try:
         import readline
     except ImportError:
@@ -128,32 +150,21 @@ def shell(banner=None, history_filename='~/.python_history', history_length=1000
         import rlcompleter
         readline.set_completer(rlcompleter.Completer(imported).complete)
         readline.parse_and_bind("tab:complete")
-        history_filename = os.path.abspath(os.path.expanduser(history_filename))
         try:
             readline.read_history_file(history_filename)
             readline.set_history_length(history_length)
         except FileNotFoundError:
             pass
         atexit.register(readline.write_history_file, history_filename)
-    return code.interact(banner=banner, local=imported)
-
-
-if __name__ == '__main__':
-
-    if confirm('Please confirm this'):
-        print('You confirmed')
-    else:
-        print('You do not like my question')
-
-    print(choice('Select a language', ['Italian', 'French']))
+    code.interact(banner=banner, local=imported)
 
 
 def toggle_colors(
     env: dict[str, str] | None = None,
     *,
     colorize: bool,
-    disable_vars=('NO_COLOR', 'ANSI_COLORS_DISABLED'),
-    enable_vars=('FORCE_COLOR', )
+    disable_vars: tuple[str, ...] | list[str] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
+    enable_vars: tuple[str, ...] | list[str] = ('FORCE_COLOR', )
 ) -> dict[str, str]:
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.

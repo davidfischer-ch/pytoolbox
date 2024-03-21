@@ -1,4 +1,6 @@
 # pylint:disable=no-member
+from __future__ import annotations
+
 
 from . import client  # pylint:disable=unused-import
 
@@ -7,7 +9,7 @@ __all__ = ['LiveTestCaseMixin']
 
 class LiveTestCaseMixin(object):
 
-    live_client_class = client.LiveClient
+    live_client_class = client.LiveClient  # pylint:disable=used-before-assignment
 
     def setUp(self):  # pylint:disable=invalid-name
         """Call super's setUp and instantiate a live test client, only once."""

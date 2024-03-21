@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own Django REST Framework powered API views.
 """
+from __future__ import annotations
 
 from django.contrib.auth.views import redirect_to_login
 from rest_framework import renderers

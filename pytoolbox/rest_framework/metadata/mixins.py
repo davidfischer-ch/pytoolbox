@@ -4,6 +4,7 @@ Mix-ins for building your own
 `metadata <https://github.com/encode/django-rest-framework/blob/master/rest_framework/metadata.py>`_
 .
 """
+from __future__ import annotations
 
 from rest_framework import serializers
 

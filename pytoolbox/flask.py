@@ -1,4 +1,7 @@
-import logging, uuid
+from __future__ import annotations
+
+import logging
+import uuid
 
 from flask import abort, Response
 from werkzeug.exceptions import HTTPException

@@ -21,8 +21,11 @@ Order for these does not matter:
 - ReloadMixin
 - SaveInstanceFilesMixin
 """
+from __future__ import annotations
 
-import collections, itertools, re
+import collections
+import itertools
+import re
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError

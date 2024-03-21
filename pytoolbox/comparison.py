@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-import difflib, operator as op, os
+from typing import TypeAlias
+import difflib
+import operator as op
+import os
 
 from packaging.version import (  # pylint:disable=ungrouped-imports
     parse as _parse_version,
@@ -31,11 +34,11 @@ class SlotsEqualityMixin(object):
     and theirs values are tested for equality.
     """
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return get_slots(self) == get_slots(other) and \
             all(getattr(self, a) == getattr(other, a) for a in get_slots(self))
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
 
@@ -79,11 +82,11 @@ VERSION_OPERATIONS: dict = {  # pylint:disable=consider-using-namedtuple-or-data
 
 
 try:
-    from packaging.version import LegacyVersion
+    from packaging.version import LegacyVersion  # type: ignore[attr-defined]
     VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
-    ParseVersionTypes = 'str | Version | LegacyVersion'  # pylint:disable=invalid-name
+    ParseVersionTypes: TypeAlias = str | Version | LegacyVersion
 except ImportError:
-    ParseVersionTypes = 'str | Version'  # pylint:disable=invalid-name
+    ParseVersionTypes: TypeAlias = str | Version  # type: ignore[misc, no-redef]
 
 
 def compare_versions(
@@ -102,7 +105,7 @@ def compare_versions(
 def satisfy_version_constraints(
     version: str | None,
     constraints: tuple[str, ...], *,
-    default='<undefined>',
+    default: str = '<undefined>',
 ) -> bool:
     """
     Ensure given version fulfill the constraints (if any).
