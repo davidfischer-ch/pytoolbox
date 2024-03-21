@@ -28,8 +28,7 @@ SMALL_MP4_CHECKSUM: Final[str] = 'a3ac7ddabb263c2d00b73e8177d15c8d'
 SMALL_MP4_FILENAME: Final[Path] = TMP_DIRECTORY / 'small.mp4'
 
 
-@pytest.fixture(scope='session')
-def static_ffmpeg(request) -> ffmpeg.FFmpeg:  # pylint:disable=unused-argument
+def download_static_ffmpeg():
     print('Download ffmpeg static binary')
     filesystem.makedirs(TMP_DIRECTORY)
     http.download_ext(
@@ -41,42 +40,55 @@ def static_ffmpeg(request) -> ffmpeg.FFmpeg:  # pylint:disable=unused-argument
     with tarfile.open(FFMPEG_RELEASE_ARCHIVE) as f:
         f.extractall(TMP_DIRECTORY)
 
-    class StaticFFprobe(ffmpeg.FFprobe):
-        executable = FFMPEG_RELEASE_DIRECTORY / 'ffprobe'
 
-    class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
-        ffprobe_class = StaticFFprobe
+# TODO Promote it to the library (merge)
+class StaticFFprobe(ffmpeg.FFprobe):
+    executable = FFMPEG_RELEASE_DIRECTORY / 'ffprobe'
 
-    class StaticFFmpeg(ffmpeg.FFmpeg):
-        executable = FFMPEG_RELEASE_DIRECTORY / 'ffmpeg'
-        ffprobe_class = StaticFFprobe
-        statistics_class = StaticEncodeStatistics
 
+# TODO Promote it to the library (merge)
+class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
+    ffprobe_class = StaticFFprobe
+
+
+# TODO Promote it to the library (merge)
+class StaticEncodeStatisticsWithFrameBaseRatio(
+    ffmpeg.FrameBasedRatioMixin,
+    StaticEncodeStatistics
+):
+    pass
+
+
+# TODO Promote it to the library (merge)
+class StaticFFmpeg(ffmpeg.FFmpeg):
+    executable = FFMPEG_RELEASE_DIRECTORY / 'ffmpeg'
+    ffprobe_class = StaticFFprobe
+    statistics_class = StaticEncodeStatistics
+
+
+@pytest.fixture(scope='session')
+def static_ffmpeg(request) -> type[StaticFFmpeg]:  # pylint:disable=unused-argument
+    download_static_ffmpeg()
     return StaticFFmpeg
 
 
-@pytest.fixture
-def statistics(static_ffmpeg, small_mp4, tmp_path):  # pylint:disable=redefined-outer-name
-    return static_ffmpeg.statistics_class(
+@pytest.fixture(scope='function')
+def statistics(  # pylint:disable=redefined-outer-name
+    small_mp4: Path,
+    tmp_path: Path
+) -> StaticEncodeStatistics:
+    return StaticEncodeStatistics(
         [ffmpeg.Media(small_mp4)],
         [ffmpeg.Media(tmp_path / 'output.mp4')],
         [],
         ['-acodec', 'copy', '-vcodec', 'copy'])
 
 
-@pytest.fixture
-def frame_based_statistics(
-    static_ffmpeg,
-    small_mp4,
-    tmp_path
-):  # pylint:disable=redefined-outer-name,too-few-public-methods
-
-    class StaticEncodeStatisticsWithFrameBaseRatio(
-        ffmpeg.FrameBasedRatioMixin,
-        static_ffmpeg.statistics_class
-    ):
-        pass
-
+@pytest.fixture(scope='function')
+def frame_based_statistics(  # pylint:disable=redefined-outer-name,too-few-public-methods
+    small_mp4: Path,
+    tmp_path: Path
+) -> StaticEncodeStatisticsWithFrameBaseRatio:
     return StaticEncodeStatisticsWithFrameBaseRatio(
         [ffmpeg.Media(small_mp4)],
         [ffmpeg.Media(tmp_path / 'output.mp4')],
@@ -85,7 +97,7 @@ def frame_based_statistics(
 
 
 @pytest.fixture(scope='session')
-def small_mp4(request):  # pylint:disable=unused-argument
+def small_mp4(request) -> Path:  # pylint:disable=unused-argument
     print('Download small.mp4')
     filesystem.makedirs(TMP_DIRECTORY)
     http.download_ext(

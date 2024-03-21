@@ -33,3 +33,10 @@ def test_chown(tmp_path: Path) -> None:
         mock.call(file_c.parent, 100, 0),
         mock.call(file_c, 100, 0),
     ], any_order=True)
+
+
+# def test_copy_recursive(tmp_path: Path) -> None:
+#     raise NotImplementedError()
+#     source_path = Path(__file__).parent
+#     filesystem.copy_recursive(source_path, tmp_path)
+#     raise ValueError(list(filesystem.find_recursive(tmp_path, "*.py")))

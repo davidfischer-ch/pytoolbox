@@ -180,7 +180,7 @@ def test_media(tmp_path: Path) -> None:
     assert media.size == 20
 
 
-def test_statistics_compute_ratio(statistics) -> None:
+def test_statistics_compute_ratio(statistics: ffmpeg.EncodeStatistics) -> None:
     statistics.input.duration = datetime.timedelta(seconds=0)
     statistics.output.duration = None
     assert statistics._compute_ratio() is None  # pylint:disable=protected-access
@@ -194,7 +194,9 @@ def test_statistics_compute_ratio(statistics) -> None:
     assert statistics._compute_ratio() == 0.5  # pylint:disable=protected-access
 
 
-def test_statistics_compute_ratio_frame_based(frame_based_statistics) -> None:
+def test_statistics_compute_ratio_frame_based(
+    frame_based_statistics: ffmpeg.EncodeStatistics
+) -> None:
     assert frame_based_statistics.input.frame > 0
     frame_based_statistics.input.duration = datetime.timedelta(seconds=60)
     frame_based_statistics.output.duration = datetime.timedelta(seconds=30)
@@ -205,7 +207,7 @@ def test_statistics_compute_ratio_frame_based(frame_based_statistics) -> None:
     assert frame_based_statistics._compute_ratio() == 0.6  # pylint:disable=protected-access
 
 
-def test_statistics_eta_time(statistics) -> None:
+def test_statistics_eta_time(statistics: ffmpeg.EncodeStatistics) -> None:
     statistics.elapsed_time = datetime.timedelta(seconds=60)
     assert statistics.eta_time is None
     statistics.ratio = 0.0
@@ -218,7 +220,7 @@ def test_statistics_eta_time(statistics) -> None:
     assert statistics.eta_time == datetime.timedelta(0)
 
 
-def test_statistics_parse_chunk(statistics) -> None:
+def test_statistics_parse_chunk(statistics: ffmpeg.EncodeStatistics) -> None:
     assert statistics._parse_chunk('Random stuff') is None  # pylint:disable=protected-access
     assert statistics._parse_chunk(                         # pylint:disable=protected-access
         '   frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s  '), {
@@ -231,7 +233,7 @@ def test_statistics_parse_chunk(statistics) -> None:
     }
 
 
-def test_statistics_subclip_duration_and_size(statistics) -> None:
+def test_statistics_subclip_duration_and_size(statistics: ffmpeg.EncodeStatistics) -> None:
     subclip = statistics._get_subclip_duration_and_size  # pylint:disable=protected-access
     size = 512 * 1024
     duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
@@ -250,7 +252,7 @@ def test_statistics_subclip_duration_and_size(statistics) -> None:
     assert subclip(duration, size, ['-t', '02:00:00.0']) == (duration, size)
 
 
-def test_statistics_new_properties(statistics) -> None:
+def test_statistics_new_properties(statistics: ffmpeg.EncodeStatistics) -> None:
     assert statistics.state == statistics.states.NEW
     assert isinstance(statistics.input.duration, datetime.timedelta)
     assert statistics.eta_time is None
@@ -260,7 +262,7 @@ def test_statistics_new_properties(statistics) -> None:
     assert statistics.input._size is not None  # pylint:disable=protected-access
 
 
-def test_statistics_started_properties(statistics) -> None:
+def test_statistics_started_properties(statistics: ffmpeg.EncodeStatistics) -> None:
     statistics.start('process')
     assert statistics.state == statistics.states.STARTED
     assert statistics.output.duration == datetime.timedelta(0)
@@ -268,7 +270,7 @@ def test_statistics_started_properties(statistics) -> None:
     assert statistics.ratio == 0.0
 
 
-def test_statistics_success_properties(statistics) -> None:
+def test_statistics_success_properties(statistics: ffmpeg.EncodeStatistics) -> None:
     statistics.start('process')
     statistics.progress('')
     shutil.copy(statistics.input.path, statistics.output.path)  # Generate output
@@ -281,6 +283,7 @@ def test_statistics_success_properties(statistics) -> None:
 
 
 def test_ffmpeg_clean_medias_argument() -> None:
+    # pylint:disable=use-implicit-booleaness-not-comparison
     clean = ffmpeg.FFmpeg()._clean_medias_argument  # pylint:disable=protected-access
     assert clean(None) == []
     assert clean([]) == []
@@ -293,7 +296,11 @@ def test_ffmpeg_clean_medias_argument() -> None:
     ]
 
 
-def test_ffmpeg_encode(static_ffmpeg, small_mp4, tmp_path) -> None:
+def test_ffmpeg_encode(
+    static_ffmpeg: type[ffmpeg.FFmpeg],
+    small_mp4: Path,
+    tmp_path: Path
+) -> None:
     encoder = static_ffmpeg()
 
     results = list(encoder.encode(
@@ -347,7 +354,7 @@ def test_ffmpeg_get_arguments() -> None:
     ]
 
 
-def test_ffmpeg_get_process(static_ffmpeg) -> None:
+def test_ffmpeg_get_process(static_ffmpeg: type[ffmpeg.FFmpeg]) -> None:
     get = ffmpeg.FFmpeg()._get_process  # pylint:disable=protected-access
     executable = static_ffmpeg.executable
     options = [
@@ -358,12 +365,16 @@ def test_ffmpeg_get_process(static_ffmpeg) -> None:
     assert process.args == [str(executable), '-y', '-i', 'in.mp4', *options, 'out.mkv']
 
 
-def test_ffmpeg_kill_process_handle_missing(static_ffmpeg, small_mp4, tmp_path) -> None:
+def test_ffmpeg_kill_process_handle_missing(
+    static_ffmpeg: type[ffmpeg.FFmpeg],
+    small_mp4: Path,
+    tmp_path: Path
+) -> None:
 
     class SomeError(Exception):
         pass
 
-    class RaiseEncodeStatistics(static_ffmpeg.statistics_class):
+    class RaiseEncodeStatistics(static_ffmpeg.statistics_class):  # type: ignore[name-defined]
         @staticmethod
         def end(returncode):
             raise SomeError('This is the error.')
@@ -375,7 +386,7 @@ def test_ffmpeg_kill_process_handle_missing(static_ffmpeg, small_mp4, tmp_path) 
     assert filesystem.remove(tmp_path / 'out.mp4') is True
 
 
-def test_ffprobe_get_audio_streams(static_ffmpeg, small_mp4) -> None:
+def test_ffprobe_get_audio_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
     probe = static_ffmpeg.ffprobe_class()
 
     probe.stream_classes['audio'] = None
@@ -393,7 +404,11 @@ def test_ffprobe_get_audio_streams(static_ffmpeg, small_mp4) -> None:
     assert streams[0].codec.time_base == 1 / 48000
 
 
-def test_ffprobe_get_media_duration(static_ffmpeg, small_mp4, tmp_path) -> None:
+def test_ffprobe_get_media_duration(
+    static_ffmpeg: type[ffmpeg.FFmpeg],
+    small_mp4: Path,
+    tmp_path: Path
+) -> None:
     probe = static_ffmpeg.ffprobe_class()
 
     # Some random bad things
@@ -437,7 +452,7 @@ def test_ffprobe_get_media_format(static_ffmpeg, small_mp4) -> None:
     assert media_format.probe_score == 100
 
 
-def test_ffprobe_get_media_info_errors_handling(static_ffmpeg) -> None:
+def test_ffprobe_get_media_info_errors_handling(static_ffmpeg: type[ffmpeg.FFmpeg]) -> None:
     probe = static_ffmpeg.ffprobe_class()
 
     probe.executable = str(uuid.uuid4())
@@ -445,7 +460,7 @@ def test_ffprobe_get_media_info_errors_handling(static_ffmpeg) -> None:
         probe.get_media_info('another.mp4', fail=False)
 
 
-def test_ffprobe_get_video_streams(static_ffmpeg, small_mp4) -> None:
+def test_ffprobe_get_video_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
     probe = static_ffmpeg.ffprobe_class()
 
     probe.stream_classes['video'] = None
@@ -459,7 +474,7 @@ def test_ffprobe_get_video_streams(static_ffmpeg, small_mp4) -> None:
     assert streams[0].avg_frame_rate == 30.0
 
 
-def test_ffprobe_get_video_frame_rate(static_ffmpeg, small_mp4) -> None:
+def test_ffprobe_get_video_frame_rate(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
     probe = static_ffmpeg.ffprobe_class()
     assert probe.get_video_frame_rate(3.14159265358979323846) is None
     assert probe.get_video_frame_rate({}) is None
@@ -467,7 +482,7 @@ def test_ffprobe_get_video_frame_rate(static_ffmpeg, small_mp4) -> None:
     assert probe.get_video_frame_rate(small_mp4) == 30.0
 
 
-def test_ffprobe_get_video_resolution(static_ffmpeg, small_mp4) -> None:
+def test_ffprobe_get_video_resolution(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
     probe = static_ffmpeg.ffprobe_class()
     assert probe.get_video_resolution(3.14159265358979323846) is None
     assert probe.get_video_resolution({}) is None

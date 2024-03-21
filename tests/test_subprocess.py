@@ -8,6 +8,7 @@ from pytoolbox.validation import validate_list
 
 
 def test_to_args_list() -> None:
+    # pylint:disable=use-implicit-booleaness-not-comparison
     assert subprocess.to_args_list(None) == []  # Hidden feature one should not know:)
     assert subprocess.to_args_list('') == []
     assert subprocess.to_args_list([]) == []
