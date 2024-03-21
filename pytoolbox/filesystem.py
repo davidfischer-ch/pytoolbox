@@ -148,7 +148,6 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             makedirs(dst_path, parent=True)
 
             # Initialize block-based copy
-            chunk_size = 1024 * 1024
             src_file = src_path.open('rb')  # pylint: disable=consider-using-with
             dst_file = dst_path.open('wb')  # pylint: disable=consider-using-with
 
