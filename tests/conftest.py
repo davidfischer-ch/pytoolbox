@@ -18,16 +18,18 @@ TMP_DIRECTORY: Final[Path] = Path(__file__).resolve().parent / '.tmp'
 FFMPEG_VERSION: Final[str] = '6.1'
 FFMPEG_RELEASE_URL: Final[str] = f'{TEST_S3_URL}/ffmpeg-{FFMPEG_VERSION}-{BITS}-static.tar.xz'
 FFMPEG_RELEASE_EXTENSION: Final[str] = '.tar.xz'
-FFMPEG_RELEASE_CHECKSUM: Final[str] = {'amd64': 'md5:8a34e2ab52b72777a8dcd3ff5defbcd8'}[BITS]
+FFMPEG_RELEASE_CHECKSUM: Final[tuple[str, str]] = {
+    'amd64': ('md5', '8a34e2ab52b72777a8dcd3ff5defbcd8')
+}[BITS]
 
 # Credits: http://techslides.com/demos/sample-videos/small.mp4
 SMALL_MP4_URL: Final[str] = f'{TEST_S3_URL}/small.mp4'
-SMALL_MP4_CHECKSUM: Final[str] = 'md5:a3ac7ddabb263c2d00b73e8177d15c8d'
+SMALL_MP4_CHECKSUM: Final[tuple[str, str]] = ('md5', 'a3ac7ddabb263c2d00b73e8177d15c8d')
 SMALL_MP4_FILENAME: Final[Path] = TMP_DIRECTORY / 'small.mp4'
 
 
 # TODO Promote it to the library (merge)
-class DownloadStaticFFmpegMixin(object):
+class DownloadStaticFFmpegMixin(object):  # pylint:disable=too-few-public-methods
     executable: Path
 
     def __init__(self, *args, **kwargs) -> None:
@@ -40,8 +42,8 @@ class DownloadStaticFFmpegMixin(object):
         archive_url: str = FFMPEG_RELEASE_URL,
         archive_extension: str = FFMPEG_RELEASE_EXTENSION,
         directory: Path = TMP_DIRECTORY,
-        expected_hash: str = FFMPEG_RELEASE_CHECKSUM.split(':')[1],
-        hash_algorithm: str = FFMPEG_RELEASE_CHECKSUM.split(':')[0]
+        expected_hash: str = FFMPEG_RELEASE_CHECKSUM[1],
+        hash_algorithm: str = FFMPEG_RELEASE_CHECKSUM[0]
     ) -> Path:
         filesystem.makedirs(directory)
         archive = directory / archive_url.split('/')[-1]  # Get archive filename from URL
@@ -124,7 +126,7 @@ def small_mp4(request) -> Path:  # pylint:disable=unused-argument
     http.download_ext(
         SMALL_MP4_URL,
         SMALL_MP4_FILENAME,
-        expected_hash=SMALL_MP4_CHECKSUM.split(':')[1],
-        hash_algorithm=SMALL_MP4_CHECKSUM.split(':')[0],
+        expected_hash=SMALL_MP4_CHECKSUM[1],
+        hash_algorithm=SMALL_MP4_CHECKSUM[0],
         force=False)
     return SMALL_MP4_FILENAME

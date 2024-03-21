@@ -72,7 +72,7 @@ def download(url: str, path: Path) -> None:
 # I would like to make code DRY, such as unpacking Resource to define function's arguments
 # However its not possible as of today, see https://github.com/python/typing/issues/1495
 
-def iter_download_core(
+def iter_download_core(  # pylint:disable=too-many-arguments
     url: str,
     *,
     code: int = 200,
@@ -115,7 +115,7 @@ def iter_download_core(
             yield len(chunk), len(chunk), chunk
 
 
-def iter_download_to_file(  # pylint:disable=too-many-locals
+def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     url: str,
     path: Path,
     *,
@@ -179,7 +179,7 @@ def iter_download_to_file(  # pylint:disable=too-many-locals
         yield position, length, chunk, downloaded, file_hash
 
 
-def download_ext(  # pylint:disable=too-many-locals
+def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
     url: str,
     path: Path,
     *,

@@ -238,8 +238,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         if media.sequence in self.medias:
             self.media_overwritten += 1
         self.medias[media.sequence] = media
-        if len(self.medias) > self.max_media:
-            self.max_media = len(self.medias)
+        self.max_media = max(self.max_media, len(self.medias))
         self.media_received += 1
 
         if cross := self.crosses.get(media.sequence):
@@ -285,8 +284,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 if not (cross := self.crosses.get(media_test)):
                     cross = {'col_sequence': None, 'row_sequence': None}
                     self.crosses[media_test] = cross
-                    if len(self.crosses) > self.max_cross:
-                        self.max_cross = len(self.crosses)
+                    self.max_cross = max(self.max_cross, len(self.crosses))
 
                 # Register the fec packet able to recover the missing media packet
                 if fec.direction == FecPacket.COL:
@@ -329,16 +327,14 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 self.col_dropped += 1
                 return
             self.cols[fec.sequence] = fec
-            if len(self.cols) > self.max_col:
-                self.max_col = len(self.cols)
+            self.max_col = max(self.max_col, len(self.cols))
 
         if fec.direction == FecPacket.ROW:
             if drop:
                 self.row_dropped += 1
                 return
             self.rows[fec.sequence] = fec
-            if len(self.rows) > self.max_row:
-                self.max_row = len(self.rows)
+            self.max_row = max(self.max_row, len(self.rows))
 
         # [2] Only on media packet missing, fec packet is able to recover it now !
         if len(fec.missing) == 1:
@@ -441,8 +437,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
                 if media.sequence in self.medias:
                     self.media_overwritten += 1
                 self.medias[media.sequence] = media
-                if len(self.medias) > self.max_media:
-                    self.max_media = len(self.medias)
+                self.max_media = max(self.max_media, len(self.medias))
                 if fec.direction == FecPacket.COL:
                     del self.cols[fec.sequence]
                 else:

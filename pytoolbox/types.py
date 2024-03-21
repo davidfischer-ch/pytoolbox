@@ -97,8 +97,7 @@ def get_subclasses(obj, *, nested=True):
     for subclass in obj.__subclasses__():
         yield subclass, subclass.__subclasses__()
         if nested:
-            for sub_subclass in get_subclasses(subclass, nested=nested):
-                yield sub_subclass
+            yield from get_subclasses(subclass, nested=nested)
 
 
 def isiterable(obj: Any, blacklist=bytes | str) -> bool:
