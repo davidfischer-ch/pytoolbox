@@ -62,5 +62,6 @@ def test_copy_recursive_chunk_size(small_mp4: Path, tmp_path: Path, chunk_size: 
 
 
 def test_copy_recursive_missing(tmp_path: Path) -> None:
+    # pylint:disable=use-implicit-booleaness-not-comparison
     assert filesystem.copy_recursive(tmp_path / 'missing', tmp_path / 'target')['src_size'] == 0
     assert list(filesystem.find_recursive(tmp_path / 'target', "*")) == []
