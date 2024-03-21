@@ -24,17 +24,17 @@ DURATION_REGEX: Final[re.Pattern] = re.compile(
 
 
 class FFprobe(object):
-    executable: Path | str = 'ffprobe'
+    executable: Path = Path('ffprobe')
     duration_regex: re.Pattern = DURATION_REGEX
     format_class: type | None = None
     media_class: Type[miscellaneous.Media] = miscellaneous.Media
     stream_classes: dict[str, type | None] = {'audio': None, 'subtitle': None, 'video': None}
 
-    def __init__(self, executable=None):
+    def __init__(self, executable: Path | None = None) -> None:
         self.executable = executable or self.executable
 
-    def __call__(self, *arguments):
-        """Call FFprobe with given arguments and return the output (unicode string)."""
+    def __call__(self, *arguments) -> str:
+        """Call FFprobe with given arguments and return the output."""
         process = py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
             stdout=subprocess.PIPE,

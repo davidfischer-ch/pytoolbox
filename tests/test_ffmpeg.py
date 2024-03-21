@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Final
 import datetime
+import json
 import shutil
 import uuid
 
@@ -18,112 +19,8 @@ MPD_TEST: Final[str] = """<?xml version="1.0"?>
 """
 
 # This is ffprobe's result on small.mp4 to reverse engineer tests in case we loose it!
-SMALL_MP4_MEDIA_INFOS: Final[dict[str, Any]] = {
-    'format': {
-        'bit_rate': '551193',
-        'duration': '5.568000',
-        'filename': 'small.mp4',
-        'format_long_name': 'QuickTime / MOV',
-        'format_name': 'mov,mp4,m4a,3gp,3g2,mj2',
-        'nb_programs': 0,
-        'nb_streams': 2,
-        'probe_score': 100,
-        'size': '383631',
-        'start_time': '0.000000',
-        'tags': {
-            'compatible_brands': 'mp42isomavc1',
-            'creation_time': '2010-03-20 21:29:11',
-            'encoder': 'HandBrake 0.9.4 2009112300',
-            'major_brand': 'mp42',
-            'minor_version': '0'
-        }
-    },
-    'streams': [
-        {
-            'avg_frame_rate': '30/1',
-            'bit_rate': '465641',
-            'codec_long_name': 'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
-            'codec_name': 'h264',
-            'codec_tag': '0x31637661',
-            'codec_tag_string': 'avc1',
-            'codec_time_base': '1/60',
-            'codec_type': 'video',
-            'display_aspect_ratio': '0:1',
-            'disposition': {
-                'attached_pic': 0,
-                'clean_effects': 0,
-                'comment': 0,
-                'default': 1,
-                'dub': 0,
-                'forced': 0,
-                'hearing_impaired': 0,
-                'karaoke': 0,
-                'lyrics': 0,
-                'original': 0,
-                'visual_impaired': 0
-            },
-            'duration': '5.533333',
-            'duration_ts': 498000,
-            'has_b_frames': 0,
-            'height': 320,
-            'index': 0,
-            'level': 30,
-            'nb_frames': '166',
-            'pix_fmt': 'yuv420p',
-            'profile': 'Constrained Baseline',
-            'r_frame_rate': '30/1',
-            'sample_aspect_ratio': '0:1',
-            'start_pts': 0,
-            'start_time': '0.000000',
-            'tags': {
-                'creation_time': '2010-03-20 21:29:11',
-                'language': 'und'
-            },
-            'time_base': '1/90000',
-            'width': 560
-        },
-        {
-            'avg_frame_rate': '0/0',
-            'bit_rate': '83050',
-            'bits_per_sample': 0,
-            'channel_layout': 'mono',
-            'channels': 1,
-            'codec_long_name': 'AAC (Advanced Audio Coding)',
-            'codec_name': 'aac',
-            'codec_tag': '0x6134706d',
-            'codec_tag_string': 'mp4a',
-            'codec_time_base': '1/48000',
-            'codec_type': 'audio',
-            'disposition': {
-                'attached_pic': 0,
-                'clean_effects': 0,
-                'comment': 0,
-                'default': 1,
-                'dub': 0,
-                'forced': 0,
-                'hearing_impaired': 0,
-                'karaoke': 0,
-                'lyrics': 0,
-                'original': 0,
-                'visual_impaired': 0
-            },
-            'duration': '5.568000',
-            'duration_ts': 267264,
-            'index': 1,
-            'nb_frames': '261',
-            'r_frame_rate': '0/0',
-            'sample_fmt': 'fltp',
-            'sample_rate': '48000',
-            'start_pts': 0,
-            'start_time': '0.000000',
-            'tags': {
-                'creation_time': '2010-03-20 21:29:11',
-                'language': 'eng'
-            },
-            'time_base': '1/48000'
-        }
-    ]
-}
+SMALL_MP4_MEDIA_INFOS: Final[dict[str, Any]] = json.loads(
+    (Path(__file__).parent / 'small.json').read_text(encoding='utf-8'))
 
 
 def test_to_bit_rate() -> None:
@@ -324,6 +221,7 @@ def test_ffmpeg_encode(
 
 def test_ffmpeg_get_arguments() -> None:
     get = ffmpeg.FFmpeg()._get_arguments  # pylint:disable=protected-access
+    executable = Path('ffmpeg')
 
     # Using options (the legacy API, also simplify simple calls)
     in_o_str = '-strict experimental -vf "yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2"'
@@ -335,11 +233,11 @@ def test_ffmpeg_get_arguments() -> None:
         '-strict', 'experimental',
         '-vf', 'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2'
     ]
-    assert args == ['ffmpeg', '-y', *in_options, '-i', 'input.mp4', *out_options, 'output.mkv']
+    assert args == [executable, '-y', *in_options, '-i', 'input.mp4', *out_options, 'output.mkv']
 
     args, _, outputs, in_options, out_options = get('input.mp4', None, in_o_str)
+    assert args == [executable, '-y', *in_options, '-i', 'input.mp4']
     assert outputs == []
-    assert args == ['ffmpeg', '-y', *in_options, '-i', 'input.mp4']
 
     # Using instances of Media (the newest API, greater flexibility)
     args, inputs, outputs, in_options, out_options = get(
@@ -350,7 +248,7 @@ def test_ffmpeg_get_arguments() -> None:
     assert in_options == []
     assert out_options == []
     assert args == [
-        'ffmpeg', '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'
+        executable, '-y', '-f', 'mp4', '-i', 'in', '-acodec', 'copy', '-vcodec', 'copy', 'out.mkv'
     ]
 
 
@@ -390,18 +288,18 @@ def test_ffprobe_get_audio_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4
     probe = static_ffmpeg.ffprobe_class()
 
     probe.stream_classes['audio'] = None
-    streams = probe.get_audio_streams(small_mp4)
-    assert isinstance(streams[0], dict)
-    assert streams[0]['avg_frame_rate'] == '0/0'
-    assert streams[0]['channels'] == 1
-    assert streams[0]['codec_time_base'] == '1/48000'
+    audio_stream, = probe.get_audio_streams(small_mp4)
+    assert isinstance(audio_stream, dict)
+    assert audio_stream['avg_frame_rate'] == '0/0'
+    assert audio_stream['channels'] == 1
+    assert 'codec_time_base' not in audio_stream  # Missing in dump from ffprobe version 6.1
 
     probe.stream_classes['audio'] = ffmpeg.AudioStream
-    streams = probe.get_audio_streams(small_mp4)
-    assert isinstance(streams[0], ffmpeg.AudioStream)
-    assert streams[0].avg_frame_rate is None
-    assert streams[0].channels == 1
-    assert streams[0].codec.time_base == 1 / 48000
+    audio_stream, = probe.get_audio_streams(small_mp4)
+    assert isinstance(audio_stream, ffmpeg.AudioStream)
+    assert audio_stream.avg_frame_rate is None
+    assert audio_stream.channels == 1
+    assert audio_stream.codec.time_base == 1 / 48000
 
 
 def test_ffprobe_get_media_duration(
@@ -454,8 +352,7 @@ def test_ffprobe_get_media_format(static_ffmpeg, small_mp4) -> None:
 
 def test_ffprobe_get_media_info_errors_handling(static_ffmpeg: type[ffmpeg.FFmpeg]) -> None:
     probe = static_ffmpeg.ffprobe_class()
-
-    probe.executable = str(uuid.uuid4())
+    probe.executable = Path(str(uuid.uuid4()))
     with pytest.raises(OSError):
         probe.get_media_info('another.mp4', fail=False)
 
@@ -464,14 +361,14 @@ def test_ffprobe_get_video_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4
     probe = static_ffmpeg.ffprobe_class()
 
     probe.stream_classes['video'] = None
-    streams = probe.get_video_streams(small_mp4)
-    assert isinstance(streams[0], dict)
-    assert streams[0]['avg_frame_rate'] == '30/1'
+    video_stream, = probe.get_video_streams(small_mp4)
+    assert isinstance(video_stream, dict)
+    assert video_stream['avg_frame_rate'] == '30/1'
 
     probe.stream_classes['video'] = ffmpeg.VideoStream
-    streams = probe.get_video_streams(small_mp4)
-    assert isinstance(streams[0], ffmpeg.VideoStream)
-    assert streams[0].avg_frame_rate == 30.0
+    video_stream, = probe.get_video_streams(small_mp4)
+    assert isinstance(video_stream, ffmpeg.VideoStream)
+    assert video_stream.avg_frame_rate == 30.0
 
 
 def test_ffprobe_get_video_frame_rate(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:

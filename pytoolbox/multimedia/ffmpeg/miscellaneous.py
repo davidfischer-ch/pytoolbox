@@ -25,24 +25,39 @@ class BaseInfo(  # pylint:disable=too-few-public-methods
     validation.CleanAttributesMixin,
     comparison.SlotsEqualityMixin
 ):
-    defaults = {}
+    defaults: dict[str, Any] = {}
     attr_name_template: str = '{name}'
 
-    def __init__(self, info: dict) -> None:
+    def __init__(self, info: dict[str, Any]) -> None:
         for attr in get_slots(self):
             self._set_attribute(attr, info)
 
-    def _set_attribute(self, name: str, info: dict) -> None:
+    def _set_attribute(self, name: str, info: dict) -> Any:
         """Set attribute `name` value from the `info` or ``self.defaults`` dictionary."""
         value = info.get(self.attr_name_template.format(name=name), self.defaults.get(name))
         setattr(self, name, value)
+        return value
 
 
 class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
+    long_name: str
+    name: str
+    tag: str
+    tag_string: str
+    time_base: float
+    type: str
 
     __slots__ = ('long_name', 'name', 'tag', 'tag_string', 'time_base', 'type')
 
     attr_name_template: str = 'codec_{name}'
+
+    def __init__(self, info: dict[str, Any]) -> None:
+        # The codec_time_base is available (tested with ffprobe 4.3.1)
+        if (attribute := self.attr_name_template.format(name='time_base')) in info:
+            super().__init__(info)
+        # Set codec_time_base to time_base (discovered with ffprobe 6.1)
+        else:
+            super().__init__({**info, attribute: info.get('time_base')})
 
     @staticmethod
     def clean_time_base(value: float | str | None) -> float | None:
@@ -50,6 +65,17 @@ class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
 
 
 class Format(BaseInfo):
+    bit_rate: int | None
+    duration: float | None
+    filename: str
+    format_name: str
+    format_long_name: str
+    nb_programs: int | None
+    nb_streams: int | None
+    probe_score: int | None
+    size: int | None
+    start_time: float | None
+    tags: dict[str, str]
 
     __slots__ = (
         'bit_rate',
@@ -95,8 +121,34 @@ class Format(BaseInfo):
 
 
 class Stream(BaseInfo):
+    avg_frame_rate: float | None
+    bit_per_raw_sample: int | None
+    bit_rate: int | None
+    codec: Codec
+    disposition: dict | None
+    duration: float | None
+    duration_ts: float | None
+    index: int | None
+    nb_frames: int | None
+    profile: str | None
+    r_frame_rate: float | None
+    time_base: str | None
+    tags: dict[str, str] | None
 
-    __slots__ = ('avg_frame_rate', 'codec', 'disposition', 'index', 'r_frame_rate', 'time_base')
+    __slots__ = (
+        'avg_frame_rate',
+        'bit_rate',
+        'codec',
+        'disposition',
+        'duration',
+        'duration_ts',
+        'index',
+        'nb_frames',
+        'profile',
+        'r_frame_rate',
+        'time_base',
+        'tags'
+    )
 
     codec_class: type[Codec] = Codec
 
@@ -112,41 +164,7 @@ class Stream(BaseInfo):
         return None if value is None else utils.to_frame_rate(value)
 
     @staticmethod
-    def clean_index(value: int | str | None) -> int | None:
-        return None if value is None else int(value)
-
-    @staticmethod
-    def clean_r_frame_rate(value: float | str | None) -> float | None:
-        return None if value is None else utils.to_frame_rate(value)
-
-
-class AudioStream(Stream):
-
-    __slots__ = (
-        'bit_rate',
-        'bits_per_sample',
-        'channel_layout',
-        'channels',
-        'duration',
-        'duration_ts',
-        'nb_frames',
-        'sample_fmt',
-        'sample_rate',
-        'start_pts',
-        'start_time',
-        'tags'
-    )
-
-    @staticmethod
     def clean_bit_rate(value: int | str | None) -> int | None:
-        return None if value is None else int(value)
-
-    @staticmethod
-    def clean_bits_per_sample(value: int | str | None) -> int | None:
-        return None if value is None else int(value)
-
-    @staticmethod
-    def clean_channels(value: int | str | None) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
@@ -158,7 +176,43 @@ class AudioStream(Stream):
         return None if value is None else int(value)
 
     @staticmethod
+    def clean_index(value: int | str | None) -> int | None:
+        return None if value is None else int(value)
+
+    @staticmethod
     def clean_nb_frames(value: int | str | None) -> int | None:
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_r_frame_rate(value: float | str | None) -> float | None:
+        return None if value is None else utils.to_frame_rate(value)
+
+
+class AudioStream(Stream):
+    bits_per_sample: int | None
+    channel_layout: str | None
+    channels: int | None
+    sample_fmt: str | None
+    sample_rate: int | None
+    start_pts: int | None
+    start_time: float | None
+
+    __slots__ = (
+        'bits_per_sample',
+        'channel_layout',
+        'channels',
+        'sample_fmt',
+        'sample_rate',
+        'start_pts',
+        'start_time'
+    )
+
+    @staticmethod
+    def clean_bits_per_sample(value: int | str | None) -> int | None:
+        return None if value is None else int(value)
+
+    @staticmethod
+    def clean_channels(value: int | str | None) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
@@ -198,36 +252,19 @@ class SubtitleStream(Stream):
 class VideoStream(Stream):
 
     __slots__ = (
-        'bit_rate',
         'bit_per_raw_sample',
         'display_aspect_ratio',
-        'duration',
-        'duration_ts',
         'has_b_frames',
         'height',
         'level',
-        'nb_frames',
         'pix_fmt',
         'profile',
         'sample_aspect_ratio',
-        'width',
-        'tags'
+        'width'
     )
 
     @staticmethod
-    def clean_bit_rate(value: int | str | None) -> int | None:
-        return None if value is None else int(value)
-
-    @staticmethod
     def clean_bit_per_raw_sample(value: int | str | None) -> int | None:
-        return None if value is None else int(value)
-
-    @staticmethod
-    def clean_duration(value: float | int | str | None) -> float | None:
-        return None if value is None else float(value)
-
-    @staticmethod
-    def clean_duration_ts(value: int | str | None) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod
@@ -236,10 +273,6 @@ class VideoStream(Stream):
 
     @staticmethod
     def clean_level(value: int | str | None) -> int | None:
-        return None if value is None else int(value)
-
-    @staticmethod
-    def clean_nb_frames(value: int | str | None) -> int | None:
         return None if value is None else int(value)
 
     @staticmethod

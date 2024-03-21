@@ -15,35 +15,58 @@ TEST_S3_URL: Final[str] = 'https://pytoolbox.s3-eu-west-1.amazonaws.com/tests'
 TMP_DIRECTORY: Final[Path] = Path(__file__).resolve().parent / '.tmp'
 
 # Credits: https://johnvansickle.com/ffmpeg/
-FFMPEG_VERSION: Final[str] = '4.3.1'
-FFMPEG_ARCHIVE_NAME: Final[str] = f'ffmpeg-{FFMPEG_VERSION}-{BITS}-static'
-FFMPEG_RELEASE_URL: Final[str] = f'{TEST_S3_URL}/{FFMPEG_ARCHIVE_NAME}.tar.xz'
-FFMPEG_RELEASE_ARCHIVE: Final[Path] = TMP_DIRECTORY / f'{FFMPEG_ARCHIVE_NAME}.tar.xz'
-FFMPEG_RELEASE_CHECKSUM: Final[str] = {'amd64': 'ee235393ec7778279144ee6cbdd9eb64'}[BITS]
-FFMPEG_RELEASE_DIRECTORY: Final[Path] = TMP_DIRECTORY / f'ffmpeg-{FFMPEG_VERSION}-{BITS}-static'
+FFMPEG_VERSION: Final[str] = '6.1'
+FFMPEG_RELEASE_URL: Final[str] = f'{TEST_S3_URL}/ffmpeg-{FFMPEG_VERSION}-{BITS}-static.tar.xz'
+FFMPEG_RELEASE_EXTENSION: Final[str] = '.tar.xz'
+FFMPEG_RELEASE_CHECKSUM: Final[str] = {'amd64': 'md5:8a34e2ab52b72777a8dcd3ff5defbcd8'}[BITS]
 
 # Credits: http://techslides.com/demos/sample-videos/small.mp4
 SMALL_MP4_URL: Final[str] = f'{TEST_S3_URL}/small.mp4'
-SMALL_MP4_CHECKSUM: Final[str] = 'a3ac7ddabb263c2d00b73e8177d15c8d'
+SMALL_MP4_CHECKSUM: Final[str] = 'md5:a3ac7ddabb263c2d00b73e8177d15c8d'
 SMALL_MP4_FILENAME: Final[Path] = TMP_DIRECTORY / 'small.mp4'
 
 
-def download_static_ffmpeg():
-    print('Download ffmpeg static binary')
-    filesystem.makedirs(TMP_DIRECTORY)
-    http.download_ext(
-        FFMPEG_RELEASE_URL,
-        FFMPEG_RELEASE_ARCHIVE,
-        expected_hash=FFMPEG_RELEASE_CHECKSUM,
-        hash_algorithm='md5',
-        force=False)
-    with tarfile.open(FFMPEG_RELEASE_ARCHIVE) as f:
-        f.extractall(TMP_DIRECTORY)
+# TODO Promote it to the library (merge)
+class DownloadStaticFFmpegMixin(object):
+    executable: Path
+
+    def __init__(self, *args, **kwargs) -> None:
+        executable = self.download_static_ffmpeg()
+        super().__init__(executable=executable, *args, **kwargs)  # type: ignore[call-arg]
+
+    @classmethod
+    def download_static_ffmpeg(
+        cls,
+        archive_url: str = FFMPEG_RELEASE_URL,
+        archive_extension: str = FFMPEG_RELEASE_EXTENSION,
+        directory: Path = TMP_DIRECTORY,
+        expected_hash: str = FFMPEG_RELEASE_CHECKSUM.split(':')[1],
+        hash_algorithm: str = FFMPEG_RELEASE_CHECKSUM.split(':')[0]
+    ) -> Path:
+        filesystem.makedirs(directory)
+        archive = directory / archive_url.split('/')[-1]  # Get archive filename from URL
+        archive_name = archive.name.removesuffix(archive_extension)
+        executable = archive.parent / archive_name / cls.executable.name
+        _, downloaded, _ = http.download_ext(
+            url=archive_url,
+            path=archive,
+            expected_hash=expected_hash,
+            hash_algorithm=hash_algorithm,
+            force=False)
+        if downloaded:
+            print('Downloaded ffmpeg static binary')
+        if downloaded or not executable.exists():
+            with tarfile.open(archive) as f:
+                f.extractall(directory)
+            print('Extracted ffmpeg static binary')
+        if not executable.exists():
+            raise RuntimeError(f"Executable {executable} not found.")
+        return executable
 
 
 # TODO Promote it to the library (merge)
-class StaticFFprobe(ffmpeg.FFprobe):
-    executable = FFMPEG_RELEASE_DIRECTORY / 'ffprobe'
+class StaticFFprobe(DownloadStaticFFmpegMixin, ffmpeg.FFprobe):
+    pass
 
 
 # TODO Promote it to the library (merge)
@@ -60,15 +83,13 @@ class StaticEncodeStatisticsWithFrameBaseRatio(
 
 
 # TODO Promote it to the library (merge)
-class StaticFFmpeg(ffmpeg.FFmpeg):
-    executable = FFMPEG_RELEASE_DIRECTORY / 'ffmpeg'
+class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
     ffprobe_class = StaticFFprobe
     statistics_class = StaticEncodeStatistics
 
 
 @pytest.fixture(scope='session')
 def static_ffmpeg(request) -> type[StaticFFmpeg]:  # pylint:disable=unused-argument
-    download_static_ffmpeg()
     return StaticFFmpeg
 
 
@@ -103,7 +124,7 @@ def small_mp4(request) -> Path:  # pylint:disable=unused-argument
     http.download_ext(
         SMALL_MP4_URL,
         SMALL_MP4_FILENAME,
-        expected_hash=SMALL_MP4_CHECKSUM,
-        hash_algorithm='md5',
+        expected_hash=SMALL_MP4_CHECKSUM.split(':')[1],
+        hash_algorithm=SMALL_MP4_CHECKSUM.split(':')[0],
         force=False)
     return SMALL_MP4_FILENAME

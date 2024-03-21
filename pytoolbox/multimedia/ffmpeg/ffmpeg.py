@@ -24,13 +24,13 @@ class FFmpeg(object):
     Encode a set of input files input to a set of output files and yields statistics about the
     encoding.
     """
-    executable: Path | str = 'ffmpeg'
+    executable: Path = Path('ffmpeg')
     ffprobe_class: type[ffprobe.FFprobe] = ffprobe.FFprobe
     statistics_class: type[encode.EncodeStatistics] = encode.EncodeStatistics
 
     def __init__(
         self,
-        executable: str | None = None,
+        executable: Path | None = None,
         chunk_read_timeout: float = 0.5,
         encode_poll_delay: float = 0.5,
         encoding: str = 'utf-8'
