@@ -93,7 +93,7 @@ def chown(
         os.chown(path, uid, gid)
 
 
-def copy_recursive(  # pylint:disable=too-many-locals
+def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     source_path: Path,
     destination_path: Path,
     patterns: FindPatterns = '*',

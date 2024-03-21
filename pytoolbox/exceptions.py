@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Type
+from typing import Any
 import inspect
 import io
 import traceback
@@ -53,7 +53,7 @@ class UndefinedPathError(Exception):
 
 
 def assert_raises_item(
-    exception_cls: Type[Exception],
+    exception_cls: type[Exception],
     something: Any,  # That has __getitem__
     index: Any,
     value: Any | None = None,

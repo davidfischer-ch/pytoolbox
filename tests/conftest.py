@@ -16,8 +16,9 @@ TMP_DIRECTORY: Final[Path] = Path(__file__).resolve().parent / '.tmp'
 
 # Credits: https://johnvansickle.com/ffmpeg/
 FFMPEG_VERSION: Final[str] = '4.3.1'
-FFMPEG_RELEASE_URL: Final[str] = f'{TEST_S3_URL}/ffmpeg-{FFMPEG_VERSION}-{BITS}-static.tar.xz'
-FFMPEG_RELEASE_ARCHIVE: Final[Path] = TMP_DIRECTORY / f'ffmpeg-{FFMPEG_VERSION}-{BITS}-static.tar.xz'
+FFMPEG_ARCHIVE_NAME: Final[str] = f'ffmpeg-{FFMPEG_VERSION}-{BITS}-static'
+FFMPEG_RELEASE_URL: Final[str] = f'{TEST_S3_URL}/{FFMPEG_ARCHIVE_NAME}.tar.xz'
+FFMPEG_RELEASE_ARCHIVE: Final[Path] = TMP_DIRECTORY / f'{FFMPEG_ARCHIVE_NAME}.tar.xz'
 FFMPEG_RELEASE_CHECKSUM: Final[str] = {'amd64': 'ee235393ec7778279144ee6cbdd9eb64'}[BITS]
 FFMPEG_RELEASE_DIRECTORY: Final[Path] = TMP_DIRECTORY / f'ffmpeg-{FFMPEG_VERSION}-{BITS}-static'
 
