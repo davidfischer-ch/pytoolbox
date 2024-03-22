@@ -33,7 +33,7 @@ class KeysValidator(object):
     }
     strict = False
 
-    def __init__(self, required_keys=None, optional_keys=None, strict=False, messages=None):
+    def __init__(self, *, required_keys=None, optional_keys=None, strict=False, messages=None):
         self.required_keys = set(required_keys or [])
         self.optional_keys = set(optional_keys or [])
         if not self.required_keys and not self.optional_keys:

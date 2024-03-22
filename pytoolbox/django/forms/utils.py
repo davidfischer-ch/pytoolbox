@@ -13,7 +13,7 @@ from pytoolbox import module
 _all = module.All(globals())
 
 
-def conditional_required(form, required_dict, data=None, cleanup=False):
+def conditional_required(form, required_dict, data=None, *, cleanup=False):
     """
     Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'.
     """
@@ -42,7 +42,7 @@ def get_instance(form, field_name, request, msg=None):
             messages.error(request, msg)
 
 
-def set_disabled(form, field_name, value=False):
+def set_disabled(form, field_name, *, value=False):
     """Toggle the disabled attribute of a form's field."""
     if value:
         form.fields[field_name].widget.attrs['disabled'] = True
@@ -86,7 +86,7 @@ def update_widget_attributes(widget, updates):
     widget.attrs.update(updates)
 
 
-def validate_start_end(form, data=None, start_name='start_date', end_name='end_date'):
+def validate_start_end(form, data=None, *, start_name='start_date', end_name='end_date'):
     """
     Check that the field containing the value of the start field (time, ...) is not bigger (>) than
     the stop.

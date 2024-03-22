@@ -70,6 +70,7 @@ def filterjoin(
 
 def to_lines(
     items: Iterable[Any],
+    *,
     limit: int = 80,
     start: str = '\t',
     template: str = '{0} '

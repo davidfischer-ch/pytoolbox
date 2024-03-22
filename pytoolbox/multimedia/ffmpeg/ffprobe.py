@@ -43,7 +43,7 @@ class FFprobe(object):
         process.wait()
         return process.stdout.read()
 
-    def get_media_duration(self, media, as_delta=False, fail=False):
+    def get_media_duration(self, media, *, as_delta=False, fail=False):
         """
         Returns the duration of a media as an instance of time or None in case of error.
 
@@ -78,7 +78,7 @@ class FFprobe(object):
                 return duration
         return None
 
-    def get_media_info(self, media, fail=False):
+    def get_media_info(self, media, *, fail=False):
         """
         Return a Python dictionary containing information about the media or None in case of error.
         Set `media` to an instance of `self.media_class` or a path.
@@ -109,7 +109,7 @@ class FFprobe(object):
                 raise
         return None
 
-    def get_media_format(self, media, fail=False):
+    def get_media_format(self, media, *, fail=False):
         """
         Return information about the container (and file) or None in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -126,7 +126,7 @@ class FFprobe(object):
                 raise
         return None
 
-    def get_media_streams(self, media, condition=lambda stream: True, fail=False):
+    def get_media_streams(self, media, *, condition=lambda stream: True, fail=False):
         """
         Return a list with the media streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -147,7 +147,7 @@ class FFprobe(object):
                 else stream)
         return streams
 
-    def get_audio_streams(self, media, fail=False):
+    def get_audio_streams(self, media, *, fail=False):
         """
         Return a list with the audio streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -158,7 +158,7 @@ class FFprobe(object):
             condition=lambda s: s['codec_type'] == 'audio',
             fail=fail)
 
-    def get_subtitle_streams(self, media, fail=False):
+    def get_subtitle_streams(self, media, *, fail=False):
         """
         Return a list with the subtitle streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -169,7 +169,7 @@ class FFprobe(object):
             condition=lambda s: s['codec_type'] == 'subtitle',
             fail=fail)
 
-    def get_video_streams(self, media, fail=False):
+    def get_video_streams(self, media, *, fail=False):
         """
         Return a list with the video streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -180,7 +180,7 @@ class FFprobe(object):
             condition=lambda s: s['codec_type'] == 'video',
             fail=fail)
 
-    def get_video_frame_rate(self, media, index=0, fail=False):
+    def get_video_frame_rate(self, media, *, index=0, fail=False):
         """
         Return the frame rate of the video stream at `index` in `media` or None in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -197,7 +197,7 @@ class FFprobe(object):
                 raise
         return None
 
-    def get_video_resolution(self, media, index=0, fail=False):
+    def get_video_resolution(self, media, *, index=0, fail=False):
         """
         Return [width, height] of the video stream at `index` in `media` or None in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of

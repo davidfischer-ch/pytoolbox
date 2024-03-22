@@ -22,7 +22,7 @@ def propagate_handler(signum, frame):
         raise RuntimeError(errors)
 
 
-def register_handler(signum, handler, append=True, reset=False):
+def register_handler(signum, handler, *, append=True, reset=False):
     old_handler = signal.getsignal(signum)
     signal.signal(signum, propagate_handler)
     if inspect.isfunction(old_handler) and old_handler is not propagate_handler:
@@ -39,7 +39,7 @@ def register_handler(signum, handler, append=True, reset=False):
     handlers.append(handler)
 
 
-def register_callback(signum, callback, append=True, reset=False, args=None, kwargs=None):
+def register_callback(signum, callback, *, append=True, reset=False, args=None, kwargs=None):
     return register_handler(
         signum,
         lambda s, f: callback(*(args or []), **(kwargs or {})),

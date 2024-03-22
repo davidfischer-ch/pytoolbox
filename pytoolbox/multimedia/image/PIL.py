@@ -51,7 +51,7 @@ def open(file_or_path):  # pylint:disable=redefined-builtin
     return image
 
 
-def remove_metadata(image, keys=('exif', ), inplace=False):
+def remove_metadata(image, keys=('exif', ), *, inplace=False):
     image = image if inplace else image.copy()
     for key in keys:
         if key in image.info:

@@ -22,7 +22,7 @@ def get_object_url(bucket_name, location, key):
     return f'https://s3-{location}.amazonaws.com/{bucket_name}/{key}'
 
 
-def list_objects(s3, bucket_name, prefix='', patterns='*', regex=False):
+def list_objects(s3, bucket_name, prefix='', patterns='*', *, regex=False):
     if prefix and prefix[-1] != '/':
         prefix += '/'
     patterns = from_path_patterns(patterns, regex=regex)
@@ -37,7 +37,7 @@ def list_objects(s3, bucket_name, prefix='', patterns='*', regex=False):
                 yield obj
 
 
-def load_object_meta(s3, bucket_name, path, fail=True):
+def load_object_meta(s3, bucket_name, path, *, fail=True):
     try:
         return s3.head_object(Bucket=bucket_name, Key=path)
     except ClientError as ex:
@@ -46,7 +46,7 @@ def load_object_meta(s3, bucket_name, path, fail=True):
         raise
 
 
-def read_object(s3, bucket_name, path, file=None, fail=True):
+def read_object(s3, bucket_name, path, file=None, *, fail=True):
     try:
         if file is None:
             with BytesIO() as f:
@@ -67,6 +67,7 @@ def remove_objects(
     bucket_name,
     prefix='',
     patterns=r'*',
+    *,
     callback=lambda obj: True,
     regex=False,
     simulate=False

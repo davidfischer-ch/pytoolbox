@@ -20,6 +20,7 @@ def to_file(
     path,
     data=None,
     pickle_data=None,
+    *,
     binary=False,
     safe=False,
     backup=False,
@@ -99,7 +100,7 @@ def to_file(
 class PickleableObject(object):
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
-    def read(cls, path, store_path=False, create_if_error=False, **kwargs):
+    def read(cls, path, *, store_path=False, create_if_error=False, **kwargs):
         """Return a deserialized instance of a pickleable object loaded from a file."""
         try:
             with open(path, 'rb') as f:
@@ -113,7 +114,7 @@ class PickleableObject(object):
             the_object._pickle_path = path  # pylint:disable=all
         return the_object
 
-    def write(self, path=None, store_path=False, safe=False, backup=False, makedirs=False):
+    def write(self, path=None, *, store_path=False, safe=False, backup=False, makedirs=False):
         """Serialize `self` to a file, excluding the attribute `_pickle_path`."""
         pickle_path = getattr(self, '_pickle_path', None)
         path = path or pickle_path
@@ -309,7 +310,7 @@ class JsoneableObject(object):
     """
 
     @classmethod
-    def read(cls, path, store_path=False, inspect_constructor=True):
+    def read(cls, path, *, store_path=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(path, encoding='utf-8') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
@@ -317,8 +318,16 @@ class JsoneableObject(object):
                 the_object._json_path = path  # pylint:disable=all
             return the_object
 
-    def write(self, path=None, include_properties=False, safe=False, backup=False, makedirs=False,
-              **kwargs):
+    def write(
+        self,
+        path=None,
+        *,
+        include_properties=False,
+        safe=False,
+        backup=False,
+        makedirs=False,
+        **kwargs
+    ):
         """Serialize `self` to a file, excluding the attribute `_json_path`."""
         if path is None and hasattr(self, '_json_path'):
             path = self._json_path
@@ -357,7 +366,10 @@ class JsoneableObject(object):
 # Object <-> Dictionary ----------------------------------------------------------------------------
 
 def object_to_dict(
-    obj, schema, depth=0,
+    obj,
+    schema,
+    *,
+    depth=0,
     callback=lambda o, s, d: (o, s),
     iterable_callback=lambda o, s, d: list
 ):
@@ -510,7 +522,10 @@ def object_to_dict(
 
 
 def _object_to_dict_item(
-    obj, schema, depth=0,
+    obj,
+    schema,
+    *,
+    depth=0,
     callback=lambda o, s, d: (o, s),
     iterable_callback=lambda o, s, d: list
 ):
@@ -584,7 +599,7 @@ class SlotsToDictMixin(object):
 
     extra_slots = None
 
-    def to_dict(self, extra_slots=True):
+    def to_dict(self, *, extra_slots=True):
         self_dict = {}
         slots = set(s for s in get_slots(self) if s[0] != '_')
         if extra_slots:

@@ -27,7 +27,7 @@ class LiveTestCaseMixin(object):
 
     # Asserts
 
-    def assertElementEqual(self, name, value, enabled=True):  # pylint:disable=invalid-name
+    def assertElementEqual(self, name, value, *, enabled=True):  # pylint:disable=invalid-name
         """Check the properties of an element. Works with both WebElement and Select."""
         if enabled:
             self.assertElementIsEnabled(name)

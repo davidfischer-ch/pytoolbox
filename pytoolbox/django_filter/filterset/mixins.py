@@ -14,7 +14,7 @@ class RaiseOnUnhandledFieldClassMixin(object):
     """
 
     @classmethod
-    def filter_for_field(cls, f, name, lookup_type='exact'):
+    def filter_for_field(cls, f, name, *, lookup_type='exact'):
         value = super().filter_for_field(f, name, lookup_type)
         if not value:
             raise NotImplementedError(

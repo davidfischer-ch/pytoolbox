@@ -100,7 +100,7 @@ def get_subclasses(obj, *, nested=True):
             yield from get_subclasses(subclass, nested=nested)
 
 
-def isiterable(obj: Any, blacklist=bytes | str) -> bool:
+def isiterable(obj: Any, *, blacklist=bytes | str) -> bool:
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 

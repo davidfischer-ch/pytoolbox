@@ -83,6 +83,7 @@ def findall_partial(string: str, regex_parts: list[str]) -> Iterator[tuple[str, 
 
 def from_path_patterns(
     patterns: re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str],
+    *,
     regex: bool = False
 ) -> list[re.Pattern]:
     """

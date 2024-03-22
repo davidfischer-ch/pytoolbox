@@ -30,16 +30,16 @@ class LiveClient(common.FindMixin):
         assert not value or not self._css_prefix, self._css_prefix
         self._css_prefix = value
 
-    def find_css(self, css_selector, prefix=True, force_list=False, fail=True):
+    def find_css(self, css_selector, *, prefix=True, force_list=False, fail=True):
         """Shortcut to find elements by CSS. Returns either a list or singleton."""
         if prefix and self.css_prefix:
             css_selector = f'{self.css_prefix} {css_selector}'
         return self.web_driver.find_css(css_selector, force_list=force_list, fail=fail)
 
-    def find_xpath(self, xpath, force_list=False, fail=True):
+    def find_xpath(self, xpath, *, force_list=False, fail=True):
         return self.web_driver.find_xpath(xpath, force_list=force_list, fail=fail)
 
-    def get(self, url, data=None):
+    def get(self, url, *, data=None):
         assert data is None
         url = urljoin(self.live_server_url, url) if '://' not in url else url
         response = type('Response', (object, ), self.web_driver.execute(Command.GET, {'url': url}))
@@ -49,7 +49,7 @@ class LiveClient(common.FindMixin):
     def quit(self):
         return self.web_driver.quit()
 
-    def set_element(self, name, value, clear=None):
+    def set_element(self, name, value, *, clear=None):
         """Set the properties of an element. Works with both WebElement and Select."""
         element = self.find_name(name)
         if clear is None:
@@ -63,7 +63,7 @@ class LiveClient(common.FindMixin):
     def submit(self):
         return self.find_css('form button.btn-primary[type="submit"]').click()
 
-    def wait_for_css(self, css_selector='', inverse=False, prefix=True, timeout=5, fail=True):
+    def wait_for_css(self, css_selector='', *, inverse=False, prefix=True, timeout=5, fail=True):
         try:
             return ui.WebDriverWait(self.web_driver, timeout).until(
                 lambda driver: bool(self.find_css(css_selector, prefix, fail=False)) ^ inverse
@@ -73,8 +73,8 @@ class LiveClient(common.FindMixin):
                 raise
         return None
 
-    def wait_for_id(self, element_id, inverse=False, prefix=True, timeout=5, fail=True):
+    def wait_for_id(self, element_id, *, inverse=False, prefix=True, timeout=5, fail=True):
         return self.wait_for_css(f'#{element_id}', inverse, prefix, timeout, fail)
 
-    def wait_for_name(self, element_name, inverse=False, prefix=True, timeout=5, fail=True):
+    def wait_for_name(self, element_name, *, inverse=False, prefix=True, timeout=5, fail=True):
         return self.wait_for_css(f'[name="{element_name}"]', inverse, prefix, timeout, fail)

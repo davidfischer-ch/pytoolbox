@@ -77,7 +77,7 @@ class FilterByTagsMixin(InspectMixin):
     skip_tags_variable = 'TEST_SKIP_TAGS'
 
     @staticmethod
-    def should_run(tags, required_tags, extra_tags, only_tags, skip_tags):
+    def should_run(tags, *, required_tags, extra_tags, only_tags, skip_tags):
         all_tags = tags | required_tags
         if all_tags & skip_tags:
             return False
@@ -188,6 +188,7 @@ class FFmpegMixin(object):
         second_path,
         first_index,
         second_index,
+        *,
         same_codec=True
     ):
         first = self.ffprobe.get_audio_streams(first_path)[first_index]
@@ -200,6 +201,7 @@ class FFmpegMixin(object):
         self,
         first_path,
         second_path,
+        *,
         same_bit_rate=True,
         same_duration=True,
         same_size=True,
@@ -230,6 +232,7 @@ class FFmpegMixin(object):
         second_path,
         first_index,
         second_index,
+        *,
         same_codec=True
     ):
         first = self.ffprobe.get_video_streams(first_path)[first_index]

@@ -31,6 +31,7 @@ class FFmpeg(object):
     def __init__(
         self,
         executable: Path | None = None,
+        *,
         chunk_read_timeout: float = 0.5,
         encode_poll_delay: float = 0.5,
         encoding: str = 'utf-8'
