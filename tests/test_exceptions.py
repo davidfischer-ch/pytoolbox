@@ -31,3 +31,7 @@ def test_message_mixin_str_missing_key() -> None:
     ex = NewError(ten=10, dict={})
     with pytest.raises(KeyError):
         str(ex)
+
+
+def test_ssh_error_repr() -> None:
+    assert repr(exceptions.SSHAgentParsingError(output='A')) == "SSHAgentParsingError(output='A')"
