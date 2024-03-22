@@ -5,6 +5,7 @@ from typing import Any, Final, Literal, overload
 import fnmatch
 import re
 
+from . import exceptions
 from .itertools import chain
 
 __all__ = [
@@ -112,6 +113,26 @@ def from_path_patterns(
         p if isinstance(p, re.Pattern) else re.compile(p if regex else fnmatch.translate(p))
         for p in chain(patterns)
     ]
+
+
+def group_replace(
+    string: str,
+    match: re.Match, *,
+    offset: int = 0,
+    mapping: tuple[tuple[str, str | None], ...]
+) -> str:
+    """
+    **Example usage**
+    """
+    for group, value in mapping:
+        if value is not None:
+            try:
+                if (start := match.start(group)) < 0:
+                    raise IndexError()
+            except IndexError as ex:
+                raise exceptions.RegexMatchGroupNotFoundError(group=group) from ex
+            string = string[:start + offset] + value + string[match.end(group) + offset:]
+    return string
 
 
 class Match(object):

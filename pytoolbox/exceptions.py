@@ -86,6 +86,12 @@ class MultipleSignalHandlersError(MessageMixin, Exception):
     handlers: list[Callable]
 
 
+class RegexMatchGroupNotFoundError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('group', )
+    message: str = 'Group "{group}" not found in the regex match.'
+    group: str
+
+
 class SSHAgentConnectionError(MessageMixin, Exception):
     message: str = 'Unable to communicate with the ssh agent.'
 
