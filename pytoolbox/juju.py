@@ -10,10 +10,17 @@ import subprocess
 import sys
 import time
 import uuid
-import yaml
 
-from . import console, filesystem, module, subprocess as py_subprocess  # pylint:disable=reimported
+from . import (  # pylint:disable=reimported
+    console,
+    filesystem,
+    module,
+    subprocess as py_subprocess,
+    serialization
+)
 from .argparse import FullPaths, is_dir
+
+yaml = serialization.get_yaml()
 
 _all = module.All(globals())
 
@@ -101,7 +108,7 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
     if result['returncode'] != 0 and fail:
         raise RuntimeError(f"Subprocess failed {' '.join(arguments)} : {result['stderr']}.")
 
-    return yaml.safe_load(result['stdout'])
+    return yaml.load(result['stdout'])
 
 
 def load_unit_config(config, log=None):
@@ -119,7 +126,7 @@ def load_unit_config(config, log=None):
             log(f'Load config from file {config}')
 
         with open(config, encoding='utf-8') as f:
-            options = yaml.safe_load(f)['options']
+            options = yaml.load(f)['options']
             config = {}
             for option in options:
                 config[option] = options[option]['default']
@@ -139,7 +146,7 @@ def save_unit_config(path, service, config):
             if isinstance(value, bool):
                 config[option] = str(value)
         config = {service: config}
-        f.write(yaml.safe_dump(config))
+        f.write(yaml.dump(config))
 
 
 # Environments -------------------------------------------------------------------------------------
@@ -155,7 +162,7 @@ def add_environment(
     environments=None
 ):
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
-        environments_dict = yaml.safe_load(f)
+        environments_dict = yaml.load(f)
 
     if environment == 'default':
         raise ValueError(f'Cannot create an environment with name {environment}.')
@@ -181,7 +188,7 @@ def add_environment(
     environments_dict['environments'][environment] = environment_dict
 
     with open(environments, 'w', encoding='utf-8') as f:
-        f.write(yaml.safe_dump(environments_dict))
+        f.write(yaml.dump(environments_dict))
 
     try:
         return juju_do('bootstrap', environment)
@@ -189,14 +196,14 @@ def add_environment(
         if 'configuration error' in str(ex):
             del environments_dict['environments'][environment]
             with open(environments, 'w', encoding='utf-8') as f:
-                f.write(yaml.safe_dump(environments_dict))
+                f.write(yaml.dump(environments_dict))
             raise ValueError(f'Cannot add environment {environment} ({ex}).') from ex
         raise
 
 
 def get_environment(environment, environments=None, get_status=False, status_timeout=None):
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
-        environments_dict = yaml.safe_load(f)
+        environments_dict = yaml.load(f)
 
     environment = environments_dict['default'] if environment == 'default' else environment
     try:
@@ -212,7 +219,7 @@ def get_environment(environment, environments=None, get_status=False, status_tim
 
 def get_environments(environments=None, get_status=False, status_timeout=None):
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
-        environments_dict = yaml.safe_load(f)
+        environments_dict = yaml.load(f)
 
     environments = {}
     for environment in environments_dict['environments'].items():
@@ -230,7 +237,7 @@ def get_environments(environments=None, get_status=False, status_timeout=None):
 
 def get_environments_count(environments=None):
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
-        return len(yaml.safe_load(f)['environments'])
+        return len(yaml.load(f)['environments'])
 
 
 # Units --------------------------------------------------------------------------------------------
@@ -533,7 +540,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         if isinstance(metadata, str):
             self.debug(f'Load metadata from file {metadata}')
             with open(metadata, encoding='utf-8') as f:
-                metadata = yaml.safe_load(f)
+                metadata = yaml.load(f)
         self.metadata = metadata
 
     # ----------------------------------------------------------------------------------------------
@@ -712,7 +719,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
     ):
         # TODO simpler algorithm
         with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
-            environments_dict = yaml.safe_load(f)
+            environments_dict = yaml.load(f)
 
         name = environments_dict['default'] if self.name == 'default' else self.name
 
@@ -735,7 +742,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
 
             del environments_dict['environments'][name]
             with open(environments, 'w', encoding='utf-8') as f:
-                f.write(yaml.safe_dump(environments_dict))
+                f.write(yaml.dump(environments_dict))
         return result
 
     # Services

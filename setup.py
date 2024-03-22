@@ -38,10 +38,10 @@ if sys.argv[-1] == 'test':
 
 install_requires: list[str] = [
     'argparse',
-    'pyaml',
     'python-magic',
     'pytz',
     'requests',
+    'ruamel.yaml',
     'termcolor'
 ]
 
@@ -162,7 +162,6 @@ extras_require.update({
         # Stubs
         'PyGObject-stubs>=2.10.0',          # 2024-03-19 Released 2023-11-16
         'types-pytz>=2024.1.0.20240203',    # 2024-03-19 Released 2024-02-03
-        'types-PyYAML>=6.0.12.20240311',    # 2024-03-19 Released 2023-09-23
         'types-requests>=2.31.0.20240311',  # 2024-03-19 Released 2023-10-18
         'types-urllib3>=1.26.25.14'         # 2024-03-19 Released 2023-07-20
     ]

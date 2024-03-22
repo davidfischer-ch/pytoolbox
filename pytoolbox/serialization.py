@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TypeAlias
 import errno
 import inspect
+import io
 import json
 import os
 import pickle
 import shutil
+
+import ruamel.yaml
 
 from . import filesystem, module
 from .private import ObjectId
@@ -617,6 +621,41 @@ class SlotsToDictMixin(object):
             if value is not None:
                 self_dict[attribute] = value
         return self_dict
+
+
+# YAML ---------------------------------------------------------------------------------------------
+
+YamlDataTypes: TypeAlias = dict | list | str | None
+
+
+def get_yaml(
+    *,
+    mapping: int = 2,
+    sequence: int = 4,
+    offset: int = 2,
+    line_length: int = 120
+) -> ruamel.yaml.YAML:
+    """
+    Build and return an instance of :class:`ruamel.yaml.YAML`.
+
+    See: https://yaml.readthedocs.io/en/latest/api.html
+    """
+    yaml = ruamel.yaml.YAML()
+    yaml.allow_unicode = True    # type:ignore
+    yaml.explicit_start = True   # type:ignore
+    yaml.explicit_end = True     # type:ignore
+    yaml.preserve_quotes = True  # type:ignore
+    yaml.width = line_length     # type:ignore
+    yaml.indent(mapping=mapping, sequence=sequence, offset=offset)
+    return yaml
+
+
+def to_yaml(yaml: ruamel.yaml.YAML, data: YamlDataTypes) -> str:
+    """Dump data to YAML while preserving style (and enforcing some)."""
+    with io.StringIO() as stream:
+        yaml.dump(data, stream)
+        content = stream.getvalue()
+    return content
 
 
 __all__ = _all.diff(globals())
