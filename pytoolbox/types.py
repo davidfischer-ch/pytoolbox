@@ -111,7 +111,7 @@ def isiterable(obj: Any, *, blacklist=bytes | str) -> bool:
     ...     asserts.false(isiterable(obj), obj)
     >>> for obj in [], (), set(), iter({}.items()):
     ...     asserts.true(isiterable(obj), obj)
-    >>> isiterable({}, dict)
+    >>> isiterable({}, blacklist=dict)
     False
     """
     return isinstance(obj, Iterable) and not isinstance(obj, blacklist)

@@ -99,7 +99,7 @@ def from_path_patterns(
     ...     [r.pattern for r in from_path_patterns('*.txt')],
     ...     ['(?s:.*\\\\.txt)\\\\Z'])
     >>> asserts.list_equal(
-    ...     [r.pattern for r in from_path_patterns(['text', 'something*'], '*.py')],
+    ...     [r.pattern for r in from_path_patterns(['text', 'something*'], regex=True)],
     ...     ['text', 'something*'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'fo?'])],

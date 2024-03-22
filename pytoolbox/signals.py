@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 import collections
 import inspect
 import signal
@@ -11,7 +12,7 @@ __all__ = ['handlers_by_signal', 'propagate_handler', 'register_handler', 'regis
 handlers_by_signal = collections.defaultdict(list)
 
 
-def propagate_handler(signum, frame):
+def propagate_handler(signum: int, frame) -> None:
     errors = {}
     for handler in reversed(handlers_by_signal[signum]):
         try:
@@ -22,7 +23,13 @@ def propagate_handler(signum, frame):
         raise RuntimeError(errors)
 
 
-def register_handler(signum, handler, *, append=True, reset=False):
+def register_handler(
+    signum: int,
+    handler: Callable,
+    *,
+    append: bool = True,
+    reset: bool = False
+) -> None:
     old_handler = signal.getsignal(signum)
     signal.signal(signum, propagate_handler)
     if inspect.isfunction(old_handler) and old_handler is not propagate_handler:
@@ -39,9 +46,17 @@ def register_handler(signum, handler, *, append=True, reset=False):
     handlers.append(handler)
 
 
-def register_callback(signum, callback, *, append=True, reset=False, args=None, kwargs=None):
+def register_callback(
+    signum: int,
+    callback: Callable,
+    *,
+    append: bool = True,
+    reset: bool = False,
+    args: list | None = None,
+    kwargs: dict | None = None
+) -> None:
     return register_handler(
         signum,
         lambda s, f: callback(*(args or []), **(kwargs or {})),
-        append,
-        reset)
+        append=append,
+        reset=reset)

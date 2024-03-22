@@ -77,7 +77,7 @@ class FilterByTagsMixin(InspectMixin):
     skip_tags_variable = 'TEST_SKIP_TAGS'
 
     @staticmethod
-    def should_run(tags, *, required_tags, extra_tags, only_tags, skip_tags):
+    def should_run(tags, required_tags, extra_tags, only_tags, skip_tags):
         all_tags = tags | required_tags
         if all_tags & skip_tags:
             return False

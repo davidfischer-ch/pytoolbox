@@ -308,7 +308,6 @@ class JsoneableObject(object):
     True
     >>> asserts.dict_equal(media_back.author.__dict__, media.author.__dict__)
     """
-
     @classmethod
     def read(cls, path, *, store_path=False, inspect_constructor=True):
         """Return a deserialized instance of a jsoneable object loaded from a file."""
@@ -507,7 +506,6 @@ def object_to_dict(
     ...         {'n': 'p6', 'p': {'r': 'p1'}}
     ...     ])
     """
-
     if isinstance(schema, list):
         count = len(schema)
         if count != 1:
@@ -515,10 +513,20 @@ def object_to_dict(
         schema = schema[0]
         container_type = iterable_callback(obj, schema, depth)
         return container_type(
-            _object_to_dict_item(i, schema, depth, callback, iterable_callback)
+            _object_to_dict_item(
+                i,
+                schema,
+                depth=depth,
+                callback=callback,
+                iterable_callback=iterable_callback)
             for i in obj
         )
-    return _object_to_dict_item(obj, schema, depth, callback, iterable_callback)
+    return _object_to_dict_item(
+        obj,
+        schema,
+        depth=depth,
+        callback=callback,
+        iterable_callback=iterable_callback)
 
 
 def _object_to_dict_item(
@@ -548,9 +556,9 @@ def _object_to_dict_item(
             obj_dict[key] = object_to_dict(
                 getattr(obj, key),
                 schema[key],
-                depth + 1,
-                callback,
-                iterable_callback)
+                depth=depth + 1,
+                callback=callback,
+                iterable_callback=iterable_callback)
         else:
             raise NotImplementedError(f'Key {repr(key)} with value {repr(value)}')
 

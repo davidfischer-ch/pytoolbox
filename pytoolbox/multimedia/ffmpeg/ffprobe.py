@@ -65,7 +65,7 @@ class FFprobe(object):
                     microseconds, seconds = int(1000000 * microseconds), int(seconds)
                     return parts_to_time(hours, minutes, seconds, microseconds, as_delta=as_delta)
         else:
-            info = self.get_media_info(media, fail)
+            info = self.get_media_info(media, fail=fail)
             duration = None
             if info:
                 try:
@@ -115,7 +115,7 @@ class FFprobe(object):
         Set `media` to an instance of `self.media_class`, a path or the output of
         `get_media_info()`.
         """
-        info = self.get_media_info(media, fail)
+        info = self.get_media_info(media, fail=fail)
         try:
             cls, the_format = self.format_class, info['format']
             if cls and not isinstance(the_format, cls):  # pylint:disable=all
@@ -132,7 +132,7 @@ class FFprobe(object):
         Set `media` to an instance of `self.media_class`, a path or the output of
         `get_media_info()`.
         """
-        info = self.get_media_info(media, fail)
+        info = self.get_media_info(media, fail=fail)
         try:
             raw_streams = (s for s in info['streams'] if condition(s))
         except Exception:  # pylint:disable=broad-except

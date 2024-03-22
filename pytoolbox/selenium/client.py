@@ -65,16 +65,26 @@ class LiveClient(common.FindMixin):
 
     def wait_for_css(self, css_selector='', *, inverse=False, prefix=True, timeout=5, fail=True):
         try:
-            return ui.WebDriverWait(self.web_driver, timeout).until(
-                lambda driver: bool(self.find_css(css_selector, prefix, fail=False)) ^ inverse
-            )
+            def wait_func(driver) -> bool:  # pylint:disable=unused-argument
+                return bool(self.find_css(css_selector, prefix=prefix, fail=False)) ^ inverse
+            return ui.WebDriverWait(self.web_driver, timeout).until(wait_func)
         except exceptions.TimeoutException:  # pylint:disable=no-member
             if fail:
                 raise
         return None
 
     def wait_for_id(self, element_id, *, inverse=False, prefix=True, timeout=5, fail=True):
-        return self.wait_for_css(f'#{element_id}', inverse, prefix, timeout, fail)
+        return self.wait_for_css(
+            f'#{element_id}',
+            inverse=inverse,
+            prefix=prefix,
+            timeout=timeout,
+            fail=fail)
 
     def wait_for_name(self, element_name, *, inverse=False, prefix=True, timeout=5, fail=True):
-        return self.wait_for_css(f'[name="{element_name}"]', inverse, prefix, timeout, fail)
+        return self.wait_for_css(
+            f'[name="{element_name}"]',
+            inverse=inverse,
+            prefix=prefix,
+            timeout=timeout,
+            fail=fail)
