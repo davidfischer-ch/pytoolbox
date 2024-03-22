@@ -2,6 +2,67 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.7.0 (2024-03-22)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.6.0
+
+### Minor compatibility breaks
+
+* Drop Python 3.9 & 3.10 compatibility
+* Favor `pathlib.Path` over `str`:
+  * Returning `pathlib.Path` when its a path ...
+  * Not accepting
+* Force named arguments when it makes sense (`mypy` should help you with this)
+* Drop `is_path` argument, instead check if its an instance of `pathlib.Path`:
+  * Function `filesystem.from_template`
+  * Function `filesystem.get_bytes`
+* Rename argument `format` to `fmt` to fix a linter issue:
+  * Function `datetime.datetime_now`
+  * Function `datetime.datetime_to_str`
+  * Function `datetime.str_to_datetime`
+* Rename function `filesytem.recursive_copy` to `filesystem.copy_recusrive` (keep an alias)
+* Method `module.All.diff`: Drop argument `to_type`
+* Function `network.http.download_ext_multi`: Argument `resources` must now be an iterable of `Resource`
+* Functions `validation.valid_*`: Do not accept `None` anymore
+
+### Features
+
+* Type hint a massive portion of code (and import annotations from __future__)!
+* Ensure Python 3.11 & 3.12 compatibility
+* Add optional MongoDB feature (`mongodb` extra)
+* Add class `argparse.Namespace`
+* Add context manager `filesystem.chdir`
+* Add Protocol class `filesystem.CopyProgressCallback`
+* Add Protocol class `filesystem.TemplateHookFunc`
+* Add dataclass `network.http.Resource`
+* Add Protocol `network.http.SingleProgressCallback`
+* Add Protocol `network.http.MultiProgressCallback`
+* Add TypeAlias `subprocess.CallArgType`
+* Add TypeAlias `subprocess.CallArgsType`
+* Add TypeAlias `subprocess.LoggerType`
+* Add TypeAlias `types.GenericType`
+
+### Fix and enhancements
+
+* Add explicit named arguments `recursive`, `top_down`, `on_error`, `follow_symlinks`:
+  * Function `filesystem.chown`
+  * Function `filesystem.find_recursive`
+* Add explicit named arguments related to `requests.get`:
+  * Function `network.http.download_ext`
+  * Function `network.http.iter_download_core`
+  * Function `network.http.iter_download_to_file`
+* Module `multimedia.ffmpeg`: Enhance it and make it compatible with ffmpeg 6.1 (See commit d026afdbbe86becbccb3c75d2a1830052834cd0a)
+* Function `filesystem.copy_recursive`: Cover it with tests (See commit f4d5bd11992525d9fe08c56c668c254e7093f30d)
+* Class `network.smpte2022.base`: Make it Python 3.9+ compatible (by Július Milan <julius.milan.22@gmail.com>)
+* Class `types.StrongTypedMixin`: Make it compatible with future style annotations
+* Module `multimedia.ffmpeg.miscellaneous`: Consolidate code (move common attributes to the parent class)
+* Class `multimedia.ffmpeg.miscellaneous.Media`: Refactor it ()
+* Refresh `__all__` and don't use magic when not necessary
+* Switch from Travis CI to GitHub Actions
+* Rework imports (drop multiple-imports *style*)
+* Fix various linter issues
+* Update `AUTHORS.md`
+
 ## v14.6.0 (2023-08-15)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.5.1
