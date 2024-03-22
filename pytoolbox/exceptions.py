@@ -86,6 +86,20 @@ class MultipleSignalHandlersError(MessageMixin, Exception):
     handlers: list[Callable]
 
 
+class SSHAgentConnectionError(MessageMixin, Exception):
+    message: str = 'Unable to communicate with the ssh agent.'
+
+
+class SSHAgentLoadingKeyError(MessageMixin, Exception):
+    message: str = 'Unable to load key.'
+
+
+class SSHAgentParsingError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('output', )
+    message: str = 'Unable to parse ssh-agent output "{output}".'
+    output: str
+
+
 class UndefinedPathError(Exception):
     pass
 
