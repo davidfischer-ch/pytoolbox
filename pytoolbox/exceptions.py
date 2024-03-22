@@ -23,8 +23,9 @@ class MessageMixin(Exception):
         assert set(self.attrs).issubset(set(kwargs.keys()))  # TODO metaclass to check this
         if message is not None:
             self.message = message
-        self.__dict__.update(kwargs)
-        Exception.__init__(self)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        super().__init__()
 
     def __repr__(self) -> str:
         args = [] if self.message == type(self).message else [f'{repr(self.message)}']
@@ -42,6 +43,15 @@ class BadHTTPResponseCodeError(MessageMixin, Exception):
     url: str
     r_code: int
     code: int
+
+
+class CalledProcessError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('returncode', 'cmd', 'stdout', 'stderr')
+    message: str = 'Process {cmd!r} failed with return code {returncode}'
+    returncode: int
+    cmd: str
+    stdout: bytes | None
+    stderr: bytes | None
 
 
 class CorruptedFileError(MessageMixin, Exception):

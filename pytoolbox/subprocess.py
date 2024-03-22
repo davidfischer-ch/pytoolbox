@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import TypeAlias
+from typing import Final, TypeAlias
 import errno
 import fcntl
 import grp
@@ -19,11 +19,16 @@ import subprocess
 import threading
 import time
 
-from . import filesystem, module
+from . import exceptions, filesystem, module
 
 _all = module.All(globals())
 
-EMPTY_CMD_RETURN = {'process': None, 'stdout': None, 'stderr': None, 'returncode': None}
+EMPTY_CMD_RETURN: Final[dict[str, None]] = {
+    'process': None,
+    'stdout': None,
+    'stderr': None,
+    'returncode': None
+}
 
 # import Popen on steroids if available
 try:
@@ -150,7 +155,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     :param input: If set, sended to stdin (if `communicate` is True).
     :param cli_input: If set, sended to stdin (no condition).
     :param cli_output: Set to True to output (in real-time) stdout to stdout and stderr to stderr.
-    :param fail: Set to False to avoid the exception `subprocess.CalledProcessError`.
+    :param fail: Set to False to avoid the exception `exceptions.CalledProcessError`.
     :param log: A function to log/print details about what is executed/any failure, can be a logger.
     :param communicate: Set to True to communicate with the process, this is a locking call
                         (if timeout is None).
@@ -252,7 +257,11 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 
         # raise if this is the last try
         if fail and not do_retry:
-            raise subprocess.CalledProcessError(process.returncode, args_string, stderr)
+            raise exceptions.CalledProcessError(
+                returncode=process.returncode,
+                cmd=args_string,
+                stdout=stdout,
+                stderr=stderr)
 
         if do_retry:
             time.sleep(delay)
