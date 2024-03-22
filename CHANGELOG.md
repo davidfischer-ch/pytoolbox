@@ -32,8 +32,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.6.0
 * Add optional MongoDB feature (`mongodb` extra)
 * Add class `argparse.Namespace`
 * Add context manager `filesystem.chdir`
-* Add Protocol class `filesystem.CopyProgressCallback`
-* Add Protocol class `filesystem.TemplateHookFunc`
+* Add Protocol `filesystem.CopyProgressCallback`
+* Add Protocol `filesystem.TemplateHookFunc`
 * Add dataclass `network.http.Resource`
 * Add Protocol `network.http.SingleProgressCallback`
 * Add Protocol `network.http.MultiProgressCallback`

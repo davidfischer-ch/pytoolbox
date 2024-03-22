@@ -91,6 +91,7 @@ Example::
       --extra-flask                        Install dependencies for Flask.
       --extra-imaging                      Install dependencies for Imaging.
       --extra-jinja2                       Install dependencies for Jinja2.
+      --extra-mongodb                      Install dependencies for MongoDB.
       --extra-network                      Install dependencies for Networking.
       --extra-pandas                       Install dependencies for Pandas.
       --extra-rest-framework               Install dependencies for Django REST Framework.
