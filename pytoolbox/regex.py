@@ -122,7 +122,13 @@ def group_replace(
     mapping: tuple[tuple[str, str | None], ...]
 ) -> str:
     """
+    Replace matched groups in `string` by content from given `mapping` (group name -> replacement).
+
+    An `exceptions.RegexMatchGroupNotFoundError` can be raised if a group is not found in `match`.
+
     **Example usage**
+
+    Please check the code and unit-tests :)
     """
     for group, value in mapping:
         if value is not None:
