@@ -94,12 +94,14 @@ class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
 
 @pytest.fixture(scope='function')
 def pytoolbox_git(tmp_path: Path) -> Path:
-    filesystem.copy_recursive(PROJECT_DIRECTORY, tmp_path)
-    subprocess.cmd(['git', 'checkout', '--force', 'main'], cwd=tmp_path)
+    pytoolbox_path = tmp_path / 'pytoolbox'
+    subprocess.cmd(
+        ['git', 'clone', 'https://github.com/davidfischer-ch/pytoolbox.git'],
+        cwd=tmp_path)
     subprocess.cmd(
         ['git', 'reset', '--hard', '4863c99a97fe358caa24e48b5c477b852b5a6721'],
-        cwd=tmp_path)
-    return tmp_path
+        cwd=pytoolbox_path)
+    return pytoolbox_path
 
 
 @pytest.fixture(scope='session')
