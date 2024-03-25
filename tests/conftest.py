@@ -10,8 +10,6 @@ from pytoolbox import filesystem, subprocess
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.network import http
 
-PROJECT_DIRECTORY: Final[Path] = Path(__file__).resolve().parent.parent
-
 BITS: Final[str] = {'x86_64': 'amd64'}[platform.processor()]
 TEST_S3_URL: Final[str] = 'https://pytoolbox.s3-eu-west-1.amazonaws.com/tests'
 TMP_DIRECTORY: Final[Path] = Path(__file__).resolve().parent / '.tmp'
