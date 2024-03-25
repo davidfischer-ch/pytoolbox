@@ -481,7 +481,7 @@ def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
 
 
 @deprecated
-def recursive_copy(*args, **kwargs):
+def recursive_copy(*args, **kwargs):  # pragma: no cover
     return copy_recursive(*args, **kwargs)
 
 
