@@ -11,7 +11,18 @@ import signal
 import stat
 import tempfile
 
-from . import exceptions, subprocess as py_subprocess
+from . import exceptions, subprocess
+
+__all__ = [
+    'AGENT_START_REGEX',
+    'add_fingerprint',
+    'add_key',
+    'is_agent_up',
+    'scoped_agent',
+    'start_agent',
+    'stop_agent',
+    'ssh'
+]
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +35,7 @@ AGENT_START_REGEX: Final[re.Pattern] = re.compile(
 def add_fingerprint(path: Path, host: str) -> None:
     """Scan an host's SSH fingerprint and add it to the list of known hosts."""
     log.info(f'Adding SSH fingerprint of host {host}')
-    keys: bytes = py_subprocess.cmd(['ssh-keyscan', '-H', host])['stdout']
+    keys: bytes = subprocess.cmd(['ssh-keyscan', '-H', host])['stdout']
     with path.open('ab') as key_file:
         key_file.write(keys)
     os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
@@ -36,7 +47,7 @@ def add_key(content: str) -> None:
         key_file.write(content + os.linesep)
         key_file.flush()
         try:
-            output: bytes = py_subprocess.cmd(['ssh-add', key_file.name], env=os.environ)['stderr']
+            output: bytes = subprocess.cmd(['ssh-add', key_file.name], env=os.environ)['stderr']
         except exceptions.CalledProcessError as ex:
             if b'Could not open' in ex.stderr:
                 raise exceptions.SSHAgentConnectionError()
@@ -75,7 +86,7 @@ def start_agent() -> dict:
     Start an SSH agent in the background.
     Export related environment variables.
     """
-    output: str = py_subprocess.cmd(['ssh-agent', '-s'])['stdout'].decode('utf-8')
+    output: str = subprocess.cmd(['ssh-agent', '-s'])['stdout'].decode('utf-8')
     if (match := AGENT_START_REGEX.search(output)) is None:
         raise exceptions.SSHAgentParsingError(output=output)
     variables = match.groupdict()
@@ -97,3 +108,18 @@ def stop_agent() -> bool:
     os.environ.pop('SSH_AGENT_PID')
     os.environ.pop('SSH_AUTH_SOCK')
     return True
+
+
+def ssh(
+    host: str,
+    identity_file: Path | None = None,
+    remote_cmd: str | None = None,
+    **kwargs
+) -> dict:
+    command = ['ssh']
+    if identity_file is not None:
+        command.extend(['-i', identity_file])
+    command.append(host)
+    if remote_cmd is not None:
+        command.extend(['-n', remote_cmd])
+    return subprocess.cmd([c for c in command if c], **kwargs)

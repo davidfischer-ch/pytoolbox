@@ -62,8 +62,19 @@ class CorruptedFileError(MessageMixin, Exception):
     expected_hash: str
 
 
+class DuplicateGitTagError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('tag', )
+    message: str = 'Tag {tag} already exist.'
+    tag: str
+
+
 class ForbiddenError(Exception):
     """A forbidden error."""
+
+
+class GitReferenceError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = tuple()
+    message: str = 'Unable to detect current Git reference.'
 
 
 class InvalidBrandError(MessageMixin, Exception):

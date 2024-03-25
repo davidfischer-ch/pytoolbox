@@ -1,13 +1,46 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Protocol, TypeAlias
 import logging
 import sys
 
 from .collections import merge_dicts
 
-__all__ = ['setup_logging', 'ColorizeFilter']
+__all__ = ['LoggerType', 'setup_logging', 'ColorizeFilter']
+
+
+class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
+    def __call__(self, messsage: str) -> None:
+        ...
+
+
+class BasicFuncLogger(logging.Logger):
+
+    def __init__(self, log_func) -> None:
+        self._log_func = log_func
+        super().__init__(name=log_func.__name__)
+
+    def _log(self, level, msg, *args, **kwargs) -> None:  # pylint:disable=unused-argument
+        self._log_func(msg)
+
+
+LoggerType: TypeAlias = BasicLoggerFunc | logging.Logger | None
+
+
+def get_logger(log: LoggerType) -> logging.Logger:
+    """Convenient function returning an instance of logger for various use cases."""
+    if isinstance(log, logging.Logger):
+        return log
+    if log is None:
+        log = logging.getLogger('noop')
+        log.setLevel('NOTSET')
+        return log
+    if hasattr(log, '__call__'):
+        log = BasicFuncLogger(log_func=log)
+        log.setLevel('NOTSET')
+        return log
+    raise NotImplementedError(f'Logging with {log!r}')
 
 
 def setup_logging(

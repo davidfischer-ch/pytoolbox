@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Final, TypeAlias
 import errno
@@ -20,6 +20,10 @@ import threading
 import time
 
 from . import exceptions, filesystem, module
+from .logging import LoggerType, get_logger
+from .decorators import deprecated
+
+log = logging.getLogger(__name__)
 
 _all = module.All(globals())
 
@@ -47,7 +51,6 @@ except ImportError:
 # None will be stripped automatically
 CallArgType: TypeAlias = int | float | str | Path | None
 CallArgsType: TypeAlias = str | Iterable[CallArgType]
-LoggerType: TypeAlias = Callable | logging.Logger | None
 
 
 def kill(process):
@@ -139,7 +142,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     communicate: bool = True,
     timeout: float | None = None,
     fail: bool = True,
-    log: LoggerType = None,
+    log: LoggerType = log,  # pylint:disable=redefined-outer-name
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
@@ -169,13 +172,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     The delay will be a random number in range (`delay_min`, `delay_max`).
 
     """
-
-    # Convert log argument to logging functions
-    log_debug = log_warning = log_exception = None
-    if isinstance(log, logging.Logger):
-        log_debug, log_warning, log_exception = log.debug, log.warning, log.exception
-    elif hasattr(log, '__call__'):
-        log_debug = log_warning = log_exception = log
+    log = get_logger(log)
 
     # Process arguments
     args_list = to_args_list(command)
@@ -184,13 +181,12 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     args_string = to_args_string(args_list)
 
     # log the execution
-    if log_debug:
-        log_debug(''.join([
-            'Execute ',
-            '' if input is None else f'echo {repr(input)} | ',
-            args_string,
-            '' if cli_input is None else f' < {repr(cli_input)}'
-        ]))
+    log.debug(''.join([
+        'Execute ',
+        '' if input is None else f'echo {repr(input)} | ',
+        args_string,
+        '' if cli_input is None else f' < {repr(cli_input)}'
+    ]))
 
     for trial in range(tries):  # noqa
         # create the sub-process
@@ -202,8 +198,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
                 stderr=None if cli_output else subprocess.PIPE, **kwargs)
         except OSError as ex:
             # Unable to execute the program (e.g. does not exist)
-            if log_exception:
-                log_exception(ex)
+            log.exception(ex)
             if fail:
                 raise
             return {'process': None, 'stdout': '', 'stderr': ex, 'returncode': 2}
@@ -249,11 +244,10 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
         # failed attempt, may retry
         do_retry = trial < tries - 1
         delay = random.uniform(delay_min, delay_max)
-        if log_warning:
-            log_warning(' '.join([
-                f'Attempt {trial + 1} out of {tries}:',
-                f'Will retry in {delay} seconds' if do_retry else 'Failed'
-            ]))
+        log.warning(' '.join([
+            f'Attempt {trial + 1} out of {tries}:',
+            f'Will retry in {delay} seconds' if do_retry else 'Failed'
+        ]))
 
         # raise if this is the last try
         if fail and not do_retry:
@@ -271,45 +265,10 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 
 # --------------------------------------------------------------------------------------------------
 
-def git_add_submodule(
-    directory: Path,
-    url: str | None = None,
-    *,
-    remote: str = 'origin',
-    fail: bool = True,
-    log: LoggerType = None,
-    **kwargs
-) -> dict:
-    if url is not None:
-        config = (directory / '.git/config').read_text(encoding='utf-8')
-        regex = rf'\[remote "{remote}"\][^\[]+url\s+=\s+(\S+)'
-        url = re.search(regex, config, re.MULTILINE).group(1)  # type: ignore[union-attr]
-    return cmd(['git', 'submodule', 'add', '-f', url, directory], fail=fail, log=log, **kwargs)
-
-
-def git_clone_or_pull(
-    directory: Path,
-    url: str,
-    *,
-    bare: bool = False,
-    clone_depth: int | None = None,
-    reset: bool = True,
-    fail: bool = True,
-    log: LoggerType = None,
-    **kwargs
-) -> None:
-    if directory.exists():
-        if reset and not bare:
-            cmd(['git', 'reset', '--hard'], cwd=directory, fail=fail, log=log, **kwargs)
-        cmd(['git', 'fetch' if bare else 'pull'], cwd=directory, fail=fail, log=log, **kwargs)
-    else:
-        command: list[CallArgType] = ['git', 'clone']
-        if bare:
-            command.append('--bare')
-        if clone_depth:
-            command.extend(['--depth', clone_depth])
-        command.extend([url, directory])
-        cmd(command, fail=fail, log=log, **kwargs)
+@deprecated
+def git_clone_or_pull(*args, **kwargs) -> None:
+    from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
+    return clone_or_pull(*args, **kwargs)
 
 
 # --------------------------------------------------------------------------------------------------
@@ -323,8 +282,6 @@ def make(
     install: bool = True,
     remove_temporary: bool = True,
     make_options: str = f'-j{multiprocessing.cpu_count()}',
-    fail: bool = True,
-    log: LoggerType = None,
     **kwargs
 ) -> dict[str, dict]:
     """Build and optionally install a piece of software from source."""
@@ -334,20 +291,12 @@ def make(
         if with_cmake:
             filesystem.makedirs(Path('build'))
             os.chdir('build')
-            results['cmake'] = cmd(
-                'cmake -DCMAKE_BUILD_TYPE=RELEASE ..',
-                fail=fail,
-                log=log,
-                **kwargs)
+            results['cmake'] = cmd('cmake -DCMAKE_BUILD_TYPE=RELEASE ..', **kwargs)
         else:
-            results['configure'] = cmd(
-                f'./configure {configure_options}',
-                fail=fail,
-                log=log,
-                **kwargs)
-        results['make'] = cmd(f'make {make_options}', fail=fail, log=log, **kwargs)
+            results['configure'] = cmd(f'./configure {configure_options}', **kwargs)
+        results['make'] = cmd(f'make {make_options}', **kwargs)
         if install:
-            results['make install'] = cmd('make install', fail=fail, log=log, **kwargs)
+            results['make install'] = cmd('make install', **kwargs)
     if remove_temporary:
         shutil.rmtree(directory)
 
@@ -374,8 +323,6 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     size_only: bool = False,
     extra: str | None = None,
     extra_args: list[CallArgType] | None = None,
-    fail: bool = True,
-    log: LoggerType = None,
     **kwargs
 ) -> dict:
     """Execute the famous rsync remote (or local) synchronization tool."""
@@ -411,49 +358,30 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
         command += extra_args
     command += [source_string, destination_string]
 
-    return cmd([c for c in command if c], fail=fail, log=log, **kwargs)
+    return cmd([c for c in command if c], **kwargs)
 
 
-def screen_kill(name: str | None = None, *, fail: bool = True, log: LoggerType = None, **kwargs):
+def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs):
     """Kill all screen instances called `name` or all if `name` is None."""
-    for instance_name in screen_list(name=name, log=log):
-        cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, log=log, **kwargs)
+    for instance_name in screen_list(name=name, **kwargs):
+        cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)
 
 
-def screen_launch(
-    name: str,
-    command: CallArgsType,
-    *,
-    fail: bool = True,
-    log: LoggerType = None,
-    **kwargs
-):
+def screen_launch(name: str, command: CallArgsType, **kwargs) -> dict:
     """Launch a new named screen instance."""
-    return cmd(['screen', '-dmS', name, *to_args_list(command)], fail=fail, log=log, **kwargs)
+    return cmd(['screen', '-dmS', name, *to_args_list(command)], **kwargs)
 
 
-def screen_list(name: str | None = None, *, log: LoggerType = None, **kwargs) -> list[str]:
+def screen_list(name: str | None = None, **kwargs) -> list[str]:
     """Returns a list containing all instances of screen. Can be filtered by `name`."""
-    screens = cmd(['screen', '-ls', name], fail=False, log=log, **kwargs)['stdout']
+    screens = cmd(['screen', '-ls', name], fail=False, **kwargs)['stdout']
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', screens.decode('utf-8'))
 
 
-def ssh(
-    host: str,
-    identity_file: Path | None = None,
-    remote_cmd: str | None = None,
-    *,
-    fail: bool = True,
-    log=None,
-    **kwargs
-) -> dict:
-    command: list[CallArgType] = ['ssh']
-    if identity_file is not None:
-        command.extend(['-i', identity_file])
-    command.append(host)
-    if remote_cmd is not None:
-        command.extend(['-n', remote_cmd])
-    return cmd([c for c in command if c], fail=fail, log=log, **kwargs)
+@deprecated
+def ssh(*args, **kwargs) -> dict:
+    from pytoolbox.ssh import ssh as _ssh
+    return _ssh(*args, **kwargs)
 
 
 __all__ = _all.diff(globals())

@@ -26,6 +26,7 @@ def test_to_args_string() -> None:
 
 def test_cmd() -> None:
     log = mock.Mock()
+    log.__name__ = 'Mock'
     subprocess.cmd(['echo', 'it seem to work'], log=log)
     assert subprocess.cmd('cat missing_file', fail=False, log=log)['returncode'] == 1
     assert log.call_args_list == [
@@ -45,12 +46,14 @@ def test_cmd_missing_binary() -> None:
 
 def test_retry_first_try() -> None:
     log = mock.Mock()
+    log.__name__ = 'Mock'
     subprocess.cmd('ls', log=log, tries=5, delay_min=1, delay_max=1)
     log.assert_called_once_with('Execute ls')
 
 
 def test_retry_missing_binary_no_retry() -> None:
     log = mock.Mock()
+    log.__name__ = 'Mock'
     with pytest.raises(OSError):
         subprocess.cmd('hfuejnvwqkdivengz', log=log, tries=5)
     validate_list(log.call_args_list, [
@@ -61,6 +64,7 @@ def test_retry_missing_binary_no_retry() -> None:
 
 def test_retry_no_success() -> None:
     log = mock.Mock()
+    log.__name__ = 'Mock'
     subprocess.cmd(
         'ls hfuejnvwqkdivengz',
         log=log,
@@ -96,6 +100,7 @@ def test_screen() -> None:
     finally:
         # Cleanup
         log = mock.Mock()
+        log.__name__ = 'Mock'
         subprocess.screen_kill(name='my_1st_screen', log=log)
         subprocess.screen_kill(name='my_2nd_screen', log=log)
         if log.call_args_list:

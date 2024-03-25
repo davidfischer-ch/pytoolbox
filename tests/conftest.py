@@ -6,9 +6,11 @@ import platform
 import tarfile
 
 import pytest
-from pytoolbox import filesystem
+from pytoolbox import filesystem, subprocess
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.network import http
+
+PROJECT_DIRECTORY: Final[Path] = Path(__file__).resolve().parent.parent
 
 BITS: Final[str] = {'x86_64': 'amd64'}[platform.processor()]
 TEST_S3_URL: Final[str] = 'https://pytoolbox.s3-eu-west-1.amazonaws.com/tests'
@@ -88,6 +90,16 @@ class StaticEncodeStatisticsWithFrameBaseRatio(
 class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
     ffprobe_class = StaticFFprobe
     statistics_class = StaticEncodeStatistics
+
+
+@pytest.fixture(scope='function')
+def pytoolbox_git(tmp_path: Path) -> Path:
+    filesystem.copy_recursive(PROJECT_DIRECTORY, tmp_path)
+    subprocess.cmd(['git', 'checkout', '--force', 'main'], cwd=tmp_path)
+    subprocess.cmd(
+        ['git', 'reset', '--hard', '4863c99a97fe358caa24e48b5c477b852b5a6721'],
+        cwd=tmp_path)
+    return tmp_path
 
 
 @pytest.fixture(scope='session')
