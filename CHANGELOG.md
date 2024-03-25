@@ -2,9 +2,51 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.0 (2024-03-25)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.8.0
+
+### Minor compatibility breaks
+
+* Replace `subprocess.CalledProcessError` by `exceptions.CalledProcessError` (keep a deprecated alias)
+* Rename function `subprocess.git_clone_or_pull` to `ssh.clone_or_pull`
+* Rename TypeAlias `subprocess.LoggerType` to `logging.LoggerType`
+
+### Deprecations
+
+* Replace your call to `subprocess.git_clone_or_pull` by `ssh.clone_or_pull`
+
+### Features
+
+* Add module `git`
+* Add module `ssh`
+* Add class `exceptions.CalledProcessError`
+* Add class `exceptions.DuplicateGitTagError`
+* Add class `exceptions.GitReferenceError`
+* Add class `exceptions.RegexMatchGroupNotFoundError`
+* Add class `exceptions.SSHAgentConnectionError`
+* Add class `exceptions.SSHAgentLoadingKeyError`
+* Add class `exceptions.SSHAgentParsingError`
+* Add function `logging.get_logger`
+* Add Protocol `logging.BasicLggerFunc`
+* Add class `logging.BasicFuncLogger`
+* Add function `regex.group_replace`
+* Add TypeAlias `serialization.YamlDataTypes`
+* Add function `serialization.get_yaml`
+* Add function `serialization.to_yaml`
+* Add decorator `unittest.skip_if_missing`
+
+### Fix and enhancements
+
+* Module `subprocess`: Now log defaulting to module's log
+* Implement `__repr__` for exception classes
+* Replace `pyyaml` by `ruamel.yaml`
+* Cover `regex.Match` with tests
+* Test code with `ruff`
+
 ## v14.7.0 (2024-03-22)
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.6.0
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.7.0
 
 ### Minor compatibility breaks
 
@@ -20,10 +62,14 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.6.0
   * Function `datetime.datetime_now`
   * Function `datetime.datetime_to_str`
   * Function `datetime.str_to_datetime`
-* Rename function `filesytem.recursive_copy` to `filesystem.copy_recusrive` (keep an alias)
 * Method `module.All.diff`: Drop argument `to_type`
 * Function `network.http.download_ext_multi`: Argument `resources` must now be an iterable of `Resource`
 * Functions `validation.valid_*`: Do not accept `None` anymore
+* Rename function `filesystem.recursive_copy` to `filesystem.copy_recursive` (keep a deprecated alias)
+
+### Deprecations
+
+* Replace your call to `filesystem.copy_recursive` by `filesystem.recursive_copy`
 
 ### Features
 
@@ -65,7 +111,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.6.0
 
 ## v14.6.0 (2023-08-15)
 
-Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.5.1
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.1...14.6.0
 
 ### Minor comptability breaks
 
