@@ -167,6 +167,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     :param tries: How many times you want the command to be retried ?
     :param delay_min: Minimum delay to sleep after every attempt communicate must be True.
     :param delay_max: Maximum delay to sleep after every attempt communicate must be True.
+    :param success_codes: Terraform plan may return code 3 for modified, so success_codes=(0, 3).
     :param kwargs: Any argument of the :mod:`subprocess`.Popen constructor
                    excepting stdin, stdout and stderr
 
