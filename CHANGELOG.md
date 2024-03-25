@@ -9,12 +9,14 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.8.0
 ### Minor compatibility breaks
 
 * Replace `subprocess.CalledProcessError` by `exceptions.CalledProcessError` (keep a deprecated alias)
-* Rename function `subprocess.git_clone_or_pull` to `ssh.clone_or_pull`
+* Rename function `subprocess.git_clone_or_pull` to `ssh.clone_or_pull` (keep a deprecated alias)
+* Rename function `subprocess.ssh` to `ssh.ssh` (keep a deprecated alias)
 * Rename TypeAlias `subprocess.LoggerType` to `logging.LoggerType`
 
 ### Deprecations
 
 * Replace your call to `subprocess.git_clone_or_pull` by `ssh.clone_or_pull`
+* Rename function `subprocess.ssh` by `ssh.ssh`
 
 ### Features
 
