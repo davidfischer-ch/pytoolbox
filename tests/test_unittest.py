@@ -3,7 +3,14 @@ from __future__ import annotations
 import unittest
 
 from pytoolbox.types import Missing
-from pytoolbox.unittest import asserts, with_tags, FilterByTagsMixin, MissingMixin, SnakeCaseMixin
+from pytoolbox.unittest import (
+    asserts,
+    skip_if_missing,
+    with_tags,
+    FilterByTagsMixin,
+    MissingMixin,
+    SnakeCaseMixin
+)
 
 
 def test_asserts() -> None:
@@ -44,6 +51,11 @@ def test_should_run_with_extra() -> None:
     assert FilterByTagsMixin.should_run({'a', 'b'}, {'c', 'd'}, {'a'}, {'c', 'a'}, set()) is True
     assert FilterByTagsMixin.should_run({'a', 'b'}, set(), {'a'}, {'a'}, {'c', 'd'}) is True
     assert FilterByTagsMixin.should_run({'a', 'b'}, set(), {'a'}, {'b'}, {'b'}) is False
+
+
+@skip_if_missing('oAuakwmMMMcccyy-aaa')
+def test_skip_if_missing_skipped() -> None:
+    raise AssertionError('This should be skipped')
 
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):

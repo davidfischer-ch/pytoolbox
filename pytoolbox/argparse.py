@@ -31,7 +31,7 @@ from . import itertools, module
 
 _all = module.All(globals())
 
-from argparse import Namespace  # noqa, pylint:disable=wrong-import-position
+from argparse import Namespace  # noqa:E402 pylint:disable=wrong-import-position
 
 # Credits https://gist.github.com/brantfaircloth/1443543
 

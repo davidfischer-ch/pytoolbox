@@ -1,12 +1,15 @@
 # pylint:disable=no-member
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
 import functools
 import inspect
 import io
 import itertools
 import os
 import pprint
+import shutil
 import time
 import unittest
 
@@ -16,6 +19,18 @@ from .string import snake_to_camel
 from .types import Missing
 
 _all = module.All(globals())
+
+
+def skip_if_missing(binary: str) -> Callable:
+    """Ensure the binary is available or skip the test."""
+    def _skip_if_missing(func: Callable) -> Any:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            if not shutil.which(binary):
+                raise unittest.SkipTest(f'Missing binary {binary}')
+            return func(*args, **kwargs)
+        return wrapper
+    return _skip_if_missing
 
 
 def with_tags(tags=None, required=None):

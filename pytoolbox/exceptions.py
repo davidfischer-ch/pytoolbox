@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Callable
+from pathlib import Path
+from typing import Annotated, Any
 import inspect
 import io
 import traceback
@@ -9,15 +11,26 @@ from . import module
 
 _all = module.All(globals())
 
+# TODO Use pydantic or dataclass or StrongTypedMixin kind of?
+
 
 class MessageMixin(Exception):
+    attrs: Annotated[tuple[str, ...], 'Attributes to expose to the __repr__'] = tuple()
     message: str
 
     def __init__(self, message: str | None = None, **kwargs) -> None:
+        assert hasattr(self, 'message'), type(self)          # TODO metaclass to check this
+        assert set(self.attrs).issubset(set(kwargs.keys()))  # TODO metaclass to check this
         if message is not None:
             self.message = message
-        self.__dict__.update(kwargs)
-        Exception.__init__(self)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        super().__init__()
+
+    def __repr__(self) -> str:
+        args = [] if self.message == type(self).message else [f'{repr(self.message)}']
+        args.extend(f'{a}={repr(getattr(self, a))}' for a in self.attrs)
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
     def __str__(self) -> str:
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
@@ -25,27 +38,83 @@ class MessageMixin(Exception):
 
 
 class BadHTTPResponseCodeError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('url', 'r_code', 'code')
     message: str = 'Download request {url} code {r_code} expected {code}.'
+    url: str
+    r_code: int
+    code: int
+
+
+class CalledProcessError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('returncode', 'cmd', 'stdout', 'stderr')
+    message: str = 'Process {cmd!r} failed with return code {returncode}'
+    returncode: int
+    cmd: str
+    stdout: bytes | None
+    stderr: bytes | None
 
 
 class CorruptedFileError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('path', 'file_hash', 'expected_hash')
     message: str = 'File {path} is corrupted checksum {file_hash} expected {expected_hash}.'
+    path: Path
+    file_hash: str
+    expected_hash: str
+
+
+class DuplicateGitTagError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('tag', )
+    message: str = 'Tag {tag} already exist.'
+    tag: str
 
 
 class ForbiddenError(Exception):
     """A forbidden error."""
 
 
+class GitReferenceError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = tuple()
+    message: str = 'Unable to detect current Git reference.'
+
+
 class InvalidBrandError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('brand', 'brands')
     message: str = 'Brand {brand} not in {brands}.'
+    brand: str
+    brands: set[str]
 
 
 class InvalidIPSocketError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('socket', )
     message: str = '{socket} is not a valid IP socket.'
+    socket: str
 
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('signum', 'handlers', )
     message: str = 'Signal {signum} already handled by {handlers}.'
+    signum: str
+    handlers: list[Callable]
+
+
+class RegexMatchGroupNotFoundError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('group', )
+    message: str = 'Group "{group}" not found in the regex match.'
+    group: str
+
+
+class SSHAgentConnectionError(MessageMixin, Exception):
+    message: str = 'Unable to communicate with the ssh agent.'
+
+
+class SSHAgentLoadingKeyError(MessageMixin, Exception):
+    message: str = 'Unable to load key.'
+
+
+class SSHAgentParsingError(MessageMixin, Exception):
+    attrs: tuple[str, ...] = ('output', )
+    message: str = 'Unable to parse ssh-agent output "{output}".'
+    output: str
 
 
 class UndefinedPathError(Exception):

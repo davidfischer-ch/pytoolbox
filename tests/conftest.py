@@ -6,7 +6,7 @@ import platform
 import tarfile
 
 import pytest
-from pytoolbox import filesystem
+from pytoolbox import filesystem, subprocess
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.network import http
 
@@ -88,6 +88,18 @@ class StaticEncodeStatisticsWithFrameBaseRatio(
 class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
     ffprobe_class = StaticFFprobe
     statistics_class = StaticEncodeStatistics
+
+
+@pytest.fixture(scope='function')
+def pytoolbox_git(tmp_path: Path) -> Path:
+    pytoolbox_path = tmp_path / 'pytoolbox'
+    subprocess.cmd(
+        ['git', 'clone', 'https://github.com/davidfischer-ch/pytoolbox.git'],
+        cwd=tmp_path)
+    subprocess.cmd(
+        ['git', 'reset', '--hard', '4863c99a97fe358caa24e48b5c477b852b5a6721'],
+        cwd=pytoolbox_path)
+    return pytoolbox_path
 
 
 @pytest.fixture(scope='session')
