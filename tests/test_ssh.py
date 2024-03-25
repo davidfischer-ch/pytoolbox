@@ -59,8 +59,12 @@ def test_add_fingerprint(tmp_path):
 def test_add_key():
     ssh.stop_agent()
     assert not ssh.is_agent_up()
-    # with raises(exceptions.SSHAgentConnectionError):
-    ssh.add_key(SSH_PRIVATE_KEY)
+    try:
+        ssh.add_key(SSH_PRIVATE_KEY)
+    except exceptions.SSHAgentConnectionError:
+        # On some desktop systems SSH agent is kept alive,
+        # Se we are not sure if the exception is raised on not
+        pass
     with ssh.scoped_agent():
         with raises(exceptions.SSHAgentLoadingKeyError):
             ssh.add_key('biboum')
