@@ -146,6 +146,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
+    success_codes: tuple[int, ...] = (0, ),
     **kwargs
 ) -> dict:
     """
@@ -238,7 +239,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
             'returncode': process.returncode
         }
 
-        if process.returncode == 0:
+        if process.returncode in success_codes:
             break
 
         # failed attempt, may retry
