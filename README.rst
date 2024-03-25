@@ -178,4 +178,4 @@ See `pip vcs support <http://www.pip-installer.org/en/latest/logic.html#vcs-supp
 
 You also need to install ``git-core``, but it is probably already the case, at least on your development computer ;-)
 
-2014 - 2022 David Fischer
+2012 - 2024 David Fischer
