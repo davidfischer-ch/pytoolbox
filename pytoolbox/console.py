@@ -50,7 +50,7 @@ def confirm(
 def choice(
     question: str = '',
     *,
-    choices: tuple[str, ...] | list[str],
+    choices: list[str] | tuple[str, ...],
     stream: TextIO = sys.stdout
 ) -> str:
     """
@@ -163,8 +163,8 @@ def toggle_colors(
     env: dict[str, str] | None = None,
     *,
     colorize: bool,
-    disable_vars: tuple[str, ...] | list[str] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
-    enable_vars: tuple[str, ...] | list[str] = ('FORCE_COLOR', )
+    disable_vars: list[str] | tuple[str, ...] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
+    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR', )
 ) -> dict[str, str]:
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.

@@ -29,7 +29,11 @@ from .regex import from_path_patterns
 
 _all = module.All(globals())
 
-FindPatterns: TypeAlias = re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str]
+FindPatterns: TypeAlias = (
+    re.Pattern | str |  # noqa: W504
+    list[re.Pattern] | list[str] | list[re.Pattern | str] |  # noqa: W504
+    tuple[re.Pattern, ...] | tuple[str, ...] | tuple[re.Pattern | str, ...]
+)
 
 
 class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods

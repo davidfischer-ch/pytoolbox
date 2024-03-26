@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import Any, Final, Literal, overload
 import fnmatch
 import re
@@ -28,7 +28,7 @@ UUID_REGEX: Final[str] = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 @overload
 def embed_in_regex(
     string: str,
-    regex_parts: list[str],
+    regex_parts: list[str] | tuple[str, ...],
     index: int,
     *,
     as_string: Literal[True] = True
@@ -39,7 +39,7 @@ def embed_in_regex(
 @overload
 def embed_in_regex(
     string: str,
-    regex_parts: list[str],
+    regex_parts: list[str] | tuple[str, ...],
     index: int,
     *,
     as_string: Literal[False]
@@ -47,7 +47,13 @@ def embed_in_regex(
     ...
 
 
-def embed_in_regex(string, regex_parts, index, as_string=True):
+def embed_in_regex(
+    string: str,
+    regex_parts: list[str] | tuple[str, ...],
+    index: int,
+    *,
+    as_string: bool = True
+):
     """
     **Example usage**
 
@@ -58,12 +64,15 @@ def embed_in_regex(string, regex_parts, index, as_string=True):
     >>> embed_in_regex('L', ['[a-z]', '[a-z]'], 1, as_string=False)
     (1, ['[a-z]', 'L'])
     """
-    regex = regex_parts[:]
+    regex: list[str] = list(regex_parts)
     regex[index:index + len(string)] = string
     return index, ''.join(regex) if as_string else regex
 
 
-def findall_partial(string: str, regex_parts: list[str]) -> Iterator[tuple[str, list[str], int]]:
+def findall_partial(
+    string: str,
+    regex_parts: list[str] | tuple[str, ...]
+) -> Iterator[tuple[str, list[str] | tuple[str, ...], int]]:
     """
     **Example usage**
 
@@ -83,7 +92,7 @@ def findall_partial(string: str, regex_parts: list[str]) -> Iterator[tuple[str, 
 
 
 def from_path_patterns(
-    patterns: re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str],
+    patterns: re.Pattern | str | Iterable[re.Pattern] | Iterable[str] | Iterable[re.Pattern | str],
     *,
     regex: bool = False
 ) -> list[re.Pattern]:
@@ -119,7 +128,7 @@ def group_replace(
     string: str,
     match: re.Match, *,
     offset: int = 0,
-    mapping: tuple[tuple[str, str | None], ...]
+    mapping: Iterable[tuple[str, str | None]]
 ) -> str:
     """
     Replace matched groups in `string` by content from given `mapping` (group name -> replacement).
@@ -130,6 +139,7 @@ def group_replace(
 
     Please check the code and unit-tests :)
     """
+    # TODO Reorder mapping in reverse(start) to prevent indexing issues while replacing parts
     for group, value in mapping:
         if value is not None:
             try:

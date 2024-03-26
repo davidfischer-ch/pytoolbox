@@ -147,7 +147,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
-    success_codes: tuple[int, ...] = (0, ),
+    success_codes: Iterable[int] = (0, ),
     **kwargs
 ) -> dict:
     """
@@ -328,7 +328,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     rsync_path: Path | None = None,
     size_only: bool = False,
     extra: str | None = None,
-    extra_args: list[CallArgType] | None = None,
+    extra_args: Iterable[CallArgType] | None = None,
     **kwargs
 ) -> dict:
     """Execute the famous rsync remote (or local) synchronization tool."""
@@ -361,7 +361,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     if exclude_vcs:
         command += ['--exclude=.svn', '--exclude=.git']
     if extra_args is not None:
-        command += extra_args
+        command.extend(extra_args)
     command += [source_string, destination_string]
 
     return cmd([c for c in command if c], **kwargs)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any, get_type_hints
 from urllib.parse import urlparse
 import errno
@@ -211,7 +212,7 @@ def valid_uri(
     scheme_mandatory: bool = False,
     port_mandatory: bool = False,
     default_port: int = 80,
-    excepted_errnos: tuple[int, ...] = (errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH),
+    excepted_errnos: Iterable[int] = (errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH),
     timeout: int | None = None
 ) -> bool:
     """
@@ -310,7 +311,10 @@ def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool
     return True
 
 
-def validate_list(the_list: list[Any], regexes: list[re.Pattern | str]) -> bool:
+def validate_list(
+    the_list: list[Any],
+    regexes: list[re.Pattern | str] | tuple[re.Pattern | str, ...]
+) -> None:
     """
     Validate every element of `the_list` with corresponding regular expression picked-in from
     `regexes`.

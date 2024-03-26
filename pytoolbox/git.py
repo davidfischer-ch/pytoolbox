@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 import contextlib
 import logging
@@ -91,7 +91,7 @@ def scoped_ssh_key(
     directory: Path,
     content: str,
     *,
-    options: tuple[str] = tuple(),  # type: ignore[assignment]
+    options: Iterable[str] = tuple(),  # type: ignore[assignment]
 ) -> Iterator[str]:
     """Load an SSH key (content is the private key)."""
     with tempfile.NamedTemporaryFile('w') as key_file:

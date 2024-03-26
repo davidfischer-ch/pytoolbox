@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import TypeAlias
 import difflib
 import operator as op
@@ -54,7 +54,7 @@ def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) ->
     return os.linesep.join(_colorize(diff) if colorize else diff)
 
 
-def _colorize(diff: Iterator[str]) -> Iterator[str]:
+def _colorize(diff: Iterable[str]) -> Iterator[str]:
     for line in diff:
         if line.startswith('+'):
             yield termcolor.colored(line, 'green')
@@ -106,7 +106,8 @@ def compare_versions(
 
 def satisfy_version_constraints(
     version: str | None,
-    constraints: tuple[str, ...], *,
+    constraints: Iterable[str],
+    *,
     default: str = '<undefined>',
 ) -> bool:
     """

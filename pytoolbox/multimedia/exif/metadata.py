@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 import datetime
 
 from pytoolbox import exceptions
+from pytoolbox.itertools import chain
 
 from . import camera, image, lens, photo, tag
 
@@ -24,7 +26,7 @@ class Metadata(object):
         buf=None,
         orientation: image.Orientation | int | None = None,
         gexiv2_version: str = '0.10'
-    ):
+    ) -> None:
         import gi
         gi.require_version('GExiv2', gexiv2_version)
         from gi.repository import GExiv2  # type: ignore[attr-defined]
@@ -45,7 +47,7 @@ class Metadata(object):
         # TODO make it more strict and re-implement less strict self.get(key)
         return self.tag_class(self, key)
 
-    def __setitem__(self, key: str, value):
+    def __setitem__(self, key: str, value) -> None:
         self.exiv2[key] = value  # pylint: disable=unsupported-assignment-operation
 
     @property
@@ -54,12 +56,9 @@ class Metadata(object):
 
     def get_date(
         self,
-        keys: tuple[str, ...] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')
+        keys: Iterable[str] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')
     ) -> datetime.datetime | None:
-
-        if isinstance(keys, str):
-            keys = tuple(keys)
-        for key in keys:
+        for key in chain(keys):
             date = self[key].data
             if isinstance(date, datetime.datetime):
                 return date
