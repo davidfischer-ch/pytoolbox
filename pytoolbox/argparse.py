@@ -24,24 +24,13 @@ from pathlib import Path
 from typing import Any
 import argparse
 import getpass
-import os
-import shutil
 
-from . import itertools, module
+from . import console, itertools, module
+from .decorators import deprecated
 
 _all = module.All(globals())
 
 from argparse import Namespace  # noqa:E402 pylint:disable=wrong-import-position
-
-
-def set_columns(value: int | None = None, *, default: int = 120) -> int:
-    if value is None:
-        try:
-            value = shutil.get_terminal_size().columns
-        except AttributeError:
-            value = default
-    os.environ['COLUMNS'] = str(value)
-    return value
 
 
 # Argument Parsing Actions -------------------------------------------------------------------------
@@ -90,6 +79,7 @@ def multiple(func: Callable[[Any], Any]) -> Callable:
 def password(value: str | None) -> str:
     return value or getpass.getpass('Password: ')
 
+
 class Range(object):  # pylint:disable=too-few-public-methods
 
     def __init__(self, type, min, max) -> None:  # pylint:disable=redefined-builtin
@@ -110,7 +100,7 @@ class Range(object):  # pylint:disable=too-few-public-methods
 class HelpArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs) -> None:
-        set_columns(kwargs.pop('columns', None))
+        console.set_columns(kwargs.pop('columns', None))
         super().__init__(*args, formatter_class=HelpFormatter, **kwargs)
 
 
@@ -119,3 +109,11 @@ class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescript
 
 
 __all__ = _all.diff(globals())
+
+
+# Deprecated ---------------------------------------------------------------------------------------
+
+
+@deprecated('Use pytoolbox.console.set_columns instead (drop-in replacement)')
+def set_columns(*args, **kwargs) -> int:  # pragma: no cover
+    return console.set_columns(*args, **kwargs)
