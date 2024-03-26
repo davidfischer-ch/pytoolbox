@@ -7,7 +7,53 @@ import sys
 
 from .collections import merge_dicts
 
-__all__ = ['LoggerType', 'setup_logging', 'ColorizeFilter']
+__all__ = [
+    'CRITICAL',
+    'FATAL',
+    'ERROR',
+    'WARN',
+    'WARNING',
+    'INFO',
+    'DEBUG',
+    'NOTSET',
+    'COLOR',
+    'BasicLoggerFunc',
+    'BasicFuncLogger',
+    'LoggerType',
+    'get_logger',
+    'setup_logging',
+    'ColorizeFilter'
+]
+
+CRITICAL: int = logging.CRITICAL
+FATAL: int = logging.FATAL
+ERROR: int = logging.ERROR
+WARN: int = logging.WARNING
+WARNING: int = logging.WARNING
+INFO: int = logging.INFO
+DEBUG: int = logging.DEBUG
+NOTSET: int = logging.NOTSET
+
+# Terminal colors (termcolor)
+COLOR: TypeAlias = Literal[
+    'black',
+    'grey',
+    'red',
+    'green',
+    'yellow',
+    'blue',
+    'magenta',
+    'cyan',
+    'light_grey',
+    'dark_grey',
+    'light_red',
+    'light_green',
+    'light_yellow',
+    'light_blue',
+    'light_magenta',
+    'light_cyan',
+    'white'
+]
 
 
 class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
@@ -25,13 +71,15 @@ class BasicFuncLogger(logging.Logger):
         self._log_func(msg)
 
 
-LoggerType: TypeAlias = BasicLoggerFunc | logging.Logger | None
+LoggerType: TypeAlias = BasicLoggerFunc | logging.Logger | str | None
 
 
 def get_logger(log: LoggerType) -> logging.Logger:
     """Convenient function returning an instance of logger for various use cases."""
     if isinstance(log, logging.Logger):
         return log
+    if isinstance(log, str):
+        return logging.getLogger(log)
     if log is None:
         log = logging.getLogger('noop')
         log.setLevel('NOTSET')
@@ -44,7 +92,7 @@ def get_logger(log: LoggerType) -> logging.Logger:
 
 
 def setup_logging(
-    name_or_log: str | logging.Logger = '',
+    log: LoggerType = '',
     reset: bool = False,
     path: Path | str | None = None,
     console: bool = False,
@@ -106,7 +154,7 @@ def setup_logging(
     ...
     >>> assert 'INFO     - Ceci va probablement jamais être lu!' in lines[0]
     """
-    log = logging.getLogger(name_or_log) if isinstance(name_or_log, str) else name_or_log
+    log = get_logger(log)
     if reset:
         log.handlers = []
     log.setLevel(level)
@@ -125,7 +173,7 @@ def setup_logging(
 
 class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
 
-    color_by_level: dict[int | str, str] = {
+    color_by_level: dict[int | str, COLOR] = {
         logging.DEBUG: 'cyan',
         logging.ERROR: 'red',
         logging.INFO: 'white',
