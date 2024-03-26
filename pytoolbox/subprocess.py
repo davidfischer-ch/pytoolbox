@@ -133,6 +133,7 @@ def _communicate_with_timeout(*, data, process, input) -> None:  # pylint:disabl
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
+# TODO Refine type hints with overloads
 def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
     command: CallArgsType,
     *,
@@ -149,7 +150,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     delay_max: float = 10,
     success_codes: Iterable[int] = (0, ),
     **kwargs
-) -> CallResult:
+):
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -198,7 +199,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
                 args_list,
                 stdin=subprocess.PIPE,
                 stdout=None if cli_output else subprocess.PIPE,
-                stderr=None if cli_output else subprocess.PIPE, **kwargs)
+                stderr=None if cli_output else subprocess.PIPE,
+                **kwargs)
         except OSError as ex:
             # Unable to execute the program (e.g. does not exist)
             log.exception(ex)
