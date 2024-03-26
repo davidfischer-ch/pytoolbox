@@ -3,15 +3,14 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 import contextlib
-import logging
 import os
 import stat
 import tempfile
 
-from . import exceptions, humanize, subprocess
+from . import exceptions, humanize, logging, subprocess
 from .subprocess import CallArgType
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 __all__ = ['blame', 'clone_or_pull', 'create_tag', 'get_ref', 'get_tags', 'scoped_ssh_key']
 

@@ -4,14 +4,13 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Final
 import contextlib
-import logging
 import os
 import re
 import signal
 import stat
 import tempfile
 
-from . import exceptions, subprocess
+from . import exceptions, logging, subprocess
 
 __all__ = [
     'AGENT_START_REGEX',
@@ -24,7 +23,7 @@ __all__ = [
     'ssh'
 ]
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 AGENT_START_REGEX: Final[re.Pattern] = re.compile(
     r'SSH_AUTH_SOCK=(?P<SSH_AUTH_SOCK>[^;]+).*'

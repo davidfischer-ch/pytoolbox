@@ -6,7 +6,6 @@ from typing import TypeAlias, TypedDict
 import errno
 import fcntl
 import grp
-import logging
 import multiprocessing
 import os
 import pwd
@@ -19,11 +18,11 @@ import subprocess
 import threading
 import time
 
-from . import exceptions, filesystem, module
+from . import exceptions, filesystem, logging, module
 from .logging import LoggerType, get_logger
 from .decorators import deprecated
 
-log = logging.getLogger(__name__)
+log = logging.get_logger(__name__)
 
 _all = module.All(globals())
 

@@ -35,11 +35,11 @@
 """
 from __future__ import annotations
 
-import logging
-
 from django.conf import settings
 from django.db.models import fields
 from django.db.models.fields.files import FileField
+
+from pytoolbox import logging
 
 __all__ = [
     'logger',
@@ -49,7 +49,7 @@ __all__ = [
     'strip_strings_and_validate_model'
 ]
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 def clean_files_delete_handler(instance, signal, **kwargs):
