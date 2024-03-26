@@ -276,15 +276,6 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 # --------------------------------------------------------------------------------------------------
 
 
-@deprecated
-def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
-    from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
-    return clone_or_pull(*args, **kwargs)
-
-
-# --------------------------------------------------------------------------------------------------
-
-
 def make(
     archive: Path,
     directory: Path,
@@ -391,10 +382,19 @@ def screen_list(name: str | None = None, **kwargs) -> list[str]:
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', (screens or b'').decode('utf-8'))
 
 
-@deprecated
+__all__ = _all.diff(globals())
+
+
+# Deprecated ---------------------------------------------------------------------------------------
+
+
+@deprecated('Use pytoolbox.git.clone_or_pull instead (drop-in replacement)')
+def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
+    from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
+    return clone_or_pull(*args, **kwargs)
+
+
+@deprecated('Use pytoolbox.ssh.ssh instead (drop-in replacement)')
 def ssh(*args, **kwargs) -> dict:  # pragma: no cover
     from pytoolbox.ssh import ssh as _ssh
     return _ssh(*args, **kwargs)
-
-
-__all__ = _all.diff(globals())

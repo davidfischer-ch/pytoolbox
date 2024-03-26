@@ -41,21 +41,24 @@ class cached_property(object):  # pylint:disable=invalid-name,too-few-public-met
         return res
 
 
-def deprecated(func: Callable) -> Callable:
-    """
-    Decorator that can be used to mark functions as deprecated.
-    It will result in a warning being emitted when the function is used.
+def deprecated(guidelines: str = '') -> Callable:
+    def _deprecated(func: Callable) -> Callable:
+        """
+        Decorator that can be used to mark functions as deprecated.
+        It will result in a warning being emitted when the function is used.
 
-    Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
-    """
-    @functools.wraps(func)
-    def _deprecated(*args, **kwargs) -> Any:
-        warnings.warn_explicit(
-            f'Call to deprecated function {func.__name__}.',
-            category=DeprecationWarning,
-            filename=func.__code__.co_filename,
-            lineno=func.__code__.co_firstlineno + 1)
-        return func(*args, **kwargs)
+        Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
+        """
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            guidelines = f': {guidelines}' if guidelines else ''
+            warnings.warn_explicit(
+                f'Call to deprecated function {func.__module__}.{func.__name__}{guidelines}.',
+                category=DeprecationWarning,
+                filename=func.__code__.co_filename,
+                lineno=func.__code__.co_firstlineno + 1)
+            return func(*args, **kwargs)
+        return wrapper
     return _deprecated
 
 
