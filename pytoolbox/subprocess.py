@@ -111,6 +111,7 @@ def to_args_string(args: CallArgsType | None) -> str:
 
 # --------------------------------------------------------------------------------------------------
 
+
 def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
     """
     Launch a subprocess.
@@ -267,6 +268,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 
 # --------------------------------------------------------------------------------------------------
 
+
 @deprecated
 def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
     from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
@@ -274,6 +276,7 @@ def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
 
 
 # --------------------------------------------------------------------------------------------------
+
 
 def make(
     archive: Path,
@@ -306,6 +309,7 @@ def make(
 
 
 # --------------------------------------------------------------------------------------------------
+
 
 def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     source: Path,

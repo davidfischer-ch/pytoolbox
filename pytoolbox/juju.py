@@ -151,6 +151,7 @@ def save_unit_config(path, service, config):
 
 # Environments -------------------------------------------------------------------------------------
 
+
 def add_environment(
     environment,
     kind,
@@ -242,11 +243,13 @@ def get_environments_count(environments=None):
 
 # Units --------------------------------------------------------------------------------------------
 
+
 def get_unit_path(service, number, *args):
     return os.path.join(f'/var/lib/juju/agents/unit-{service}-{number}/charm', *args)
 
 
 # Helpers ------------------------------------------------------------------------------------------
+
 
 __get_ip = None  # pylint:disable=invalid-name
 
@@ -1163,6 +1166,7 @@ class DeploymentScenario(object):
 # DISCLAIMER: Ideally this module will implement a simulated juju_do to make it possible to use the
 # same methods to drive a real or a simulated juju process ... The following code is a partial/light
 # implementation of ... Do not use it for your own purposes !!!
+
 
 class SimulatedUnit(object):
     """A simulated unit with a really simple state machine having a latency to start and stop."""

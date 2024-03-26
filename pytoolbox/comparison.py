@@ -44,6 +44,7 @@ class SlotsEqualityMixin(object):
 
 # Content ------------------------------------------------------------------------------------------
 
+
 def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) -> str:
     """
     Colorization is not guaranteed (your environment may disable it).
@@ -66,6 +67,7 @@ def _colorize(diff: Iterator[str]) -> Iterator[str]:
 
 
 # Versions -----------------------------------------------------------------------------------------
+
 
 def _eqn(a, b) -> bool | None:  # pylint:disable=invalid-name
     return True if a == b else None

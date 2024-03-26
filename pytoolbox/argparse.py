@@ -33,7 +33,35 @@ _all = module.All(globals())
 
 from argparse import Namespace  # noqa:E402 pylint:disable=wrong-import-position
 
-# Credits https://gist.github.com/brantfaircloth/1443543
+
+def set_columns(value: int | None = None, *, default: int = 120) -> int:
+    if value is None:
+        try:
+            value = shutil.get_terminal_size().columns
+        except AttributeError:
+            value = default
+    os.environ['COLUMNS'] = str(value)
+    return value
+
+
+# Argument Parsing Actions -------------------------------------------------------------------------
+
+
+class FullPaths(argparse.Action):
+    """
+    Expand user/relative paths.
+
+    Credits https://gist.github.com/brantfaircloth/1443543
+    """
+
+    def __call__(self, parser, namespace: Namespace, values, option_string=None):
+        def fullpath(path: Path | str) -> Path:
+            return Path(path).expanduser().resolve()
+        value = itertools.extract_single([fullpath(v) for v in itertools.chain(values)])
+        setattr(namespace, self.dest, value)
+
+
+# Argument Parsing Types ---------------------------------------------------------------------------
 
 
 def is_dir(path: Path | str) -> Path:
@@ -61,27 +89,6 @@ def multiple(func: Callable[[Any], Any]) -> Callable:
 
 def password(value: str | None) -> str:
     return value or getpass.getpass('Password: ')
-
-
-def set_columns(value: int | None = None, *, default: int = 120) -> int:
-    if value is None:
-        try:
-            value = shutil.get_terminal_size().columns
-        except AttributeError:
-            value = default
-    os.environ['COLUMNS'] = str(value)
-    return value
-
-
-class FullPaths(argparse.Action):
-    """Expand user/relative paths."""
-
-    def __call__(self, parser, namespace: Namespace, values, option_string=None):
-        def fullpath(path: Path | str) -> Path:
-            return Path(path).expanduser().resolve()
-        value = itertools.extract_single([fullpath(v) for v in itertools.chain(values)])
-        setattr(namespace, self.dest, value)
-
 
 class Range(object):  # pylint:disable=too-few-public-methods
 
