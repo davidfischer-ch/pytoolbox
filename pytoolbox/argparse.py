@@ -17,7 +17,7 @@ SystemExit: 2
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final
 import argparse
@@ -33,7 +33,7 @@ log = logging.get_logger(__name__)
 
 _all = module.All(globals())
 
-from argparse import (  # noqa:E402,F401 pylint:disable=wrong-import-position
+from argparse import (  # noqa:E402,F401 pylint:disable=unused-import,wrong-import-position
     ArgumentTypeError,
     Namespace
 )

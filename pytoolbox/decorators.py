@@ -51,9 +51,9 @@ def deprecated(guidelines: str = '') -> Callable:
         """
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            guidelines = f': {guidelines}' if guidelines else ''
+            guidelines_str = f': {guidelines}' if guidelines else ''
             warnings.warn_explicit(
-                f'Call to deprecated function {func.__module__}.{func.__name__}{guidelines}.',
+                f'Call to deprecated function {func.__module__}.{func.__name__}{guidelines_str}.',
                 category=DeprecationWarning,
                 filename=func.__code__.co_filename,
                 lineno=func.__code__.co_firstlineno + 1)

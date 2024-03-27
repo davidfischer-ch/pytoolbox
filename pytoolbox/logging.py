@@ -16,7 +16,7 @@ __all__ = [
     'INFO',
     'DEBUG',
     'NOTSET',
-    'COLOR',
+    'Color',
     'BasicLoggerFunc',
     'BasicFuncLogger',
     'LoggerType',
@@ -35,7 +35,7 @@ DEBUG: int = logging.DEBUG
 NOTSET: int = logging.NOTSET
 
 # Terminal colors (termcolor)
-COLOR: TypeAlias = Literal[
+Color: TypeAlias = Literal[
     'black',
     'grey',
     'red',
@@ -173,7 +173,7 @@ def setup_logging(
 
 class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
 
-    color_by_level: dict[int | str, COLOR] = {
+    color_by_level: dict[int | str, Color] = {
         logging.DEBUG: 'cyan',
         logging.ERROR: 'red',
         logging.INFO: 'white',

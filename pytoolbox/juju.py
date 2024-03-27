@@ -13,6 +13,7 @@ import uuid
 from . import (  # pylint:disable=reimported
     argparse,
     console,
+    exceptions,
     filesystem,
     module,
     subprocess,
@@ -350,7 +351,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.name = os.environ['JUJU_UNIT_NAME']
             self.private_address = socket.getfqdn(self.unit_get('private-address'))
             self.public_address = socket.getfqdn(self.unit_get('public-address'))
-        except (subprocess.CalledProcessError, OSError) as ex:
+        except (exceptions.CalledProcessError, OSError) as ex:
             reason = ex
             self.juju_ok = False
             if default_config is not None:
@@ -578,7 +579,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.hook(f'Execute {self.__class__.__name__} hook {hook_name}')
             getattr(self, f"hook_{hook_name.replace('-', '_')}")()
             self.save_local_config()
-        except (_subprocess.CalledProcessError, subprocess.CalledProcessError) as ex:
+        except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as ex:
             self.log('Exception caught:')
             self.log(ex.output)
             raise
