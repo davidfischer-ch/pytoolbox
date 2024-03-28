@@ -23,7 +23,6 @@ from .logging import LoggerType, get_logger
 from .decorators import deprecated
 
 log = logging.get_logger(__name__)
-
 _all = module.All(globals())
 
 # import Popen on steroids if available
