@@ -39,7 +39,7 @@ def get_arguments_names(function: Callable) -> list[str]:
 def get_properties(obj: Any) -> Generator[tuple[str, Any], None, None]:
     return (
         (n, getattr(obj, n))
-        for n, p in inspect.getmembers(obj.__class__, lambda m: isinstance(m, property))
+        for n, p in inspect.getmembers(type(obj), lambda m: isinstance(m, property))
     )
 
 
@@ -47,7 +47,7 @@ def get_slots(obj: Any) -> set[str]:
     """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
     return set(itertools.chain.from_iterable(
         getattr(cls, '__slots__', ())
-        for cls in obj.__class__.__mro__)
+        for cls in type(obj).__mro__)
     )
 
 
@@ -249,10 +249,10 @@ class EchoObject(object):
         self._name = name
 
     def __getattr__(self, name: str) -> Any:
-        return (self.attr_class or self.__class__)(f'{self._name}.{name}')
+        return (self.attr_class or type(self))(f'{self._name}.{name}')
 
     def __getitem__(self, key: str) -> Any:
-        return (self.attr_class or self.__class__)(f'{self._name}[{repr(key)}]')
+        return (self.attr_class or type(self))(f'{self._name}[{repr(key)}]')
 
     def __str__(self) -> str:
         return self._name

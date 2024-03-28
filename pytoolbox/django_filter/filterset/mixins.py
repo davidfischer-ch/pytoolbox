@@ -18,6 +18,6 @@ class RaiseOnUnhandledFieldClassMixin(object):
         value = super().filter_for_field(f, name, lookup_type)
         if not value:
             raise NotImplementedError(
-                f"Unable to find a suitable filter for field '{name}' of class {f.__class__} "
+                f"Unable to find a suitable filter for field '{name}' of class {type(f)} "
                 f"with lookup type '{lookup_type}'")
         return value

@@ -30,7 +30,7 @@ class MessageMixin(Exception):
     def __repr__(self) -> str:
         args = [] if self.message == type(self).message else [f'{repr(self.message)}']
         args.extend(f'{a}={repr(getattr(self, a))}' for a in self.attrs)
-        return f"{self.__class__.__name__}({', '.join(args)})"
+        return f"{type(self).__name__}({', '.join(args)})"
 
     def __str__(self) -> str:
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
@@ -175,7 +175,7 @@ def assert_raises_item(
     except Exception as ex:  # pylint:disable=broad-except
         if not isinstance(ex, exception_cls):
             raise ValueError(
-                f'Exception {ex.__class__.__name__} is not '
+                f'Exception {type(ex).__name__} is not '
                 f'an instance of {exception_cls.__name__}.') from ex
         return
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')

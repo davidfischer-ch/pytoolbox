@@ -576,7 +576,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             hook_name = sys.argv[1]
 
         try:  # Call the function hooks_...
-            self.hook(f'Execute {self.__class__.__name__} hook {hook_name}')
+            self.hook(f'Execute {type(self).__name__} hook {hook_name}')
             getattr(self, f"hook_{hook_name.replace('-', '_')}")()
             self.save_local_config()
         except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as ex:
@@ -584,7 +584,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.log(ex.output)
             raise
         finally:
-            self.hook(f'Exiting {self.__class__.__name__} hook {hook_name}')
+            self.hook(f'Exiting {type(self).__name__} hook {hook_name}')
 
 
 class Environment(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods

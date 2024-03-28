@@ -619,7 +619,7 @@ class SlotsToDictMixin(object):
         self_dict = {}
         slots = set(s for s in get_slots(self) if s[0] != '_')
         if extra_slots:
-            slots.update(self.__class__.extra_slots or [])
+            slots.update(type(self).extra_slots or [])
         for attribute in slots:
             value = getattr(self, attribute)
             if value is not None:
