@@ -52,7 +52,7 @@ class Tag(object):
         self.key = key
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} {self.key}: {str(self.data)[:20]}>'
+        return f'<{type(self).__name__} {self.key}: {str(self.data)[:20]}>'
 
     @property
     def data(self):

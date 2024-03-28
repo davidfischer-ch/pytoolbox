@@ -81,5 +81,5 @@ def map_exceptions(exception):
     elif isinstance(exception, NotImplementedError):
         abort(501, str(exception))
     else:
-        abort(500, f'{exception.__class__.__name__} {repr(exception)} {str(exception)}')
+        abort(500, f'{type(exception).__name__} {repr(exception)} {str(exception)}')
     return None

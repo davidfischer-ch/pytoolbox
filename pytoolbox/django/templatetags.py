@@ -267,7 +267,8 @@ def verbose_name_plural(instance):
     return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
 
 
-# TAGS ---------------------------------------------------------------------------------------------
+# Tags ---------------------------------------------------------------------------------------------
+
 
 class StaticPathNode(StaticNode):
 

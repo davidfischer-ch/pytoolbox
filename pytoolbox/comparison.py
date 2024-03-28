@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import TypeAlias
 import difflib
 import operator as op
@@ -44,6 +44,7 @@ class SlotsEqualityMixin(object):
 
 # Content ------------------------------------------------------------------------------------------
 
+
 def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) -> str:
     """
     Colorization is not guaranteed (your environment may disable it).
@@ -53,7 +54,7 @@ def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) ->
     return os.linesep.join(_colorize(diff) if colorize else diff)
 
 
-def _colorize(diff: Iterator[str]) -> Iterator[str]:
+def _colorize(diff: Iterable[str]) -> Iterator[str]:
     for line in diff:
         if line.startswith('+'):
             yield termcolor.colored(line, 'green')
@@ -66,6 +67,7 @@ def _colorize(diff: Iterator[str]) -> Iterator[str]:
 
 
 # Versions -----------------------------------------------------------------------------------------
+
 
 def _eqn(a, b) -> bool | None:  # pylint:disable=invalid-name
     return True if a == b else None
@@ -104,7 +106,8 @@ def compare_versions(
 
 def satisfy_version_constraints(
     version: str | None,
-    constraints: tuple[str, ...], *,
+    constraints: Iterable[str],
+    *,
     default: str = '<undefined>',
 ) -> bool:
     """

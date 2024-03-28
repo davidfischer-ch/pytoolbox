@@ -18,7 +18,8 @@ def test_get_logger_from_callable() -> None:
 
 
 def test_get_logger_from_logger() -> None:
-    assert get_logger(logging.getLogger(__name__)) is logging.getLogger(__name__)
+    assert get_logger(logging.getLogger(__name__)) is get_logger(__name__)
+    assert get_logger(get_logger(__name__)) is get_logger(__name__)
 
 
 def test_get_logger_from_none() -> None:

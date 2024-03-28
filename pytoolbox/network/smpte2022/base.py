@@ -658,7 +658,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         Test equality field by field !
         """
         return (
-            isinstance(other, self.__class__)
+            isinstance(other, type(self))
             and self.sequence == other.sequence and self.algorithm == other.algorithm
             and self.direction == other.direction and self.snbase == other.snbase
             and self.offset == other.offset and self.na == other.na

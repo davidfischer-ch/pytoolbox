@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Final, TypeAlias
+from typing import TypeAlias, TypedDict
 import errno
 import fcntl
 import grp
-import logging
 import multiprocessing
 import os
 import pwd
@@ -19,20 +18,12 @@ import subprocess
 import threading
 import time
 
-from . import exceptions, filesystem, module
+from . import exceptions, filesystem, logging, module
 from .logging import LoggerType, get_logger
 from .decorators import deprecated
 
-log = logging.getLogger(__name__)
-
+log = logging.get_logger(__name__)
 _all = module.All(globals())
-
-EMPTY_CMD_RETURN: Final[dict[str, None]] = {
-    'process': None,
-    'stdout': None,
-    'stderr': None,
-    'returncode': None
-}
 
 # import Popen on steroids if available
 try:
@@ -53,7 +44,15 @@ CallArgType: TypeAlias = int | float | str | Path | None
 CallArgsType: TypeAlias = str | Iterable[CallArgType]
 
 
-def kill(process):
+class CallResult(TypedDict):
+    process: Popen | None
+    returncode: int
+    stdout: bytes | None
+    stderr: bytes | None
+    exception: OSError | None
+
+
+def kill(process: Popen) -> None:
     try:
         process.kill()
     except OSError as ex:
@@ -64,7 +63,7 @@ def kill(process):
             raise
 
 
-def su(user, group):  # pylint:disable=invalid-name
+def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid-name
     """
     Return a function to change current user/group id.
 
@@ -81,13 +80,13 @@ def su(user, group):  # pylint:disable=invalid-name
 
 
 # http://stackoverflow.com/a/7730201/190597
-def make_async(fd):  # pylint:disable=invalid-name
+def make_async(fd) -> None:  # pylint:disable=invalid-name
     """Add the O_NONBLOCK flag to a file descriptor."""
     fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
 
 
 # http://stackoverflow.com/a/7730201/190597
-def read_async(fd):  # pylint:disable=invalid-name
+def read_async(fd) -> str:  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
@@ -111,6 +110,7 @@ def to_args_string(args: CallArgsType | None) -> str:
 
 # --------------------------------------------------------------------------------------------------
 
+
 def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
     """
     Launch a subprocess.
@@ -128,10 +128,11 @@ def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
 
 
 # thanks http://stackoverflow.com/questions/1191374$
-def _communicate_with_timeout(*, data, process, input):  # pylint:disable=redefined-builtin
+def _communicate_with_timeout(*, data, process, input) -> None:  # pylint:disable=redefined-builtin
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
+# TODO Refine type hints with overloads
 def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
     command: CallArgsType,
     *,
@@ -146,9 +147,9 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
-    success_codes: tuple[int, ...] = (0, ),
+    success_codes: Iterable[int] = (0, ),
     **kwargs
-) -> dict:
+):
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -197,13 +198,20 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
                 args_list,
                 stdin=subprocess.PIPE,
                 stdout=None if cli_output else subprocess.PIPE,
-                stderr=None if cli_output else subprocess.PIPE, **kwargs)
+                stderr=None if cli_output else subprocess.PIPE,
+                **kwargs)
         except OSError as ex:
             # Unable to execute the program (e.g. does not exist)
             log.exception(ex)
             if fail:
                 raise
-            return {'process': None, 'stdout': '', 'stderr': ex, 'returncode': 2}
+            return {
+                'process': None,
+                'returncode': 2,
+                'stdout': None,
+                'stderr': None,
+                'exception': ex
+            }
 
         # Write to stdin (answer to questions, ...)
         if cli_input is not None:
@@ -233,11 +241,12 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
             process.poll()
             stdout = stderr = None
 
-        result = {
+        result: CallResult = {
             'process': process,
+            'returncode': process.returncode,
             'stdout': stdout,
             'stderr': stderr,
-            'returncode': process.returncode
+            'exception': None
         }
 
         if process.returncode in success_codes:
@@ -267,13 +276,6 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
 
 # --------------------------------------------------------------------------------------------------
 
-@deprecated
-def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
-    from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
-    return clone_or_pull(*args, **kwargs)
-
-
-# --------------------------------------------------------------------------------------------------
 
 def make(
     archive: Path,
@@ -285,7 +287,7 @@ def make(
     remove_temporary: bool = True,
     make_options: str = f'-j{multiprocessing.cpu_count()}',
     **kwargs
-) -> dict[str, dict]:
+) -> dict[str, CallResult]:
     """Build and optionally install a piece of software from source."""
     results = {}
     setuptools.archive_util.unpack_archive(archive, directory)
@@ -307,6 +309,7 @@ def make(
 
 # --------------------------------------------------------------------------------------------------
 
+
 def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     source: Path,
     destination: Path,
@@ -324,9 +327,9 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     rsync_path: Path | None = None,
     size_only: bool = False,
     extra: str | None = None,
-    extra_args: list[CallArgType] | None = None,
+    extra_args: Iterable[CallArgType] | None = None,
     **kwargs
-) -> dict:
+) -> CallResult:
     """Execute the famous rsync remote (or local) synchronization tool."""
     source_string = str(source)
     if source.is_dir() or source_is_dir:
@@ -357,7 +360,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     if exclude_vcs:
         command += ['--exclude=.svn', '--exclude=.git']
     if extra_args is not None:
-        command += extra_args
+        command.extend(extra_args)
     command += [source_string, destination_string]
 
     return cmd([c for c in command if c], **kwargs)
@@ -369,7 +372,7 @@ def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs):
         cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)
 
 
-def screen_launch(name: str, command: CallArgsType, **kwargs) -> dict:
+def screen_launch(name: str, command: CallArgsType, **kwargs) -> CallResult:
     """Launch a new named screen instance."""
     return cmd(['screen', '-dmS', name, *to_args_list(command)], **kwargs)
 
@@ -377,13 +380,22 @@ def screen_launch(name: str, command: CallArgsType, **kwargs) -> dict:
 def screen_list(name: str | None = None, **kwargs) -> list[str]:
     """Returns a list containing all instances of screen. Can be filtered by `name`."""
     screens = cmd(['screen', '-ls', name], fail=False, **kwargs)['stdout']
-    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', screens.decode('utf-8'))
-
-
-@deprecated
-def ssh(*args, **kwargs) -> dict:  # pragma: no cover
-    from pytoolbox.ssh import ssh as _ssh
-    return _ssh(*args, **kwargs)
+    return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', (screens or b'').decode('utf-8'))
 
 
 __all__ = _all.diff(globals())
+
+
+# Deprecated ---------------------------------------------------------------------------------------
+
+
+@deprecated('Use pytoolbox.git.clone_or_pull instead (drop-in replacement)')
+def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
+    from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
+    return clone_or_pull(*args, **kwargs)
+
+
+@deprecated('Use pytoolbox.ssh.ssh instead (drop-in replacement)')
+def ssh(*args, **kwargs) -> dict:  # pragma: no cover
+    from pytoolbox.ssh import ssh as _ssh
+    return _ssh(*args, **kwargs)

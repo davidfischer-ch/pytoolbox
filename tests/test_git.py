@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch as M
 from typing import Final
+from unittest.mock import patch
 import os
 import tempfile
 
@@ -56,7 +56,7 @@ def test_create_tag(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-ou
 
 def test_get_ref(pytoolbox_git: Path) -> None:
     get_ref = git.get_ref
-    with M.dict(os.environ, {}, clear=True):
+    with patch.dict(os.environ, {}, clear=True):
         assert get_ref(pytoolbox_git, kind='branch') == 'main'
         assert get_ref(pytoolbox_git, kind='commit') == '4863c99a97fe358caa24e48b5c477b852b5a6721'
         with raises(exceptions.GitReferenceError):
@@ -65,7 +65,7 @@ def test_get_ref(pytoolbox_git: Path) -> None:
 
 def test_get_ref_from_gitlab_ci(pytoolbox_git: Path) -> None:
     get_ref = git.get_ref
-    with M.dict(os.environ, {'CI_COMMIT_REF_NAME': 'toto'}, clear=True):
+    with patch.dict(os.environ, {'CI_COMMIT_REF_NAME': 'toto'}, clear=True):
         assert get_ref(pytoolbox_git, kind='branch') == 'toto'
         assert get_ref(pytoolbox_git, kind='commit') == 'toto'
         assert get_ref(pytoolbox_git, kind='branch', ci_vars=False) != 'toto'
@@ -88,7 +88,7 @@ def test_get_tags_with_ref(pytoolbox_git: Path) -> None:  # pylint:disable=redef
 
 
 def test_scoped_ssh_key() -> None:
-    with M('pytoolbox.subprocess.cmd') as cmd:
+    with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
         with git.scoped_ssh_key('.', 'key-data') as name:
             subprocess.cmd(['git', 'push', 'somewhere'])
@@ -104,9 +104,13 @@ def test_scoped_ssh_key() -> None:
 
 
 def test_scoped_ssh_key_with_options() -> None:
-    with M('pytoolbox.subprocess.cmd') as cmd:
+    with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
-        with git.scoped_ssh_key('.', 'key-data', options=['StrictHostKeyChecking=no']) as name:
+        with git.scoped_ssh_key(
+            Path('.'),
+            'key-data',
+            options=['StrictHostKeyChecking=no']
+        ) as name:
             subprocess.cmd(['git', 'push', 'somewhere'])
             assert Path(name).read_text(encoding='utf-8') == 'key-data\n'
 

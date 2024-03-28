@@ -1,21 +1,22 @@
 # pylint:disable=too-many-lines
 from __future__ import annotations
 
-import argparse
 import json
 import os
-import socket
 import random
-import subprocess
+import socket
+import subprocess as _subprocess
 import sys
 import time
 import uuid
 
 from . import (  # pylint:disable=reimported
+    argparse,
     console,
+    exceptions,
     filesystem,
     module,
-    subprocess as py_subprocess,
+    subprocess,
     serialization
 )
 from .argparse import FullPaths, is_dir
@@ -101,9 +102,9 @@ def juju_do(command, environment=None, options=None, fail=True, log=None, **kwar
 
     if is_destroy:
         # TODO Automate yes answer to destroy-environment
-        method = subprocess.check_call if fail else subprocess.call
+        method = _subprocess.check_call if fail else _subprocess.call
         return method(arguments)
-    result = py_subprocess.cmd(arguments, fail=False, log=log, env=env, **kwargs)
+    result = subprocess.cmd(arguments, fail=False, log=log, env=env, **kwargs)
 
     if result['returncode'] != 0 and fail:
         raise RuntimeError(f"Subprocess failed {' '.join(arguments)} : {result['stderr']}.")
@@ -146,10 +147,11 @@ def save_unit_config(path, service, config):
             if isinstance(value, bool):
                 config[option] = str(value)
         config = {service: config}
-        f.write(yaml.dump(config))
+        yaml.dump(config, f)
 
 
 # Environments -------------------------------------------------------------------------------------
+
 
 def add_environment(
     environment,
@@ -188,7 +190,7 @@ def add_environment(
     environments_dict['environments'][environment] = environment_dict
 
     with open(environments, 'w', encoding='utf-8') as f:
-        f.write(yaml.dump(environments_dict))
+        yaml.dump(environments_dict, f)
 
     try:
         return juju_do('bootstrap', environment)
@@ -196,7 +198,7 @@ def add_environment(
         if 'configuration error' in str(ex):
             del environments_dict['environments'][environment]
             with open(environments, 'w', encoding='utf-8') as f:
-                f.write(yaml.dump(environments_dict))
+                yaml.dump(environments_dict, f)
             raise ValueError(f'Cannot add environment {environment} ({ex}).') from ex
         raise
 
@@ -242,11 +244,13 @@ def get_environments_count(environments=None):
 
 # Units --------------------------------------------------------------------------------------------
 
+
 def get_unit_path(service, number, *args):
     return os.path.join(f'/var/lib/juju/agents/unit-{service}-{number}/charm', *args)
 
 
 # Helpers ------------------------------------------------------------------------------------------
+
 
 __get_ip = None  # pylint:disable=invalid-name
 
@@ -347,7 +351,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.name = os.environ['JUJU_UNIT_NAME']
             self.private_address = socket.getfqdn(self.unit_get('private-address'))
             self.public_address = socket.getfqdn(self.unit_get('public-address'))
-        except (subprocess.CalledProcessError, OSError) as ex:
+        except (exceptions.CalledProcessError, OSError) as ex:
             reason = ex
             self.juju_ok = False
             if default_config is not None:
@@ -549,7 +553,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         """
         Calls the `command` and returns a dictionary with `stdout`, `stderr`, and the `returncode`.
         """
-        return py_subprocess.cmd(command, log=self.debug if logging else None, **kwargs)
+        return subprocess.cmd(command, log=self.debug if logging else None, **kwargs)
 
     def template_to_config(self, template, config, values):
         filesystem.from_template(template, config, values)
@@ -572,15 +576,15 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             hook_name = sys.argv[1]
 
         try:  # Call the function hooks_...
-            self.hook(f'Execute {self.__class__.__name__} hook {hook_name}')
+            self.hook(f'Execute {type(self).__name__} hook {hook_name}')
             getattr(self, f"hook_{hook_name.replace('-', '_')}")()
             self.save_local_config()
-        except subprocess.CalledProcessError as ex:
+        except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as ex:
             self.log('Exception caught:')
             self.log(ex.output)
             raise
         finally:
-            self.hook(f'Exiting {self.__class__.__name__} hook {hook_name}')
+            self.hook(f'Exiting {type(self).__name__} hook {hook_name}')
 
 
 class Environment(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods
@@ -742,7 +746,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
 
             del environments_dict['environments'][name]
             with open(environments, 'w', encoding='utf-8') as f:
-                f.write(yaml.dump(environments_dict))
+                yaml.dump(environments_dict, f)
         return result
 
     # Services
@@ -1145,9 +1149,7 @@ class DeploymentScenario(object):
         HELP_A = 'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         HELP_M = 'Directory (repository) of any local charm.'
         HELP_R = 'Ubuntu serie to deploy by JuJu.'
-        parser = argparse.ArgumentParser(
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            epilog=epilog)
+        parser = argparse.ArgumentParser(epilog=epilog)
         arg = parser.add_argument
         arg('-a', '--auto', action='store_true', default=auto, help=HELP_A)
         arg('-m', '--charms_path', action=FullPaths, default=charms_path, type=is_dir, help=HELP_M)
@@ -1163,6 +1165,7 @@ class DeploymentScenario(object):
 # DISCLAIMER: Ideally this module will implement a simulated juju_do to make it possible to use the
 # same methods to drive a real or a simulated juju process ... The following code is a partial/light
 # implementation of ... Do not use it for your own purposes !!!
+
 
 class SimulatedUnit(object):
     """A simulated unit with a really simple state machine having a latency to start and stop."""

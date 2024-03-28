@@ -25,7 +25,7 @@ def get_related_model(cls_or_instance, field):
 def get_content_type_dict(instance):
     """Return a dictionary with the serialized content type and private key of given instance."""
     from django.contrib.contenttypes import models as ct_models
-    content_type = ct_models.ContentType.objects.get_for_model(instance.__class__)
+    content_type = ct_models.ContentType.objects.get_for_model(type(instance))
     return {'app_label': content_type.app_label, 'model': content_type.model, 'pk': instance.pk}
 
 
@@ -40,7 +40,7 @@ def try_get_field(instance, field_name):
     try:
         return getattr(instance, field_name)
     except Exception as ex:
-        if ex.__class__.__name__ != 'RelatedObjectDoesNotExist':
+        if type(ex).__name__ != 'RelatedObjectDoesNotExist':
             raise
 
 

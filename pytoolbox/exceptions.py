@@ -19,18 +19,19 @@ class MessageMixin(Exception):
     message: str
 
     def __init__(self, message: str | None = None, **kwargs) -> None:
-        assert hasattr(self, 'message'), type(self)          # TODO metaclass to check this
-        assert set(self.attrs).issubset(set(kwargs.keys()))  # TODO metaclass to check this
         if message is not None:
             self.message = message
         for key, value in kwargs.items():
             setattr(self, key, value)
         super().__init__()
+        if missing := [attr for attr in self.attrs if not hasattr(self, attr)]:
+            missing = ', '.join(missing)  # type: ignore[assignment]
+            raise AttributeError(f'{type(self)} is missing attributes or properties: {missing}')
 
     def __repr__(self) -> str:
         args = [] if self.message == type(self).message else [f'{repr(self.message)}']
         args.extend(f'{a}={repr(getattr(self, a))}' for a in self.attrs)
-        return f"{self.__class__.__name__}({', '.join(args)})"
+        return f"{type(self).__name__}({', '.join(args)})"
 
     def __str__(self) -> str:
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
@@ -46,12 +47,19 @@ class BadHTTPResponseCodeError(MessageMixin, Exception):
 
 
 class CalledProcessError(MessageMixin, Exception):
-    attrs: tuple[str, ...] = ('returncode', 'cmd', 'stdout', 'stderr')
-    message: str = 'Process {cmd!r} failed with return code {returncode}'
+    attrs: tuple[str, ...] = ('cmd_short', 'returncode')
+    message: str = 'Process {cmd_short} failed with return code {returncode}'
+    cmd: list[str]
     returncode: int
-    cmd: str
     stdout: bytes | None
     stderr: bytes | None
+
+    @property
+    def cmd_short(self) -> list[str]:
+        short_cmd = self.cmd[:4]
+        if len(self.cmd) > 4:
+            short_cmd.append('(…)')
+        return short_cmd
 
 
 class CorruptedFileError(MessageMixin, Exception):
@@ -175,7 +183,7 @@ def assert_raises_item(
     except Exception as ex:  # pylint:disable=broad-except
         if not isinstance(ex, exception_cls):
             raise ValueError(
-                f'Exception {ex.__class__.__name__} is not '
+                f'Exception {type(ex).__name__} is not '
                 f'an instance of {exception_cls.__name__}.') from ex
         return
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')

@@ -14,9 +14,9 @@ class LiveTestCaseMixin(object):
     def setUp(self):  # pylint:disable=invalid-name
         """Call super's setUp and instantiate a live test client, only once."""
         super().setUp()
-        if not hasattr(self.__class__, 'client'):
-            self.__class__.client = self.live_client_class(self.live_server_url)
-        self.client = self.__class__.client
+        if not hasattr(type(self), 'client'):
+            type(self).client = self.live_client_class(self.live_server_url)
+        self.client = type(self).client
 
     @classmethod
     def tearDownClass(cls):  # pylint:disable=invalid-name

@@ -29,7 +29,11 @@ from .regex import from_path_patterns
 
 _all = module.All(globals())
 
-FindPatterns: TypeAlias = re.Pattern | str | list[re.Pattern] | list[str] | list[re.Pattern | str]
+FindPatterns: TypeAlias = (
+    re.Pattern | str |  # noqa: W504
+    list[re.Pattern] | list[str] | list[re.Pattern | str] |  # noqa: W504
+    tuple[re.Pattern, ...] | tuple[str, ...] | tuple[re.Pattern | str, ...]
+)
 
 
 class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
@@ -480,11 +484,6 @@ def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
         raise  # Re-raise exception if a different error occurred
 
 
-@deprecated
-def recursive_copy(*args, **kwargs):  # pragma: no cover
-    return copy_recursive(*args, **kwargs)
-
-
 def remove(path: Path | str, *, recursive: bool = False):
     """
     Remove a file/directory (which may not exists) without throwing an exception.
@@ -842,3 +841,11 @@ class TempStorage(object):
 
 
 __all__ = _all.diff(globals())
+
+
+# Deprecated ---------------------------------------------------------------------------------------
+
+
+@deprecated('Use pytoolbox.filesystem.copy_recursive instead (drop-in replacement)')
+def recursive_copy(*args, **kwargs):  # pragma: no cover
+    return copy_recursive(*args, **kwargs)

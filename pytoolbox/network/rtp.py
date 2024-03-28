@@ -424,7 +424,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
             Test equality only on some fields (not all) !
         """
         return (
-            isinstance(other, self.__class__)
+            isinstance(other, type(self))
             and self.sequence == other.sequence
             and self.timestamp == other.timestamp
             and self.payload_type == other.payload_type

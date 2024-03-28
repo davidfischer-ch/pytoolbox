@@ -60,6 +60,7 @@ def test_equality_different_class() -> None:
 
 # Content ------------------------------------------------------------------------------------------
 
+
 def test_unified_diff() -> None:
     assert comparison.unified_diff(
         'Some T',
@@ -98,6 +99,7 @@ def test_unified_diff_colorize() -> None:
 
 
 # Versions -----------------------------------------------------------------------------------------
+
 
 @mark.parametrize(('version_a', 'version_b', 'operation', 'expected'), [
     ('master', 'master', '<', False),

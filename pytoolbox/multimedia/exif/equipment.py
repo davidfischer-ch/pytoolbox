@@ -26,7 +26,7 @@ class Equipement(object, metaclass=abc.ABCMeta):
         return hash(repr(self))
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} {self.brand} {self.model}>'
+        return f'<{type(self).__name__} {self.brand} {self.model}>'
 
     @property
     @abc.abstractmethod

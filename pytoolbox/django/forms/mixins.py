@@ -144,7 +144,7 @@ class UpdateWidgetAttributeMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            updates = self.widgets_rules.get(field.__class__)
+            updates = self.widgets_rules.get(type(field))
             # May Update widget class with rules-based replacement class
             if updates and updates[0]:
                 field.widget = updates[0]()

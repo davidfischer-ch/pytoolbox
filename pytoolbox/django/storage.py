@@ -3,16 +3,15 @@ Extra storages and mix-ins for building your own storages.
 """
 from __future__ import annotations
 
-import logging
 import time
 
 from django.core.files.storage import FileSystemStorage
 
-from pytoolbox import module
+from pytoolbox import logging, module
 
 _all = module.All(globals())
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class ExpressTemporaryFileMixin(object):

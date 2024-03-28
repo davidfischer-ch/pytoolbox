@@ -12,7 +12,7 @@ DEFAULT_BITRATE_UNITS: Final[tuple[str, ...]] = (
     'bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s'
 )
 # pylint:disable=consider-using-namedtuple-or-dataclass)
-DEFAULT_FILESIZE_ARGS: Final[dict[str, dict[str, int | tuple[str, ...]]]] = {
+DEFAULT_FILESIZE_ARGS: Final[dict[str, dict[str, int | list[str] | tuple[str, ...]]]] = {
     'gnu': {'base': 1000, 'units': ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')},
     'nist': {'base': 1024, 'units': ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')},
     'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')}
@@ -40,7 +40,7 @@ def naturalbitrate(
     bps: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    units: tuple[str, ...] = DEFAULT_BITRATE_UNITS
+    units: list[str] | tuple[str, ...] = DEFAULT_BITRATE_UNITS
 ) -> str:
     """
     Return a human readable representation of a bit rate taking `bps` as the rate in bits/s.
@@ -77,7 +77,7 @@ def naturalfilesize(  # pylint:disable=dangerous-default-value
     system: str = 'nist',
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    args: dict[str, dict[str, int | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS
+    args: dict[str, dict[str, int | list[str] | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS
 ) -> str:
     """
     Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
@@ -128,7 +128,7 @@ def naturalfrequency(
     hertz: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    units: tuple[str, ...] = DEFAULT_FREQUENCY_UNITS
+    units: list[str] | tuple[str, ...] = DEFAULT_FREQUENCY_UNITS
 ) -> str:  # pylint:disable=dangerous-default-value
     """
     Return a human readable representation of a frequency taking `hertz` as the frequency in Hz.
@@ -164,7 +164,7 @@ def naturalweight(
     grams: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    units: tuple[str, ...] = DEFAULT_WEIGHT_UNITS
+    units: list[str] | tuple[str, ...] = DEFAULT_WEIGHT_UNITS
 ) -> str:  # pylint:disable=dangerous-default-value
     """
     Return a human readable representation of a weight in `grams`.
@@ -213,7 +213,7 @@ def natural_int_key(text: str) -> list[int | str]:
 
 def parse_bitrate(
     bitrate: str,
-    units: tuple[str, ...] = DEFAULT_BITRATE_UNITS,
+    units: list[str] | tuple[str, ...] = DEFAULT_BITRATE_UNITS,
     pattern: re.Pattern = BITRATE_PATTERN
 ) -> float:
     """
@@ -251,7 +251,7 @@ def parse_bitrate(
 def parse_filesize(  # pylint:disable=dangerous-default-value
     size: str,
     system: str = 'nist',
-    args: dict[str, dict[str, int | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS,
+    args: dict[str, dict[str, int | list[str] | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS,
     pattern: re.Pattern = FILESIZE_PATTERN
 ) -> float:
     """
@@ -293,7 +293,7 @@ def parse_filesize(  # pylint:disable=dangerous-default-value
 
 def parse_frequency(
     frequency: str,
-    units: tuple[str, ...] = DEFAULT_FREQUENCY_UNITS,
+    units: list[str] | tuple[str, ...] = DEFAULT_FREQUENCY_UNITS,
     pattern: re.Pattern = FREQUENCY_PATTERN
 ) -> float:
     """
@@ -338,7 +338,7 @@ def parse_frequency(
 
 def parse_weight(
     weight: str,
-    units: tuple[str, ...] = DEFAULT_WEIGHT_UNITS,
+    units: list[str] | tuple[str, ...] = DEFAULT_WEIGHT_UNITS,
     pattern: re.Pattern = WEIGHT_PATTERN
 ) -> float:
     """
@@ -374,7 +374,7 @@ def parse_weight(
 def _natural_number(
     number: int | float,
     base: int,
-    units: tuple[str, ...],
+    units: list[str] | tuple[str, ...],
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None
 ) -> str:
@@ -390,7 +390,7 @@ def _parse_natural_number(
     value: str,
     kind: str,
     base: int,
-    units: tuple[str, ...],
+    units: list[str] | tuple[str, ...],
     pattern: re.Pattern
 ) -> float:
     if match := pattern.match(value.strip()):

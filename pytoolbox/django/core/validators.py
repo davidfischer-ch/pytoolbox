@@ -62,7 +62,7 @@ class KeysValidator(object):
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__)
+            isinstance(other, type(self))
             and self.required_keys == other.required_keys
             and self.optional_keys == other.optional_keys
             and self.messages == other.messages
