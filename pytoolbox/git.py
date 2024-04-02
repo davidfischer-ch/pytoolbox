@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 from pathlib import Path
+from typing import Literal, TypeAlias
 import contextlib
 import os
 import stat
@@ -12,7 +13,9 @@ from .subprocess import CallArgType
 
 log = logging.get_logger(__name__)
 
-__all__ = ['blame', 'clone_or_pull', 'create_tag', 'get_ref', 'get_tags', 'scoped_ssh_key']
+__all__ = ['RefKind', 'blame', 'clone_or_pull', 'create_tag', 'get_ref', 'get_tags', 'scoped_ssh_key']
+
+RefKind: TypeAlias = Literal['branch', 'commit']
 
 
 def blame(file_path: Path) -> list[str]:
@@ -54,7 +57,12 @@ def create_tag(directory: Path, name: str) -> None:
         raise
 
 
-def get_ref(directory: Path | None = None, *, ci_vars: bool = True, kind: str = 'branch') -> str:
+def get_ref(
+    directory: Path | None = None,
+    *,
+    ci_vars: bool = True,
+    kind: RefKind = 'branch'
+) -> str:
     """
     Return the Git reference looking first at CI context, then using Git CLI.
 
