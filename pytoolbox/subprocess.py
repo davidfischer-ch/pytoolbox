@@ -18,11 +18,10 @@ import subprocess
 import threading
 import time
 
-from . import exceptions, filesystem, logging, module
-from .logging import LoggerType, get_logger
+from . import exceptions, filesystem, module
 from .decorators import deprecated
+from .logging import get_logger, LoggerType
 
-log = logging.get_logger(__name__)
 _all = module.All(globals())
 
 # import Popen on steroids if available
@@ -143,7 +142,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     communicate: bool = True,
     timeout: float | None = None,
     fail: bool = True,
-    log: LoggerType = log,  # pylint:disable=redefined-outer-name
+    log: LoggerType = None,  # pylint:disable=redefined-outer-name
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
@@ -161,7 +160,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     :param cli_input: If set, sended to stdin (no condition).
     :param cli_output: Set to True to output (in real-time) stdout to stdout and stderr to stderr.
     :param fail: Set to False to avoid the exception `exceptions.CalledProcessError`.
-    :param log: A function to log/print details about what is executed/any failure, can be a logger.
+    :param log: If set then override the default logger named `pytoolbox.subprocess.cmd.<binary>`.
     :param communicate: Set to True to communicate with the process, this is a locking call
                         (if timeout is None).
     :param timeout: Time-out for the communication with the process, in seconds.
@@ -175,19 +174,18 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     The delay will be a random number in range (`delay_min`, `delay_max`).
 
     """
-    log = get_logger(log)
-
     # Process arguments
-    args_list = to_args_list(command)
+    process_cmd: list[str] = to_args_list(command)
+    log = get_logger(log or f'{__name__}.cmd.{Path(process_cmd[0]).name}')
+
     if user is not None:
-        args_list = ['sudo', '-u', user, *command]
-    args_string = to_args_string(args_list)
+        process_cmd = ['sudo', '-u', user, *process_cmd]
 
     # log the execution
     log.debug(''.join([
         'Execute ',
         '' if input is None else f'echo {repr(input)} | ',
-        args_string,
+        to_args_string(process_cmd),
         '' if cli_input is None else f' < {repr(cli_input)}'
     ]))
 
@@ -195,7 +193,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
         # create the sub-process
         try:
             process = Popen(
-                args_list,
+                process_cmd,
                 stdin=subprocess.PIPE,
                 stdout=None if cli_output else subprocess.PIPE,
                 stderr=None if cli_output else subprocess.PIPE,
@@ -263,8 +261,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
         # raise if this is the last try
         if fail and not do_retry:
             raise exceptions.CalledProcessError(
+                cmd=process_cmd,
                 returncode=process.returncode,
-                cmd=args_string,
                 stdout=stdout,
                 stderr=stderr)
 

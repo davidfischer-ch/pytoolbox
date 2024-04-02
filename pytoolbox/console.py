@@ -34,7 +34,6 @@ def confirm(
     **Example usage**
 
     ::
-
         >> confirm('Do it now', default=True)
         Do it now ? [Y/n]:
         True

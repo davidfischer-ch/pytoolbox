@@ -12,6 +12,7 @@ def test_message_mixin_validation() -> None:
         message: str = 'Ten equals {ten} an empty dict {dict} a string is a {string}'
 
     with raises(AttributeError, match=r"is missing attributes or properties: b, c"):
+        # pylint:disable=pointless-exception-statement
         NewError(ten=10, dict={}, string='chaîne de caractères')
 
 

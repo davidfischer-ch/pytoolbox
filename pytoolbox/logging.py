@@ -20,6 +20,8 @@ __all__ = [
     'BasicLoggerFunc',
     'BasicFuncLogger',
     'LoggerType',
+    'Logger',
+    'LogRecord',
     'get_logger',
     'setup_logging',
     'ColorizeFilter'
@@ -65,13 +67,15 @@ class BasicFuncLogger(logging.Logger):
 
     def __init__(self, log_func) -> None:
         self._log_func = log_func
-        super().__init__(name=log_func.__name__)
+        super().__init__(name=f'{log_func.__module__}.{log_func.__name__}')
 
     def _log(self, level, msg, *args, **kwargs) -> None:  # pylint:disable=unused-argument
         self._log_func(msg)
 
 
 LoggerType: TypeAlias = BasicLoggerFunc | logging.Logger | str | None
+Logger = logging.Logger
+LogRecord = logging.LogRecord
 
 
 def get_logger(log: LoggerType) -> logging.Logger:
@@ -80,14 +84,8 @@ def get_logger(log: LoggerType) -> logging.Logger:
         return log
     if isinstance(log, str):
         return logging.getLogger(log)
-    if log is None:
-        log = logging.getLogger('noop')
-        log.setLevel('NOTSET')
-        return log
     if hasattr(log, '__call__'):
-        log = BasicFuncLogger(log_func=log)
-        log.setLevel('NOTSET')
-        return log
+        return BasicFuncLogger(log_func=log)
     raise NotImplementedError(f'Logging with {log!r}')
 
 

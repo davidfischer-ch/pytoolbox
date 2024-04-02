@@ -194,17 +194,22 @@ class ActionArgumentParser(ArgumentParser):
         self._version = version
         self.add_action('version', self.action_version)
 
-    def execute(self, args: Namespace | None = None):
+    def execute(self, args: Namespace | None = None) -> None:
         args = sys.argv[1:] if args is None else args  # type: ignore[assignment]
         if len(args) < 1:  # type: ignore[arg-type]
             sys.exit('An action is required')
         parsed_args = self.parse_args(args)  # type: ignore[arg-type]
         try:
-            return parsed_args.func(parsed_args)
-        except exceptions.CalledProcessError as ex:
+            parsed_args.func(parsed_args)
+        except Exception as ex:  # pylint:disable=broad-exception-caught
+            self.handle_exception(ex)
+            raise  # If not handled by the exception handler
+
+    def handle_exception(self, ex: Exception) -> None:
+        if isinstance(ex, exceptions.CalledProcessError):
             log.error(repr(ex))
             sys.exit(1)
-        except exceptions.MessageMixin as ex:
+        if isinstance(ex, exceptions.MessageMixin):
             log.error(ex)
             sys.exit(1)
 
