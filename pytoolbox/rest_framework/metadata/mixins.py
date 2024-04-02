@@ -18,7 +18,7 @@ class ExcludeRelatedChoicesMixin(object):
 
     def get_field_info(self, field):
         if hasattr(field, 'choices') and isinstance(field, self.related_fields):
-            field_class = field.__class__
+            field_class = type(field)
 
             class HaveNoChoicesProxy(field_class):
 

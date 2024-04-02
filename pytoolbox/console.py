@@ -5,9 +5,21 @@ from typing import Any, TextIO
 import atexit
 import code
 import os
+import shutil
 import sys
 
-__all__ = ['confirm', 'choice', 'print_error', 'progress_bar', 'shell', 'toggle_colors']
+__all__ = [
+    'confirm',
+    'choice',
+    'print_error',
+    'progress_bar',
+    'shell',
+    'set_columns',
+    'toggle_colors'
+]
+
+
+# Input --------------------------------------------------------------------------------------------
 
 
 def confirm(
@@ -22,7 +34,6 @@ def confirm(
     **Example usage**
 
     ::
-
         >> confirm('Do it now', default=True)
         Do it now ? [Y/n]:
         True
@@ -50,7 +61,7 @@ def confirm(
 def choice(
     question: str = '',
     *,
-    choices: tuple[str, ...] | list[str],
+    choices: list[str] | tuple[str, ...],
     stream: TextIO = sys.stdout
 ) -> str:
     """
@@ -80,6 +91,9 @@ def choice(
         if (answer := input(question)) in choices:  # pylint:disable=bad-builtin
             return answer
         stream.write(f'Please choose between {choices_string}.{os.linesep}')
+
+
+# Output -------------------------------------------------------------------------------------------
 
 
 def print_error(message: str, exit_code: int | None = 1, stream: TextIO = sys.stderr) -> None:
@@ -132,6 +146,9 @@ def progress_bar(
         stream.flush()
 
 
+# Interactivity ------------------------------------------------------------------------------------
+
+
 def shell(
     banner: str | None = None,
     *,
@@ -159,12 +176,25 @@ def shell(
     code.interact(banner=banner, local=imported)
 
 
+# Configuration ------------------------------------------------------------------------------------
+
+
+def set_columns(value: int | None = None, *, default: int = 120) -> int:
+    if value is None:
+        try:
+            value = shutil.get_terminal_size().columns
+        except AttributeError:
+            value = default
+    os.environ['COLUMNS'] = str(value)
+    return value
+
+
 def toggle_colors(
     env: dict[str, str] | None = None,
     *,
     colorize: bool,
-    disable_vars: tuple[str, ...] | list[str] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
-    enable_vars: tuple[str, ...] | list[str] = ('FORCE_COLOR', )
+    disable_vars: list[str] | tuple[str, ...] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
+    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR', )
 ) -> dict[str, str]:
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.

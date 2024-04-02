@@ -20,6 +20,7 @@ _all = module.All(globals())
 
 # Data -> File -------------------------------------------------------------------------------------
 
+
 def to_file(
     path,
     data=None,
@@ -101,6 +102,7 @@ def to_file(
 
 # Object <-> Pickle file ---------------------------------------------------------------------------
 
+
 class PickleableObject(object):
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
@@ -142,6 +144,7 @@ class PickleableObject(object):
 
 
 # Object <-> JSON string ---------------------------------------------------------------------------
+
 
 # http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
@@ -367,6 +370,7 @@ class JsoneableObject(object):
 
 
 # Object <-> Dictionary ----------------------------------------------------------------------------
+
 
 def object_to_dict(
     obj,
@@ -615,7 +619,7 @@ class SlotsToDictMixin(object):
         self_dict = {}
         slots = set(s for s in get_slots(self) if s[0] != '_')
         if extra_slots:
-            slots.update(self.__class__.extra_slots or [])
+            slots.update(type(self).extra_slots or [])
         for attribute in slots:
             value = getattr(self, attribute)
             if value is not None:
@@ -624,6 +628,7 @@ class SlotsToDictMixin(object):
 
 
 # YAML ---------------------------------------------------------------------------------------------
+
 
 YamlDataTypes: TypeAlias = dict | list | str | None
 

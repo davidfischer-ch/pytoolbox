@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
 from unittest import mock
 
 import pytest
-from pytoolbox import regex, subprocess
+from pytoolbox import logging, regex, subprocess
 from pytoolbox.validation import validate_list
 
 
@@ -24,34 +25,73 @@ def test_to_args_string() -> None:
     assert subprocess.to_args_string([10, None, 'string "salut"']) == '10 \'string "salut"\''
 
 
-def test_cmd() -> None:
+def test_cmd_happy_case():
+    result = subprocess.cmd(['cat', __file__])
+    assert isinstance(result['process'], subprocess.Popen)
+    assert result['returncode'] == 0
+    assert len(result['stdout'].splitlines()) > 30  # At least 30 lines in this source file !
+    assert result['stderr'] == b''
+
+
+def test_cmd_logging(caplog, capsys):
+    """
+    Ensure logging is not outputting to stderr by default.
+
+    See https://docs.python.org/3/howto/logging.html#library-config
+    """
+    caplog.set_level(logging.DEBUG)
+    subprocess.cmd(['cat', __file__])
+    subprocess.cmd(['echo', 'toto tata'])
+    subprocess.cmd(['/usr/bin/env', 'python'])
+    subprocess.cmd(['ls', Path(__file__).parent], log=lambda msg: None)
+    captured = capsys.readouterr()
+    assert captured.out == ''
+    assert captured.err == ''
+    # log = logging.get_logger('pytoolbox.subprocess.cmd.cat')
+    cat_record, echo_record, env_record = caplog.records
+    assert cat_record.name == 'pytoolbox.subprocess.cmd.cat'
+    assert cat_record.levelname == 'DEBUG'
+    assert cat_record.msg == f'Execute cat {__file__}'
+    assert echo_record.name == 'pytoolbox.subprocess.cmd.echo'
+    assert echo_record.levelname == 'DEBUG'
+    assert echo_record.msg == "Execute echo 'toto tata'"
+    assert env_record.name == 'pytoolbox.subprocess.cmd.env'
+    assert env_record.levelname == 'DEBUG'
+    assert env_record.msg == "Execute /usr/bin/env python"
+
+
+def test_cmd_log_to_func() -> None:
     log = mock.Mock()
     log.__name__ = 'Mock'
     subprocess.cmd(['echo', 'it seem to work'], log=log)
-    assert subprocess.cmd('cat missing_file', fail=False, log=log)['returncode'] == 1
+    result = subprocess.cmd('cat missing_file', fail=False, log=log)
+    assert isinstance(result['process'], subprocess.Popen)
+    assert result['returncode'] == 1
+    assert result['stdout'] == b''
+    assert result['stderr'] == b'cat: missing_file: No such file or directory\n'
     assert log.call_args_list == [
         mock.call("Execute echo 'it seem to work'"),
         mock.call('Execute cat missing_file'),
         mock.call('Attempt 1 out of 1: Failed')
     ]
-    assert subprocess.cmd('my.funny.missing.script.sh', fail=False)['stderr'] != ''
-    result = subprocess.cmd(f'cat {__file__}')
-    # There are at least 30 lines in this source file !
-    assert len(result['stdout'].splitlines()) > 30
 
 
 def test_cmd_missing_binary() -> None:
-    assert subprocess.cmd('hfuejnvwqkdivengz', fail=False)['returncode'] == 2
+    result = subprocess.cmd('hfuejnvwqkdivengz', fail=False)
+    assert result['process'] is None
+    assert result['returncode'] == 2
+    assert result['stdout'] is None
+    assert result['stderr'] is None
 
 
-def test_retry_first_try() -> None:
+def test_cmd_retry_first_try() -> None:
     log = mock.Mock()
     log.__name__ = 'Mock'
     subprocess.cmd('ls', log=log, tries=5, delay_min=1, delay_max=1)
     log.assert_called_once_with('Execute ls')
 
 
-def test_retry_missing_binary_no_retry() -> None:
+def test_cmd_retry_missing_binary_no_retry() -> None:
     log = mock.Mock()
     log.__name__ = 'Mock'
     with pytest.raises(OSError):
@@ -62,7 +102,7 @@ def test_retry_missing_binary_no_retry() -> None:
     ])
 
 
-def test_retry_no_success() -> None:
+def test_cmd_retry_no_success() -> None:
     log = mock.Mock()
     log.__name__ = 'Mock'
     subprocess.cmd(

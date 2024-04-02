@@ -170,7 +170,7 @@ class BetterUniquenessErrorsMixin(object):
                     if fields in (set(u) for u in self._meta.unique_together):
                         fields = sorted(fields - set(self.unique_together_hide_fields))
                         if fields:
-                            error = self.unique_error_message(self.__class__, fields)
+                            error = self.unique_error_message(type(self), fields)
                             raise ValidationError({fields[0]: error}) if len(fields) == 1 else error
                         return self._handle_hidden_duplicate_key_error(ex)
             raise
@@ -190,7 +190,7 @@ class BetterUniquenessErrorsMixin(object):
                 if len(error.params.get('unique_check', [])) > 1:
                     fields = [f for f in error.params['unique_check'] if f not in hidden_fields]
                     if fields:
-                        error = self.unique_error_message(self.__class__, fields)
+                        error = self.unique_error_message(type(self), fields)
                         filtered_errors_by_field[
                             fields[0] if len(fields) == 1 else field
                         ].append(error)
