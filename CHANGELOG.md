@@ -2,6 +2,43 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.1 (2024-04-02)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.0...14.8.1
+
+### Deprecations
+
+* Replace your calls to `argparse.set_columns` by `console.set_columns`
+* Replace your calls to `argparse.HelpArgumentParser` by `argparse.ArgumentParser`
+* Replace your calls to `filesystem.recursive_copy` by `filesystem.copy_recursive`
+* Replace your calls to `subprocess.git_clone_or_pull` by `git.clone_or_pull`
+* Replace your calls to `subprocess.ssh` by `ssh.ssh`
+
+### Features
+
+* Prevent `pytoolbox` logged events being output to `sys.stderr` by registering a `NullHandler`
+* Add class `argparse.ChainAction` (argument parsing action)
+* Add function `argparse.separator` (argument parsing type)
+* Add function `arpgarse.env_default` (utility function)
+* Add convenient constants `DIRECTORY_ARGS`, `FILE_ARG`, `REMAINDER_ARG` and `MULTI_ARG()` (`arpgarse` module)
+* Add class `argparse.ArgumentParser` (renamed from `argparse.HelpArgumentParser`)
+* Add class `argparse.ActionArgumentParser`
+* Add TypeAlias `Color`
+* Expose `arpgarse.{ArgumentTypeError,Namespace}` to be convenient (`import argparse` not required)
+* Decorator `decorators.deprecated` now accept a `guideline` argument (default to `''`)
+* Expose `logging.{CRITICAL, ..., NOTSET}`, `logging.{Logger, LogRecord}` to be convenient (`import logging` not required)
+* Add TypedDict `subprocess.CallResult` and use it to type hint functions response (added `exception` key)
+* Function `subprocess.cmd`: Now logging to `pytoolbox.subprocess.cmd.<binary>` unless log is defined
+* Function `subprocess.cmd`: Log can be a function, a `Logger` or a `str`. `None` will be mapped to default behavior
+
+### Fix and enhancements
+
+* Favor `type(obj)` over `obj.__class__`
+* Class `exceptions.MessageMixin`: Now show missing attributes (attributes can be properties too)
+* Class `exceptions.CalledProcessError`: Add property `cmd_short` and prevent exposing sensitive data in `__str__` or `__repr__`
+* Fix calls to `yaml.dump` (as its now `ruamel.yaml`)
+* Various improvements such as type hints, documentation, tests
+
 ## v14.8.0 (2024-03-25)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.8.0
@@ -15,7 +52,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.8.0
 
 ### Deprecations
 
-* Replace your call to `subprocess.git_clone_or_pull` by `ssh.clone_or_pull`
+* Replace your calls to `subprocess.git_clone_or_pull` by `ssh.clone_or_pull`
 * Rename function `subprocess.ssh` by `ssh.ssh`
 
 ### Features
@@ -71,7 +108,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.7.0
 
 ### Deprecations
 
-* Replace your call to `filesystem.copy_recursive` by `filesystem.recursive_copy`
+* Replace your calls to `filesystem.copy_recursive` by `filesystem.recursive_copy`
 
 ### Features
 
