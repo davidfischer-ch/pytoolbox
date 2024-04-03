@@ -275,7 +275,7 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
     >>>
     >>> directory = Path(__file__).resolve().parent
     >>>
-    >>> file_mime(directory / '..' / 'setup.cfg')
+    >>> file_mime(directory / '../pytest.ini')
     'text/plain'
     >>> file_mime(directory / 'filesystem.py') in ('text/plain', 'text/x-python')
     True
