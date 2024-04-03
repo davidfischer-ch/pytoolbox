@@ -89,6 +89,26 @@ def get_logger(log: LoggerType) -> logging.Logger:
     raise NotImplementedError(f'Logging with {log!r} of type {type(log)}')
 
 
+def reset_logger(log: LoggerType) -> logging.Logger:
+    log = get_logger(log)
+    log.setLevel(logging.NOTSET)
+    log.disabled = False
+    log.propagate = True
+    log.filters.clear()
+    for handler in log.handlers.copy():
+        # Copied from `logging.shutdown`
+        try:
+            handler.acquire()
+            handler.flush()
+            handler.close()
+        except (OSError, ValueError):
+            pass
+        finally:
+            handler.release()
+        log.removeHandler(handler)
+    return log
+
+
 def setup_logging(
     log: LoggerType = '',
     reset: bool = False,
@@ -154,7 +174,7 @@ def setup_logging(
     """
     log = get_logger(log)
     if reset:
-        log.handlers = []
+        reset_logger(log)
     log.setLevel(level)
     if colorize:
         log.addFilter(ColorizeFilter(color_by_level=color_by_level))
