@@ -13,7 +13,15 @@ from .subprocess import CallArgType
 
 log = logging.get_logger(__name__)
 
-__all__ = ['RefKind', 'blame', 'clone_or_pull', 'create_tag', 'get_ref', 'get_tags', 'scoped_ssh_key']
+__all__ = [
+    'RefKind',
+    'blame',
+    'clone_or_pull',
+    'create_tag',
+    'get_ref',
+    'get_tags',
+    'scoped_ssh_key'
+]
 
 RefKind: TypeAlias = Literal['branch', 'commit']
 

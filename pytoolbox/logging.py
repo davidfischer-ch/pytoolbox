@@ -23,6 +23,7 @@ __all__ = [
     'Logger',
     'LogRecord',
     'get_logger',
+    'reset_logger',
     'setup_logging',
     'ColorizeFilter'
 ]
