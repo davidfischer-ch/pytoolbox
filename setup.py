@@ -157,7 +157,6 @@ extras_require.update({
         'pytest-pylint>=0.21.0',  # 2024-03-19 Released 2023-10-06
         'pytest-ruff>=0.3.1',     # 2024-03-19 Released 2024-03-09
         'ruff>=0.3.3',            # 2024-03-19 Released 2024-03-15
-        # The library is not yet ready to be processed by ruff...
 
         # Stubs
         'PyGObject-stubs>=2.10.0',          # 2024-03-19 Released 2023-11-16
