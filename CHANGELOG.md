@@ -2,6 +2,20 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.2 (2024-04-03)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.1...14.8.2
+
+### Features
+
+* Add TypeAlias `git.RefKind` and use it
+* Add function `logging.reset_logger` and use it
+
+### Fix and enhancements
+
+* Keep `git` / `subprocess` log records separated
+* Prevent a strange issue when reloading logging module
+
 ## v14.8.1 (2024-04-02)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.0...14.8.1
