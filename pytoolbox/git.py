@@ -75,12 +75,9 @@ def get_ref(
         log.debug(f'Detected Git ref from GitLab CI context is {ref}')
     else:
         extra = {'branch': ['--abbrev-ref'], 'commit': []}[kind]
-        ref = subprocess.cmd(
-            ['git', 'rev-parse', *extra, 'HEAD'],
-            cwd=directory,
-            fail=False,
-            log=log)['stdout'].decode('utf-8').strip()
-        log.debug(f'Detected Git ref from directory {directory!r} of kind {kind} is {ref}')
+        result = subprocess.cmd(['git', 'rev-parse', *extra, 'HEAD'], cwd=directory, fail=False)
+        ref = result['stdout'].decode('utf-8').strip()
+        log.debug(f'Detected Git ref from directory \'{directory}\' of kind {kind} is {ref}')
     if not ref:
         raise exceptions.GitReferenceError()
     return ref
