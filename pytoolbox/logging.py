@@ -80,13 +80,13 @@ LogRecord = logging.LogRecord
 
 def get_logger(log: LoggerType) -> logging.Logger:
     """Convenient function returning an instance of logger for various use cases."""
-    if isinstance(log, logging.Logger):
+    if isinstance(log, Logger):
         return log
     if isinstance(log, str):
         return logging.getLogger(log)
     if hasattr(log, '__call__'):
         return BasicFuncLogger(log_func=log)
-    raise NotImplementedError(f'Logging with {log!r}')
+    raise NotImplementedError(f'Logging with {log!r} of type {type(log)}')
 
 
 def setup_logging(
