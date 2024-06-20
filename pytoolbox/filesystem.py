@@ -11,9 +11,7 @@ import collections
 import copy
 import datetime
 import errno
-import grp
 import os
-import pwd
 import re
 import shutil
 import tempfile
@@ -619,6 +617,7 @@ def to_user_id(user: int | str | None):
     -1
     """
     if isinstance(user, str):
+        import pwd  # pylint:disable=import-outside-toplevel
         return pwd.getpwnam(user).pw_uid
     return -1 if user is None else user
 
@@ -637,6 +636,7 @@ def to_group_id(group):
     -1
     """
     if isinstance(group, str):
+        import grp  # pylint:disable=import-outside-toplevel
         return grp.getgrnam(group).gr_gid
     return -1 if group is None else group
 
