@@ -2,6 +2,19 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.3 (2204-06-20)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.2...14.8.3
+
+### Features
+
+* Make `filesystem` Windows compatible (with some restrictions)
+
+### Fix and enhancements
+
+* Add `.flake8` configuration
+* Merge MR from dependabot
+
 ## v14.8.2 (2024-04-03)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.1...14.8.2
