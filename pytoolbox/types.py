@@ -36,7 +36,9 @@ def get_arguments_names(function: Callable) -> list[str]:
     return list(inspect.signature(function).parameters.keys())
 
 
-def get_properties(obj: Any) -> Generator[tuple[str, Any], None, None]:
+def get_properties(
+    obj: Any
+) -> Generator[tuple[str, Any], None, None]:  # pylint:disable=unnecessary-default-type-args
     return (
         (n, getattr(obj, n))
         for n, p in inspect.getmembers(type(obj), lambda m: isinstance(m, property))

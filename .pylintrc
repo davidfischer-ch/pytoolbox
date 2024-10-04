@@ -1,4 +1,4 @@
-# https://github.com/PyCQA/pylint/blob/5bc4cd9a4b4c240227a41786823a6f226864dc4b/pylintrc
+# https://github.com/pylint-dev/pylint/blob/c25923f36965d83e46f11fd3609a359cc10a8601/pylintrc
 
 [MAIN]
 
@@ -34,7 +34,7 @@ load-plugins=
     pylint.extensions.typing,
     pylint.extensions.redefined_variable_type,
     pylint.extensions.comparison_placement,
-    # pylint.extensions.broad_try_clause,
+    pylint.extensions.broad_try_clause,
     pylint.extensions.dict_init_mutate,
     pylint.extensions.consider_refactoring_into_while_condition,
 
@@ -101,13 +101,18 @@ enable=
 # --disable=W"
 
 disable=
+    attribute-defined-outside-init,
+    consider-using-assignment-expr,
     cyclic-import,                  # FIXME Wait until https://github.com/PyCQA/pylint/issues/5168
-    import-outside-toplevel,        # It can be used to break cycles, etc
-    wrong-import-order,             # "import setuptools, sys" should be placed before "import setuptools, sys" WTF
-    logging-fstring-interpolation,  # Reasonable to use f-string in logging methods
-    missing-docstring,              # Docstring for everything is overkill
     fixme,                          # We anticipate #3512 where it will become optional
+    import-outside-toplevel,        # It can be used to break cycles, etc
+    invalid-name,                   # Default
+    logging-fstring-interpolation,  # Reasonable to use f-string in logging methods
+    missing-docstring,              # Default
+    protected-access,               # Default
+    too-few-public-methods,         # Default
     useless-object-inheritance,     # Explicit is better than implicit https://stackoverflow.com/questions/1238606
+    wrong-import-order,             # "import setuptools, sys" should be placed before "import setuptools, sys" WTF
 
     # handled by black
     # format,
@@ -342,10 +347,11 @@ property-classes=abc.abstractproperty
 # members is set to 'yes'
 mixin-class-rgx=.*MixIn
 
-# List of module names for which member attributes should not be checked
-# (useful for modules/projects where namespaces are manipulated during runtime
-# and thus existing member attributes cannot be deduced by static analysis). It
-# supports qualified module names, as well as Unix pattern matching.
+# List of module names for which member attributes should not be checked and
+# will not be imported (useful for modules/projects where namespaces are
+# manipulated during runtime and thus existing member attributes cannot be
+# deduced by static analysis). It supports qualified module names, as well
+# as Unix pattern matching.
 ignored-modules=
 
 # List of class names for which member attributes should not be checked (useful
@@ -400,7 +406,7 @@ spelling-ignore-words=
 spelling-ignore-comment-directives=fmt: on,fmt: off,noqa:,noqa,nosec,isort:skip,mypy:,pragma:,# noinspection
 
 # A path to a file that contains private dictionary; one word per line.
-spelling-private-dict-file=.pyenchant_pylint_custom_dict.txt
+spelling-private-dict-file=custom_dict.txt
 
 # Tells whether to store unknown words to indicated private dictionary in
 # --spelling-private-dict-file option instead of raising a message.
@@ -432,6 +438,9 @@ max-attributes=11
 
 # Maximum number of statements in a try-block
 max-try-statements = 7
+
+# Maximum number of positional arguments (see R0917).
+max-positional-arguments = 12
 
 [CLASSES]
 
@@ -485,7 +494,7 @@ int-import-graph=
 
 # Force import order to recognize a module as part of the standard
 # compatibility libraries.
-known-standard-library=
+known-standard-library=_string
 
 # Force import order to recognize a module as part of a third party library.
 known-third-party=enchant
@@ -509,7 +518,7 @@ overgeneral-exceptions=builtins.Exception
 # For libraries, evaluate if some users what to access the type hints at
 # runtime first, e.g., through ``typing.get_type_hints``. Applies to Python
 # versions 3.7 - 3.9
-runtime-typing = no  # DAVIDFISCHER yes
+runtime-typing = no
 
 
 [DEPRECATED_BUILTINS]

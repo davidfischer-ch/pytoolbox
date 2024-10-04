@@ -80,7 +80,7 @@ class FFmpeg(object):
             **(statistics_kwargs or {}))
 
         process = self._get_process(arguments, **(process_kwargs or {}))
-        try:
+        try:  # pylint:disable=too-many-try-statements
             yield statistics.start(process)
             while True:
                 chunk = self._get_chunk(process)

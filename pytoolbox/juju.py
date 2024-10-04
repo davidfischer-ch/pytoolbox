@@ -342,7 +342,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         self.config = CharmConfig()
         self.local_config = None
         reason = 'Life is good !'
-        try:
+        try:  # pylint:disable=too-many-try-statements
             if force_disable_juju:
                 raise OSError('Disabled by user.')
             self.juju_ok = True
@@ -780,6 +780,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         self,
         charm,
         service,
+        *,
         constraints=None,
         expose=False,
         local=True,
@@ -791,7 +792,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         to=None,
         units_number_to_keep=None,
         timeout=None
-    ):  # pylint:disable=invalid-name,too-many-arguments,too-many-branches,too-many-locals
+    ):  # pylint:disable=invalid-name,too-many-arguments,too-many-branches,too-many-locals,too-many-try-statements
         """
         Ensure `num_units` units of `service` into `environment` by adding new or destroying useless
         units first !

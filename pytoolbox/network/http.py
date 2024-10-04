@@ -142,7 +142,7 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     downloaded: bool = False
     if force or not path.exists():
         file = None
-        try:
+        try:  # pylint:disable=too-many-try-statements
             for position, length, chunk in iter_download_core(
                 url=url,
                 code=code,

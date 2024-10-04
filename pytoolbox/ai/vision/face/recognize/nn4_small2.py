@@ -4,7 +4,7 @@
 
 import tensorflow as tf
 from keras import backend as K
-from keras.layers import (
+from keras.layers import (  # pylint:disable=import-error
     Activation,
     AveragePooling2D,
     BatchNormalization,
@@ -17,7 +17,7 @@ from keras.layers import (
     MaxPooling2D,
     ZeroPadding2D
 )
-from keras.models import Model
+from keras.models import Model  # pylint:disable=import-error
 
 from pytoolbox.ai.vision import utils
 

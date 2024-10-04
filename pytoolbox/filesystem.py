@@ -125,7 +125,7 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     At the end of the copy, if the size of the destination directory is not equal to the source
     then a `IOError` is raised.
     """
-    try:
+    try:  # pylint:disable=too-many-try-statements
         start_date = datetime_now()
         start_time = time.time()
         src_size = get_size(
