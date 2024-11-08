@@ -35,7 +35,7 @@ class Metadata(object):
         if buf:
             self.exiv2.open_buf(buf)
         elif path:
-            self.exiv2.open_path(path)
+            self.exiv2.open_path(str(path))
         else:
             raise ValueError('buf or file is required')
         self.camera = self.camera_class(self)
