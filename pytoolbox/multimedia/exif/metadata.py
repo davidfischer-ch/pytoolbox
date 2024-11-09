@@ -11,6 +11,8 @@ from . import camera, image, lens, photo, tag
 
 __all__ = ['Metadata']
 
+# See https://valadoc.org/gexiv2/GExiv2.Metadata
+
 
 class Metadata(object):
 
@@ -35,7 +37,7 @@ class Metadata(object):
         if buf:
             self.exiv2.open_buf(buf)
         elif path:
-            self.exiv2.open_path(path)
+            self.exiv2.open_path(str(path))
         else:
             raise ValueError('buf or file is required')
         self.camera = self.camera_class(self)
@@ -48,11 +50,14 @@ class Metadata(object):
         return self.tag_class(self, key)
 
     def __setitem__(self, key: str, value) -> None:
-        self.exiv2[key] = value  # pylint: disable=unsupported-assignment-operation
+        if type_hook := self.tag_class(self, key).get_type_hook(mode='set'):
+            type_hook(key, value)
+        else:
+            raise NotImplementedError(key)
 
     @property
     def tags(self) -> dict:
-        return {k: self[k] for k in self.exiv2.get_tags()}  # pylint: disable=no-member
+        return {k: self[k] for k in self.exiv2.get_exif_tags()}  # pylint: disable=no-member
 
     def get_date(
         self,
@@ -75,7 +80,7 @@ class Metadata(object):
         if save:
             self.save_file(path=path)
 
-    def save_file(self, path: Path | None = None):
+    def save_file(self, path: Path | None = None) -> None:
         if not path and not self.path:
             raise exceptions.UndefinedPathError()
-        return self.exiv2.save_file(path=path or self.path)
+        self.exiv2.save_file(path=str(path or self.path))

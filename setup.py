@@ -25,11 +25,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from setuptools.command import develop, install
 import itertools
-import setuptools
 import subprocess
 import sys
+
+from setuptools.command import develop, install
+import setuptools
 
 import pytoolbox
 

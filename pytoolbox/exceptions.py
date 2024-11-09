@@ -129,6 +129,15 @@ class UndefinedPathError(Exception):
     pass
 
 
+class WrongExifTagDataTypeError(MessageMixin, ValueError):
+    attrs: tuple[str, ...] = ('key', 'type', 'data_repr', 'data_type')
+    message: str = 'Wrong tag data {data_repr} of type {data_type} for key {key}, expected {type}.'
+    key: str
+    type: str
+    data_repr: str
+    data_type: str
+
+
 def assert_raises_item(
     exception_cls: type[Exception],
     something: Any,  # That has __getitem__

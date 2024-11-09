@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from fractions import Fraction
+from typing import Literal
 import datetime
 import re
 
-from pytoolbox import decorators
+from pytoolbox import decorators, exceptions
 from pytoolbox.datetime import str_to_datetime, str_to_time
 
 from .brand import Brand
@@ -20,12 +21,12 @@ class Tag(object):
     date_clean_regex = re.compile(r'[:-]')
     group_to_brand_blacklist = frozenset(['aux', 'crs', 'exifEX', 'Image', 'Photo'])
     type_to_hook = {
-        datetime.datetime: 'get_tag_string',  # clean method will convert to a date-time
-        datetime.time: 'get_tag_string',  # clean method will convert to a time
-        Fraction: 'get_exif_tag_rational',
-        int: 'get_tag_long',
-        list: 'get_tag_multiple',
-        str: 'get_tag_string'
+        datetime.datetime: 'tag_string',  # clean method will convert to a date-time
+        datetime.time: 'tag_string',  # clean method will convert to a time
+        Fraction: 'exif_tag_rational',
+        int: 'tag_long',
+        list: 'tag_multiple',
+        str: 'tag_string'
     }
     type_to_python = {
         'Ascii': str,
@@ -56,7 +57,9 @@ class Tag(object):
 
     @property
     def data(self):
-        if type_hook := self.get_type_hook():
+        if self.data_bytes is None:
+            return None
+        if type_hook := self.get_type_hook(mode='get'):
             try:
                 return self.clean(type_hook(self.key))
             except UnicodeDecodeError as ex:
@@ -65,7 +68,7 @@ class Tag(object):
 
     @property
     def data_bytes(self):
-        tag_raw = self.metadata.exiv2.get_tag_raw(self.key)
+        tag_raw = self.metadata.exiv2.try_get_tag_raw(self.key)
         return tag_raw.get_data() if tag_raw else None
 
     @decorators.cached_property
@@ -84,15 +87,16 @@ class Tag(object):
 
     @decorators.cached_property
     def label(self) -> str:
-        return self.metadata.exiv2.get_tag_label(self.key) or self.key.split('.')[-1]
+        return self.metadata.exiv2.try_get_tag_label(self.key) or self.key.split('.')[-1]
 
     @property
     def size(self) -> int:
-        return self.metadata.exiv2.get_tag_raw(self.key).get_size()
+        raw = self.metadata.exiv2.try_get_tag_raw(self.key)
+        return raw.get_size() if raw else 0
 
     @decorators.cached_property
     def type(self) -> type:
-        tag_type = self.metadata.exiv2.get_tag_type(self.key)
+        tag_type = self.metadata.exiv2.try_get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
         except KeyError as ex:
@@ -108,15 +112,25 @@ class Tag(object):
         if self.type == datetime.datetime or isinstance(data, str):
             cleaned_data = self.date_clean_regex.sub('', data)
             for date_format in self.date_formats:
-                if date := str_to_datetime(cleaned_data, date_format, fail=False):
+                if date := str_to_datetime(cleaned_data, fmt=date_format, fail=False):
                     return date
-        assert not data or isinstance(data, self.type), \
-            f'{self.key} {self.type} {data} {type(data)}'
-        return data
+        if self.type == Fraction and isinstance(data, tuple):
+            try:
+                return Fraction(*data)
+            except ZeroDivisionError:
+                # Special case were type is _ResultTuple(nom=0, den=0)
+                return None
+        if data is None or isinstance(data, self.type):
+            return data
+        raise exceptions.WrongExifTagDataTypeError(
+            key=self.key,
+            type=self.type.__name__,
+            data_type=type(data).__name__,
+            data_repr=repr(data))
 
-    def get_type_hook(self) -> Callable | None:
+    def get_type_hook(self, *, mode: Literal['get', 'set']) -> Callable | None:
         name = self.type_to_hook.get(self.type)
-        return getattr(self.metadata.exiv2, name) if name else None
+        return getattr(self.metadata.exiv2, f'try_{mode}_{name}') if name else None
 
 
 class TagSet(object):  # pylint:disable=too-few-public-methods

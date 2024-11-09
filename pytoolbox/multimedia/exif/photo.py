@@ -19,45 +19,34 @@ class ExposureMode(OrderedEnum):
 class Photo(TagSet):
 
     @property
-    def date(self) -> datetime.datetime:
+    def date(self) -> datetime.datetime | None:
         return self.metadata.get_date()
 
     @property
-    def exposure_mode(self) -> ExposureMode:
-        return ExposureMode(self.metadata['Exif.Photo.ExposureMode'].data)
+    def exposure_mode(self) -> ExposureMode | None:
+        data = self.metadata['Exif.Photo.ExposureMode'].data
+        return None if data is None else ExposureMode(data)
 
     @property
     def exposure_time(self) -> Fraction | None:
-        value = self.metadata['Exif.Photo.ExposureTime'].data
-        assert value is None or isinstance(value, Fraction), type(value)
-        return value
+        return self.metadata['Exif.Photo.ExposureTime'].data
 
     @property
     def fnumber(self) -> Fraction | None:
-        value = self.clean_number(self.metadata['Exif.Photo.FNumber'].data)
-        assert value is None or isinstance(value, Fraction), type(value)
-        return value
+        return self.clean_number(self.metadata['Exif.Photo.FNumber'].data)
 
     @property
     def focal_length(self) -> Fraction | None:
-        value = self.clean_number(self.metadata['Exif.Photo.FocalLength'].data)
-        assert value is None or isinstance(value, Fraction), type(value)
-        return value
+        return self.clean_number(self.metadata['Exif.Photo.FocalLength'].data)
 
     @property
     def iso_speed(self) -> int | None:
-        value = self.clean_number(self.metadata['Exif.Photo.ISOSpeedRatings'].data)
-        assert value is None or isinstance(value, int), type(value)
-        return value
+        return self.clean_number(self.metadata['Exif.Photo.ISOSpeedRatings'].data)
 
     @property
     def sensing_method(self) -> int | None:
-        value = self.metadata['Exif.Photo.SensingMethod'].data
-        assert value is None or isinstance(value, int), type(value)
-        return value
+        return self.metadata['Exif.Photo.SensingMethod'].data
 
     @property
     def white_balance(self) -> int | None:
-        value = self.metadata['Exif.Photo.WhiteBalance'].data
-        assert value is None or isinstance(value, int), type(value)
-        return value
+        return self.metadata['Exif.Photo.WhiteBalance'].data

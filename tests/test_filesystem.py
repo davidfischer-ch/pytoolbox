@@ -43,7 +43,10 @@ def test_copy_recursive(tmp_path: Path) -> None:
     assert stats['src_size'] >= 6529  # Expect code to not shrink
     camera = 'multimedia/exif/camera.py'
     ffmpeg = 'multimedia/ffmpeg/ffmpeg.py'
-    assert list(filesystem.find_recursive(tmp_path, "*")) == [tmp_path / camera, tmp_path / ffmpeg]
+    assert sorted(filesystem.find_recursive(tmp_path, "*")) == [
+        tmp_path / camera,
+        tmp_path / ffmpeg
+    ]
     assert (tmp_path / camera).read_bytes() == (src_path / camera).read_bytes()
     assert (tmp_path / ffmpeg).read_bytes() == (src_path / ffmpeg).read_bytes()
 
