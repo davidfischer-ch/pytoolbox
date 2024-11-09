@@ -87,11 +87,11 @@ class Tag(object):
 
     @decorators.cached_property
     def label(self) -> str:
-        return self.metadata.exiv2.get_tag_label(self.key) or self.key.split('.')[-1]
+        return self.metadata.exiv2.try_get_tag_label(self.key) or self.key.split('.')[-1]
 
     @property
     def size(self) -> int:
-        raw = self.metadata.exiv2.get_tag_raw(self.key)
+        raw = self.metadata.exiv2.try_get_tag_raw(self.key)
         return raw.get_size() if raw else 0
 
     @decorators.cached_property
