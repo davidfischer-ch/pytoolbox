@@ -2,7 +2,22 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
-## v14.8.3 (2204-06-20)
+## v14.8.4 (2024-11-09)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.3...14.8.4
+
+### Features
+
+* Module `multimedia.exif`: Rework it (better typing, None instead of 0, ...)
+* Module `multimedia.exif`: Cover it with tests (still some more are welcome)
+* Class `multimedia.exif.Metadata`: Convert path to string to fix issues with Gexiv2
+
+### Fix and enhancements
+
+* Integrate latest pylintrc
+* Fix various linter issues
+
+## v14.8.3 (2024-06-20)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.2...14.8.3
 
