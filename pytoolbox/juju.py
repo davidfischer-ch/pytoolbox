@@ -792,7 +792,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         to=None,
         units_number_to_keep=None,
         timeout=None
-    ):  # pylint:disable=invalid-name,too-many-arguments,too-many-branches,too-many-locals,too-many-try-statements
+    ):  # pylint:disable=invalid-name,too-many-arguments,too-many-branches,too-many-locals
         """
         Ensure `num_units` units of `service` into `environment` by adding new or destroying useless
         units first !
