@@ -103,6 +103,6 @@ typing_extensions==4.5.0
 tzdata==2023.3
 urllib3==1.26.19
 voluptuous==0.13.1
-Werkzeug==3.0.3
+Werkzeug==3.0.6
 wrapt==1.15.0
 wsproto==1.2.0
