@@ -4,11 +4,12 @@ from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import TypeAlias, TypedDict
 import errno
-import fcntl
-import grp
-import multiprocessing
 import os
-import pwd
+if os.name != 'nt':  # 'nt' is the name for Windows systems
+    import fcntl
+    import grp
+    import pwd
+import multiprocessing
 import random
 import re
 import setuptools.archive_util
