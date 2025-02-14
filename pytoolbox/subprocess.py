@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import TypeAlias, TypedDict
+from typing import IO, TypeAlias, TypedDict
 import errno
-import os
-if os.name != 'nt':  # 'nt' is the name for Windows systems
-    import fcntl
-    import grp
-    import pwd
 import multiprocessing
+import os
 import random
 import re
 import setuptools.archive_util
@@ -65,7 +61,7 @@ def kill(process: Popen) -> None:
 
 def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid-name
     """
-    Return a function to change current user/group id.
+    Return a function to change current user/group id. Is a no-op on Windows.
 
     **Example usage**
 
@@ -73,16 +69,24 @@ def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid
     >> subprocess.call(['ls', '/'], preexec_fn=su(1000, 1000))
     >> subprocess.call(['ls', '/'], preexec_fn=su('root', 'root'))
     """
-    def set_ids():
-        os.setgid(grp.getgrnam(group).gr_gid if isinstance(group, str) else group)
-        os.setuid(pwd.getpwnam(user).pw_uid if isinstance(user, str) else user)
+    try:
+        # pylint:disable=import-outside-toplevel
+        import grp
+        import pwd
+
+        def set_ids():
+            os.setgid(grp.getgrnam(group).gr_gid if isinstance(group, str) else group)
+            os.setuid(pwd.getpwnam(user).pw_uid if isinstance(user, str) else user)
+    except ImportError:
+        def set_ids():
+            return
     return set_ids
 
 
 # http://stackoverflow.com/a/7730201/190597
-def make_async(fd) -> None:  # pylint:disable=invalid-name
+def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
     """Add the O_NONBLOCK flag to a file descriptor."""
-    fcntl.fcntl(fd, fcntl.F_SETFL, fcntl.fcntl(fd, fcntl.F_GETFL) | os.O_NONBLOCK)
+    os.set_blocking(fd.fileno() if hasattr(fd, 'fileno') else fd, False)
 
 
 # http://stackoverflow.com/a/7730201/190597
