@@ -2,6 +2,18 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.5 (2025-02-14)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.4...14.8.5
+
+### Features
+
+* Make `subprocess` Windows compatible (with some restrictions)
+
+### Fix and enhancements
+
+* Merge MRs from dependabot
+
 ## v14.8.4 (2024-11-09)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.3...14.8.4
