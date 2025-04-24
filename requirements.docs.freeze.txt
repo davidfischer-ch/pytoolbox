@@ -33,7 +33,7 @@ google-auth==2.21.0
 google-auth-oauthlib==1.0.0
 google-pasta==0.2.0
 grpcio==1.56.0
-h11==0.14.0
+h11==0.16.0
 h5py==3.9.0
 idna==3.7
 imagesize==1.4.1
