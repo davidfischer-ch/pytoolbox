@@ -4,7 +4,7 @@ Mix-ins for building your own Django REST Framework powered API serializers.
 from __future__ import annotations
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as _
 
 from pytoolbox.django.models import utils
@@ -36,7 +36,7 @@ class FromPrivateKeyMixin(object):
         try:
             return self.Meta.model.objects.get(pk=data)
         except ObjectDoesNotExist:
-            self.fail('does_not_exist', pk_value=smart_text(data))
+            self.fail('does_not_exist', pk_value=smart_str(data))
         except (TypeError, ValueError):
             self.fail('incorrect_type', data_type=type(data).__name__)
 
