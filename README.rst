@@ -38,7 +38,7 @@ Install some packages that are not handled by pip::
 
 If planning to use the `imaging` extra, especially the `exif` classes, then you'll have to install::
 
-    $ sudo apt install libcairo2 libcairo2-dev libexiv2-dev libgexiv2-dev libgirepository1.0-dev
+    $ sudo apt install libcairo2 libcairo2-dev libexiv2-dev libgexiv2-dev libgirepository-2.0-dev
 
 The gir1.2-gexiv2-0.10 should also be installed, maybe its already the case.
 
