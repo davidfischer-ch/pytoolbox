@@ -2,6 +2,16 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.6 (2025-09-05)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.5...14.8.6
+
+### Fix and enhancements
+
+* Module `rest_framework.serializers`: Replace `smart_text` with `smart_str` (Django 5+ compat)
+* Fix strange CI & linter issues
+* Merge MR from depndabot
+
 ## v14.8.5 (2025-02-14)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.4...14.8.5
