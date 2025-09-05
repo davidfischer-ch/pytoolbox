@@ -24,3 +24,9 @@ class Firefox(common.FindMixin, webdriver.Firefox):
         tag_name = getattr(element, 'tag_name', 'default')
         cls = self.web_element_classes.get(tag_name)
         return cls(element) if cls else element
+
+    def download_file(self, *args, **kwargs):
+        return super().download_file(*args, **kwargs)
+
+    def get_downloadable_files(self, *args, **kwargs):
+        return super().get_downloadable_files(*args, **kwargs)
