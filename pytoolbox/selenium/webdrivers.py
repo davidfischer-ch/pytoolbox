@@ -25,8 +25,8 @@ class Firefox(common.FindMixin, webdriver.Firefox):
         cls = self.web_element_classes.get(tag_name)
         return cls(element) if cls else element
 
-    def download_file(self, *args, **kwargs):
+    def download_file(self, *args, **kwargs):  # pylint:disable=useless-parent-delegation
         return super().download_file(*args, **kwargs)
 
-    def get_downloadable_files(self, *args, **kwargs):
+    def get_downloadable_files(self, *args, **kwargs):  # pylint:disable=useless-parent-delegation
         return super().get_downloadable_files(*args, **kwargs)
