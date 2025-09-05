@@ -68,7 +68,10 @@ def test_cmd_log_to_func() -> None:
     assert isinstance(result['process'], subprocess.Popen)
     assert result['returncode'] == 1
     assert result['stdout'] == b''
-    assert result['stderr'] == b'cat: missing_file: No such file or directory\n'
+    assert result['stderr'] in {
+        b'cat: missing_file: No such file or directory\n',
+        b'cat: missing_file: Aucun fichier ou dossier de ce nom\n'
+    }
     assert log.call_args_list == [
         mock.call("Execute echo 'it seem to work'"),
         mock.call('Execute cat missing_file'),
