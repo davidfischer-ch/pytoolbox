@@ -30,9 +30,13 @@ jobs:
       run: |
         pip install --upgrade pip setuptools wheel
         pip install -U -e .[all,test]
+        pip freeze
     - name: Lint with flake8
       run: |
         flake8 pytoolbox
+    - name: Debug env
+      run: |
+        env | sort | grep -i -E 'COLOR|TERM|CI'
     - name: Test with pytest
       run: |
         pytest
