@@ -42,7 +42,7 @@ Jinja2==3.1.6
 jira==3.5.2
 jmespath==1.0.1
 jwcrypto==1.5.6
-keras==3.11.0
+keras==3.11.3
 libclang==16.0.0
 lxml==4.9.3
 Markdown==3.4.3
