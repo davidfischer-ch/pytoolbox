@@ -205,8 +205,11 @@ def secs_to_time(value, defaults_to_zero=False):
         None|secs_to_time|time:"H:i:s.u"       -> (empty string)
         None|secs_to_time:True|time:"H:i:s.u"  -> 00:00:00.000000
     """
-    value = _secs_to_time(value, defaults_to_zero=defaults_to_zero)
-    return value if value is not None else string_if_invalid
+    if value is None:
+        if defaults_to_zero:
+            return _secs_to_time(0)
+        return string_if_invalid
+    return _secs_to_time(value)
 
 
 @register.filter(needs_autoescape=True)
