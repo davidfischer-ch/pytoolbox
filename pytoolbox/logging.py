@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Protocol, TypeAlias
+from typing import Final, Literal, Protocol, TypeAlias
 import logging
 import sys
 
@@ -28,14 +28,14 @@ __all__ = [
     'ColorizeFilter'
 ]
 
-CRITICAL: int = logging.CRITICAL
-FATAL: int = logging.FATAL
-ERROR: int = logging.ERROR
-WARN: int = logging.WARNING
-WARNING: int = logging.WARNING
-INFO: int = logging.INFO
-DEBUG: int = logging.DEBUG
-NOTSET: int = logging.NOTSET
+CRITICAL: Final[int] = logging.CRITICAL
+FATAL: Final[int] = logging.FATAL
+ERROR: Final[int] = logging.ERROR
+WARN: Final[int] = logging.WARNING
+WARNING: Final[int] = logging.WARNING
+INFO: Final[int] = logging.INFO
+DEBUG: Final[int] = logging.DEBUG
+NOTSET: Final[int] = logging.NOTSET
 
 # Terminal colors (termcolor)
 Color: TypeAlias = Literal[
