@@ -185,8 +185,40 @@ class ActionArgumentParser(ArgumentParser):
     def action_version(self, args: Namespace) -> None:  # pylint:disable=unused-argument
         print(self._version)
 
-    def add_action(self, name: str, func) -> Callable:
-        parser = self._action.add_parser(name, description=func.__doc__)
+    def add_action(self, name: str, func, *, nested: bool = False) -> Callable:
+        """
+        Register a sub-command action.
+
+        By default the sub-parser is a plain :class:`ArgumentParser`, so positional arguments work
+        correctly. Pass ``nested=True`` to get an :class:`ActionArgumentParser` sub-parser that
+        can itself host further sub-commands.
+
+        >>> def greet(args): print(f'Hello, {args.name}!')
+        >>> parser = ActionArgumentParser()
+        >>> arg = parser.add_action('greet', greet)
+        >>> _ = arg('name')
+        >>> parser.parse_args(['greet', 'world']).name
+        'world'
+
+        With ``nested=True`` the sub-parser is itself an :class:`ActionArgumentParser`
+        and can register its own sub-commands:
+
+        >>> def sub_run(args): print('run')
+        >>> parser = ActionArgumentParser()
+        >>> add_sub = parser.add_action('group', lambda args: None, nested=True)
+        >>> sub_parser = parser._action._name_parser_map['group']
+        >>> arg = sub_parser.add_action('run', sub_run)
+        >>> isinstance(sub_parser, ActionArgumentParser)
+        True
+        >>> parser.parse_args(['group', 'run']).func is sub_run
+        True
+        """
+        orig_class = self._action._parser_class
+        self._action._parser_class = type(self) if nested else ArgumentParser
+        try:
+            parser = self._action.add_parser(name, description=func.__doc__)
+        finally:
+            self._action._parser_class = orig_class
         parser.set_defaults(func=func)
         return parser.add_argument
 
