@@ -28,10 +28,7 @@ except ImportError:
     from subprocess import Popen
     NoSuchProcess = None
 
-try:
-    from shlex import quote
-except ImportError:
-    from pipes import quote  # pylint: disable=deprecated-module
+from shlex import quote  # noqa: E402  pylint:disable=wrong-import-position
 
 
 # Better to warn user than letting converting to string Any!

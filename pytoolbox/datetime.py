@@ -21,7 +21,7 @@ def datetime_now(
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
     tz: Any = pytz.utc
-) -> str:
+) -> datetime.datetime:
     ...
 
 
@@ -32,7 +32,7 @@ def datetime_now(
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
     tz: Any = pytz.utc
-) -> datetime.datetime:
+) -> str:
     ...
 
 
@@ -298,7 +298,7 @@ def str_to_time(value, *, defaults_to_zero=False, as_delta=False):
     >>> str_to_time('08:23:57')
     datetime.time(8, 23, 57)
     >>> str_to_time('00:03:02.12')
-    datetime.time(0, 3, 2, 120)
+    datetime.time(0, 3, 2, 120000)
     >>> result = str_to_time('08:23:57', as_delta=True)
     >>> type(result)
     <class 'datetime.timedelta'>
@@ -316,7 +316,7 @@ def str_to_time(value, *, defaults_to_zero=False, as_delta=False):
         if as_delta:
             return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds_float)
         seconds = int(seconds_float)
-        return datetime.time(hours, minutes, seconds, int(1000 * (seconds_float - seconds)))
+        return datetime.time(hours, minutes, seconds, int(1000000 * (seconds_float - seconds)))
     except (TypeError, ValueError):
         if defaults_to_zero and not value:
             return datetime.timedelta(seconds=0) if as_delta else datetime.time(second=0)
@@ -418,7 +418,7 @@ def datetime_to_epoch(
         -3600
     """
     if not utc:
-        int(mktime(date_time.timetuple()) * factor)
+        return int(mktime(date_time.timetuple()) * factor)
     if hasattr(date_time, 'utctimetuple'):
         return int(timegm(date_time.utctimetuple()) * factor)
     return int(timegm(date_time.timetuple()) * factor)

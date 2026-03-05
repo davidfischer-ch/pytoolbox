@@ -154,7 +154,6 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             dst_file = dst_path.open('wb')  # pylint: disable=consider-using-with
 
             # Block-based copy loop
-            block_pos: int = 0
             prev_ratio: float = 0
             prev_time: float = 0
             while True:
@@ -184,7 +183,6 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
                         ratio=ratio)
 
                 block_length = len(block)
-                block_pos += block_length
                 dst_size += block_length
 
                 if not block:
@@ -525,8 +523,7 @@ def remove(path: Path | str, *, recursive: bool = False):
             if recursive and (
                 isinstance(ex, OSError)
                 and ex.errno == errno.EISDIR  # pylint:disable=no-member
-                or PermissionError is not None
-                and isinstance(ex, PermissionError)
+                or isinstance(ex, PermissionError)
             ):
                 shutil.rmtree(path)
                 return True

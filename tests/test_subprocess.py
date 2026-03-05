@@ -8,6 +8,12 @@ from pytoolbox import logging, regex, subprocess
 from pytoolbox.validation import validate_list
 
 
+def test_quote_is_from_shlex() -> None:
+    """The quote function should come from shlex, not the removed pipes module."""
+    import shlex
+    assert subprocess.quote is shlex.quote
+
+
 def test_to_args_list() -> None:
     # pylint:disable=use-implicit-booleaness-not-comparison
     assert subprocess.to_args_list(None) == []  # Hidden feature one should not know:)
