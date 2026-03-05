@@ -123,3 +123,17 @@ def test_scoped_ssh_key_with_options() -> None:
             (['git', 'push', 'somewhere'], ),
             (['git', 'config', '--unset', 'core.sshCommand'], )
         ]
+
+
+def test_scoped_ssh_key_options_with_spaces() -> None:
+    """Options with spaces or shell metacharacters must be quoted."""
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
+        with git.scoped_ssh_key(
+            Path('.'),
+            'key-data',
+            options=['ProxyCommand ssh -W %h:%p jump-host']
+        ):
+            config_call_args = cmd.call_args_list[0][0][0]
+            ssh_cmd = config_call_args[3]
+            assert "-o 'ProxyCommand ssh -W %h:%p jump-host'" in ssh_cmd

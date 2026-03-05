@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Literal, TypeAlias
 import contextlib
 import os
+import shlex
 import stat
 import tempfile
 
@@ -112,14 +113,14 @@ def scoped_ssh_key(
         key_file.flush()
         try:
             log.debug(f'Set identity "...{content[100:120]}..."')
-            options_str = ' '.join(f'-o {o}' for o in options) if options else ''
+            options_str = ' '.join(f'-o {shlex.quote(o)}' for o in options) if options else ''
             ssh_cmd = f'ssh -F /dev/null -i {key_file.name} -o IdentitiesOnly=yes {options_str}'
             subprocess.cmd(
                 ['git', 'config', 'core.sshCommand', ssh_cmd],
                 cwd=directory,
                 env=os.environ)
         except exceptions.CalledProcessError:  # pylint:disable=try-except-raise
-            raise
+            raise  # Required to keep the else clause (yield only on success)
         else:
             yield key_file.name
         finally:

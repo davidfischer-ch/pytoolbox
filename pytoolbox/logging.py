@@ -60,7 +60,7 @@ Color: TypeAlias = Literal[
 
 
 class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
-    def __call__(self, messsage: str) -> None:
+    def __call__(self, message: str) -> None:
         ...
 
 
