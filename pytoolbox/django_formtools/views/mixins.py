@@ -28,7 +28,7 @@ class DataTableViewCompositionMixin(object):
 
     def get(self, request, *args, **kwargs):
         """Retrieve the table view and delegate AJAX to the table view."""
-        if self.request.is_ajax():
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             view = self.get_table_view()
             if view:
                 return view.get_ajax(request, *args, **kwargs)

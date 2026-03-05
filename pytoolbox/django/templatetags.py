@@ -92,7 +92,7 @@ def getattribute(value, attribute):
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
-    elif hasattr(value, 'has_key') and attribute in value:
+    elif isinstance(value, dict) and attribute in value:
         return value[attribute]
     elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
@@ -105,7 +105,8 @@ def inline(filepath, msg=True, autoescape=True):
     if filepath in (None, string_if_invalid):
         return string_if_invalid
     if _include_is_allowed(filepath):
-        return open(filepath, encoding='utf-8').read()
+        with open(filepath, encoding='utf-8') as f:
+            return f.read()
     if settings.DEBUG and msg:
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
         return _("[Didn't have permission to include file {0}]").format(filepath_escaped)

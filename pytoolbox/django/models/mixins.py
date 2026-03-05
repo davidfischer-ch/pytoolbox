@@ -380,7 +380,7 @@ class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
     @cached_property
     def validate_on_save_kwargs(self):
         return {
-            'exclude': [f.name for f in self._meta.concrete_fields if f.rel],
+            'exclude': [f.name for f in self._meta.concrete_fields if f.is_relation],
             'validate_unique': False
         }
 
