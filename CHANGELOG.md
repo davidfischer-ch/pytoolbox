@@ -2,6 +2,16 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.8.7 (2026-03-05)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.6...14.8.7
+
+### Fix and enhancements
+
+* Module `argparse`: Fix positional arguments in `ActionArgumentParser.add_action` sub-parsers
+* Module `argparse`: Add `nested` parameter to `add_action` for sub-parsers with sub-commands
+* Merge MRs from dependabot
+
 ## v14.8.6 (2025-09-05)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.5...14.8.6
