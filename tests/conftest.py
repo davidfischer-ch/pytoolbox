@@ -91,7 +91,7 @@ class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
     statistics_class = StaticEncodeStatistics
 
 
-def pytest_configure(config):
+def pytest_configure(config):  # pylint:disable=unused-argument
     """Configure Django settings before test collection."""
     import django
     from django.conf import settings

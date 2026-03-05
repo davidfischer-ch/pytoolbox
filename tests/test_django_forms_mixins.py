@@ -47,8 +47,7 @@ def test_request_mixin() -> None:
 
 def test_staff_only_fields_mixin_removes_for_non_staff() -> None:
     class Base:
-        def __init__(self, *args, **kwargs):
-            kwargs.pop('request', None)
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict([
                 ('name', fields.CharField()),
                 ('secret', fields.CharField()),
@@ -68,8 +67,7 @@ def test_staff_only_fields_mixin_removes_for_non_staff() -> None:
 
 def test_staff_only_fields_mixin_keeps_for_staff() -> None:
     class Base:
-        def __init__(self, *args, **kwargs):
-            kwargs.pop('request', None)
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict([
                 ('name', fields.CharField()),
                 ('secret', fields.CharField())
@@ -87,12 +85,11 @@ def test_staff_only_fields_mixin_keeps_for_staff() -> None:
 
 def test_created_by_mixin_sets_user() -> None:
     class Base:
-        def __init__(self, *args, **kwargs):
-            kwargs.pop('request', None)
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.instance = MagicMock()
             self.instance.created_by_id = None
 
-        def save(self, commit=True):
+        def save(self, commit=True):  # pylint:disable=unused-argument
             return self.instance
 
     class FakeForm(mixins.CreatedByMixin, Base):
@@ -106,12 +103,11 @@ def test_created_by_mixin_sets_user() -> None:
 
 def test_created_by_mixin_skips_existing() -> None:
     class Base:
-        def __init__(self, *args, **kwargs):
-            kwargs.pop('request', None)
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.instance = MagicMock()
             self.instance.created_by_id = 42
 
-        def save(self, commit=True):
+        def save(self, commit=True):  # pylint:disable=unused-argument
             return self.instance
 
     class FakeForm(mixins.CreatedByMixin, Base):
@@ -160,7 +156,7 @@ def test_model_based_form_cleanup_mixin_fallback() -> None:
 
 def test_help_text_to_placeholder_mixin() -> None:
     class Base:
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict([
                 ('name', fields.CharField(help_text='Enter name'))
             ])
@@ -175,7 +171,7 @@ def test_help_text_to_placeholder_mixin() -> None:
 
 def test_convert_email_to_text_mixin() -> None:
     class Base:
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict([
                 ('email', fields.EmailField()),
                 ('name', fields.CharField())

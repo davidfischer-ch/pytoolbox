@@ -144,7 +144,7 @@ def test_serialize_step_instance_mixin_get_form() -> None:
     sentinel_form = MagicMock()
 
     class Base:
-        def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument
+        def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
             return sentinel_form
 
     class FakeView(mixins.SerializeStepInstanceMixin, Base):
@@ -167,7 +167,7 @@ def test_serialize_step_instance_mixin_get_form_no_serialized() -> None:
     sentinel_form = MagicMock()
 
     class Base:
-        def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument
+        def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
             return sentinel_form
 
     class FakeView(mixins.SerializeStepInstanceMixin, Base):

@@ -29,12 +29,12 @@ def test_public_meta_mixin() -> None:
         class Meta:
             app_label = 'test'
 
-    assert TestModel.meta() is TestModel._meta
+    assert TestModel.meta() is TestModel._meta  # pylint:disable=no-member
 
 
 def test_validate_on_save_mixin_calls_full_clean() -> None:
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -47,7 +47,7 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
 
 def test_validate_on_save_mixin_skips_when_disabled() -> None:
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -61,7 +61,7 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
 
 def test_validate_on_save_mixin_skips_via_kwarg() -> None:
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -76,7 +76,7 @@ def test_always_update_fields_mixin() -> None:
     saved_kwargs = {}
 
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
@@ -92,7 +92,7 @@ def test_always_update_fields_mixin_no_update_fields() -> None:
     saved_kwargs = {}
 
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
@@ -107,7 +107,7 @@ def test_auto_force_insert_mixin() -> None:
     saved_kwargs = {}
 
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoForceInsertMixin, Base):
@@ -127,7 +127,7 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
     saved_kwargs = {}
 
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoForceInsertMixin, Base):
@@ -144,7 +144,7 @@ def test_call_fields_pre_save_mixin() -> None:
     field3 = MagicMock(primary_key=False)
 
     class Base:
-        def save(self, *args, **kwargs):
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
     class TestObj(mixins.CallFieldsPreSaveMixin, Base):
