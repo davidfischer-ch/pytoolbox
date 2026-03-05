@@ -35,6 +35,39 @@ def test_full_paths() -> None:
     assert namespace.single == Path('c').resolve()                     # pylint:disable=no-member
 
 
+@no_type_check
+def test_full_paths_none_skipped() -> None:
+    """With nargs='?' argparse passes None when the argument is omitted."""
+    namespace = types.DummyObject()
+    action = argparse.FullPaths(None, 'path')
+    action(None, namespace, None)
+    assert namespace.path is None  # pylint:disable=no-member
+
+
+def test_full_paths_nargs_optional_flag() -> None:
+    """FullPaths with nargs='?' on an optional flag."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', action=argparse.FullPaths, nargs='?')
+    # Omitted optional argument
+    args = parser.parse_args([])
+    assert args.path is None
+    # Provided optional argument
+    args = parser.parse_args(['--path', '/usr/lib'])
+    assert args.path == Path('/usr/lib').resolve()
+
+
+def test_full_paths_nargs_optional_positional() -> None:
+    """FullPaths with nargs='?' on a positional argument."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', action=argparse.FullPaths, nargs='?')
+    # Omitted positional argument
+    args = parser.parse_args([])
+    assert args.path is None
+    # Provided positional argument
+    args = parser.parse_args(['/usr/lib'])
+    assert args.path == Path('/usr/lib').resolve()
+
+
 @mark.parametrize(('sep', 'arguments', 'expected'), [
 
     (None, ['some'], None),

@@ -69,6 +69,9 @@ class FullPaths(argparse.Action):
         values,
         option_string: str | None = None
     ) -> None:
+        if values is None:
+            setattr(namespace, self.dest, None)
+            return
         def fullpath(path: Path | str) -> Path:
             return Path(path).expanduser().resolve()
         value = itertools.extract_single([fullpath(v) for v in itertools.chain(values)])
