@@ -1,7 +1,7 @@
 build/
 dist/
 htmlcov/
-pytoolbox3/
+venv/
 coverage.xml
 small.mp4
 .coverage
