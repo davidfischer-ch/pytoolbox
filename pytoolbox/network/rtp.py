@@ -1,3 +1,6 @@
+"""
+Real-time Transport Protocol (RTP) packet parsing and creation.
+"""
 from __future__ import annotations
 
 import struct

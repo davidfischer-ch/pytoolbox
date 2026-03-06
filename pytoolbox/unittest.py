@@ -1,3 +1,6 @@
+"""
+Test mixins and assertion helpers for :mod:`unittest`-based test suites.
+"""
 # pylint:disable=no-member
 from __future__ import annotations
 
@@ -34,6 +37,7 @@ def skip_if_missing(binary: str) -> Callable:
 
 
 def with_tags(tags=None, required=None):
+    """Decorate a test method with filterable tags."""
     def _with_tags(f):
         f.tags = set([tags] if isinstance(tags, str) else tags or [])
         f.required_tags = set([required] if isinstance(required, str) else required or [])
@@ -42,26 +46,33 @@ def with_tags(tags=None, required=None):
 
 
 class InMixin(object):
+    """Mixin providing ``assertIn`` / ``assertNotIn`` with sorted output."""
 
     @staticmethod
     def assert_in_hook(obj):
+        """Return *obj* sorted if it is not a string or bytes sequence."""
         return obj if isinstance(obj, (str, bytes)) else sorted(obj)
 
     def assertIn(self, obj_a, obj_b, msg=None):  # pylint:disable=invalid-name
+        """Assert that *obj_a* is contained in *obj_b*."""
         assert obj_a in obj_b, f"{obj_a} not in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
     def assertNotIn(self, obj_a, obj_b, msg=None):  # pylint:disable=invalid-name
+        """Assert that *obj_a* is not contained in *obj_b*."""
         assert obj_a not in obj_b, f"{obj_a} in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
 
 class InspectMixin(object):
+    """Mixin providing introspection of test methods."""
 
     @property
     def current_test(self):
+        """Return the bound method for the currently running test."""
         return getattr(self, self.id().split('.')[-1])
 
     @classmethod
     def get_test_methods(cls):
+        """Return an iterator of ``(name, method)`` for all test methods."""
         return (
             (n, m) for n, m in inspect.getmembers(cls)
             if n.startswith('test_') and hasattr(m, '__call__')
@@ -69,9 +80,11 @@ class InspectMixin(object):
 
 
 class AwareTearDownMixin(object):
+    """Mixin calling :meth:`awareTearDown` with the test result after each run."""
 
     def awareTearDown(self, result):  # pylint:disable=invalid-name
-        pass  # de bleu, c'est fantastique !
+        """Handle post-test cleanup with access to the test *result*."""
+        pass  # de bleu, c'est fantastique !  # pylint:disable=unnecessary-pass
 
     def run(self, result=None):
         result = super().run(result)
@@ -93,6 +106,7 @@ class FilterByTagsMixin(InspectMixin):
 
     @staticmethod
     def should_run(tags, required_tags, extra_tags, only_tags, skip_tags):
+        """Return ``True`` if a test with the given tags should be executed."""
         all_tags = tags | required_tags
         if all_tags & skip_tags:
             return False
@@ -110,6 +124,7 @@ class FilterByTagsMixin(InspectMixin):
 
     @classmethod
     def fast_class_skip(cls):
+        """Skip the entire test class if no test method should run."""
         methods = cls.get_test_methods()
         should_run = functools.partial(
             cls.should_run,
@@ -122,18 +137,22 @@ class FilterByTagsMixin(InspectMixin):
 
     @classmethod
     def get_extra_tags(cls):
+        """Return extra tags from the environment variable."""
         return set(t for t in os.environ.get(cls.extra_tags_variable, '').split(',') if t)
 
     @classmethod
     def get_only_tags(cls):
+        """Return only-run tags from the environment variable."""
         return set(t for t in os.environ.get(cls.only_tags_variable, '').split(',') if t)
 
     @classmethod
     def get_skip_tags(cls):
+        """Return skip tags from the environment variable."""
         return set(t for t in os.environ.get(cls.skip_tags_variable, '').split(',') if t)
 
     @classmethod
     def get_tags(cls, current_test):
+        """Return the combined tags for *current_test* including class-level tags."""
         my_id = (cls.__name__, current_test.__name__)
         return set(itertools.chain(
             cls.tags,
@@ -143,6 +162,7 @@ class FilterByTagsMixin(InspectMixin):
 
     @classmethod
     def get_required_tags(cls, current_test):
+        """Return the combined required tags for *current_test*."""
         return set(itertools.chain(cls.required_tags, getattr(current_test, 'required_tags', ())))
 
     def setUp(self):  # pylint:disable=invalid-name
@@ -158,6 +178,7 @@ class FilterByTagsMixin(InspectMixin):
 
 
 class FFmpegMixin(object):
+    """Mixin providing FFmpeg/FFprobe assertions for media tests."""
 
     ffmpeg_class = ffmpeg.FFmpeg
 
@@ -182,17 +203,21 @@ class FFmpegMixin(object):
         index,
         **codec_attrs
     ):  # pylint:disable=invalid-name
+        """Assert that the codec attributes of a stream match expected values."""
         codec = getattr(self.ffprobe, f'get_{stream_type}_streams')(path)[index].codec
         for attr, value in codec_attrs.items():
             self.assertEqual(getattr(codec, attr), value, msg=f'Codec attribute {attr}')
 
     def assertAudioCodecEqual(self, path, index, **codec_attrs):  # pylint:disable=invalid-name
+        """Assert that the audio codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'audio', index, **codec_attrs)
 
     def assertSubtitleCodecEqual(self, path, index, **codec_attrs):  # pylint:disable=invalid-name
+        """Assert that the subtitle codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'subtitle', index, **codec_attrs)
 
     def assertVideoCodecEqual(self, path, index, **codec_attrs):  # pylint:disable=invalid-name
+        """Assert that the video codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'video', index, **codec_attrs)
 
     # Streams Asserts
@@ -206,6 +231,7 @@ class FFmpegMixin(object):
         *,
         same_codec=True
     ):
+        """Assert that two audio streams have equal codec and bit rate."""
         first = self.ffprobe.get_audio_streams(first_path)[first_index]
         second = self.ffprobe.get_audio_streams(second_path)[second_index]
         if same_codec:
@@ -222,6 +248,7 @@ class FFmpegMixin(object):
         same_size=True,
         same_start_time=True
     ):
+        """Assert that two media files have equal format metadata."""
         formats = [self.ffprobe.get_media_info(p)['format'] for p in (first_path, second_path)]
         bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
@@ -250,6 +277,7 @@ class FFmpegMixin(object):
         *,
         same_codec=True
     ):
+        """Assert that two video streams have equal codec, frame rate, and dimensions."""
         first = self.ffprobe.get_video_streams(first_path)[first_index]
         second = self.ffprobe.get_video_streams(second_path)[second_index]
         if same_codec:
@@ -265,12 +293,15 @@ class FFmpegMixin(object):
     # Encoding Asserts
 
     def assertEncodeFailure(self, generator):  # pylint:disable=invalid-name
+        """Assert that the encode *generator* ends in a failure state."""
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
 
     def assertEncodeSuccess(self, generator):  # pylint:disable=invalid-name
+        """Assert that the encode *generator* ends in a success state."""
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
 
     def assertEncodeState(self, generator, state):  # pylint:disable=invalid-name
+        """Assert that the encode *generator* ends in the expected *state*."""
         results = list(generator)
         result = io.StringIO()
         statistics = results[-1]
@@ -282,15 +313,19 @@ class FFmpegMixin(object):
 
 
 class MissingMixin(object):
+    """Mixin providing assertions for the :data:`~pytoolbox.types.Missing` sentinel."""
 
     def assertIsMissing(self, value, *args, **kwargs):  # pylint:disable=invalid-name
+        """Assert that *value* is the :data:`~pytoolbox.types.Missing` sentinel."""
         return self.assertIs(value, Missing, *args, **kwargs)
 
     def assertIsNotMissing(self, value, *args, **kwargs):  # pylint:disable=invalid-name
+        """Assert that *value* is not the :data:`~pytoolbox.types.Missing` sentinel."""
         return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
 class SnakeCaseMixin(object):  # pylint:disable=too-few-public-methods
+    """Mixin allowing snake_case access to camelCase assertion methods."""
 
     def __getattr__(self, name):
         if name.lower() == name:
@@ -300,6 +335,7 @@ class SnakeCaseMixin(object):  # pylint:disable=too-few-public-methods
 
 
 class TimingMixin(object):
+    """Mixin that logs each test's execution time."""
 
     timing_logger = None
 
@@ -314,9 +350,10 @@ class TimingMixin(object):
 
 
 class Asserts(InMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):
+    """Standalone assertion helper combining all assertion mixins."""
 
     def runTest(self, *args, **kwargs):  # pylint:disable=invalid-name
-        pass
+        """No-op required by :class:`unittest.TestCase` for standalone use."""
 
 
 asserts = Asserts()

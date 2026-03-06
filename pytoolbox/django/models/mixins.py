@@ -47,6 +47,7 @@ class AlwaysUpdateFieldsMixin(object):
     ``self.save()``. Makes the usage of ``self.save(update_fields=...)`` cleaner.
     """
     def save(self, *args, **kwargs):
+        """Add ``always_update_fields`` to ``update_fields`` before saving."""
         update_fields = kwargs.get('update_fields')
         if kwargs.get('force_update') or update_fields:
             update_fields = set(update_fields or [])
@@ -56,8 +57,10 @@ class AlwaysUpdateFieldsMixin(object):
 
 
 class AutoForceInsertMixin(object):
+    """Automatically set ``force_insert`` based on the instance's adding state."""
 
     def save(self, *args, **kwargs):
+        """Set ``force_insert`` from ``_state.adding`` when not explicitly given."""
         if kwargs.get('force_insert') is None:
             kwargs['force_insert'] = self._state.adding
         super().save(*args, **kwargs)
@@ -79,6 +82,7 @@ class AutoRemovePKFromUpdateFieldsMixin(object):
         self.previous_pk = self.pk
 
     def save(self, **kwargs):
+        """Remove unchanged primary key from ``update_fields`` to avoid Django errors."""
         update_fields = kwargs.get('update_fields')
         if update_fields and self._meta.pk.attname in update_fields:
             if self.pk == self.previous_pk:
@@ -118,12 +122,14 @@ class AutoUpdateFieldsMixin(object):
         self._fields_names = frozenset(f.attname for f in self._meta.fields)
 
     def __setattr__(self, name, value):
+        """Track field assignments for automatic ``update_fields`` detection."""
         # Check the instance is both initialized and already stored in DB
         if name in getattr(self, '_fields_names', set()) and not self._state.adding:
             self._setted_fields.add(name)
         return super().__setattr__(name, value)
 
     def save(self, *args, **kwargs):
+        """Populate ``update_fields`` from tracked field assignments."""
         if not self._state.adding and not kwargs.get('force_insert'):
             if kwargs.get('force_update') is None:
                 kwargs['force_update'] = self.default_force_update
@@ -157,6 +163,7 @@ class BetterUniquenessErrorsMixin(object):
     unique_together_hide_fields = ()
 
     def save(self, *args, **kwargs):
+        """Convert uniqueness :class:`~django.db.utils.IntegrityError` to validation errors."""
         try:
             super().save(*args, **kwargs)
         except IntegrityError as ex:
@@ -206,6 +213,7 @@ class CallFieldsPreSaveMixin(object):
     For more information see: https://code.djangoproject.com/ticket/25363
     """
     def save(self, *args, **kwargs):
+        """Call each non-PK field's :meth:`pre_save` before saving."""
         non_pk_fields = (f for f in self._meta.local_concrete_fields if not f.primary_key)
         for field in non_pk_fields:
             field.pre_save(self, self._state.adding)
@@ -218,23 +226,29 @@ class PublicMetaMixin(object):
     """
     @classmethod
     def meta(cls):
+        """Return the model's ``_meta`` options for use in templates."""
         return cls._meta
 
 
 class RelatedModelMixin(object):
+    """Provide shortcuts to access related model classes and managers."""
 
     @classmethod
     def get_related_manager(cls, field):
+        """Return the default manager for the model related through *field*."""
         return utils.get_related_manager(cls, field)
 
     @classmethod
     def get_related_model(cls, field):
+        """Return the model class related through *field*."""
         return utils.get_related_model(cls, field)
 
 
 class ReloadMixin(object):
+    """Provide a :meth:`reload` method to re-fetch the instance from the database."""
 
     def reload(self):
+        """Return a fresh copy of this instance from the database."""
         return self._meta.model._default_manager.get(pk=self.pk)
 
 
@@ -244,6 +258,7 @@ class SaveInstanceFilesMixin(object):
     fields this ensure that the upload_path method will get a valid instance id / private key.
     """
     def save(self, *args, **kwargs):
+        """Save the instance before file fields so ``upload_to`` gets a valid PK."""
         saved_fields = {}
         if self.pk is None:
             for field in self._meta.fields:
@@ -258,10 +273,12 @@ class SaveInstanceFilesMixin(object):
 
 
 class UpdatePreconditionsMixin(object):
+    """Guard row updates with filter/exclude preconditions for optimistic concurrency."""
 
     precondition_error_class = exceptions.DatabaseUpdatePreconditionsError
 
     def apply_preconditions(self, base_qs, using, pk_val, values, update_fields, force_update):
+        """Apply stored precondition filters to the update query set."""
         if hasattr(self, '_preconditions'):
             pre_excludes, pre_filters = self._preconditions
             del self._preconditions
@@ -272,10 +289,12 @@ class UpdatePreconditionsMixin(object):
         return base_qs, using, pk_val, values, update_fields, force_update
 
     def pop_preconditions(self, *args, **kwargs):
+        """Extract ``pre_excludes`` and ``pre_filters`` from *kwargs*."""
         self._preconditions = kwargs.pop('pre_excludes', {}), kwargs.pop('pre_filters', {})
         return args, kwargs, any(self._preconditions)
 
     def save(self, *args, **kwargs):
+        """Save with precondition guards, raising on failed preconditions."""
         args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
         try:
             super().save(*args, **kwargs)
@@ -294,12 +313,14 @@ class UpdatePreconditionsMixin(object):
 
 
 class StateTransitionEventsMixin(object):
+    """Send :data:`~pytoolbox.django.signals.post_state_transition` after state changes."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.previous_state = self.state
 
     def on_post_state_transition(self, args, kwargs):
+        """Fire the post-state-transition signal with the previous state."""
         signals.post_state_transition.send(
             instance=self,
             previous_state=self.previous_state,
@@ -307,6 +328,7 @@ class StateTransitionEventsMixin(object):
             kwargs=kwargs)
 
     def save(self, *args, **kwargs):
+        """Save and fire post-state-transition signal if state was updated."""
         super().save(*args, **kwargs)
         if 'state' in kwargs.get('update_fields', ['state']):
             self.on_post_state_transition(args, kwargs)
@@ -314,6 +336,7 @@ class StateTransitionEventsMixin(object):
 
 
 class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
+    """Add state-based preconditions to row updates for safe transitions."""
 
     check_state = True
     invalid_state_error_class = exceptions.InvalidStateError
@@ -334,6 +357,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         raise self.transition_not_allowed_error_class(instance=self, state=state)
 
     def check_state_in(self, states, fail=False):
+        """Return ``True`` if the instance's state is in *states*."""
         states = sorted(py_itertools.chain(states))
         if self.state in states:
             return True
@@ -362,11 +386,14 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
 
 
 class ValidateOnSaveMixin(object):
+    """Run :meth:`full_clean` automatically before every save."""
 
     validate_on_save = True
     validate_on_save_kwargs = {}
+    """Keyword arguments forwarded to :meth:`full_clean`."""
 
     def save(self, *args, **kwargs):
+        """Call :meth:`full_clean` before saving if ``validate_on_save`` is set."""
         if kwargs.pop('validate', self.validate_on_save):
             self.full_clean(**self.validate_on_save_kwargs)
         super().save(*args, **kwargs)
@@ -379,6 +406,7 @@ class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
 
     @cached_property
     def validate_on_save_kwargs(self):
+        """Return kwargs that skip uniqueness and relation field validation."""
         return {
             'exclude': [f.name for f in self._meta.concrete_fields if f.is_relation],
             'validate_unique': False

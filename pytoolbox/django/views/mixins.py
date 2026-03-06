@@ -23,16 +23,20 @@ class AddRequestToFormKwargsMixin(object):
     """Add the view request to the keywords arguments for instantiating the form."""
 
     def get_form_kwargs(self, *args, **kwargs):
+        """Add the request to form kwargs if the form is a :class:`RequestMixin`."""
         kwargs = super().get_form_kwargs(*args, **kwargs)
         if self.should_add_request_to_form_kwargs():
             kwargs.update({'request': self.request})
         return kwargs
 
     def should_add_request_to_form_kwargs(self):
+        """Check whether the form class is a
+        :class:`~pytoolbox.django.forms.mixins.RequestMixin`."""
         return issubclass(self.get_form_class(), forms_mixins.RequestMixin)
 
 
 class BaseModelMultipleMixin(object):
+    """Derive context object name from the base model of the queryset."""
 
     def get_context_object_name(self, instance_list):
         """Get the name of the item to be used in the context."""
@@ -43,6 +47,7 @@ class BaseModelMultipleMixin(object):
 
 
 class BaseModelSingleMixin(object):
+    """Derive context object name from the base model of the instance."""
 
     def get_context_object_name(self, instance):
         """Get the name to use for the instance."""
@@ -58,16 +63,19 @@ class InitialMixin(object):
     initials = {}
 
     def get_initial(self):
+        """Populate initial form values from :attr:`initials` and query string."""
         initial = super().get_initial()
         for name, default in self.initials.items():
             self.set_inital(initial, name, default)
         return initial
 
     def set_inital(self, initial, name, default):
+        """Set an initial value from the query string or fall back to *default*."""
         initial[name] = value = self.request.GET.get(name, default)
         return value
 
     def set_initial_from_func(self, initial, name, default, func, msg_value, mgs_missing):
+        """Set an initial value by applying *func* to the query string parameter."""
         value = self.request.GET.get(name, default)
         if value is not default:
             try:
@@ -82,6 +90,7 @@ class InitialMixin(object):
         return value
 
     def set_initial_from_model(self, initial, name, default, model, msg_value, mgs_missing):
+        """Set an initial value by looking up a model instance by primary key."""
         value = self.request.GET.get(name, default)
         if value is not default:
             try:
@@ -100,6 +109,7 @@ class LoggedCookieMixin(object):
     """Add a "logged" cookie set to "True" if user is authenticated else to "False"."""
 
     def post(self, *args, **kwargs):
+        """Set a ``logged`` cookie reflecting the user's authentication state."""
         response = super().post(*args, **kwargs)
         logged = self.request.user.is_authenticated
         response.set_cookie('logged', logged if isinstance(logged, bool) else logged())
@@ -112,16 +122,19 @@ class RedirectMixin(object):
     redirect_view = None
 
     def dispatch(self, request, *args, **kwargs):
+        """Redirect to :attr:`redirect_view` if set, otherwise dispatch normally."""
         if self.redirect_view:
             return redirect(self.redirect_view)
         return super().dispatch(request, *args, **kwargs)
 
 
 class TemplateResponseMixin(generic.TemplateResponseMixin):
+    """Resolve template names from a directory and action, with a default fallback."""
 
     default_template_directory = 'default'
 
     def get_template_names(self):
+        """Return template candidates based on :attr:`template_directory` and action."""
         return [self.template_name] if self.template_name else [
             os.path.join(self.template_directory, self.action + '.html'),
             os.path.join(self.default_template_directory, self.action + '.html')
@@ -129,8 +142,11 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
 
 
 class ValidationErrorsMixin(object):
+    """Catch :class:`~django.core.exceptions.ValidationError` during save
+    and re-display the form."""
 
     def form_valid(self, form):
+        """Catch :class:`~django.core.exceptions.ValidationError` and re-display the form."""
         try:
             return super().form_valid(form)
         except ValidationError as ex:

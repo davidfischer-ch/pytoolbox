@@ -1,3 +1,6 @@
+"""
+Decorators for caching, deprecation, access control, and more.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -35,6 +38,7 @@ class cached_property(object):  # pylint:disable=invalid-name,too-few-public-met
         self.name = name or func.__name__
 
     def __get__(self, instance, type=None):  # pylint:disable=redefined-builtin
+        """Compute, cache on the instance, and return the property value."""
         if instance is None:
             return self
         res = instance.__dict__[self.name] = self.func(instance)
@@ -42,6 +46,7 @@ class cached_property(object):  # pylint:disable=invalid-name,too-few-public-met
 
 
 def deprecated(guidelines: str = '') -> Callable:
+    """Return a decorator that marks a function as deprecated."""
     def _deprecated(func: Callable) -> Callable:
         """
         Decorator that can be used to mark functions as deprecated.
@@ -88,6 +93,7 @@ class hybridmethod(object):  # pylint:disable=invalid-name,too-few-public-method
         self.func = func
 
     def __get__(self, obj, cls: type):
+        """Return a bound callable dispatching to the instance or the class."""
         context = obj if obj is not None else cls
 
         @functools.wraps(self.func)
@@ -154,6 +160,7 @@ def root_required(error_message: str = 'This script must be run as root.') -> Ca
 
 
 def run_once(func: Callable) -> Callable:
+    """Decorate a function so it executes only once, returning ``None`` thereafter."""
     @functools.wraps(func)
     def wrapper(*args, **kwargs) -> Any | None:
         if wrapper.executed:  # type: ignore[attr-defined]

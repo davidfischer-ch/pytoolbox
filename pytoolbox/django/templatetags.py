@@ -102,6 +102,7 @@ def getattribute(value, attribute):
 @register.filter(needs_autoescape=True, safe=True)
 @stringfilter
 def inline(filepath, msg=True, autoescape=True):
+    """Inline the contents of a static file into the template output."""
     if filepath in (None, string_if_invalid):
         return string_if_invalid
     if _include_is_allowed(filepath):
@@ -275,9 +276,11 @@ def verbose_name_plural(instance):
 
 
 class StaticPathNode(StaticNode):
+    """Resolve a static file path using ``STATIC_ROOT`` instead of ``STATIC_URL``."""
 
     @classmethod
     def handle_simple(cls, path):
+        """Return the absolute filesystem path for a static file."""
         return os.path.join(PrefixNode.handle_simple('STATIC_ROOT'), path)
 
 

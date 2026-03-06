@@ -1,3 +1,6 @@
+"""
+Selenium live test client for interacting with a running server.
+"""
 from __future__ import annotations
 
 from urllib.parse import urljoin
@@ -11,6 +14,7 @@ __all__ = ['LiveClient']
 
 
 class LiveClient(common.FindMixin):
+    """High-level Selenium client for live server testing."""
 
     web_driver_class = webdrivers.Firefox
 
@@ -23,10 +27,12 @@ class LiveClient(common.FindMixin):
 
     @property
     def css_prefix(self):
+        """Return the CSS selector prefix prepended to all queries."""
         return self._css_prefix
 
     @css_prefix.setter
     def css_prefix(self, value):
+        """Set the CSS selector prefix, raising if one is already active."""
         assert not value or not self._css_prefix, self._css_prefix
         self._css_prefix = value
 
@@ -37,9 +43,11 @@ class LiveClient(common.FindMixin):
         return self.web_driver.find_css(css_selector, force_list=force_list, fail=fail)
 
     def find_xpath(self, xpath, *, force_list=False, fail=True):
+        """Find elements by XPath expression."""
         return self.web_driver.find_xpath(xpath, force_list=force_list, fail=fail)
 
     def get(self, url, *, data=None):
+        """Navigate to a URL relative to the live server."""
         assert data is None
         url = urljoin(self.live_server_url, url) if '://' not in url else url
         response = type('Response', (object, ), self.web_driver.execute(Command.GET, {'url': url}))
@@ -47,6 +55,7 @@ class LiveClient(common.FindMixin):
         return response
 
     def quit(self):
+        """Quit the underlying web driver."""
         return self.web_driver.quit()
 
     def set_element(self, name, value, *, clear=None):
@@ -61,9 +70,11 @@ class LiveClient(common.FindMixin):
         return element.send_keys(value)
 
     def submit(self):
+        """Click the primary submit button of the current form."""
         return self.find_css('form button.btn-primary[type="submit"]').click()
 
     def wait_for_css(self, css_selector='', *, inverse=False, prefix=True, timeout=5, fail=True):
+        """Wait until a CSS selector matches (or stops matching if *inverse*)."""
         try:
             def wait_func(driver) -> bool:  # pylint:disable=unused-argument
                 return bool(self.find_css(css_selector, prefix=prefix, fail=False)) ^ inverse
@@ -74,6 +85,7 @@ class LiveClient(common.FindMixin):
         return None
 
     def wait_for_id(self, element_id, *, inverse=False, prefix=True, timeout=5, fail=True):
+        """Wait until an element with the given ID is present."""
         return self.wait_for_css(
             f'#{element_id}',
             inverse=inverse,
@@ -82,6 +94,7 @@ class LiveClient(common.FindMixin):
             fail=fail)
 
     def wait_for_name(self, element_name, *, inverse=False, prefix=True, timeout=5, fail=True):
+        """Wait until an element with the given name attribute is present."""
         return self.wait_for_css(
             f'[name="{element_name}"]',
             inverse=inverse,

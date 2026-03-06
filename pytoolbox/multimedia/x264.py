@@ -1,3 +1,6 @@
+"""
+x264 encoder wrapper (not yet fully implemented).
+"""
 from __future__ import annotations
 
 import re
@@ -14,6 +17,7 @@ ENCODING_REGEX = re.compile(
 
 
 class X264(FFmpeg):
+    """Wrap the x264 standalone encoder (not yet implemented)."""
 
     # encoding_regex = ENCODING_REGEX
     executable = 'x264'

@@ -1,3 +1,6 @@
+"""
+High-level EXIF metadata access wrapping GExiv2.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -15,6 +18,7 @@ __all__ = ['Metadata']
 
 
 class Metadata(object):
+    """Read and write EXIF/IPTC/XMP metadata for an image file or buffer."""
 
     camera_class = camera.Camera
     image_class = image.Image
@@ -57,12 +61,14 @@ class Metadata(object):
 
     @property
     def tags(self) -> dict:
+        """Return a dictionary of all EXIF tags as :class:`~.tag.Tag` instances."""
         return {k: self[k] for k in self.exiv2.get_exif_tags()}  # pylint: disable=no-member
 
     def get_date(
         self,
         keys: Iterable[str] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')
     ) -> datetime.datetime | None:
+        """Return the first valid date found among the given EXIF keys."""
         for key in chain(keys):
             date = self[key].data
             if isinstance(date, datetime.datetime):
@@ -81,6 +87,7 @@ class Metadata(object):
             self.save_file(path=path)
 
     def save_file(self, path: Path | None = None) -> None:
+        """Save metadata to the file at *path* or the original path."""
         if not path and not self.path:
             raise exceptions.UndefinedPathError()
         self.exiv2.save_file(path=str(path or self.path))

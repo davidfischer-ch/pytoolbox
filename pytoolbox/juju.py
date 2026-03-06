@@ -1,4 +1,7 @@
 # pylint:disable=too-many-lines
+"""
+Helpers for managing Juju environments, services, units, and charms.
+"""
 from __future__ import annotations
 
 import json
@@ -142,6 +145,7 @@ def load_unit_config(config, log=None):
 
 
 def save_unit_config(path, service, config):
+    """Write a unit's configuration to a YAML file."""
     with open(path, 'w', encoding='utf-8') as f:
         for option, value in config.items():
             if isinstance(value, bool):
@@ -163,6 +167,7 @@ def add_environment(
     default_series,
     environments=None
 ):
+    """Register and bootstrap a new Juju environment."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
@@ -204,6 +209,7 @@ def add_environment(
 
 
 def get_environment(environment, environments=None, get_status=False, status_timeout=None):
+    """Return the configuration dictionary of a named environment."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
@@ -220,6 +226,7 @@ def get_environment(environment, environments=None, get_status=False, status_tim
 
 
 def get_environments(environments=None, get_status=False, status_timeout=None):
+    """Return all environments and the default environment name."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
@@ -238,6 +245,7 @@ def get_environments(environments=None, get_status=False, status_timeout=None):
 
 
 def get_environments_count(environments=None):
+    """Return the number of configured environments."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         return len(yaml.load(f)['environments'])
 
@@ -246,6 +254,7 @@ def get_environments_count(environments=None):
 
 
 def get_unit_path(service, number, *args):
+    """Return the filesystem path of a unit's charm directory."""
     return os.path.join(f'/var/lib/juju/agents/unit-{service}-{number}/charm', *args)
 
 
@@ -256,6 +265,7 @@ __get_ip = None  # pylint:disable=invalid-name
 
 
 def get_ip():
+    """Return the local machine's IP address (cached)."""
     global __get_ip  # pylint:disable=global-statement,invalid-name
     if __get_ip is None:
         host = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -266,6 +276,7 @@ def get_ip():
 
 
 class CharmConfig(object):  # pylint:disable=too-few-public-methods
+    """Container for charm configuration options."""
 
     def __init__(self):
         self.verbose = False
@@ -381,6 +392,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     @property
     def name_slug(self):
+        """Return the unit name with slashes replaced by dashes."""
         return self.name.replace('/', '-')
 
     # TODO add cache decorator
@@ -405,29 +417,34 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
     # Maps calls to charm helpers functions and replace them if called in standalone ---------------
 
     def log(self, message):
+        """Log a message via ``juju-log`` or print to stdout."""
         if self.juju_ok:
             return self.cmd(['juju-log', message], logging=False)  # Avoid infinite loop !
         print(message)
         return None
 
     def open_port(self, port, protocol='TCP'):
+        """Open a port on the unit's firewall."""
         if self.juju_ok:
             return self.cmd(['open-port', f'{port}/{protocol}'])
         return self.debug(f'Open port {port} ({protocol})')
 
     def close_port(self, port, protocol='TCP'):
+        """Close a port on the unit's firewall."""
         if self.juju_ok:
             return self.cmd(['close-port', f'{port}/{protocol}'])
         return self.debug(f'Close port {port} ({protocol})')
 
     # TODO add memoize decorator
     def unit_get(self, attribute):
+        """Return a unit attribute via ``unit-get``."""
         if self.juju_ok:
             return self.cmd(['unit-get', attribute])['stdout'].strip()
         raise NotImplementedError('FIXME juju-less unit_get not yet implemented')
 
     # TODO add memoize decorator
     def relation_get(self, attribute=None, unit=None, relation_id=None):
+        """Return a relation attribute via ``relation-get``."""
         if self.juju_ok:
             command = ['relation-get']
             if relation_id is not None:
@@ -438,6 +455,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     # TODO add memoize decorator
     def relation_ids(self, relation_name=''):
+        """Return the IDs of the named relation."""
         if self.juju_ok:
             result = self.cmd(['relation-ids', '--format', 'json', relation_name], fail=False)
             return json.loads(result['stdout']) if result['returncode'] == 0 else None
@@ -445,6 +463,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     # TODO add memoize decorator
     def relation_list(self, relation_id=None):
+        """Return the list of units in a relation."""
         if self.juju_ok:
             command = ['relation-list', '--format', 'json']
             if relation_id is not None:
@@ -454,6 +473,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         raise NotImplementedError('FIXME juju-less relation_list not yet implemented')
 
     def relation_set(self, **kwargs):
+        """Set key-value pairs on the current relation."""
         if self.juju_ok:
             command = ['relation-set']
             command += [f'{k}={v}' for k, v in kwargs.items()]
@@ -556,6 +576,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
         return subprocess.cmd(command, log=self.debug if logging else None, **kwargs)
 
     def template_to_config(self, template, config, values):
+        """Generate a configuration file from a template."""
         filesystem.from_template(template, config, values)
         self.remark(f'File {config} successfully generated')
 
@@ -588,6 +609,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
 
 class Environment(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods
+    """Manage a Juju environment (bootstrap, deploy, destroy, etc.)."""
 
     def __init__(
         self,
@@ -721,6 +743,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         remove=False,
         timeout=15
     ):
+        """Destroy the environment and optionally remove it from configuration."""
         # TODO simpler algorithm
         with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
             environments_dict = yaml.load(f)
@@ -752,9 +775,11 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
     # Services
 
     def get_service_config(self, service, fail=True):
+        """Return the configuration of a service."""
         return juju_do('get', self.name, options=[service], fail=fail)
 
     def get_service(self, service, default=None, fail=True, timeout=15):
+        """Return the status dictionary of a service."""
         if not (status_dict := self.status(fail=fail, timeout=timeout)):
             return default
         try:
@@ -766,12 +791,15 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return default
 
     def expose_service(self, service, fail=True):
+        """Expose a service to the outside network."""
         return juju_do('expose', self.name, options=[service], fail=fail)
 
     def unexpose_service(self, service, fail=True):
+        """Remove external access to a service."""
         return juju_do('unexpose', self.name, options=[service], fail=fail)
 
     def destroy_service(self, service, fail=True):
+        """Destroy a service and all its units."""
         return juju_do('destroy-service', self.name, options=[service], fail=fail)
 
     # Units
@@ -961,6 +989,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return results
 
     def destroy_unit(self, service, number, terminate, delay_terminate=5, fail=True, timeout=None):
+        """Destroy a unit and optionally terminate its machine."""
         name = f'{service}/{number}'
         unit_dict = self.get_unit(service, number, default=None, fail=fail, timeout=timeout)
         if unit_dict is None:
@@ -973,6 +1002,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('destroy-unit', self.name, options=[name])
 
     def get_unit(self, service, number, default=None, fail=True, timeout=None):
+        """Return the status dictionary of a specific unit."""
         # TODO maybe none if missing or something else
         name = f'{service}/{number}'
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
@@ -1010,6 +1040,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         polling_timeout=15,
         polling_delay=30
     ):
+        """Poll until a unit reaches a started or error state."""
         start_time = time.time()
         while True:
             time_zero = time.time()
@@ -1027,6 +1058,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
             time.sleep(max(0, polling_delay - (time.time() - time_zero)))
 
     def add_units(self, service, num_units=1, to=None):  # pylint:disable=invalid-name
+        """Add units to an existing service."""
         options = ['--num-units', num_units]
         if to is not None:
             options += ['--to', to]
@@ -1045,6 +1077,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         release=None,
         repository=None
     ):  # pylint:disable=invalid-name,too-many-arguments
+        """Deploy a charm as a new service."""
         service = service or charm
         if not charm:
             raise ValueError('Charm is required.')
@@ -1065,6 +1098,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('deploy', self.name, options=options)
 
     def get_units(self, service, default=None, fail=True, timeout=None):
+        """Return a dict mapping unit numbers to their status."""
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is None:
             return default
@@ -1072,6 +1106,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return {int(name.split('/')[1]): info for name, info in units_dict.items()}
 
     def get_units_count(self, service, default=None, fail=True, timeout=None):
+        """Return the number of units of a service."""
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is None:
             return default
@@ -1081,6 +1116,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
     # Machines
 
     def cleanup_machines(self, fail=True, timeout=None):
+        """Destroy machines that are not hosting any unit."""
         environment_dict = self.status(fail=fail, timeout=timeout) or {}
         machines = environment_dict.get('machines', {}).keys()
         busy = ['0']  # the machine running the juju daemon !
@@ -1090,6 +1126,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('destroy-machine', self.name, options=idle) if idle else None
 
     def destroy_machine(self, machine):
+        """Destroy a machine by number."""
         return juju_do('destroy-machine', self.name, options=[machine])
 
     # Relations
@@ -1129,6 +1166,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
 
 
 class DeploymentScenario(object):
+    """Base class for scripted Juju deployment scenarios."""
 
     def __init__(self, environments, args=None, namespace=None, **kwargs):
         parser = self.get_parser(**kwargs)
@@ -1147,6 +1185,7 @@ class DeploymentScenario(object):
         release='raring',
         auto=False
     ):  # pylint:disable=invalid-name
+        """Return an :class:`~pytoolbox.argparse.ArgumentParser` for scenarios."""
         HELP_A = 'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
         HELP_M = 'Directory (repository) of any local charm.'
         HELP_R = 'Ubuntu serie to deploy by JuJu.'
@@ -1158,6 +1197,7 @@ class DeploymentScenario(object):
         return parser
 
     def run(self):
+        """Execute the deployment scenario (must be overridden)."""
         raise NotImplementedError('Here should be implemented the deployment scenario.')
 
 
@@ -1178,14 +1218,17 @@ class SimulatedUnit(object):
         self.stop_latency_range = stop_latency_range
 
     def start(self):
+        """Schedule the unit to transition to ``STARTED`` after a random delay."""
         self.counter = random.randint(*self.start_latency_range)
         self.next_state = STARTED
 
     def stop(self):
+        """Schedule the unit to transition to ``STOPPED`` after a random delay."""
         self.counter = random.randint(*self.stop_latency_range)
         self.next_state = STOPPED
 
     def tick(self):
+        """Advance the state machine by one tick."""
         if self.counter:
             self.counter -= 1
             if self.counter == 0:

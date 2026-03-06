@@ -9,8 +9,10 @@ __all__ = ['LowerCaseMixin', 'OptionsMixin', 'StripMixin']
 
 
 class LowerCaseMixin(object):
+    """Convert field values to lowercase before saving to the database."""
 
     def get_prep_value(self, value):
+        """Return the value lowercased for database storage."""
         value = super().get_prep_value(value)
         if value is not None:
             value = value.lower()
@@ -21,6 +23,7 @@ class NullifyMixin(object):
     """Replace falsy values by None if NULL is allowed."""
 
     def pre_save(self, model_instance, add):
+        """Set the field to ``None`` if the value is falsy and NULL is allowed."""
         value = super().pre_save(model_instance, add)
         if not value and self.null:
             value = None
@@ -29,6 +32,7 @@ class NullifyMixin(object):
 
 
 class OptionsMixin(object):
+    """Apply default and override keyword arguments to field constructors."""
 
     default_options = {}
     override_options = {}
@@ -43,6 +47,7 @@ class StripMixin(object):
     default_validators = [validators.EmptyValidator()]
 
     def pre_save(self, model_instance, add):
+        """Strip leading and trailing whitespace before saving."""
         value = super().pre_save(model_instance, add)
         if value:
             value = value.strip()

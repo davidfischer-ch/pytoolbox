@@ -1,3 +1,6 @@
+"""
+Version comparison and content diffing utilities.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -96,6 +99,7 @@ def compare_versions(
     b: str,  # pylint:disable=invalid-name
     operator: str
 ) -> bool | None:
+    """Compare two version strings using the given operator."""
     version_a = try_parse_version(a)
     version_b = try_parse_version(b)
     if type(version_a) is type(version_b):
@@ -132,6 +136,7 @@ def satisfy_version_constraints(
 
 
 def try_parse_version(version: str) -> ParseVersionTypes:
+    """Parse a version string, returning the raw string on failure."""
     try:
         return _parse_version(version)
     except InvalidVersion:

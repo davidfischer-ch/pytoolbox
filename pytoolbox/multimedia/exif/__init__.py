@@ -1,3 +1,6 @@
+"""
+EXIF metadata extraction and manipulation using GExiv2.
+"""
 from .brand import *      # noqa:F401,F403
 from .camera import *     # noqa:F401,F403
 from .equipment import *  # noqa:F401,F403

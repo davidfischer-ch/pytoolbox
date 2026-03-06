@@ -1,3 +1,6 @@
+"""
+Human-readable representations of quantities (file sizes, bitrates, etc.).
+"""
 from __future__ import annotations
 
 from typing import Final

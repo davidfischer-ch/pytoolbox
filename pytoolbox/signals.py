@@ -1,3 +1,6 @@
+"""
+Signal handling with support for multiple handlers per signal.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -13,6 +16,7 @@ handlers_by_signal = collections.defaultdict(list)
 
 
 def propagate_handler(signum: int, frame) -> None:
+    """Call all registered handlers for a signal in reverse order."""
     errors = {}
     for handler in reversed(handlers_by_signal[signum]):
         try:
@@ -30,6 +34,7 @@ def register_handler(
     append: bool = True,
     reset: bool = False
 ) -> None:
+    """Register a signal handler, optionally appending to existing ones."""
     old_handler = signal.getsignal(signum)
     signal.signal(signum, propagate_handler)
     if inspect.isfunction(old_handler) and old_handler is not propagate_handler:
@@ -55,6 +60,7 @@ def register_callback(
     args: list | None = None,
     kwargs: dict | None = None
 ) -> None:
+    """Register a callback as a signal handler, wrapping it to ignore ``signum`` and ``frame``."""
     return register_handler(
         signum,
         lambda s, f: callback(*(args or []), **(kwargs or {})),

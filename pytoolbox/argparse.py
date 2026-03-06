@@ -43,6 +43,7 @@ from argparse import (  # noqa:E402,F401 pylint:disable=unused-import,wrong-impo
 
 
 class ChainAction(argparse._AppendAction):  # pylint:disable=protected-access
+    """Argparse action that flattens and appends chained values."""
     def __call__(
         self,
         parser: argparse.ArgumentParser,
@@ -107,6 +108,7 @@ def multiple(func: Callable[[Any], Any]) -> Callable:
 
 
 def password(value: str | None) -> str:
+    """Return the value or prompt for a password interactively."""
     return value or getpass.getpass('Password: ')
 
 
@@ -121,6 +123,7 @@ def separator(value: str, sep: str | None) -> list[str]:
 
 
 class Range(object):  # pylint:disable=too-few-public-methods
+    """Argparse type that validates a value is within ``[min, max]``."""
 
     def __init__(self, type, min, max) -> None:  # pylint:disable=redefined-builtin
         self.type = type
@@ -154,6 +157,7 @@ REMAINDER_ARG: Final[dict[str, Any]] = {'nargs': argparse.REMAINDER}
 
 
 def MULTI_ARG(sep: str | None = None) -> dict[str, str | Callable]:  # pylint:disable=invalid-name
+    """Return argument config for chaining multiple separated values."""
     return {'action': 'chain', 'nargs': '+', 'type': functools.partial(separator, sep=sep)}
 
 
@@ -161,15 +165,15 @@ def MULTI_ARG(sep: str | None = None) -> dict[str, str | Callable]:  # pylint:di
 
 
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
-    pass
+    """Formatter combining default values display with raw description."""
 
 
 class ArgumentParser(argparse.ArgumentParser):
+    """Base argument parser with :class:`HelpFormatter` and custom actions registered."""
 
     formatter_cls: type[argparse.HelpFormatter] = HelpFormatter
 
     def __init__(self, *args, columns: int | None = None, **kwargs) -> None:
-        """Base class to build simple CLIs."""
         console.set_columns(columns)
         kwargs.setdefault('formatter_class', self.formatter_cls)
         super().__init__(*args, **kwargs)
@@ -178,9 +182,9 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 class ActionArgumentParser(ArgumentParser):
+    """Argument parser exposing sub-commands as actions."""
 
     def __init__(self, *args, version: str | None = None, **kwargs) -> None:
-        """Specialized class to build CLIs that expose actions (sub-commands)."""
         super().__init__(*args, **kwargs)
         self._action = self.add_subparsers(help='action', required=False)
         self._version = version
@@ -188,6 +192,7 @@ class ActionArgumentParser(ArgumentParser):
             self.add_version_action(version)
 
     def action_version(self, args: Namespace) -> None:  # pylint:disable=unused-argument
+        """Print the version string."""
         print(self._version)
 
     def add_action(self, name: str, func, *, nested: bool = False) -> Callable:
@@ -228,10 +233,12 @@ class ActionArgumentParser(ArgumentParser):
         return parser.add_argument
 
     def add_version_action(self, version: str) -> None:
+        """Register a ``version`` sub-command that prints the version."""
         self._version = version
         self.add_action('version', self.action_version)
 
     def execute(self, args: Namespace | None = None) -> None:
+        """Parse arguments and invoke the selected action."""
         args = sys.argv[1:] if args is None else args  # type: ignore[assignment]
         if len(args) < 1:  # type: ignore[arg-type]
             sys.exit('An action is required')
@@ -243,6 +250,7 @@ class ActionArgumentParser(ArgumentParser):
             raise  # If not handled by the exception handler
 
     def handle_exception(self, ex: Exception) -> None:
+        """Handle known exceptions by logging and exiting."""
         if isinstance(ex, exceptions.CalledProcessError):
             log.error(repr(ex))
             sys.exit(1)
@@ -259,10 +267,12 @@ __all__ = _all.diff(globals())
 
 @deprecated('Use pytoolbox.console.set_columns instead (drop-in replacement)')
 def set_columns(*args, **kwargs) -> int:  # pragma: no cover
+    """Set terminal column width (deprecated, use :func:`pytoolbox.console.set_columns`)."""
     return console.set_columns(*args, **kwargs)
 
 
 class HelpArgumentParser(ArgumentParser):
+    """Deprecated alias for :class:`ArgumentParser`."""
 
     @deprecated('Use pytoolbox.argparse.ArgumentParser instead (drop-in replacement)')
     def __init__(self, *args, **kwargs) -> None:  # pragma: no cover

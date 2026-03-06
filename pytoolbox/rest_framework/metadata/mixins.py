@@ -17,6 +17,7 @@ class ExcludeRelatedChoicesMixin(object):
     related_fields = (serializers.RelatedField, serializers.ManyRelatedField)
 
     def get_field_info(self, field):
+        """Return field info, stripping choices from related fields."""
         if hasattr(field, 'choices') and isinstance(field, self.related_fields):
             field_class = type(field)
 

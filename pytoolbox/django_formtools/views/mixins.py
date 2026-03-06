@@ -10,6 +10,7 @@ __all__ = ['CrispyFormsMixin', 'DataTableViewCompositionMixin', 'SerializeStepIn
 
 
 class CrispyFormsMixin(object):
+    """Integrate crispy-forms layout with the form wizard management form."""
 
     def get_context_data(self, form, **kwargs):
         """Add the management form to the form for working with crispy forms."""
@@ -53,12 +54,14 @@ class DataTableViewCompositionMixin(object):
 
 
 class SerializeStepInstanceMixin(object):
+    """Serialize and restore model instances across wizard steps."""
 
     serialized_instance_form_class = forms.SerializedInstanceForm
     serialized_instances_key = 'serialized-instances'
 
     @property
     def serialized_instances(self):
+        """Return the dictionary of serialized instances from storage."""
         try:
             return self.storage.extra_data[self.serialized_instances_key]
         except KeyError:
@@ -66,12 +69,14 @@ class SerializeStepInstanceMixin(object):
             return value
 
     def serialize_step_instance(self, form, step=None):
+        """Serialize the form's saved instance for the given step."""
         self.serialized_instances[step or self.steps.current] = \
             self.serialized_instance_form_class.serialize(form.save())
 
     # WizardView "Standard Methods"
 
     def get_form(self, step=None, *args, **kwargs):
+        """Return the form for the step, using serialized data if available."""
         if step is None:
             step = self.steps.current
         if step in self.serialized_instances.keys():
@@ -79,6 +84,7 @@ class SerializeStepInstanceMixin(object):
         return super().get_form(step, *args, **kwargs)
 
     def get_form_kwargs(self, step):
+        """Return form kwargs, merging in serialized instance data if present."""
         form_kwargs = super().get_form_kwargs(step)
         serialized_instance = self.serialized_instances.get(step, None)
         if serialized_instance:

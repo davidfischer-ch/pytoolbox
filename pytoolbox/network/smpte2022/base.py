@@ -1,3 +1,6 @@
+"""
+SMPTE 2022-1 FEC packet parsing, creation, and XOR-based computation.
+"""
 from __future__ import annotations
 
 import struct
@@ -310,6 +313,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
 
     @property
     def bytes(self):
+        """Return the complete FEC packet bytes (header + payload recovery)."""
         return self.header_bytes + self.payload_recovery
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -546,9 +550,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return fec
 
     def compute_j(self, media_sequence):
-        """
-        TODO
-        """
+        """Return the index *j* for *media_sequence* within this FEC packet."""
         if (delta := media_sequence - self.snbase) < 0:
             delta += RtpPacket.S_MASK + 1
         if delta % self.offset != 0:
@@ -645,9 +647,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return j
 
     def set_recovered(self, media_sequence):
-        """
-        TODO
-        """
+        """Unregister a previously missing media packet as recovered."""
         if (j := self.compute_j(media_sequence)) is None:
             raise ValueError(self.ER_J)
         self.missing.remove(media_sequence)

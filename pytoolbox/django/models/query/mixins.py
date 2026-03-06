@@ -12,30 +12,37 @@ _all = module.All(globals())
 
 
 class AtomicGetUpdateOrCreateMixin(object):
+    """Wrap ``get_or_create`` and ``update_or_create`` in atomic blocks."""
 
     savepoint = False
 
     def get_or_create(self, defaults=None, **kwargs):
+        """Wrap ``get_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_or_create(defaults=defaults, **kwargs)
 
     def update_or_create(self, defaults=None, **kwargs):
+        """Wrap ``update_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().update_or_create(defaults=defaults, **kwargs)
 
 
 class AtomicGetRestoreOrCreateMixin(object):
+    """Wrap ``get_restore_or_create`` in an atomic block."""
 
     savepoint = False
 
     def get_restore_or_create(self, *args, **kwargs):
+        """Wrap ``get_restore_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_restore_or_create(*args, **kwargs)
 
 
 class CreateModelMethodMixin(object):
+    """Delegate ``create`` to the model's ``create`` class method if available."""
 
     def create(self, *args, **kwargs):
+        """Delegate to the model's ``create`` class method if available."""
         if hasattr(self.model, 'create'):
             return self.model.create(*args, **kwargs)
         return super().create(*args, **kwargs)

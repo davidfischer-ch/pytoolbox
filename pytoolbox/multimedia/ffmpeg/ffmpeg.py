@@ -1,3 +1,6 @@
+"""
+FFmpeg process wrapper for media encoding with progress tracking.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -98,6 +101,7 @@ class FFmpeg(object):
 
     @staticmethod
     def get_frames_md5_checksum(filename: Path) -> str | None:
+        """Return the MD5 checksum of all frames in *filename*."""
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()

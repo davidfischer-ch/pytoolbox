@@ -13,11 +13,13 @@ __all__ = ['StripCharField']
 
 
 class StripCharField(serializers.CharField):
+    """A :class:`~rest_framework.serializers.CharField` that strips whitespace."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.validators.append(EmptyValidator(message=self.error_messages['blank']))
 
     def to_internal_value(self, data):
+        """Return the stripped value of the incoming data."""
         data = super().to_internal_value(data)
         return data.strip() if data else data

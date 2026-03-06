@@ -29,6 +29,7 @@ class VersionInvalid(voluptuous.Invalid):
 
 @voluptuous.message('Incorrect e-mail address')
 def Email(value):  # pylint:disable=invalid-name
+    """Validate and return an e-mail address string."""
     value = str(value)
     if not validation.valid_email(value):
         raise ValueError
@@ -37,6 +38,7 @@ def Email(value):  # pylint:disable=invalid-name
 
 @voluptuous.message('Incorrect list of e-mail addresses')
 def EmailSet(values):  # pylint:disable=invalid-name
+    """Validate and return a set of e-mail address strings."""
     emails = set()
     for value in values or []:
         email = str(value)
@@ -48,12 +50,14 @@ def EmailSet(values):  # pylint:disable=invalid-name
 
 @voluptuous.message('Incorrect git commit hash')
 def GitCommitHash(value):  # pylint:disable=invalid-name
+    """Validate and return a 40-character hexadecimal Git commit hash."""
     if re.match(r'^[0-9a-f]{40}$', value):
         return value
     raise ValueError
 
 
 def Password(length=16, msg=None):  # pylint:disable=invalid-name
+    """Return a validator requiring a password of at least ``length`` characters."""
 
     @functools.wraps(Password)
     def f(value):
@@ -65,17 +69,20 @@ def Password(length=16, msg=None):  # pylint:disable=invalid-name
 
 @voluptuous.message('Incorrect percentage')
 def Percent(value):  # pylint:disable=invalid-name
+    """Validate that a value is a percentage between 1 and 100."""
     return voluptuous.Range(min=1, max=100)(value)
 
 
 @voluptuous.message('Incorrect SHA-256 checksum')
 def SHA256(value):  # pylint:disable=invalid-name
+    """Validate and return a 64-character hexadecimal SHA-256 checksum."""
     if re.match(r'^[0-9a-f]{64}$', value):
         return value
     raise ValueError
 
 
 def Version(digits=4, msg=None):  # pylint:disable=invalid-name
+    """Return a validator for version strings with the given number of ``digits``."""
     assert 1 <= digits <= 4
     pattern = r'^[0-9]+(\.[0-9]+){%d}\.[a-z0-9]+$'
 

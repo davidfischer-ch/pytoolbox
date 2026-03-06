@@ -20,11 +20,13 @@ class JiraProject(object):
 
     @property
     def fields(self):
+        """Return the list of fields, caching the result."""
         self._fields = self._fields or self.jira.fields()
         return self._fields
 
     @property
     def features(self):
+        """Return all issues of the configured feature type."""
         count, issues = None, {}
         while count != len(issues):
             count = len(issues)
@@ -38,14 +40,17 @@ class JiraProject(object):
 
     @property
     def jira(self):
+        """Return a lazily-initialized :class:`jira.JIRA` client."""
         self._jira = self._jira or JIRA(server=self.server, basic_auth=self.auth)
         return self._jira
 
     @property
     def versions(self):
+        """Return all versions of the project."""
         return self.jira.project_versions(self.project)
 
     def get_field(self, name, fail=True):
+        """Return the field definition matching the given name."""
         try:
             return next(f for f in self.fields if f['name'] == name)
         except StopIteration:
@@ -54,6 +59,7 @@ class JiraProject(object):
         return None
 
     def get_field_value(self, issue, name, default=None):
+        """Return the value of a named field on the given issue."""
         field_id = self.get_field(name)['id']
         field_value = getattr(issue.fields, field_id) or default
         return getattr(field_value, 'value', field_value)

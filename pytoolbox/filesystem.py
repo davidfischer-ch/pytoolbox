@@ -35,6 +35,7 @@ FindPatterns: TypeAlias = (
 
 
 class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
+    """Callback protocol for :func:`copy_recursive` progress reporting."""
     def __call__(
         self,
         start_date: datetime.datetime,
@@ -48,6 +49,7 @@ class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
 
 
 class TemplateHookFunc(Protocol):  # pylint:disable=too-few-public-methods
+    """Callback protocol for :func:`from_template` pre/post hooks."""
     def __call__(self, content: str, values: dict[str, Any], *, jinja2: bool = False) -> str:
         ...
 
@@ -673,7 +675,8 @@ class TempStorage(object):
         user: int | str | None = None,
         group: int | str | None = None
     ) -> Path:
-        """
+        """Create a temporary directory and return its path.
+
         **Example usage**
 
         >>> import os
@@ -743,7 +746,8 @@ class TempStorage(object):
         group=None,
         return_file=True
     ):
-        """
+        """Create a temporary file and return a file object or its path.
+
         **Example usage**
 
         >>> from pathlib import Path
@@ -777,7 +781,8 @@ class TempStorage(object):
         return path
 
     def remove_by_path(self, path: Path) -> None:
-        """
+        """Remove a tracked temporary path by its filesystem path.
+
         **Example usage**
 
         >>> from pytoolbox.unittest import asserts
@@ -795,7 +800,8 @@ class TempStorage(object):
         self._paths_by_key[key].remove(path)
 
     def remove_by_key(self, key: str | None = None) -> None:
-        """
+        """Remove all tracked temporary paths associated with a key.
+
         **Example usage**
 
         >>> tmp = TempStorage()
@@ -818,7 +824,8 @@ class TempStorage(object):
         del self._paths_by_key[key]
 
     def remove_all(self) -> None:
-        """
+        """Remove all tracked temporary paths.
+
         **Example usage**
 
         >>> with TempStorage() as tmp:
@@ -845,4 +852,5 @@ __all__ = _all.diff(globals())
 
 @deprecated('Use pytoolbox.filesystem.copy_recursive instead (drop-in replacement)')
 def recursive_copy(*args, **kwargs):  # pragma: no cover
+    """Deprecated alias for :func:`copy_recursive`."""
     return copy_recursive(*args, **kwargs)

@@ -13,6 +13,7 @@ __all__ = ['with_urls']
 
 
 def with_urls(base_url, *interface_actions, **kwargs):
+    """Decorate a model to generate ``get_<action>_url`` methods from URL patterns."""
     base_url = base_url + ':'
 
     if not interface_actions:

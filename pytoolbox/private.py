@@ -1,3 +1,6 @@
+"""
+Private helpers and optional dependency imports (e.g. :mod:`bson`).
+"""
 from __future__ import annotations
 
 try:

@@ -25,9 +25,11 @@ class ConvertEmailToTextMixin(object):
 
 
 class EnctypeMixin(object):
+    """Provide an :attr:`enctype` property for use in form templates."""
 
     @property
     def enctype(self):
+        """Return the appropriate HTML form ``enctype`` attribute value."""
         return 'multipart/form-data' if self.is_multipart() else 'application/x-www-form-urlencoded'
 
 
@@ -60,6 +62,7 @@ class HelpTextToPlaceholderMixin(object):
                 self.set_placeholder(name, field)
 
     def set_placeholder(self, name, field):  # pylint:disable=unused-argument
+        """Copy the field's help text into the widget placeholder attribute."""
         field.widget.attrs['placeholder'] = field.help_text
         if self.placeholder_remove_help_text:
             field.help_text = None
@@ -74,6 +77,7 @@ class MapErrorsMixin(object):
     errors_map = {}
 
     def add_error(self, field, error):
+        """Remap the field name through :attr:`errors_map` before adding."""
         field = self.errors_map.get(field, field)
         return super().add_error(field, error)
 
@@ -86,6 +90,7 @@ class ModelBasedFormCleanupMixin(object):
     """
 
     def clean(self):
+        """Delegate additional cleanup to the model's ``clean_form`` method."""
         super().clean()
         try:
             return self._meta.model.clean_form(self)
@@ -108,6 +113,7 @@ class CreatedByMixin(RequestMixin):
     """Set instance's created_by field to current user if the instance is just created."""
 
     def save(self, commit=True):
+        """Set ``created_by`` to the current user on first save."""
         if hasattr(self.instance, 'created_by_id') and not self.instance.created_by_id:
             self.instance.created_by = self.request.user
         return super().save(commit=commit)

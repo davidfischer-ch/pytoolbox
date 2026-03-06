@@ -1,3 +1,6 @@
+"""
+Date, time, and epoch conversion utilities.
+"""
 from __future__ import annotations
 
 from typing import Annotated, Any, Literal, TypeAlias, overload
@@ -89,6 +92,7 @@ def datetime_to_str(
     fmt: str = '%Y-%m-%d %H:%M:%S',
     append_utc: bool = False
 ) -> str:
+    """Format a :class:`datetime.datetime` as a string."""
     return date_time.strftime(fmt) + (' UTC' if append_utc else '')
 
 

@@ -15,6 +15,7 @@ class RaiseOnUnhandledFieldClassMixin(object):
 
     @classmethod
     def filter_for_field(cls, f, name, *, lookup_type='exact'):
+        """Return a filter for the field, raising if none is found."""
         value = super().filter_for_field(f, name, lookup_type)
         if not value:
             raise NotImplementedError(

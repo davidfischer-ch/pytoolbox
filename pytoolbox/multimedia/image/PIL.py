@@ -1,3 +1,6 @@
+"""
+Helpers for the :mod:`PIL` (Pillow) image library.
+"""
 # pylint:disable=invalid-name
 from __future__ import annotations
 
@@ -24,6 +27,7 @@ TRANSPOSE_SEQUENCES = {
 
 
 def get_orientation(image, orientation_tag=0x0112, no_exif_default=None, no_key_default=None):
+    """Return the EXIF orientation value of *image*."""
     exif = getattr(image, '_getexif', lambda: None)()
     try:
         return no_exif_default if exif is None else exif[orientation_tag]
@@ -42,6 +46,7 @@ def apply_orientation(  # pylint:disable=dangerous-default-value
 
 
 def open(file_or_path):  # pylint:disable=redefined-builtin
+    """Open an image and load it, tolerating truncated files."""
     image = Image.open(file_or_path)
     try:
         image.load()
@@ -52,6 +57,7 @@ def open(file_or_path):  # pylint:disable=redefined-builtin
 
 
 def remove_metadata(image, keys=('exif', ), *, inplace=False):
+    """Remove metadata *keys* from *image* info dict."""
     image = image if inplace else image.copy()
     for key in keys:
         if key in image.info:
@@ -73,6 +79,7 @@ def remove_transparency(image, background=(255, 255, 255)):
 
 
 def save(image, *args, **kwargs):
+    """Save *image*, preserving EXIF data by default."""
     kwargs.setdefault('exif', image.info.get('exif', b''))
     return image.save(*args, **kwargs)
 

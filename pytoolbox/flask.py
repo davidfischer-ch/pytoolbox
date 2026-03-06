@@ -1,3 +1,6 @@
+"""
+Flask utilities for JSON responses and exception mapping.
+"""
 from __future__ import annotations
 
 import logging
@@ -16,6 +19,7 @@ STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: No
 
 
 def check_id(value):
+    """Validate and return a :class:`~uuid.UUID` or :class:`ObjectId` from a string."""
     if valid_uuid(value, objectid_allowed=False, none_allowed=False):
         return uuid.UUID(value)
     if ObjectId is not None and valid_uuid(value, objectid_allowed=True, none_allowed=False):
@@ -24,6 +28,7 @@ def check_id(value):
 
 
 def json_response(status, value=None, include_properties=False):
+    """Build a JSON :class:`~flask.Response` with the given status and value."""
     response = Response(
         response=object_to_json({'status': status, 'value': value}, include_properties),
         status=status,

@@ -9,14 +9,17 @@ _all = module.All(globals())
 
 
 def get_base_model(cls_or_instance):
+    """Return the base (non-proxy) model class for the given class or instance."""
     return cls_or_instance._meta.proxy_for_model or cls_or_instance._meta.model
 
 
 def get_related_manager(cls_or_instance, field):
+    """Return the default manager for the model related through *field*."""
     return get_related_model(cls_or_instance, field)._default_manager
 
 
 def get_related_model(cls_or_instance, field):
+    """Return the model class related through *field*."""
     if field == 'pk':
         field = cls_or_instance._meta.pk.attname.rstrip('_id')
     return cls_or_instance._meta.get_field(field).related_model
@@ -37,6 +40,7 @@ def get_instance(app_label, model, pk):
 
 
 def try_get_field(instance, field_name):
+    """Return a field value or ``None`` if the related object does not exist."""
     try:
         return getattr(instance, field_name)
     except Exception as ex:

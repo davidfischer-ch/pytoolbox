@@ -1,3 +1,6 @@
+"""
+Subprocess execution with retries, timeouts, logging and screen management.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
@@ -38,6 +41,7 @@ CallArgsType: TypeAlias = str | Iterable[CallArgType]
 
 
 class CallResult(TypedDict):
+    """Result dictionary returned by :func:`cmd`."""
     process: Popen | None
     returncode: int
     stdout: bytes | None
@@ -46,6 +50,7 @@ class CallResult(TypedDict):
 
 
 def kill(process: Popen) -> None:
+    """Kill a process, ignoring errors if it has already exited."""
     try:
         process.kill()
     except OSError as ex:
@@ -98,12 +103,14 @@ def read_async(fd) -> str:  # pylint:disable=invalid-name
 
 
 def to_args_list(args: CallArgsType | None) -> list[str]:
+    """Convert command arguments to a list of strings."""
     if not args:
         return []
     return shlex.split(args) if isinstance(args, str) else [str(a) for a in args if a is not None]
 
 
 def to_args_string(args: CallArgsType | None) -> str:
+    """Convert command arguments to a shell-quoted string."""
     if not args:
         return ''
     return args if isinstance(args, str) else ' '.join(quote(str(a)) for a in args if a is not None)
@@ -391,11 +398,13 @@ __all__ = _all.diff(globals())
 
 @deprecated('Use pytoolbox.git.clone_or_pull instead (drop-in replacement)')
 def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
+    """Deprecated alias for :func:`pytoolbox.git.clone_or_pull`."""
     from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
     return clone_or_pull(*args, **kwargs)
 
 
 @deprecated('Use pytoolbox.ssh.ssh instead (drop-in replacement)')
 def ssh(*args, **kwargs) -> dict:  # pragma: no cover
+    """Deprecated alias for :func:`pytoolbox.ssh.ssh`."""
     from pytoolbox.ssh import ssh as _ssh
     return _ssh(*args, **kwargs)

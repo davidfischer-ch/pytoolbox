@@ -1,3 +1,6 @@
+"""
+Encoding progress tracking and statistics for FFmpeg.
+"""
 from __future__ import annotations
 
 import datetime
@@ -22,6 +25,7 @@ ENCODING_REGEX = re.compile(
 
 
 class EncodeState(object):  # pylint:disable=too-few-public-methods
+    """Enumeration of encoding process states."""
     NEW = 'NEW'
     STARTED = 'STARTED'
     PROCESSING = 'PROCESSING'
@@ -33,6 +37,7 @@ class EncodeState(object):  # pylint:disable=too-few-public-methods
 
 
 class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
+    """Track and report FFmpeg encoding progress and statistics."""
 
     default_in_duration = datetime.timedelta(seconds=0)
     encoding_regex = ENCODING_REGEX
@@ -70,6 +75,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
 
     @property
     def eta_time(self):
+        """Return the estimated time remaining or ``None`` if unknown."""
         if self.state in self.states.FINAL_STATES:
             return datetime.timedelta(0)
         if not self.ratio:
@@ -78,17 +84,21 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
 
     @property
     def input(self):
+        """Return the primary input :class:`~.miscellaneous.Media`."""
         return self.inputs[self.in_base_index]
 
     @property
     def output(self):
+        """Return the primary output :class:`~.miscellaneous.Media`."""
         return self.outputs[self.out_base_index]
 
     @staticmethod
     def get_now():
+        """Return the current datetime."""
         return datetime_now()
 
     def start(self, process):
+        """Record the start of encoding and initialize counters."""
         self.state = self.states.STARTED
         self.process = process
         self.start_date = self.get_now()
@@ -100,6 +110,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
         return self
 
     def progress(self, chunk):
+        """Update statistics from an FFmpeg output chunk."""
         self.state = self.states.PROCESSING
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
         if ffmpeg_statistics := self._parse_chunk(chunk):
@@ -113,6 +124,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
         return self
 
     def end(self, returncode):
+        """Finalize statistics after encoding completes."""
         self.state = self.states.FAILURE if returncode else self.states.SUCCESS
         self.returncode = returncode
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)

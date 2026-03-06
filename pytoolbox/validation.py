@@ -1,3 +1,6 @@
+"""
+Validators for common data types (emails, IPs, URIs, UUIDs, etc.).
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable

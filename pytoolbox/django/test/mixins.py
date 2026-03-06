@@ -42,8 +42,10 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
 
 
 class ClearSiteCacheMixin(object):
+    """Clear the :class:`~django.contrib.sites.models.Site` cache before each test."""
 
     def clear_site_cache(self):
+        """Clear the Django sites framework cache."""
         Site.objects.clear_cache()
 
     def setUp(self):
@@ -51,11 +53,13 @@ class ClearSiteCacheMixin(object):
         super().setUp()
 
     def assertNumQueries(self, *args, **kwargs):
+        """Clear the site cache before asserting on the number of queries."""
         self.clear_site_cache()
         return super().assertNumQueries(*args, **kwargs)
 
 
 class FixFlushMixin(object):
+    """Fix ``TransactionTestCase`` flush by enabling ``TRUNCATE CASCADE``."""
 
     def _fixture_teardown(self):
         """
@@ -74,12 +78,15 @@ class FixFlushMixin(object):
 
 
 class FormWizardMixin(object):
+    """Helpers for testing django-formtools wizard views."""
 
     def assertWizardSteps(self, response, **kwargs):
+        """Assert that wizard step attributes match expected values."""
         for key, value in kwargs.items():
             self.assertEqual(getattr(response.context['wizard']['steps'], key), value, msg=key)
 
     def post_wizard(self, url, step, data=None, raw_data=None, **kwargs):
+        """Post data to a specific wizard step."""
         from formtools.wizard.views import normalize_name
         name = normalize_name(resolve(reverse(url)).func.__name__)
         step_data = {f'{step}-{k}': v for k, v in data.items()} if data else {}
@@ -89,8 +96,10 @@ class FormWizardMixin(object):
 
 
 class QueriesMixin(object):
+    """Provide assertions for checking the number of database queries."""
 
     def assertNumQueriesIn(self, num_range, func=None, *args, **kwargs):
+        """Assert that the number of queries is within *num_range*."""
         connection = connections[kwargs.pop('using', DEFAULT_DB_ALIAS)]
         context = _AssertNumQueriesInContext(self, num_range, connection)
         if func is None:
@@ -100,8 +109,10 @@ class QueriesMixin(object):
 
 
 class UrlMixin(object):
+    """Resolve URLs from view names, paths, or model instances."""
 
     def resolve(self, value, qs=None, urlconf=None, args=None, kwargs=None, current_app=None):
+        """Resolve *value* to a URL string, optionally appending a query string."""
         if isinstance(value, str) and '/' in value:
             url = value
         elif hasattr(value, 'get_absolute_url'):
@@ -112,6 +123,7 @@ class UrlMixin(object):
 
 
 class RestAPIMixin(UrlMixin):
+    """Convenience methods for testing REST API endpoints."""
 
     def _call(
         self,
@@ -133,18 +145,23 @@ class RestAPIMixin(UrlMixin):
         return response
 
     def delete(self, url, data=None, status=204, **kwargs):
+        """Send a DELETE request and assert the response status."""
         return self._call('delete', url, data, status, **kwargs)
 
     def get(self, url, data=None, status=200, **kwargs):
+        """Send a GET request and assert the response status."""
         return self._call('get', url, data, status, **kwargs)
 
     def patch(self, url, data, status=200, **kwargs):
+        """Send a PATCH request and assert the response status."""
         return self._call('patch', url, data, status, **kwargs)
 
     def post(self, url, data, status=201, **kwargs):
+        """Send a POST request and assert the response status."""
         return self._call('post', url, data, status, **kwargs)
 
     def put(self, url, data, status=200, **kwargs):
+        """Send a PUT request and assert the response status."""
         return self._call('put', url, data, status, **kwargs)
 
 

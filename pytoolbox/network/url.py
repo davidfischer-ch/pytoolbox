@@ -1,3 +1,6 @@
+"""
+URL manipulation utilities.
+"""
 from __future__ import annotations
 
 from urllib.parse import urlsplit, urlunsplit

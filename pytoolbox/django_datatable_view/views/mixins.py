@@ -16,9 +16,11 @@ class MultiTablesMixin(object):
     request_name_key = 'datatable-name'
 
     def get_ajax_url(self, name=None):
+        """Return the AJAX URL for the given datatable name."""
         return self.request.path + f'?{self.request_name_key}={self.get_datatable_name(name)}'
 
     def get_context_data(self, **kwargs):
+        """Return context data with all datatables grouped by name and label."""
         context = super().get_context_data(**kwargs)
         default_table = context.pop('datatable')
         context['datatables'] = [
@@ -31,12 +33,15 @@ class MultiTablesMixin(object):
         return context
 
     def get_datatable(self, name=None):
+        """Return the datatable structure for the given name."""
         return self.get_datatable_structure(name=name)
 
     def get_datatable_name(self, name):
+        """Return the datatable name from argument, request, or default."""
         return name or self.request.GET.get(self.request_name_key) or self.multi_default
 
     def get_datatable_structure(self, name=None):
+        """Return the datatable structure instance for the given name."""
         options = self._get_datatable_options()
         return self.datatable_structure_class(
             self.get_ajax_url(name=name),
@@ -44,6 +49,7 @@ class MultiTablesMixin(object):
             model=self.get_model())
 
     def get_queryset(self, name=None):
+        """Return the queryset for the given datatable name."""
         qs = super().get_queryset()
         name = self.get_datatable_name(name)
         if name not in set(n for n, l in self.multi_datatables):

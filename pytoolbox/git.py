@@ -1,3 +1,6 @@
+"""
+Git helpers for cloning, tagging, blaming and SSH key management.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -28,6 +31,7 @@ RefKind: TypeAlias = Literal['branch', 'commit']
 
 
 def blame(file_path: Path) -> list[str]:
+    """Return the ``git blame`` output lines for a file."""
     lines = subprocess.cmd(
         ['git', 'blame', file_path],
         cwd=file_path.parent)['stdout'].decode('utf-8')
@@ -42,6 +46,7 @@ def clone_or_pull(
     clone_depth: int | None = None,
     reset: bool = True
 ) -> None:
+    """Clone a Git repository or pull if it already exists."""
     if directory.exists():
         if reset and not bare:
             subprocess.cmd(['git', 'reset', '--hard'], cwd=directory)
@@ -57,6 +62,8 @@ def clone_or_pull(
 
 
 def create_tag(directory: Path, name: str) -> None:
+    """Create a Git tag, raising
+    :class:`~pytoolbox.exceptions.DuplicateGitTagError` on duplicates."""
     try:
         subprocess.cmd(['git', 'tag', name], cwd=directory)
     except exceptions.CalledProcessError as ex:

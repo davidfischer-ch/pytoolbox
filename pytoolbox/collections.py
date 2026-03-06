@@ -1,3 +1,6 @@
+"""
+Collection utilities and data structures.
+"""
 from __future__ import annotations
 
 import collections
@@ -24,6 +27,7 @@ class EventsTable(object):
             previous_event = event
 
     def get(self, time, time_speedup=None, default_value=None):
+        """Return the event index and value for a given time."""
         # """
         # >>> def test_get_index(time_range, time_speedup):
         # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
@@ -110,6 +114,7 @@ class pygal_deque(collections.deque):  # pylint:disable=invalid-name
     last = None
 
     def append(self, value):  # pylint:disable=arguments-renamed
+        """Append a value, replacing duplicates with ``None``."""
         if value != self.last and value is not None:
             try:
                 self[-1] = self.last
@@ -127,6 +132,7 @@ class pygal_deque(collections.deque):  # pylint:disable=invalid-name
             self[0] = first
 
     def list(self, fill=False):
+        """Return the deque as a list, optionally filling ``None`` gaps."""
         self_list = list(self)
         try:
             if self.last is not None:

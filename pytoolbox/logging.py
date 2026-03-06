@@ -1,3 +1,6 @@
+"""
+Logging setup helpers, colorization filter and logger factory.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -60,11 +63,13 @@ Color: TypeAlias = Literal[
 
 
 class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
+    """Protocol for a simple callable accepting a log message string."""
     def __call__(self, message: str) -> None:
         ...
 
 
 class BasicFuncLogger(logging.Logger):
+    """Logger that delegates all messages to a plain callable."""
 
     def __init__(self, log_func) -> None:
         self._log_func = log_func
@@ -91,6 +96,7 @@ def get_logger(log: LoggerType) -> logging.Logger:
 
 
 def reset_logger(log: LoggerType) -> logging.Logger:
+    """Reset a logger by removing all handlers, filters and restoring defaults."""
     log = get_logger(log)
     log.setLevel(logging.NOTSET)
     log.disabled = False
@@ -191,6 +197,7 @@ def setup_logging(
 
 
 class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
+    """Logging filter that colorizes messages based on log level."""
 
     color_by_level: dict[int | str, Color] = {
         logging.DEBUG: 'cyan',
@@ -206,6 +213,7 @@ class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
         super().__init__(*args, **kwargs)
 
     def filter(self, record) -> Literal[True]:
+        """Apply color to the record message based on its level."""
         record.raw_msg = record.msg
         if color := self.color_by_level.get(record.levelno):
             import termcolor

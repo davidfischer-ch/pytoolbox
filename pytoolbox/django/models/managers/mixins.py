@@ -16,11 +16,14 @@ StateMixin = query_mixins.StateMixin
 
 
 class RelatedModelMixin(object):
+    """Provide shortcuts to access related model classes and managers."""
 
     def get_related_manager(self, field):
+        """Return the default manager for the model related through *field*."""
         return utils.get_related_manager(self.model, field)
 
     def get_related_model(self, field):
+        """Return the model class related through *field*."""
         return utils.get_related_model(self.model, field)
 
 

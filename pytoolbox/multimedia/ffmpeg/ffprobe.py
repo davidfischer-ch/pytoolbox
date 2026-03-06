@@ -1,3 +1,6 @@
+"""
+FFprobe wrapper for extracting media file information.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,6 +27,7 @@ DURATION_REGEX: Final[re.Pattern] = re.compile(
 
 
 class FFprobe(object):
+    """Probe media files for format, streams, and duration information."""
     executable: Path = Path('ffprobe')
     duration_regex: re.Pattern = DURATION_REGEX
     format_class: type | None = None
@@ -215,4 +219,5 @@ class FFprobe(object):
         return None
 
     def to_media(self, media):
+        """Wrap *media* in a :class:`~.miscellaneous.Media` if needed."""
         return media if isinstance(media, self.media_class) else self.media_class(media)

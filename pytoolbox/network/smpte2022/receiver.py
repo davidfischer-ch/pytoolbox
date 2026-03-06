@@ -1,3 +1,6 @@
+"""
+SMPTE 2022-1 FEC stream receiver with media packet recovery.
+"""
 from __future__ import annotations
 
 import collections

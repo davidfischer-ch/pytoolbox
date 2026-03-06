@@ -1,3 +1,6 @@
+"""
+IP address and socket parsing utilities.
+"""
 from __future__ import annotations
 
 from ipaddress import ip_address

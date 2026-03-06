@@ -1,3 +1,6 @@
+"""
+Extended :class:`~selenium.webdriver.support.select.Select` with element attribute delegation.
+"""
 from __future__ import annotations
 
 from selenium.webdriver.support import select

@@ -1,3 +1,6 @@
+"""
+Custom Django validators for forms and model fields.
+"""
 from __future__ import annotations
 
 import copy
@@ -12,6 +15,8 @@ __all__ = ['EmptyValidator', 'KeysValidator', 'MD5ChecksumValidator']
 
 
 class EmptyValidator(validators.RegexValidator):
+    """Reject blank (whitespace-only) values."""
+
     regex = r'\S+'
     message = _('This field cannot be blank.')
     code = 'blank'
@@ -74,4 +79,6 @@ class KeysValidator(object):
 
 
 class MD5ChecksumValidator(validators.RegexValidator):
+    """Validate that a value is a 32-character hexadecimal MD5 checksum."""
+
     regex = re.compile(r'[0-9a-f]{32}')

@@ -13,6 +13,9 @@
 # limitations under the License.
 
 # Original: https://github.com/krasserm/face-recognition/blob/master/align.py
+"""
+Face detection and alignment using :mod:`dlib` landmark estimation.
+"""
 
 import bz2
 import tempfile
@@ -137,10 +140,12 @@ class DlibFaceDetector(object):
         return cv2.warpAffine(image, H, (dimension, dimension))  # pylint:disable=no-member
 
     def extract_all_faces(self, image, dimension=96, landmark_indices=None):
+        """Yield ``(box, aligned_face)`` tuples for every face in the image."""
         for box in self.get_all_faces_bounding_boxes(image):
             yield box, self.align(image, box, dimension, landmark_indices)
 
     def extract_largest_face(self, image, dimension=96, landmark_indices=None, skip_multi=False):
+        """Return ``(box, aligned_face)`` for the largest face, or ``(box, None)``."""
         box = self.get_largest_face_bounding_box(image, skip_multi=skip_multi)
         return box, (self.align(image, box, dimension, landmark_indices) if box else None)
 

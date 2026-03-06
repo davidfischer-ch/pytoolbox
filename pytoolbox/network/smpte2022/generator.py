@@ -1,3 +1,6 @@
+"""
+SMPTE 2022-1 FEC stream generator from incoming RTP media packets.
+"""
 from __future__ import annotations
 
 from pytoolbox.network.rtp import RtpPacket

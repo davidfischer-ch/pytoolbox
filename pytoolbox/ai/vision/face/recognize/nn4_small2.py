@@ -1,6 +1,9 @@
 # --------------------------------------------------------------------------------------------------
 # Code taken from https://github.com/iwantooxxoox/Keras-OpenFace (with minor modifications)
 # --------------------------------------------------------------------------------------------------
+"""
+OpenFace NN4.Small2.v1 Keras model for face recognition.
+"""
 
 import tensorflow as tf
 from keras import backend as K
@@ -39,6 +42,7 @@ def conv2d_bn(
     cv2_strides=(1, 1),
     padding=None,
 ):
+    """Apply one or two Conv2D + BatchNormalization + ReLU blocks."""
     num = '' if cv2_out is None else '1'
     tensor = Conv2D(cv1_out, cv1_filter, strides=cv1_strides, name=layer + '_conv' + num)(tensor)
     tensor = BatchNormalization(axis=3, epsilon=E, name=layer + '_bn' + num)(tensor)
@@ -55,10 +59,12 @@ def conv2d_bn(
 
 
 def LRN2D(tensor):  # pylint:disable=invalid-name
+    """Apply Local Response Normalization."""
     return tf.nn.lrn(tensor, alpha=1e-4, beta=0.75)
 
 
 def create_model():  # pylint:disable=too-many-locals,too-many-statements
+    """Build the NN4.Small2.v1 Keras model (96x96 input, 128-d embedding)."""
 
     inputs = Input(shape=(96, 96, 3))
 
@@ -339,6 +345,7 @@ def create_model():  # pylint:disable=too-many-locals,too-many-statements
 
 
 def load_model(weights=DEFAULT_WEIGHTS):
+    """Create the NN4.Small2.v1 model and load pre-trained weights."""
     model = create_model()
     if weights:
         model.load_weights(utils.load_to_file(weights))

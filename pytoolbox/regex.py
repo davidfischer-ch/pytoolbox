@@ -1,3 +1,6 @@
+"""
+Regular expression utilities: embedding, partial matching and path patterns.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -55,6 +58,8 @@ def embed_in_regex(
     as_string: bool = True
 ):
     """
+    Embed a literal string into a list of regex parts at the given index.
+
     **Example usage**
 
     >>> embed_in_regex('L', ['[a-z]', '[a-z]'], 0)
@@ -74,6 +79,8 @@ def findall_partial(
     regex_parts: list[str] | tuple[str, ...]
 ) -> Iterator[tuple[str, list[str] | tuple[str, ...], int]]:
     """
+    Yield positions where a string partially matches a sequence of regex parts.
+
     **Example usage**
 
     >>> [i for s, r, i in findall_partial(':', TIME_REGEX_PARTS)]

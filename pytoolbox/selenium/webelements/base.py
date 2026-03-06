@@ -1,3 +1,6 @@
+"""
+Base :class:`WebElement` with automatic component specialization.
+"""
 from __future__ import annotations
 
 from selenium.webdriver.remote import webelement
@@ -8,6 +11,7 @@ __all__ = ['WebElement']
 
 
 class WebElement(common.FindMixin, webelement.WebElement):
+    """A web element that specializes itself based on ``data-component``."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -15,9 +19,11 @@ class WebElement(common.FindMixin, webelement.WebElement):
 
     @staticmethod
     def clean_value(value):
+        """Return the value as-is (subclasses may override to coerce types)."""
         return value
 
     def get_attribute(self, name):
+        """Return an attribute, applying :meth:`clean_value` for ``value``."""
         value = super().get_attribute(name)
         return self.clean_value(value) if name == 'value' else value
 

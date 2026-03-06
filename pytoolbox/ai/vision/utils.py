@@ -1,3 +1,6 @@
+"""
+Helper functions for loading and normalizing images.
+"""
 from __future__ import annotations
 
 import os
@@ -15,6 +18,7 @@ def load_image(path):
 
 
 def load_to_file(uri):
+    """Download a remote URI to a local temp file, or return the path as-is."""
     if uri.startswith('http'):
         path = os.path.join(tempfile.gettempdir(), os.path.basename(uri))
         download_ext(uri, path, force=False)

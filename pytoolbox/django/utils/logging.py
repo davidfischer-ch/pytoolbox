@@ -1,3 +1,6 @@
+"""
+Logging configuration helpers for Django projects.
+"""
 from __future__ import annotations
 
 __all__ = ['log_to_console']

@@ -1,3 +1,6 @@
+"""
+Camera and device brand identification from EXIF metadata.
+"""
 from __future__ import annotations
 
 from pytoolbox import collections, exceptions
@@ -6,6 +9,7 @@ __all__ = ['Brand']
 
 
 class Brand(object):
+    """Normalize and validate camera/device brand names from EXIF data."""
 
     brands = frozenset([
         'Apple',
@@ -55,6 +59,7 @@ class Brand(object):
 
     @classmethod
     def clean(cls, brand: str) -> str | None:
+        """Clean and validate a brand string against known brands."""
         brand = brand.strip() if brand else brand
         if not brand:  # pylint:disable=consider-using-assignment-expr
             return None

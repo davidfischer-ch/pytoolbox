@@ -1,3 +1,6 @@
+"""
+Type introspection helpers, dummy/echo objects and a sentinel :data:`Missing` value.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Generator, Iterable
@@ -39,6 +42,7 @@ def get_arguments_names(function: Callable) -> list[str]:
 def get_properties(
     obj: Any
 ) -> Generator[tuple[str, Any], None, None]:  # pylint:disable=unnecessary-default-type-args
+    """Yield ``(name, value)`` pairs for all properties of an object."""
     return (
         (n, getattr(obj, n))
         for n, p in inspect.getmembers(type(obj), lambda m: isinstance(m, property))
@@ -306,6 +310,7 @@ class EchoDict(dict):
 
 
 class MissingType(object):
+    """Singleton type used as a sentinel for missing values."""
 
     def __copy__(self) -> Self:
         return self

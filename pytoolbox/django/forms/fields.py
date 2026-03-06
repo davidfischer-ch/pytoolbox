@@ -11,6 +11,8 @@ __all__ = ['StripCharField']
 
 
 class StripCharField(forms.RegexField):
+    """Regex field that rejects whitespace-only input and auto-focuses."""
+
     default_widget_attrs = {'autofocus': 'autofocus'}
     max_length = None
 

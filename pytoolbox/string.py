@@ -1,3 +1,6 @@
+"""
+String transformation utilities (case conversion, filtering, wrapping).
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
@@ -28,10 +31,12 @@ def camel_to_snake(string: str) -> str:
 
 
 def dash_to_camel(string: str) -> str:
+    """Convert dashed-case to camelCase."""
     return _to_camel(string, '-')
 
 
 def snake_to_camel(string: str) -> str:
+    """Convert snake_case to camelCase."""
     return _to_camel(string, '_')
 
 

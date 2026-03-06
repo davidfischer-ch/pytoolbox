@@ -1,3 +1,6 @@
+"""
+Toolbox for Python scripts.
+"""
 __version__ = '14.8.7'
 
 import logging as _logging

@@ -1,3 +1,6 @@
+"""
+Cryptographic hashing and password generation utilities.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable

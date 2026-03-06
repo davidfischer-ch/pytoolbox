@@ -1,3 +1,6 @@
+"""
+Collection utilities for Django models and forms.
+"""
 from __future__ import annotations
 
 from pytoolbox.django.core.constants import DEFFERED_REGEX

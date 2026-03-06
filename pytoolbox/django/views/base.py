@@ -13,6 +13,7 @@ class CancellableDeleteView(DeleteView):
     """Handle the cancel action (detect a cancel parameter in the POST request)."""
 
     def post(self, request, *args, **kwargs):
+        """Redirect to :attr:`success_url` if cancel is in POST data."""
         if 'cancel' in request.POST:
             return HttpResponseRedirect(self.success_url)
         return super().post(request, *args, **kwargs)

@@ -1,3 +1,6 @@
+"""
+Data classes for FFmpeg/FFprobe media, codec, format, and stream info.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -25,6 +28,7 @@ class BaseInfo(  # pylint:disable=too-few-public-methods
     validation.CleanAttributesMixin,
     comparison.SlotsEqualityMixin
 ):
+    """Base class for FFprobe info objects populated from a JSON dict."""
     defaults: dict[str, Any] = {}
     attr_name_template: str = '{name}'
 
@@ -40,6 +44,7 @@ class BaseInfo(  # pylint:disable=too-few-public-methods
 
 
 class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
+    """Represent a media codec extracted from FFprobe output."""
     long_name: str
     name: str
     tag: str
@@ -61,10 +66,12 @@ class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
 
     @staticmethod
     def clean_time_base(value: float | str | None) -> float | None:
+        """Parse ``time_base`` as a frame rate float."""
         return None if value is None else utils.to_frame_rate(value)
 
 
 class Format(BaseInfo):
+    """Represent a media container format extracted from FFprobe output."""
     bit_rate: int | None
     duration: float | None
     filename: str
@@ -93,34 +100,42 @@ class Format(BaseInfo):
 
     @staticmethod
     def clean_bit_rate(value) -> int | None:
+        """Convert ``bit_rate`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_duration(value) -> float | None:
+        """Parse ``duration`` as a float."""
         return None if value is None else float(value)
 
     @staticmethod
     def clean_nb_programs(value) -> int | None:
+        """Convert ``nb_programs`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_nb_streams(value) -> int | None:
+        """Convert ``nb_streams`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_probe_score(value) -> int | None:
+        """Convert ``probe_score`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_size(value) -> int | None:
+        """Convert ``size`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_start_time(value) -> float | None:
+        """Parse ``start_time`` as a float."""
         return None if value is None else float(value)
 
 
 class Stream(BaseInfo):
+    """Represent a media stream extracted from FFprobe output."""
     avg_frame_rate: float | None
     bit_per_raw_sample: int | None
     bit_rate: int | None
@@ -161,34 +176,42 @@ class Stream(BaseInfo):
 
     @staticmethod
     def clean_avg_frame_rate(value: float | str | None) -> float | None:
+        """Parse ``avg_frame_rate`` as a frame rate float."""
         return None if value is None else utils.to_frame_rate(value)
 
     @staticmethod
     def clean_bit_rate(value: int | str | None) -> int | None:
+        """Convert ``bit_rate`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_duration(value: float | int | str | None) -> float | None:
+        """Parse ``duration`` as a float."""
         return None if value is None else float(value)
 
     @staticmethod
     def clean_duration_ts(value: int | str | None) -> int | None:
+        """Convert ``duration_ts`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_index(value: int | str | None) -> int | None:
+        """Convert ``index`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_nb_frames(value: int | str | None) -> int | None:
+        """Convert ``nb_frames`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_r_frame_rate(value: float | str | None) -> float | None:
+        """Parse ``r_frame_rate`` as a frame rate float."""
         return None if value is None else utils.to_frame_rate(value)
 
 
 class AudioStream(Stream):
+    """Represent an audio stream with sample rate and channel info."""
     bits_per_sample: int | None
     channel_layout: str | None
     channels: int | None
@@ -209,47 +232,58 @@ class AudioStream(Stream):
 
     @staticmethod
     def clean_bits_per_sample(value: int | str | None) -> int | None:
+        """Convert ``bits_per_sample`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_channels(value: int | str | None) -> int | None:
+        """Convert ``channels`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_sample_rate(value: int | str | None) -> int | None:
+        """Convert ``sample_rate`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_start_pts(value: int | str | None) -> int | None:
+        """Convert ``start_pts`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_start_time(value: float | int | str | None) -> float | None:
+        """Parse ``start_time`` as a float."""
         return None if value is None else float(value)
 
 
 class SubtitleStream(Stream):
+    """Represent a subtitle stream."""
 
     __slots__ = ('duration', 'duration_ts', 'start_pts', 'start_time', 'tags')
 
     @staticmethod
     def clean_duration(value: float | int | str | None) -> float | None:
+        """Parse ``duration`` as a float."""
         return None if value is None else float(value)
 
     @staticmethod
     def clean_duration_ts(value: int | str | None) -> int | None:
+        """Convert ``duration_ts`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_start_pts(value: int | str | None) -> int | None:
+        """Convert ``start_pts`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_start_time(value: float | int | str | None) -> float | None:
+        """Parse ``start_time`` as a float."""
         return None if value is None else float(value)
 
 
 class VideoStream(Stream):
+    """Represent a video stream with resolution and pixel format info."""
 
     __slots__ = (
         'bit_per_raw_sample',
@@ -265,27 +299,33 @@ class VideoStream(Stream):
 
     @staticmethod
     def clean_bit_per_raw_sample(value: int | str | None) -> int | None:
+        """Convert ``bit_per_raw_sample`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_height(value: int | str | None) -> int | None:
+        """Convert ``height`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_level(value: int | str | None) -> int | None:
+        """Convert ``level`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
     def clean_width(value: int | str | None) -> int | None:
+        """Convert ``width`` to an integer."""
         return None if value is None else int(value)
 
     @property
     def rotation(self) -> int:
+        """Return the stream rotation angle from metadata tags."""
         tags = self.tags  # type: ignore[attr-defined]  # pylint:disable=no-member
         return int(0 if tags is None else tags.get('rotate', 0))
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
+    """Represent a media file or pipe with its FFmpeg options."""
 
     __slots__ = ('_path', 'options', '_is_pipe')
 
@@ -301,6 +341,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     @property
     def directory(self) -> Path | None:
+        """Return the parent directory of the media path, or ``None`` for pipes."""
         if self.is_pipe:
             return None
         assert isinstance(self.path, Path)
@@ -308,14 +349,17 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     @property
     def is_pipe(self) -> bool:
+        """Return ``True`` if the media path is a pipe."""
         return self._is_pipe
 
     @property
     def path(self) -> Path | str:
+        """Return the media file path or pipe string."""
         return self._path
 
     @property
     def size(self) -> int:
+        """Return the file size in bytes, or ``0`` for pipes."""
         if self._size is not None:
             return self._size
         if self.is_pipe:
@@ -329,12 +373,15 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     @staticmethod
     def clean_options(value: CallArgsType) -> list[str]:
+        """Normalize ``options`` to a flat list of strings."""
         return to_args_list(value)
 
     def create_directory(self) -> bool:
+        """Create the parent directory of this media's path if needed."""
         if (directory := self.directory) is not None:
             return filesystem.makedirs(directory)
         return False
 
     def to_args(self, is_input: bool) -> list[str]:
+        """Return FFmpeg command-line arguments for this media."""
         return self.options + (['-i', str(self.path)] if is_input else [str(self.path)])

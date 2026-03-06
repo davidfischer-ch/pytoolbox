@@ -91,6 +91,7 @@ def create_site(sender, **kwargs):
 
 
 def setup_postgresql_hstore_extension(sender, connection, **kwargs):
+    """Create the PostgreSQL ``hstore`` extension and register it globally."""
     from psycopg2.extras import register_hstore
     cursor = connection.connection.cursor()
     cursor.execute('CREATE EXTENSION IF NOT EXISTS hstore')

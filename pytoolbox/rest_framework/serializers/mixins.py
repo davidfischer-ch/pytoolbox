@@ -13,8 +13,10 @@ __all__ = ['BaseModelMixin', 'FromPrivateKeyMixin', 'NestedWriteMixin', 'ReadOnl
 
 
 class BaseModelMixin(object):
+    """Build URL fields using the base (non-proxy) model class."""
 
     def build_url_field(self, field_name, model_class):
+        """Return a URL field resolved against the base model."""
         return super().build_url_field(field_name, utils.get_base_model(model_class))
 
 
@@ -41,12 +43,14 @@ class FromPrivateKeyMixin(object):
             self.fail('incorrect_type', data_type=type(data).__name__)
 
     def create(self, validated_data):
+        """Return the instance directly if already resolved, otherwise create it."""
         if isinstance(validated_data, self.Meta.model):
             return validated_data
         return super().create(validated_data)
 
 
 class NestedWriteMixin(object):
+    """Return ``(serializer, validated_data)`` tuples for nested writes."""
 
     def to_internal_value(self, data):
         """
@@ -57,13 +61,16 @@ class NestedWriteMixin(object):
 
 
 class ReadOnlyMixin(object):
+    """Force the serializer into read-only mode, rejecting create and update."""
 
     def __init__(self, *args, **kwargs):
         kwargs['read_only'] = True
         super().__init__(*args, **kwargs)
 
     def create(self, validated_data):
+        """Raise :class:`AttributeError` unconditionally."""
         raise AttributeError('Read-only serializer')
 
     def update(self, task, validated_data):
+        """Raise :class:`AttributeError` unconditionally."""
         raise AttributeError('Read-only serializer')

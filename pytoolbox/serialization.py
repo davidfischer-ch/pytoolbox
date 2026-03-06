@@ -1,3 +1,6 @@
+"""
+Serialization to/from JSON, pickle, YAML and nested dictionaries.
+"""
 from __future__ import annotations
 
 from typing import TypeAlias
@@ -148,6 +151,7 @@ class PickleableObject(object):
 
 # http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
+    """JSON encoder that serializes :class:`ObjectId` and ``__dict__``."""
 
     def default(self, obj):  # pylint:disable=arguments-differ
         if ObjectId is not None and isinstance(obj, ObjectId):
@@ -158,6 +162,7 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 
 
 class SmartJSONEncoderV2(json.JSONEncoder):
+    """JSON encoder that also serializes properties alongside attributes."""
 
     def default(self, obj):  # pylint:disable=arguments-differ
         if isinstance(obj, ObjectId):
@@ -612,10 +617,12 @@ def dict_to_object(cls, the_dict, inspect_constructor):
 
 
 class SlotsToDictMixin(object):
+    """Mixin adding a :meth:`to_dict` method that serializes ``__slots__``."""
 
     extra_slots = None
 
     def to_dict(self, *, extra_slots=True):
+        """Return a dictionary of non-``None`` public slot values."""
         self_dict = {}
         slots = set(s for s in get_slots(self) if s[0] != '_')
         if extra_slots:

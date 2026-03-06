@@ -1,3 +1,6 @@
+"""
+GNU/Linux-specific helpers (kernel configuration, etc.).
+"""
 from __future__ import annotations
 
 from pathlib import Path
