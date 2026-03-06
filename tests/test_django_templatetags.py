@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import os
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 from django.db import models
 
@@ -26,17 +26,14 @@ def test_getattribute_missing_returns_invalid() -> None:
     assert templatetags.getattribute({}, 'missing') == templatetags.string_if_invalid
 
 
-def test_inline_closes_file_handle() -> None:
-    """inline filter reads file content without leaking file handles."""
+def test_inline_reads_allowed_file() -> None:
+    """inline filter returns file content when the path is allowed."""
     filepath = '/static/test.js'
     with (
         patch('pytoolbox.django.templatetags._include_is_allowed', return_value=True),
-        patch('builtins.open', mock_open(read_data='content')) as mocked_open
+        patch('pathlib.Path.read_text', return_value='content')
     ):
-        result = templatetags.inline(filepath)
-        assert result == 'content'
-        handle = mocked_open()
-        handle.__exit__.assert_called()
+        assert templatetags.inline(filepath) == 'content'
 
 
 def test_naturalbitrate() -> None:
