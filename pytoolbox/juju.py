@@ -833,7 +833,8 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
 
     # Units
 
-    def ensure_num_units(  # pylint:disable=invalid-name,too-many-arguments,too-many-branches,too-many-locals
+    # pylint:disable=too-many-branches,too-many-locals
+    def ensure_num_units(  # pylint:disable=invalid-name,too-many-arguments
         self,
         charm: str,
         service: str,
