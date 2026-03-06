@@ -8,6 +8,7 @@ from pytoolbox.django.models import mixins
 
 
 def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
+    """Relation fields are excluded from validation, regular fields are not."""
     class TestModel(mixins.FasterValidateOnSaveMixin, models.Model):
         name = models.CharField(max_length=100)
         other = models.ForeignKey(
@@ -25,6 +26,7 @@ def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
 
 
 def test_public_meta_mixin() -> None:
+    """meta() classmethod exposes the private _meta for use in templates."""
     class TestModel(mixins.PublicMetaMixin, models.Model):
         class Meta:
             app_label = 'test'
@@ -33,6 +35,7 @@ def test_public_meta_mixin() -> None:
 
 
 def test_validate_on_save_mixin_calls_full_clean() -> None:
+    """save() calls full_clean() when validate_on_save is True (default)."""
     class Base:
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
@@ -46,6 +49,7 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
 
 
 def test_validate_on_save_mixin_skips_when_disabled() -> None:
+    """save() skips full_clean() when validate_on_save is set to False."""
     class Base:
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
@@ -60,6 +64,7 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
 
 
 def test_validate_on_save_mixin_skips_via_kwarg() -> None:
+    """save(validate=False) bypasses full_clean() even when validate_on_save is True."""
     class Base:
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
@@ -73,6 +78,7 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
 
 
 def test_always_update_fields_mixin() -> None:
+    """always_update_fields are injected into update_fields when saving."""
     saved_kwargs = {}
 
     class Base:
@@ -89,6 +95,7 @@ def test_always_update_fields_mixin() -> None:
 
 
 def test_always_update_fields_mixin_no_update_fields() -> None:
+    """Without update_fields, always_update_fields does not force a partial update."""
     saved_kwargs = {}
 
     class Base:
@@ -104,6 +111,7 @@ def test_always_update_fields_mixin_no_update_fields() -> None:
 
 
 def test_auto_force_insert_mixin() -> None:
+    """force_insert is set from _state.adding when not explicitly provided."""
     saved_kwargs = {}
 
     class Base:
@@ -124,6 +132,7 @@ def test_auto_force_insert_mixin() -> None:
 
 
 def test_auto_force_insert_mixin_explicit_override() -> None:
+    """Explicit force_insert=False is not overridden by _state.adding."""
     saved_kwargs = {}
 
     class Base:
@@ -139,6 +148,7 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
 
 
 def test_call_fields_pre_save_mixin() -> None:
+    """pre_save is called on all non-pk fields, pk field is skipped."""
     field1 = MagicMock(primary_key=False)
     field2 = MagicMock(primary_key=True)
     field3 = MagicMock(primary_key=False)
@@ -159,6 +169,7 @@ def test_call_fields_pre_save_mixin() -> None:
 
 
 def test_reload_mixin() -> None:
+    """reload() fetches a fresh instance from the default manager by pk."""
     mock_instance = MagicMock()
 
     class TestObj(mixins.ReloadMixin):

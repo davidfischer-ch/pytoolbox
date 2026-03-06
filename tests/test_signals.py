@@ -39,11 +39,13 @@ class TestSignals(unittest.TestCase):
                 assert self.list == sorted(self.list), self.name
 
     def test_handler(self) -> None:
+        """Registered handler is invoked when the signal is delivered."""
         self.name = 'test_handler'
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
         os.kill(os.getpid(), signal.SIGTERM)
 
     def test_handler_reset(self) -> None:
+        """reset=True replaces all previous handlers with the new one."""
         self.name = 'test_handler_reset'
         signals.register_handler(signal.SIGTERM, self.raise_handler)
         signals.register_handler(signal.SIGTERM, self.raise_handler)
@@ -52,11 +54,13 @@ class TestSignals(unittest.TestCase):
         os.kill(os.getpid(), signal.SIGTERM)
 
     def test_callback(self) -> None:
+        """Registered callback is invoked with the specified args on signal delivery."""
         self.name = 'test_callback'
         signals.register_callback(signal.SIGTERM, self.set_flag_callback, args=[None])
         os.kill(os.getpid(), signal.SIGTERM)
 
     def test_callbacks_call_order_is_lifo(self) -> None:
+        """Multiple callbacks are executed in LIFO (last registered first) order."""
         self.name = 'test_callbacks_call_order_is_lifo'
         signals.register_callback(signal.SIGTERM, self.append_list_callback, args=[3])
         signals.register_callback(signal.SIGTERM, self.append_list_callback, args=[2])
@@ -64,9 +68,19 @@ class TestSignals(unittest.TestCase):
         os.kill(os.getpid(), signal.SIGTERM)
 
     def test_callback_unauthorized_append(self) -> None:
+        """Registering a callback with append=False raises when a handler already exists."""
         self.name = 'test_callback_unauthorized_append'
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
         with pytest.raises(exceptions.MultipleSignalHandlersError):
             signals.register_callback(
                 signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
         os.kill(os.getpid(), signal.SIGTERM)
+
+    def test_handler_error_propagation(self) -> None:
+        """Exceptions from signal handlers are collected and re-raised as RuntimeError."""
+        def failing_handler(signum, frame):  # pylint:disable=unused-argument
+            raise ValueError('handler failed')
+
+        signals.register_handler(signal.SIGTERM, failing_handler, reset=True)
+        with pytest.raises(RuntimeError):
+            os.kill(os.getpid(), signal.SIGTERM)

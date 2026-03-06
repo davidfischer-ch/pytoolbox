@@ -10,6 +10,7 @@ from pytoolbox.django.forms import utils
 
 
 def test_update_widget_attributes_add_remove_toggle() -> None:
+    """+ adds, - removes, and ^ toggles CSS classes on widget attributes."""
     widget = MagicMock()
     widget.attrs = {'class': 'mondiale'}
     utils.update_widget_attributes(widget, {'class': '+pigeon +voyage -mondiale ^voyageur'})
@@ -21,6 +22,7 @@ def test_update_widget_attributes_add_remove_toggle() -> None:
 
 
 def test_update_widget_attributes_non_class() -> None:
+    """Non-class attributes (cols, rows) are set directly on the widget."""
     widget = MagicMock()
     widget.attrs = {}
     utils.update_widget_attributes(widget, {'cols': 100, 'rows': 20})
@@ -29,6 +31,7 @@ def test_update_widget_attributes_non_class() -> None:
 
 
 def test_update_widget_attributes_invalid_operation() -> None:
+    """Raises ValueError for class values without a +/-/^ prefix operator."""
     widget = MagicMock()
     widget.attrs = {}
     with pytest.raises(ValueError, match='valid string'):
@@ -36,6 +39,7 @@ def test_update_widget_attributes_invalid_operation() -> None:
 
 
 def test_conditional_required() -> None:
+    """Adds an error for empty fields marked as required, skips non-required ones."""
     form = MagicMock()
     form._errors = {}
     form.cleaned_data = {'name': '', 'age': 25}
@@ -45,6 +49,7 @@ def test_conditional_required() -> None:
 
 
 def test_conditional_required_cleanup() -> None:
+    """Cleanup mode sets non-required field values to None in the data dict."""
     form = MagicMock()
     form._errors = {}
     data = {'optional': 'value'}
@@ -53,6 +58,7 @@ def test_conditional_required_cleanup() -> None:
 
 
 def test_set_disabled() -> None:
+    """Sets or removes the disabled attribute on a form field's widget."""
     form = MagicMock()
     form.fields = {'name': MagicMock()}
     form.fields['name'].widget.attrs = {}
@@ -63,6 +69,7 @@ def test_set_disabled() -> None:
 
 
 def test_validate_start_end() -> None:
+    """Adds an error on end_date when it precedes start_date."""
     form = MagicMock()
     form._errors = {}
     form.cleaned_data = {

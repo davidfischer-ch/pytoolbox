@@ -6,6 +6,7 @@ from pytoolbox.rest_framework.views import mixins
 
 
 def test_action_to_queryset_mixin_matched() -> None:
+    """Returns the action-specific queryset when the action matches."""
     class FakeView(mixins.ActionToQuerysetMixin):
         queryset = 'default_qs'
         querysets = {'list': 'list_qs', 'create': 'create_qs'}
@@ -16,6 +17,7 @@ def test_action_to_queryset_mixin_matched() -> None:
 
 
 def test_action_to_queryset_mixin_fallback() -> None:
+    """Falls back to the default queryset for unmapped actions."""
     class FakeView(mixins.ActionToQuerysetMixin):
         queryset = 'default_qs'
         querysets = {'list': 'list_qs'}
@@ -26,6 +28,7 @@ def test_action_to_queryset_mixin_fallback() -> None:
 
 
 def test_action_to_serializer_mixin_matched() -> None:
+    """Returns the action-specific serializer class when the action matches."""
     class FakeView(mixins.ActionToSerializerMixin):
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'list': 'ListSerializer'}
@@ -36,6 +39,7 @@ def test_action_to_serializer_mixin_matched() -> None:
 
 
 def test_action_to_serializer_mixin_fallback() -> None:
+    """Falls back to the default serializer class for unmapped actions."""
     class FakeView(mixins.ActionToSerializerMixin):
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'list': 'ListSerializer'}
@@ -46,6 +50,7 @@ def test_action_to_serializer_mixin_fallback() -> None:
 
 
 def test_method_to_queryset_mixin_matched() -> None:
+    """Returns the method-specific queryset when the HTTP method matches."""
     class FakeView(mixins.MethodToQuerysetMixin):
         queryset = 'default_qs'
         querysets = {'GET': 'get_qs', 'POST': 'post_qs'}
@@ -56,6 +61,7 @@ def test_method_to_queryset_mixin_matched() -> None:
 
 
 def test_method_to_queryset_mixin_fallback() -> None:
+    """Falls back to the default queryset for unmapped HTTP methods."""
     class FakeView(mixins.MethodToQuerysetMixin):
         queryset = 'default_qs'
         querysets = {'GET': 'get_qs'}
@@ -66,6 +72,7 @@ def test_method_to_queryset_mixin_fallback() -> None:
 
 
 def test_method_to_serializer_mixin_matched() -> None:
+    """Returns the method-specific serializer class when the HTTP method matches."""
     class FakeView(mixins.MethodToSerializerMixin):
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'POST': 'PostSerializer'}
@@ -76,6 +83,7 @@ def test_method_to_serializer_mixin_matched() -> None:
 
 
 def test_method_to_serializer_mixin_fallback() -> None:
+    """Falls back to the default serializer class for unmapped HTTP methods."""
     class FakeView(mixins.MethodToSerializerMixin):
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'POST': 'PostSerializer'}
@@ -86,6 +94,7 @@ def test_method_to_serializer_mixin_fallback() -> None:
 
 
 def test_redirect_to_login_mixin_authenticated() -> None:
+    """Authenticated users get the original response, no redirect."""
     class Base:
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
             return response
@@ -104,6 +113,7 @@ def test_redirect_to_login_mixin_authenticated() -> None:
 
 
 def test_redirect_to_login_mixin_unauthenticated_non_browsable() -> None:
+    """Unauthenticated users with non-browsable renderers get no redirect."""
     class Base:
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
             return response
@@ -118,10 +128,11 @@ def test_redirect_to_login_mixin_unauthenticated_non_browsable() -> None:
     response.accepted_renderer = MagicMock()  # Not a BrowsableAPIRenderer
 
     result = view.finalize_response(request, response)
-    assert result is response  # No redirect for non-browsable renderers
+    assert result is response
 
 
 def test_redirect_to_login_mixin_unauthenticated_browsable() -> None:
+    """Unauthenticated users with BrowsableAPIRenderer are redirected to login."""
     from unittest.mock import patch
     from rest_framework import renderers
 

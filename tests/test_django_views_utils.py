@@ -9,6 +9,7 @@ from pytoolbox.django.views import utils
 
 
 def test_get_model_or_404() -> None:
+    """Returns the model matching model_name, raises Http404 for unknown names."""
     model_a = MagicMock()
     model_a._meta.model_name = 'article'
     model_b = MagicMock()
