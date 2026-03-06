@@ -3,6 +3,7 @@ Pytoolbox's Template tag and filters.
 """
 from __future__ import annotations
 
+from typing import Final
 import datetime
 import os
 import re
@@ -62,8 +63,8 @@ except Exception:
 
 register = template.Library()
 
-NUMERIC_TEST = re.compile(r'^\d+$')
-LABEL_TO_CLASS = {
+NUMERIC_TEST: Final[re.Pattern[str]] = re.compile(r'^\d+$')
+LABEL_TO_CLASS: Final[dict[str, str]] = {
     'ERROR': 'label-important',
     'FAILURE': 'label-important',
     'PENDING': 'label-warning',

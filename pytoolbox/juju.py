@@ -13,7 +13,7 @@ import sys
 import time
 import uuid
 
-from typing import Any
+from typing import Any, Final
 
 from . import (  # pylint:disable=reimported
     argparse,
@@ -30,11 +30,12 @@ yaml = serialization.get_yaml()
 
 _all = module.All(globals())
 
-CONFIG_FILENAME = 'config.yaml'
-METADATA_FILENAME = 'metadata.yaml'
+CONFIG_FILENAME: Final[str] = 'config.yaml'
+METADATA_FILENAME: Final[str] = 'metadata.yaml'
 
-DEFAULT_ENVIRONMENTS_FILE = os.path.abspath(os.path.expanduser('~/.juju/environments.yaml'))
-DEFAULT_OS_ENV = {
+DEFAULT_ENVIRONMENTS_FILE: Final[str] = os.path.abspath(
+    os.path.expanduser('~/.juju/environments.yaml'))
+DEFAULT_OS_ENV: Final[dict[str, str]] = {
     'APT_LISTCHANGES_FRONTEND': 'none',
     'CHARM_DIR': '/var/lib/juju/units/oscied-storage-0/charm',
     'DEBIAN_FRONTEND': 'noninteractive',
@@ -59,19 +60,19 @@ DEFAULT_OS_ENV = {
 ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR, UNKNOWN = \
     ('pending', 'installed', 'started', 'stopped', 'not-started', 'error', 'unknown')
 
-UNKNOWN_STATES = (UNKNOWN,)
-PENDING_STATES = (PENDING, INSTALLED)
-STARTED_STATES = (STARTED,)
-STOPPED_STATES = (STOPPED,)
-ERROR_STATES = (ERROR, NOT_STARTED)
+UNKNOWN_STATES: Final[tuple[str, ...]] = (UNKNOWN,)
+PENDING_STATES: Final[tuple[str, ...]] = (PENDING, INSTALLED)
+STARTED_STATES: Final[tuple[str, ...]] = (STARTED,)
+STOPPED_STATES: Final[tuple[str, ...]] = (STOPPED,)
+ERROR_STATES: Final[tuple[str, ...]] = (ERROR, NOT_STARTED)
 
 # Some Amazon EC2 constraints, waiting for instance-type to be implemented ...
-M1_SMALL = 'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
-M1_MEDIUM = 'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
-C1_MEDIUM = 'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
+M1_SMALL: Final[str] = 'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
+M1_MEDIUM: Final[str] = 'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
+C1_MEDIUM: Final[str] = 'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
-ENVIRONMENT_COMMANDS = ('destroy-environment', )
-SUPER_COMMANDS = ('destroy-environment', )
+ENVIRONMENT_COMMANDS: Final[tuple[str, ...]] = ('destroy-environment', )
+SUPER_COMMANDS: Final[tuple[str, ...]] = ('destroy-environment', )
 
 
 def juju_do(

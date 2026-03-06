@@ -19,6 +19,7 @@ Face detection and alignment using :mod:`dlib` landmark estimation.
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Final
 import bz2
 import tempfile
 
@@ -30,7 +31,7 @@ from pytoolbox.ai.vision import utils
 
 __all__ = ['DlibFaceDetector']
 
-TEMPLATE = np.float32([
+TEMPLATE: Final[np.ndarray] = np.float32([
     (0.0792396913815, 0.339223741112), (0.0829219487236, 0.456955367943),
     (0.0967927109165, 0.575648016728), (0.122141515615, 0.691921601066),
     (0.168687863544, 0.800341263616), (0.239789390707, 0.895732504778),
@@ -68,7 +69,7 @@ TEMPLATE = np.float32([
 ])
 
 TPL_MIN, TPL_MAX = np.min(TEMPLATE, axis=0), np.max(TEMPLATE, axis=0)
-MINMAX_TEMPLATE = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
+MINMAX_TEMPLATE: Final[np.ndarray] = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
 
 
 class DlibFaceDetector(object):

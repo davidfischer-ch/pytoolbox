@@ -3,6 +3,7 @@ Flask utilities for JSON responses and exception mapping.
 """
 from __future__ import annotations
 
+from typing import Final
 import logging
 import uuid
 
@@ -15,7 +16,12 @@ from .validation import valid_uuid
 
 __all__ = ['STATUS_TO_EXCEPTION', 'check_id', 'json_response', 'map_exceptions']
 
-STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
+STATUS_TO_EXCEPTION: Final[dict[int, type[Exception]]] = {
+    400: TypeError,
+    404: IndexError,
+    415: ValueError,
+    501: NotImplementedError
+}
 
 
 def check_id(value: str) -> uuid.UUID | ObjectId:

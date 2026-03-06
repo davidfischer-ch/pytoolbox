@@ -10,13 +10,14 @@ except ImportError:
     from django.core.urlresolvers import get_resolver
 
 from collections.abc import Generator
+from typing import Final
 
 from pytoolbox.regex import UUID_REGEX
 
 __all__ = ['INT_PK', 'UUID_PK', 'get_named_patterns']
 
-INT_PK = r'(?P<pk>\d+)'
-UUID_PK = r'(?P<pk>%s)' % UUID_REGEX
+INT_PK: Final[str] = r'(?P<pk>\d+)'
+UUID_PK: Final[str] = r'(?P<pk>%s)' % UUID_REGEX
 
 
 def get_named_patterns() -> Generator[tuple[str, str], None, None]:

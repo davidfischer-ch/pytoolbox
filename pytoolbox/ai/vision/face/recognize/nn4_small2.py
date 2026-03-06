@@ -6,6 +6,8 @@ OpenFace NN4.Small2.v1 Keras model for face recognition.
 """
 from __future__ import annotations
 
+from typing import Final
+
 from keras import backend as K
 from keras.layers import (  # pylint:disable=import-error
     Activation,
@@ -25,7 +27,7 @@ import tensorflow as tf
 
 from pytoolbox.ai.vision import utils
 
-DEFAULT_WEIGHTS = (
+DEFAULT_WEIGHTS: Final[str] = (
     'https://s3-eu-west-1.amazonaws.com/pytoolbox/ai/vision/face/recognize/'
     'nn4.small2.v1.h5')
 

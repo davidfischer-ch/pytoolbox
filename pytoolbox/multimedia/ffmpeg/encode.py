@@ -3,6 +3,7 @@ Encoding progress tracking and statistics for FFmpeg.
 """
 from __future__ import annotations
 
+from typing import Final
 import datetime
 import re
 import time
@@ -13,7 +14,7 @@ from . import ffprobe, utils
 
 __all__ = ['ENCODING_REGEX', 'EncodeState', 'EncodeStatistics', 'FrameBasedRatioMixin']
 
-ENCODING_REGEX = re.compile(
+ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
     # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
     r'frame=\s*(?P<frame>\d+)\s+'
     r'fps=\s*(?P<frame_rate>\d+\.?\d*)\s+'

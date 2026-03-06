@@ -4,6 +4,7 @@ Helpers for the :mod:`PIL` (Pillow) image library.
 # pylint:disable=invalid-name
 from __future__ import annotations
 
+from typing import Final
 import collections.abc
 import functools
 
@@ -13,7 +14,7 @@ _all = module.All(globals())
 
 from PIL import Image  # noqa pylint:disable=wrong-import-position
 
-TRANSPOSE_SEQUENCES = {
+TRANSPOSE_SEQUENCES: Final[dict[int | None, list[int]]] = {
     # pylint:disable=no-member
     None: [],
     1: [],
