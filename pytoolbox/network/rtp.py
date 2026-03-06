@@ -390,7 +390,8 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
             sequence: int,
             timestamp: int,
             payload_type: int,
-            payload: bytearray | str) -> RtpPacket:
+            payload: bytearray | str
+    ) -> RtpPacket:
         """
         Create a valid RTP packet with a given payload.
 

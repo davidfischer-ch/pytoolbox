@@ -40,7 +40,8 @@ class cached_property(object):  # pylint:disable=invalid-name,too-few-public-met
     def __get__(  # pylint:disable=redefined-builtin
             self,
             instance: Any,
-            type: type | None = None) -> Any:
+            type: type | None = None
+    ) -> Any:
         """Compute, cache on the instance, and return the property value."""
         if instance is None:
             return self

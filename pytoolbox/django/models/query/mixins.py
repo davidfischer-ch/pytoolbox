@@ -25,7 +25,8 @@ class AtomicGetUpdateOrCreateMixin(object):
     def get_or_create(
             self,
             defaults: dict[str, object] | None = None,
-            **kwargs: object) -> tuple[models.Model, bool]:
+            **kwargs: object
+    ) -> tuple[models.Model, bool]:
         """Wrap ``get_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_or_create(defaults=defaults, **kwargs)
@@ -33,7 +34,8 @@ class AtomicGetUpdateOrCreateMixin(object):
     def update_or_create(
             self,
             defaults: dict[str, object] | None = None,
-            **kwargs: object) -> tuple[models.Model, bool]:
+            **kwargs: object
+    ) -> tuple[models.Model, bool]:
         """Wrap ``update_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().update_or_create(defaults=defaults, **kwargs)

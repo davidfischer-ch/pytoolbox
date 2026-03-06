@@ -20,7 +20,8 @@ class FindMixin(object):
             criteria: str,
             *,
             force_list: bool = False,
-            fail: bool = True) -> Any:
+            fail: bool = True
+    ) -> Any:
         """Return a single element, a list, or raise if none found."""
         if elements:
             return elements if force_list or len(elements) > 1 else elements[0]
@@ -34,7 +35,8 @@ class FindMixin(object):
             *,
             prefix: bool = True,
             force_list: bool = False,
-            fail: bool = True) -> Any:
+            fail: bool = True
+    ) -> Any:
         """Find elements by CSS selector."""
         assert prefix  # Not implemented
         elements = self.find_elements_by_css_selector(css_selector)
@@ -46,7 +48,8 @@ class FindMixin(object):
             *,
             prefix: bool = True,
             force_list: bool = False,
-            fail: bool = True) -> Any:
+            fail: bool = True
+    ) -> Any:
         """Find elements by their HTML ``id`` attribute."""
         return self.find_css(f'#{element_id}', prefix=prefix, force_list=force_list, fail=fail)
 
@@ -56,7 +59,8 @@ class FindMixin(object):
             *,
             prefix: bool = True,
             force_list: bool = False,
-            fail: bool = True) -> Any:
+            fail: bool = True
+    ) -> Any:
         """Find elements by their ``name`` attribute."""
         return self.find_css(
             f'[name={element_name}]',

@@ -20,7 +20,8 @@ class InstanceSignal(_dispatch.Signal):
     def send_robust(
             self,
             sender: type | None = None,
-            **named: object) -> list[tuple[object, object]]:
+            **named: object
+    ) -> list[tuple[object, object]]:
         """Send signal robustly using the base model as sender."""
         return super().send(_utils.get_base_model(sender or named['instance']), **named)
 

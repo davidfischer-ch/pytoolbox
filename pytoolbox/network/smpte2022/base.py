@@ -386,7 +386,8 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             direction: int,
             L: int,
             D: int,
-            packets: list[RtpPacket]) -> FecPacket:
+            packets: list[RtpPacket]
+    ) -> FecPacket:
         """
         This method will generate FEC packet's field by applying FEC algorithm to input packets.
         In case of error (e.g. bad version number) the method will abort filling fields and

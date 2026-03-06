@@ -4,6 +4,7 @@ Helpers for managing Juju environments, services, units, and charms.
 """
 from __future__ import annotations
 
+from typing import Any, Final
 import json
 import os
 import random
@@ -12,8 +13,6 @@ import subprocess as _subprocess
 import sys
 import time
 import uuid
-
-from typing import Any, Final
 
 from . import (  # pylint:disable=reimported
     argparse,
@@ -71,8 +70,8 @@ M1_SMALL: Final[str] = 'arch=amd64 cpu-cores=1 cpu-power=100 mem=1.5G'
 M1_MEDIUM: Final[str] = 'arch=amd64 cpu-cores=1 cpu-power=200 mem=3.5G'
 C1_MEDIUM: Final[str] = 'arch=amd64 cpu-cores=2 cpu-power=500 mem=1.5G'
 
-ENVIRONMENT_COMMANDS: Final[tuple[str, ...]] = ('destroy-environment', )
-SUPER_COMMANDS: Final[tuple[str, ...]] = ('destroy-environment', )
+ENVIRONMENT_COMMANDS: Final[tuple[str, ...]] = ('destroy-environment',)
+SUPER_COMMANDS: Final[tuple[str, ...]] = ('destroy-environment',)
 
 
 def juju_do(

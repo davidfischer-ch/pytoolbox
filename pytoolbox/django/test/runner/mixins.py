@@ -27,7 +27,7 @@ class FastPasswordHasherMixin(object):
     def setup_test_environment(self) -> None:
         """Switch password hasher to MD5 for faster test execution."""
         super().setup_test_environment()
-        settings.PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher', )
+        settings.PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher',)
 
 
 class TemporarySendfileRootMixin(object):

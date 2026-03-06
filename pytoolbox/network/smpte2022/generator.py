@@ -47,7 +47,8 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
     def __init__(  # pylint:disable=invalid-name,too-many-instance-attributes
             self,
             L: int,
-            D: int) -> None:
+            D: int
+    ) -> None:
         """
         Construct a FecGenerator.
 

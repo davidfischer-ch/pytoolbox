@@ -80,7 +80,7 @@ class CorruptedFileError(MessageMixin, Exception):
 
 class DuplicateGitTagError(MessageMixin, Exception):
     """Raised when attempting to create a Git tag that already exists."""
-    attrs: tuple[str, ...] = ('tag', )
+    attrs: tuple[str, ...] = ('tag',)
     message: str = 'Tag {tag} already exist.'
     tag: str
 
@@ -105,14 +105,14 @@ class InvalidBrandError(MessageMixin, Exception):
 
 class InvalidIPSocketError(MessageMixin, Exception):
     """Raised when a string is not a valid IP socket address."""
-    attrs: tuple[str, ...] = ('socket', )
+    attrs: tuple[str, ...] = ('socket',)
     message: str = '{socket} is not a valid IP socket.'
     socket: str
 
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
     """Raised when a signal already has registered handlers."""
-    attrs: tuple[str, ...] = ('signum', 'handlers', )
+    attrs: tuple[str, ...] = ('signum', 'handlers')
     message: str = 'Signal {signum} already handled by {handlers}.'
     signum: str
     handlers: list[Callable]
@@ -120,7 +120,7 @@ class MultipleSignalHandlersError(MessageMixin, Exception):
 
 class RegexMatchGroupNotFoundError(MessageMixin, Exception):
     """Raised when a named group is not found in a regex match."""
-    attrs: tuple[str, ...] = ('group', )
+    attrs: tuple[str, ...] = ('group',)
     message: str = 'Group "{group}" not found in the regex match.'
     group: str
 
@@ -137,7 +137,7 @@ class SSHAgentLoadingKeyError(MessageMixin, Exception):
 
 class SSHAgentParsingError(MessageMixin, Exception):
     """Raised when ``ssh-agent`` output cannot be parsed."""
-    attrs: tuple[str, ...] = ('output', )
+    attrs: tuple[str, ...] = ('output',)
     message: str = 'Unable to parse ssh-agent output "{output}".'
     output: str
 

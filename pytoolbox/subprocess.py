@@ -140,7 +140,8 @@ def _communicate_with_timeout(  # pylint:disable=redefined-builtin
         *,
         data: dict,
         process: Popen,
-        input: str | None) -> None:
+        input: str | None
+) -> None:
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
@@ -159,7 +160,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
-    success_codes: Iterable[int] = (0, ),
+    success_codes: Iterable[int] = (0,),
     **kwargs: object
 ) -> CallResult:
     """

@@ -45,7 +45,8 @@ class ExtraChoicesField(StripCharField):
             self,
             verbose_name: str | None = None,
             extra_choices: list | None = None,
-            **kwargs: object) -> None:
+            **kwargs: object
+    ) -> None:
         self.extra_choices = extra_choices or []
         super().__init__(verbose_name=verbose_name, **kwargs)
 

@@ -6,7 +6,7 @@
 
         from . import signals
 
-        __all__ = ('MyApp', )
+        __all__ = ('MyApp',)
 
 
         class MyAppConfig(apps.AppConfig):

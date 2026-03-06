@@ -68,7 +68,8 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
             cls,
             state: str,
             *,
-            auto_inverse: bool = False) -> frozenset[str] | tuple[frozenset[str], bool]:
+            auto_inverse: bool = False
+    ) -> frozenset[str] | tuple[frozenset[str], bool]:
         """
         Return a set with the states having a transition to given `state`.
 

@@ -38,7 +38,8 @@ class EventsTable(object):
             self,
             time: TimeValue,
             time_speedup: int | float | None = None,
-            default_value: str | None = None) -> tuple[int, str | None]:
+            default_value: str | None = None
+    ) -> tuple[int, str | None]:
         """Return the event index and value for a given time."""
         # """
         # >>> def test_get_index(time_range, time_speedup):

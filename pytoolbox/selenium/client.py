@@ -43,7 +43,8 @@ class LiveClient(common.FindMixin):
             *,
             prefix: bool = True,
             force_list: bool = False,
-            fail: bool = True) -> Any:
+            fail: bool = True
+    ) -> Any:
         """Shortcut to find elements by CSS. Returns either a list or singleton."""
         if prefix and self.css_prefix:
             css_selector = f'{self.css_prefix} {css_selector}'
@@ -57,7 +58,7 @@ class LiveClient(common.FindMixin):
         """Navigate to a URL relative to the live server."""
         assert data is None
         url = urljoin(self.live_server_url, url) if '://' not in url else url
-        response = type('Response', (object, ), self.web_driver.execute(Command.GET, {'url': url}))
+        response = type('Response', (object,), self.web_driver.execute(Command.GET, {'url': url}))
         response.status_code = 200 if self.web_driver.current_url == url else 404
         return response
 
@@ -87,7 +88,8 @@ class LiveClient(common.FindMixin):
             inverse: bool = False,
             prefix: bool = True,
             timeout: int = 5,
-            fail: bool = True) -> bool | None:
+            fail: bool = True
+    ) -> bool | None:
         """Wait until a CSS selector matches (or stops matching if *inverse*)."""
         try:
             def wait_func(driver: Any) -> bool:  # pylint:disable=unused-argument
@@ -105,7 +107,8 @@ class LiveClient(common.FindMixin):
             inverse: bool = False,
             prefix: bool = True,
             timeout: int = 5,
-            fail: bool = True) -> bool | None:
+            fail: bool = True
+    ) -> bool | None:
         """Wait until an element with the given ID is present."""
         return self.wait_for_css(
             f'#{element_id}',
@@ -121,7 +124,8 @@ class LiveClient(common.FindMixin):
             inverse: bool = False,
             prefix: bool = True,
             timeout: int = 5,
-            fail: bool = True) -> bool | None:
+            fail: bool = True
+    ) -> bool | None:
         """Wait until an element with the given name attribute is present."""
         return self.wait_for_css(
             f'[name="{element_name}"]',

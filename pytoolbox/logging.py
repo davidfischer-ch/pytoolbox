@@ -80,7 +80,8 @@ class BasicFuncLogger(logging.Logger):
             level: int,
             msg: str,
             *args: object,
-            **kwargs: object) -> None:
+            **kwargs: object
+    ) -> None:
         self._log_func(msg)
 
 

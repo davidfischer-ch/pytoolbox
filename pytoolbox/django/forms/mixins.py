@@ -69,7 +69,8 @@ class HelpTextToPlaceholderMixin(object):
     def set_placeholder(  # pylint:disable=unused-argument
             self,
             name: str,
-            field: fields.Field) -> None:
+            field: fields.Field
+    ) -> None:
         """Copy the field's help text into the widget placeholder attribute."""
         field.widget.attrs['placeholder'] = field.help_text
         if self.placeholder_remove_help_text:

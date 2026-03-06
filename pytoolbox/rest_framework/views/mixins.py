@@ -62,14 +62,15 @@ class MethodToSerializerMixin(object):
 class RedirectToLoginMixin(object):
     """Redirect unauthenticated browsable API requests to the login page."""
 
-    redirected_classes = (renderers.BrowsableAPIRenderer, )
+    redirected_classes = (renderers.BrowsableAPIRenderer,)
 
     def finalize_response(
             self,
             request: Request,
             response: Response,
             *args: Any,
-            **kwargs: Any) -> Response:
+            **kwargs: Any
+    ) -> Response:
         """Redirect to login if the user is unauthenticated and using a browser."""
         response = super().finalize_response(request, response, *args, **kwargs)
         logged = request.user.is_authenticated

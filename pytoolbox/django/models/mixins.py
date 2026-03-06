@@ -23,11 +23,10 @@ Order for these does not matter:
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 import collections
 import itertools
 import re
-
-from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
@@ -291,7 +290,8 @@ class UpdatePreconditionsMixin(object):
             pk_val: object,
             values: list,
             update_fields: set | None,
-            force_update: bool) -> tuple[QuerySet, str, object, list, set | None, bool]:
+            force_update: bool
+    ) -> tuple[QuerySet, str, object, list, set | None, bool]:
         """Apply stored precondition filters to the update query set."""
         if hasattr(self, '_preconditions'):
             pre_excludes, pre_filters = self._preconditions
@@ -324,7 +324,8 @@ class UpdatePreconditionsMixin(object):
             pk_val: object,
             values: list,
             update_fields: set | None,
-            force_update: bool) -> bool:
+            force_update: bool
+    ) -> bool:
         # FIXME _do_update is called once for each model in the inheritance hierarchy: Handle this!
         args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
         updated = super()._do_update(*args)

@@ -87,7 +87,8 @@ class InitialMixin(object):
             default: object,
             func: Callable,
             msg_value: str,
-            mgs_missing: str) -> object:
+            mgs_missing: str
+    ) -> object:
         """Set an initial value by applying *func* to the query string parameter."""
         value = self.request.GET.get(name, default)
         if value is not default:
@@ -109,7 +110,8 @@ class InitialMixin(object):
             default: object,
             model: type[models.Model],
             msg_value: str,
-            mgs_missing: str) -> object:
+            mgs_missing: str
+    ) -> object:
         """Set an initial value by looking up a model instance by primary key."""
         value = self.request.GET.get(name, default)
         if value is not default:

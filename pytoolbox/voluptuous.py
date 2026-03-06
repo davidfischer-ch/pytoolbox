@@ -5,10 +5,9 @@ Module containing extensions to validate data with
 from __future__ import annotations
 
 
+from collections.abc import Callable
 import functools
 import re
-
-from collections.abc import Callable
 
 import voluptuous
 

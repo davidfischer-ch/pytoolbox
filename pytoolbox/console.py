@@ -198,7 +198,7 @@ def toggle_colors(
     *,
     colorize: bool,
     disable_vars: list[str] | tuple[str, ...] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
-    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR', )
+    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR',)
 ) -> dict[str, str]:
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.

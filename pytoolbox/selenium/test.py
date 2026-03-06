@@ -36,7 +36,8 @@ class LiveTestCaseMixin(object):
             name: str,
             value: str,
             *,
-            enabled: bool = True) -> None:
+            enabled: bool = True
+    ) -> None:
         """Check the properties of an element. Works with both WebElement and Select."""
         if enabled:
             self.assertElementIsEnabled(name)
@@ -53,7 +54,8 @@ class LiveTestCaseMixin(object):
             self,
             name: str,
             *args,
-            **kwargs) -> None:
+            **kwargs
+    ) -> None:
         """Assert the named element is disabled."""
         self.assertFalse(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
@@ -61,7 +63,8 @@ class LiveTestCaseMixin(object):
             self,
             name: str,
             *args,
-            **kwargs) -> None:
+            **kwargs
+    ) -> None:
         """Assert the named element is enabled."""
         self.assertTrue(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
@@ -74,7 +77,8 @@ class LiveTestCaseMixin(object):
             name: str,
             value: str,
             *args,
-            **kwargs) -> None:
+            **kwargs
+    ) -> None:
         """Assert the named element's value equals the expected value."""
         element = self.client.find_name(name)
         operator = kwargs.pop('operator', lambda x: x)
@@ -89,7 +93,8 @@ class LiveTestCaseMixin(object):
             name: str,
             texts: str | list[str],
             *args,
-            **kwargs) -> None:
+            **kwargs
+    ) -> None:
         """Assert the selected options of a ``<select>`` match the given texts."""
         self.assertListEqual(
             sorted(o.text for o in self.client.find_name(name).all_selected_options),

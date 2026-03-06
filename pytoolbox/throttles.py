@@ -3,10 +3,9 @@ Throttling classes implementing various throttling policies.
 """
 from __future__ import annotations
 
-import time
-
 from collections.abc import Callable, Generator, Iterable
 from typing import Any
+import time
 
 from .datetime import total_seconds
 from .types import Missing
@@ -47,7 +46,8 @@ class TimeThrottle(object):
     def throttle_iterable(
             self,
             objects: Iterable,
-            callback: Callable = lambda o: None) -> Generator:
+            callback: Callable = lambda o: None
+    ) -> Generator:
         """
         Consume and skips some objects to yield them at defined `min_delay`. First and last objects
         are always returned.

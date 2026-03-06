@@ -66,7 +66,7 @@ def open(file_or_path: object) -> Image.Image:  # pylint:disable=redefined-built
 
 def remove_metadata(
     image: Image.Image,
-    keys: tuple[str, ...] = ('exif', ),
+    keys: tuple[str, ...] = ('exif',),
     *,
     inplace: bool = False
 ) -> Image.Image:
