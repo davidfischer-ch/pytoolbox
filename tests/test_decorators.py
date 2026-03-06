@@ -31,7 +31,7 @@ def test_run_once() -> None:
 
 
 def test_deprecated_emits_warning() -> None:
-    """Calling a deprecated function emits a DeprecationWarning with function name and guidelines."""
+    """Calling a deprecated function emits a DeprecationWarning with name and guidelines."""
     @decorators.deprecated('Use new_func instead')
     def old_func(x):
         return x + 1
