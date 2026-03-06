@@ -17,7 +17,7 @@ logger = logging.get_logger(__name__)
 class ExpressTemporaryFileMixin(object):
     """Speed up saving by enabling rename for temporary uploaded files."""
 
-    def _save(self, name, content):
+    def _save(self, name: str, content: object) -> str:
         """
         Save the temporary file to the storage.
         Set temporary file path to allow using rename instead of chunked copy when possible.
@@ -39,7 +39,7 @@ class OverwriteMixin(object):
     name.
     """
 
-    def get_available_name(self, name):
+    def get_available_name(self, name: str) -> str:
         """Delete any existing file at *name* and return it as available."""
         self.delete(name)
         return name

@@ -16,15 +16,15 @@ class BootstrapSliderMixin(common.FindMixin):
     component = 'bootstrapSlider'
 
     @staticmethod
-    def clean_value(value):
+    def clean_value(value: str | int) -> int:
         """Coerce the slider value to an integer."""
         return int(value)
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear the slider value (not yet implemented)."""
         pass  # TODO something to do?  # pylint:disable=unnecessary-pass
 
-    def send_keys(self, *value):
+    def send_keys(self, *value: str | int) -> None:
         """Move the slider handle to the target value using arrow keys."""
         if len(value) == 1:
             value = self.clean_value(value[0])

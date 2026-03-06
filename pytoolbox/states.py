@@ -55,7 +55,7 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
     # TODO type hint class attributes?
 
     @classmethod
-    def get(cls, name: str):  # TODO return type hint
+    def get(cls, name: str) -> str | frozenset[str] | None:
         """Return the state or state set matching a lowercase name."""
         if name.lower() == name:
             if (name := name.upper()) in cls.ALL_STATES:
@@ -64,7 +64,11 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
         return None
 
     @classmethod
-    def get_transit_from(cls, state: str, *, auto_inverse: bool = False):  # TODO return type hint
+    def get_transit_from(
+            cls,
+            state: str,
+            *,
+            auto_inverse: bool = False) -> frozenset[str] | tuple[frozenset[str], bool]:
         """
         Return a set with the states having a transition to given `state`.
 

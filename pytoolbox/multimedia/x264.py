@@ -22,11 +22,17 @@ class X264(FFmpeg):
     # encoding_regex = ENCODING_REGEX
     executable = 'x264'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
 
-    def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
+    def _get_arguments(
+        self,
+        inputs: object,
+        outputs: object,
+        in_options: object = None,
+        out_options: object = None
+    ) -> tuple[list, list, list, list[str], list[str]]:
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
         # in_paths = [f for f in ([in_paths] if isinstance(in_paths, str) else in_paths)]
         # if len(in_paths) > 1:

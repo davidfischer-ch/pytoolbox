@@ -37,7 +37,7 @@ class Image(TagSet):
         Orientation.ROT_270_CW: -270
     }
 
-    def __init__(self, metadata, orientation: Orientation | int | None = None):
+    def __init__(self, metadata: object, orientation: Orientation | int | None = None) -> None:
         super().__init__(metadata)
         self._orientation = None if orientation is None else Orientation(orientation)
 

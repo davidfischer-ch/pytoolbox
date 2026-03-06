@@ -4,8 +4,8 @@
 """
 OpenFace NN4.Small2.v1 Keras model for face recognition.
 """
+from __future__ import annotations
 
-import tensorflow as tf
 from keras import backend as K
 from keras.layers import (  # pylint:disable=import-error
     Activation,
@@ -21,6 +21,7 @@ from keras.layers import (  # pylint:disable=import-error
     ZeroPadding2D
 )
 from keras.models import Model  # pylint:disable=import-error
+import tensorflow as tf
 
 from pytoolbox.ai.vision import utils
 
@@ -32,16 +33,16 @@ E = 0.00001  # Epsilon
 
 
 def conv2d_bn(
-    tensor,
-    layer=None,
-    cv1_out=None,
-    cv1_filter=(1, 1),
-    cv1_strides=(1, 1),
-    cv2_out=None,
-    cv2_filter=(3, 3),
-    cv2_strides=(1, 1),
-    padding=None,
-):
+    tensor: tf.Tensor,
+    layer: str | None = None,
+    cv1_out: int | None = None,
+    cv1_filter: tuple[int, int] = (1, 1),
+    cv1_strides: tuple[int, int] = (1, 1),
+    cv2_out: int | None = None,
+    cv2_filter: tuple[int, int] = (3, 3),
+    cv2_strides: tuple[int, int] = (1, 1),
+    padding: tuple[int, int] | None = None,
+) -> tf.Tensor:
     """Apply one or two Conv2D + BatchNormalization + ReLU blocks."""
     num = '' if cv2_out is None else '1'
     tensor = Conv2D(cv1_out, cv1_filter, strides=cv1_strides, name=layer + '_conv' + num)(tensor)
@@ -58,12 +59,12 @@ def conv2d_bn(
     return tensor
 
 
-def LRN2D(tensor):  # pylint:disable=invalid-name
+def LRN2D(tensor: tf.Tensor) -> tf.Tensor:  # pylint:disable=invalid-name
     """Apply Local Response Normalization."""
     return tf.nn.lrn(tensor, alpha=1e-4, beta=0.75)
 
 
-def create_model():  # pylint:disable=too-many-locals,too-many-statements
+def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statements
     """Build the NN4.Small2.v1 Keras model (96x96 input, 128-d embedding)."""
 
     inputs = Input(shape=(96, 96, 3))
@@ -344,7 +345,7 @@ def create_model():  # pylint:disable=too-many-locals,too-many-statements
     return Model(inputs=[inputs], outputs=outputs)
 
 
-def load_model(weights=DEFAULT_WEIGHTS):
+def load_model(weights: str = DEFAULT_WEIGHTS) -> Model:
     """Create the NN4.Small2.v1 model and load pre-trained weights."""
     model = create_model()
     if weights:

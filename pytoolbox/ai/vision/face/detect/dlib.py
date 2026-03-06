@@ -16,7 +16,9 @@
 """
 Face detection and alignment using :mod:`dlib` landmark estimation.
 """
+from __future__ import annotations
 
+from collections.abc import Iterator
 import bz2
 import tempfile
 
@@ -95,7 +97,7 @@ class DlibFaceDetector(object):
     INNER_EYES_AND_BOTTOM_LIP = [39, 42, 57]
     OUTER_EYES_AND_NOSE = [36, 45, 33]
 
-    def __init__(self, predictor=None):
+    def __init__(self, predictor: str | None = None) -> None:
         """
         Instantiate a :class:`DlibFaceDetector` object.
 
@@ -107,7 +109,13 @@ class DlibFaceDetector(object):
         self.predictor = self._load_predictor(predictor)
         self.detector = dlib.get_frontal_face_detector()  # pylint:disable=no-member
 
-    def align(self, image, box, dimension=96, landmark_indices=None, landmarks=None):
+    def align(
+            self,
+            image: np.ndarray,
+            box: dlib.rectangle,
+            dimension: int = 96,
+            landmark_indices: list[int] | None = None,
+            landmarks: list[tuple[int, int]] | None = None) -> np.ndarray:
         """
         Transform and align a face in an image.
 
@@ -139,17 +147,27 @@ class DlibFaceDetector(object):
 
         return cv2.warpAffine(image, H, (dimension, dimension))  # pylint:disable=no-member
 
-    def extract_all_faces(self, image, dimension=96, landmark_indices=None):
+    def extract_all_faces(
+            self,
+            image: np.ndarray,
+            dimension: int = 96,
+            landmark_indices: list[int] | None = None
+    ) -> Iterator[tuple[dlib.rectangle, np.ndarray]]:
         """Yield ``(box, aligned_face)`` tuples for every face in the image."""
         for box in self.get_all_faces_bounding_boxes(image):
             yield box, self.align(image, box, dimension, landmark_indices)
 
-    def extract_largest_face(self, image, dimension=96, landmark_indices=None, skip_multi=False):
+    def extract_largest_face(
+            self,
+            image: np.ndarray,
+            dimension: int = 96,
+            landmark_indices: list[int] | None = None,
+            skip_multi: bool = False) -> tuple[dlib.rectangle | None, np.ndarray | None]:
         """Return ``(box, aligned_face)`` for the largest face, or ``(box, None)``."""
         box = self.get_largest_face_bounding_box(image, skip_multi=skip_multi)
         return box, (self.align(image, box, dimension, landmark_indices) if box else None)
 
-    def find_landmarks(self, image, box):
+    def find_landmarks(self, image: np.ndarray, box: dlib.rectangle) -> list[tuple[int, int]]:
         """
         Find the landmarks of a face.
 
@@ -163,7 +181,7 @@ class DlibFaceDetector(object):
         points = self.predictor(image, box)
         return [(p.x, p.y) for p in points.parts()]
 
-    def get_all_faces_bounding_boxes(self, image):
+    def get_all_faces_bounding_boxes(self, image: np.ndarray) -> dlib.rectangles | list:
         """
         Find all face bounding boxes in an image.
 
@@ -179,7 +197,10 @@ class DlibFaceDetector(object):
             # In rare cases, exceptions are thrown.
             return []
 
-    def get_largest_face_bounding_box(self, image, skip_multi=False):
+    def get_largest_face_bounding_box(
+            self,
+            image: np.ndarray,
+            skip_multi: bool = False) -> dlib.rectangle | None:
         """
         Find the largest face bounding box in an image.
 
@@ -196,7 +217,7 @@ class DlibFaceDetector(object):
         return None
 
     @staticmethod
-    def _load_predictor(predictor):
+    def _load_predictor(predictor: str) -> dlib.shape_predictor:
         predictor = utils.load_to_file(predictor)
         if predictor.endswith('.bz2'):
             decompressor = bz2.BZ2Decompressor()

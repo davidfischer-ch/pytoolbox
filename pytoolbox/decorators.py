@@ -37,7 +37,10 @@ class cached_property(object):  # pylint:disable=invalid-name,too-few-public-met
         self.__doc__ = getattr(func, '__doc__')
         self.name = name or func.__name__
 
-    def __get__(self, instance, type=None):  # pylint:disable=redefined-builtin
+    def __get__(  # pylint:disable=redefined-builtin
+            self,
+            instance: Any,
+            type: type | None = None) -> Any:
         """Compute, cache on the instance, and return the property value."""
         if instance is None:
             return self
@@ -92,7 +95,7 @@ class hybridmethod(object):  # pylint:disable=invalid-name,too-few-public-method
     def __init__(self, func: Callable) -> None:
         self.func = func
 
-    def __get__(self, obj, cls: type):
+    def __get__(self, obj: Any, cls: type) -> Callable:
         """Return a bound callable dispatching to the instance or the class."""
         context = obj if obj is not None else cls
 

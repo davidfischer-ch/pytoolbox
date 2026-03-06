@@ -99,37 +99,37 @@ class Format(BaseInfo):
     )
 
     @staticmethod
-    def clean_bit_rate(value) -> int | None:
+    def clean_bit_rate(value: int | str | None) -> int | None:
         """Convert ``bit_rate`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_duration(value) -> float | None:
+    def clean_duration(value: float | str | None) -> float | None:
         """Parse ``duration`` as a float."""
         return None if value is None else float(value)
 
     @staticmethod
-    def clean_nb_programs(value) -> int | None:
+    def clean_nb_programs(value: int | str | None) -> int | None:
         """Convert ``nb_programs`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_nb_streams(value) -> int | None:
+    def clean_nb_streams(value: int | str | None) -> int | None:
         """Convert ``nb_streams`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_probe_score(value) -> int | None:
+    def clean_probe_score(value: int | str | None) -> int | None:
         """Convert ``probe_score`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_size(value) -> int | None:
+    def clean_size(value: int | str | None) -> int | None:
         """Convert ``size`` to an integer."""
         return None if value is None else int(value)
 
     @staticmethod
-    def clean_start_time(value) -> float | None:
+    def clean_start_time(value: float | str | None) -> float | None:
         """Parse ``start_time`` as a float."""
         return None if value is None else float(value)
 

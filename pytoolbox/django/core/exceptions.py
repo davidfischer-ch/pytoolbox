@@ -3,6 +3,8 @@ Django core exception classes and validation error utilities.
 """
 from __future__ import annotations
 
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 import itertools
 
 from django.db import DatabaseError
@@ -10,16 +12,19 @@ from django.utils.translation import gettext_lazy as _
 
 from pytoolbox import exceptions, module
 
+if TYPE_CHECKING:
+    from django.core.exceptions import ValidationError
+
 _all = module.All(globals())
 
 
-def get_message(validation_error):
+def get_message(validation_error: ValidationError) -> str:
     """Return the interpolated message from a :class:`~django.core.exceptions.ValidationError`."""
     message, params = validation_error.message, validation_error.params
     return message % params if params else message
 
 
-def has_code(validation_error, code):
+def has_code(validation_error: ValidationError, code: str) -> bool:
     """
     **Example usage**
 
@@ -43,7 +48,8 @@ def has_code(validation_error, code):
     return any(e.code == code for e in errors)
 
 
-def iter_validation_errors(validation_error):
+def iter_validation_errors(
+        validation_error: ValidationError) -> Iterator[tuple[str | None, ValidationError]]:
     """
     **Example usage**
 

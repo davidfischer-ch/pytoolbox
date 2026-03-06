@@ -10,7 +10,7 @@ from pytoolbox import string
 __all__ = ['with_subdomain']
 
 
-def with_subdomain(url, subdomain=None):
+def with_subdomain(url: str, subdomain: str | None = None) -> str:
     """
     Return the ``url`` with the sub-domain replaced with ``subdomain``.
 

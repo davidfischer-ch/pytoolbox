@@ -15,8 +15,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import requests
 from requests.auth import AuthBase
+import requests
 
 from pytoolbox import console, crypto, filesystem, module
 from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
@@ -305,9 +305,9 @@ def download_ext_multi(
     chunk_size: int | None = 1024 * 1024,
     force: bool = False,
     progress_callback: MultiProgressCallback = console.progress_bar,
-    progress_stream=sys.stdout,
-    progress_template='\r[{counter} of {total}] [{done}{todo}] {resource.name}'
-):
+    progress_stream: TextIO = sys.stdout,
+    progress_template: str = '\r[{counter} of {total}] [{done}{todo}] {resource.name}'
+) -> None:
     """
     Download resources, showing a progress bar by default.
 

@@ -67,7 +67,7 @@ def get_subclasses(obj: Any, *, nested: Literal[False]) -> Iterable[tuple[type, 
     ...
 
 
-def get_subclasses(obj, *, nested=True):
+def get_subclasses(obj: Any, *, nested: bool = True) -> Iterable[tuple[type, list[type]]]:
     """
     Walk the inheritance tree of ``obj``. Yield tuples with (class, subclasses).
 
@@ -106,7 +106,7 @@ def get_subclasses(obj, *, nested=True):
             yield from get_subclasses(subclass, nested=nested)
 
 
-def isiterable(obj: Any, *, blacklist=bytes | str) -> bool:
+def isiterable(obj: Any, *, blacklist: type = bytes | str) -> bool:
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 
@@ -202,7 +202,7 @@ class DummyObject(object):  # pylint:disable=too-few-public-methods
     >>> obj.bar is None
     True
     """
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self.__dict__.update(kwargs)
 
 
@@ -315,7 +315,7 @@ class MissingType(object):
     def __copy__(self) -> Self:
         return self
 
-    def __deepcopy__(self, memo) -> Self:
+    def __deepcopy__(self, memo: dict) -> Self:
         return self
 
     def __bool__(self) -> bool:

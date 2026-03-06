@@ -4,6 +4,7 @@ Signal handling with support for multiple handlers per signal.
 from __future__ import annotations
 
 from collections.abc import Callable
+from types import FrameType
 import collections
 import inspect
 import signal
@@ -15,7 +16,7 @@ __all__ = ['handlers_by_signal', 'propagate_handler', 'register_handler', 'regis
 handlers_by_signal = collections.defaultdict(list)
 
 
-def propagate_handler(signum: int, frame) -> None:
+def propagate_handler(signum: int, frame: FrameType | None) -> None:
     """Call all registered handlers for a signal in reverse order."""
     errors = {}
     for handler in reversed(handlers_by_signal[signum]):

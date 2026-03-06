@@ -38,7 +38,14 @@ class KeysValidator(object):
     }
     strict = False
 
-    def __init__(self, *, required_keys=None, optional_keys=None, strict=False, messages=None):
+    def __init__(
+        self,
+        *,
+        required_keys: set[str] | None = None,
+        optional_keys: set[str] | None = None,
+        strict: bool = False,
+        messages: dict[str, str] | None = None
+    ) -> None:
         self.required_keys = set(required_keys or [])
         self.optional_keys = set(optional_keys or [])
         if not self.required_keys and not self.optional_keys:
@@ -48,7 +55,7 @@ class KeysValidator(object):
             self.messages = copy.copy(self.messages)
             self.messages.update(messages)
 
-    def __call__(self, value):
+    def __call__(self, value: dict[str, object]) -> None:
         keys = set(value.keys())
         if self.required_keys:
             missing_keys = self.required_keys - keys
@@ -65,7 +72,7 @@ class KeysValidator(object):
                     code='extra_keys',
                     params={'keys': ', '.join(extra_keys)})
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, type(self))
             and self.required_keys == other.required_keys
@@ -74,7 +81,7 @@ class KeysValidator(object):
             and self.strict == other.strict
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
 

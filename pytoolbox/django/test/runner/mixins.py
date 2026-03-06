@@ -13,7 +13,7 @@ __all__ = ['CeleryInMemoryMixin', 'FastPasswordHasherMixin', 'TemporarySendfileR
 class CeleryInMemoryMixin(object):
     """Configure Celery to run tasks eagerly in memory during tests."""
 
-    def setup_test_environment(self):
+    def setup_test_environment(self) -> None:
         """Set Celery to eager in-memory mode."""
         super().setup_test_environment()
         settings.BROKER_BACKEND = 'memory'
@@ -24,7 +24,7 @@ class CeleryInMemoryMixin(object):
 class FastPasswordHasherMixin(object):
     """Use MD5 password hashing during tests for speed."""
 
-    def setup_test_environment(self):
+    def setup_test_environment(self) -> None:
         """Switch password hasher to MD5 for faster test execution."""
         super().setup_test_environment()
         settings.PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher', )
@@ -33,7 +33,7 @@ class FastPasswordHasherMixin(object):
 class TemporarySendfileRootMixin(object):
     """Set ``SENDFILE_ROOT`` to a temporary directory during tests."""
 
-    def setup_test_environment(self):
+    def setup_test_environment(self) -> None:
         """Point ``SENDFILE_ROOT`` to a fresh temporary directory."""
         super().setup_test_environment()
         settings.SENDFILE_ROOT = tempfile.mkdtemp()

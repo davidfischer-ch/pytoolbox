@@ -56,7 +56,7 @@ def embed_in_regex(
     index: int,
     *,
     as_string: bool = True
-):
+) -> tuple[int, str] | tuple[int, list[str]]:
     """
     Embed a literal string into a list of regex parts at the given index.
 

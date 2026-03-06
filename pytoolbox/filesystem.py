@@ -55,7 +55,7 @@ class TemplateHookFunc(Protocol):  # pylint:disable=too-few-public-methods
 
 
 @contextlib.contextmanager
-def chdir(path: Path):
+def chdir(path: Path) -> Iterator[None]:
     """Set working directory then restore previous working directory value on exit."""
     here = Path.cwd()
     os.chdir(path)
@@ -482,7 +482,7 @@ def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
         raise  # Re-raise exception if a different error occurred
 
 
-def remove(path: Path | str, *, recursive: bool = False):
+def remove(path: Path | str, *, recursive: bool = False) -> bool:
     """
     Remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any
@@ -537,7 +537,7 @@ def remove(path: Path | str, *, recursive: bool = False):
         raise  # Re-raise exception if a different error occurred
 
 
-def symlink(source, link_name):
+def symlink(source: str, link_name: str) -> bool:
     """
     Symlink a file/directory (which may already exists) without throwing an exception. Returns True
     if operation is successful, False if found & target is `link_name` and re-raise any other type
@@ -602,7 +602,7 @@ def symlink(source, link_name):
         raise  # Re-raise exception if a different error occurred
 
 
-def to_user_id(user: int | str | None):
+def to_user_id(user: int | str | None) -> int:
     """
     Return user ID.
 
@@ -621,7 +621,7 @@ def to_user_id(user: int | str | None):
     return -1 if user is None else user
 
 
-def to_group_id(group):
+def to_group_id(group: int | str | None) -> int:
     """
     Return group ID.
 
@@ -664,7 +664,11 @@ class TempStorage(object):
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, kind, value, traceback) -> None:
+    def __exit__(
+            self,
+            kind: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: object) -> None:
         self.remove_all()
 
     def create_tmp_directory(
@@ -737,15 +741,15 @@ class TempStorage(object):
 
     def create_tmp_file(
         self,
-        name='tmp-{uuid}',
-        extension=None,
+        name: str = 'tmp-{uuid}',
+        extension: str | None = None,
         *,
-        encoding='utf-8',
-        key=None,
-        user=None,
-        group=None,
-        return_file=True
-    ):
+        encoding: str | None = 'utf-8',
+        key: str | None = None,
+        user: int | str | None = None,
+        group: int | str | None = None,
+        return_file: bool = True
+    ) -> BinaryIO | TextIO | Path:
         """Create a temporary file and return a file object or its path.
 
         **Example usage**
@@ -851,6 +855,6 @@ __all__ = _all.diff(globals())
 
 
 @deprecated('Use pytoolbox.filesystem.copy_recursive instead (drop-in replacement)')
-def recursive_copy(*args, **kwargs):  # pragma: no cover
+def recursive_copy(*args: Any, **kwargs: Any) -> dict[str, Any]:  # pragma: no cover
     """Deprecated alias for :func:`copy_recursive`."""
     return copy_recursive(*args, **kwargs)

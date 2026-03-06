@@ -3,8 +3,14 @@ Extra permission policies for building your own Django REST Framework powered AP
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope
 from rest_framework import permissions
+
+if TYPE_CHECKING:
+    from rest_framework.request import Request
+    from rest_framework.views import APIView
 
 __all__ = ['IsAuthenticatedOrTokenHasReadWriteScope']
 
@@ -14,10 +20,10 @@ class IsAuthenticatedOrTokenHasReadWriteScope(permissions.BasePermission):
 
     permissions = [permissions.IsAuthenticated(), TokenHasReadWriteScope()]
 
-    def has_permission(self, request, view):
+    def has_permission(self, request: Request, view: APIView) -> bool:
         """Return ``True`` if any of the sub-permissions allow access."""
         return any(p.has_permission(request, view) for p in self.permissions)
 
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request: Request, view: APIView, obj: Any) -> bool:
         """Return ``True`` if any of the sub-permissions allow object access."""
         return any(p.has_object_permission(request, view, obj) for p in self.permissions)

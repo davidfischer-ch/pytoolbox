@@ -3,8 +3,8 @@ Photo-level EXIF metadata (exposure, ISO, white balance).
 """
 from __future__ import annotations
 
-import datetime
 from fractions import Fraction
+import datetime
 
 from pytoolbox.enum import OrderedEnum
 

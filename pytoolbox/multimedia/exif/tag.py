@@ -52,15 +52,15 @@ class Tag(object):
         'XmpText': str
     }
 
-    def __init__(self, metadata, key):
+    def __init__(self, metadata: object, key: str) -> None:
         self.metadata = metadata
         self.key = key
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{type(self).__name__} {self.key}: {str(self.data)[:20]}>'
 
     @property
-    def data(self):
+    def data(self) -> object:
         """Return the tag value converted to its Python type."""
         if self.data_bytes is None:
             return None
@@ -72,7 +72,7 @@ class Tag(object):
         return self.data_bytes
 
     @property
-    def data_bytes(self):
+    def data_bytes(self) -> bytes | None:
         """Return the raw bytes of the tag or ``None`` if absent."""
         tag_raw = self.metadata.exiv2.try_get_tag_raw(self.key)
         return tag_raw.get_data() if tag_raw else None
@@ -116,7 +116,7 @@ class Tag(object):
                 raise KeyError(f'Unknow tag type {tag_type}') from ex
         return bytes
 
-    def clean(self, data):
+    def clean(self, data: object) -> object:
         """Convert raw tag data to the appropriate Python type."""
         if isinstance(data, str):
             data = data.strip()
@@ -150,10 +150,10 @@ class Tag(object):
 class TagSet(object):  # pylint:disable=too-few-public-methods
     """Base class for groups of related EXIF tags."""
 
-    def __init__(self, metadata):
+    def __init__(self, metadata: object) -> None:
         self.metadata = metadata
 
     @staticmethod
-    def clean_number(number) -> int | Fraction | None:
+    def clean_number(number: int | Fraction | None) -> int | Fraction | None:
         """Return *number* if positive, otherwise ``None``."""
         return number if number and number > 0 else None

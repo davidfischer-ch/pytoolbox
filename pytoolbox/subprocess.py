@@ -76,11 +76,11 @@ def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid
         import grp
         import pwd
 
-        def set_ids():
+        def set_ids() -> None:
             os.setgid(grp.getgrnam(group).gr_gid if isinstance(group, str) else group)
             os.setuid(pwd.getpwnam(user).pw_uid if isinstance(user, str) else user)
     except ImportError:
-        def set_ids():
+        def set_ids() -> None:
             return
     return set_ids
 
@@ -92,7 +92,7 @@ def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
 
 
 # http://stackoverflow.com/a/7730201/190597
-def read_async(fd) -> str:  # pylint:disable=invalid-name
+def read_async(fd: IO) -> str:  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
@@ -136,7 +136,11 @@ def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
 
 
 # thanks http://stackoverflow.com/questions/1191374$
-def _communicate_with_timeout(*, data, process, input) -> None:  # pylint:disable=redefined-builtin
+def _communicate_with_timeout(  # pylint:disable=redefined-builtin
+        *,
+        data: dict,
+        process: Popen,
+        input: str | None) -> None:
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
@@ -156,8 +160,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     delay_min: float = 5,
     delay_max: float = 10,
     success_codes: Iterable[int] = (0, ),
-    **kwargs
-):
+    **kwargs: object
+) -> CallResult:
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -373,7 +377,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     return cmd([c for c in command if c], **kwargs)
 
 
-def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs):
+def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: object) -> None:
     """Kill all screen instances called `name` or all if `name` is None."""
     for instance_name in screen_list(name=name, **kwargs):
         cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)

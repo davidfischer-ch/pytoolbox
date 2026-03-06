@@ -5,6 +5,9 @@ from __future__ import annotations
 
 import time
 
+from collections.abc import Callable, Generator, Iterable
+from typing import Any
+
 from .datetime import total_seconds
 from .types import Missing
 
@@ -27,7 +30,7 @@ class TimeThrottle(object):
     [0, 1, 2]
     """
 
-    def __init__(self, min_time_delta) -> None:
+    def __init__(self, min_time_delta: Any) -> None:
         self.min_time_delta: float = total_seconds(min_time_delta)
         self.previous_time = None
 
@@ -41,7 +44,10 @@ class TimeThrottle(object):
             return False
         return True
 
-    def throttle_iterable(self, objects, callback=lambda o: None):
+    def throttle_iterable(
+            self,
+            objects: Iterable,
+            callback: Callable = lambda o: None) -> Generator:
         """
         Consume and skips some objects to yield them at defined `min_delay`. First and last objects
         are always returned.
@@ -59,7 +65,7 @@ class TimeThrottle(object):
         if current_object is not Missing:
             yield current_object
 
-    def _update(self):
+    def _update(self) -> None:
         self.previous_time = time.time()
 
 
@@ -79,13 +85,13 @@ class TimeAndRatioThrottle(TimeThrottle):
     [0, 3, 6, 8]
     """
 
-    def __init__(self, min_ratio_delta, min_time_delta, max_time_delta):
+    def __init__(self, min_ratio_delta: Any, min_time_delta: Any, max_time_delta: Any) -> None:
         super().__init__(min_time_delta)
         self.min_ratio_delta = total_seconds(min_ratio_delta)
         self.max_time_delta = total_seconds(max_time_delta)
         self.previous_ratio = 0
 
-    def is_throttled(self, ratio):  # pylint:disable=arguments-differ
+    def is_throttled(self, ratio: float) -> bool:  # pylint:disable=arguments-differ
         """Return a boolean indicating if you should throttle."""
         if not self.previous_time:
             self._update(ratio)
@@ -101,6 +107,6 @@ class TimeAndRatioThrottle(TimeThrottle):
             return False
         return True
 
-    def _update(self, ratio):  # pylint:disable=arguments-differ
+    def _update(self, ratio: float) -> None:  # pylint:disable=arguments-differ
         super()._update()
         self.previous_ratio = ratio

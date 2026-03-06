@@ -29,7 +29,7 @@ class Metadata(object):
     def __init__(
         self,
         path: Path | None = None,
-        buf=None,
+        buf: bytes | None = None,
         orientation: image.Orientation | int | None = None,
         gexiv2_version: str = '0.10'
     ) -> None:
@@ -53,7 +53,7 @@ class Metadata(object):
         # TODO make it more strict and re-implement less strict self.get(key)
         return self.tag_class(self, key)
 
-    def __setitem__(self, key: str, value) -> None:
+    def __setitem__(self, key: str, value: object) -> None:
         if type_hook := self.tag_class(self, key).get_type_hook(mode='set'):
             type_hook(key, value)
         else:

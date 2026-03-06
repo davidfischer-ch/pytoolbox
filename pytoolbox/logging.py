@@ -71,11 +71,16 @@ class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
 class BasicFuncLogger(logging.Logger):
     """Logger that delegates all messages to a plain callable."""
 
-    def __init__(self, log_func) -> None:
+    def __init__(self, log_func: BasicLoggerFunc) -> None:
         self._log_func = log_func
         super().__init__(name=f'{log_func.__module__}.{log_func.__name__}')
 
-    def _log(self, level, msg, *args, **kwargs) -> None:  # pylint:disable=unused-argument
+    def _log(  # pylint:disable=unused-argument
+            self,
+            level: int,
+            msg: str,
+            *args: object,
+            **kwargs: object) -> None:
         self._log_func(msg)
 
 
@@ -206,13 +211,13 @@ class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
         logging.WARNING: 'yellow'
     }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         self.color_by_level = merge_dicts(
             self.color_by_level,
             kwargs.pop('color_by_level', None) or {})
         super().__init__(*args, **kwargs)
 
-    def filter(self, record) -> Literal[True]:
+    def filter(self, record: logging.LogRecord) -> Literal[True]:
         """Apply color to the record message based on its level."""
         record.raw_msg = record.msg
         if color := self.color_by_level.get(record.levelno):

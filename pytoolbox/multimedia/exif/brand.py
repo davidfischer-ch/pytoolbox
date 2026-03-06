@@ -54,7 +54,7 @@ class Brand(object):
         'tamron': 'Tamron'
     })
 
-    def __new__(cls, brand: str):
+    def __new__(cls, brand: str) -> str | None:
         return cls.clean(brand)
 
     @classmethod

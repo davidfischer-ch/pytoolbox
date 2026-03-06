@@ -12,12 +12,12 @@ import numpy as np
 from pytoolbox.network.http import download_ext
 
 
-def load_image(path):
+def load_image(path: str) -> np.ndarray:
     """Reverse channels because OpenCV loads images in BGR mode."""
     return cv2.imread(path, 1)[..., ::-1]  # pylint:disable=no-member
 
 
-def load_to_file(uri):
+def load_to_file(uri: str) -> str:
     """Download a remote URI to a local temp file, or return the path as-is."""
     if uri.startswith('http'):
         path = os.path.join(tempfile.gettempdir(), os.path.basename(uri))
@@ -26,6 +26,6 @@ def load_to_file(uri):
     return uri
 
 
-def normalize_rgb(image):
+def normalize_rgb(image: np.ndarray) -> np.ndarray:
     """Scale integer RGB values [0,255] to float32 [0.0,1.0]."""
     return (image / 255).astype(np.float32)

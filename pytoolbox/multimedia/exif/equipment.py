@@ -14,22 +14,22 @@ __all__ = ['Equipement']
 class Equipement(object, metaclass=abc.ABCMeta):
     """Abstract base for photographic equipment identified from EXIF data."""
 
-    def __init__(self, metadata):
+    def __init__(self, metadata: object) -> None:
         self.metadata = metadata
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.model)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         try:
             return self.brand == other.brand and self.model == other.model
         except AttributeError:
             return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(repr(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{type(self).__name__} {self.brand} {self.model}>'
 
     @property

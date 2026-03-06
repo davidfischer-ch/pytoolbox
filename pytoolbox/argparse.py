@@ -48,7 +48,7 @@ class ChainAction(argparse._AppendAction):  # pylint:disable=protected-access
         self,
         parser: argparse.ArgumentParser,
         namespace: Namespace,
-        values,
+        values: Any,
         option_string: str | None = None
     ) -> None:
         items = getattr(namespace, self.dest, None)
@@ -67,7 +67,7 @@ class FullPaths(argparse.Action):
         self,
         parser: argparse.ArgumentParser,
         namespace: Namespace,
-        values,
+        values: Any,
         option_string: str | None = None
     ) -> None:
         if values is None:
@@ -102,7 +102,7 @@ def is_file(path: Path | str) -> Path:
 
 def multiple(func: Callable[[Any], Any]) -> Callable:
     """Return a list with the result of `func`(value) for value in values."""
-    def _multiple(values):
+    def _multiple(values: Any) -> Any:
         return [func(v) for v in values] if isinstance(values, list | tuple) else func(values)
     return _multiple
 
@@ -125,12 +125,12 @@ def separator(value: str, sep: str | None) -> list[str]:
 class Range(object):  # pylint:disable=too-few-public-methods
     """Argparse type that validates a value is within ``[min, max]``."""
 
-    def __init__(self, type, min, max) -> None:  # pylint:disable=redefined-builtin
+    def __init__(self, type: type, min: Any, max: Any) -> None:  # pylint:disable=redefined-builtin
         self.type = type
         self.min = min
         self.max = max
 
-    def __call__(self, value):
+    def __call__(self, value: Any) -> Any:
         try:
             value = self.type(value)
         except Exception as ex:
@@ -195,7 +195,7 @@ class ActionArgumentParser(ArgumentParser):
         """Print the version string."""
         print(self._version)
 
-    def add_action(self, name: str, func, *, nested: bool = False) -> Callable:
+    def add_action(self, name: str, func: Callable, *, nested: bool = False) -> Callable:
         """
         Register a sub-command action.
 

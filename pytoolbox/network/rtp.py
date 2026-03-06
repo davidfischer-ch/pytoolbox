@@ -75,17 +75,17 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
-    def valid(self):
+    def valid(self) -> bool:
         """Returns True if this packet is a valid RTP packet."""
         return len(self.errors) == 0
 
     @property
-    def validMP2T(self):  # pylint:disable=invalid-name
+    def validMP2T(self) -> bool:  # pylint:disable=invalid-name
         """Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
         return self.valid and self.payload_type == self.MP2T_PT
 
     @property
-    def errors(self):
+    def errors(self) -> list[str]:
         """
         Returns an array containing any errors.
 
@@ -117,12 +117,12 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         return errors
 
     @property
-    def clock_rate(self):
+    def clock_rate(self) -> int:
         """Return the MPEG2-TS clock rate of a MPEG2-TS payload or 1 if this is not."""
         return self.MP2T_CLK if self.payload_type == self.MP2T_PT else 1
 
     @property
-    def header_size(self):
+    def header_size(self) -> int:
         """
         Returns the length (aka size) of the header.
 
@@ -135,7 +135,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         return self.HEADER_LENGTH + 4 * len(self.csrc)
 
     @property
-    def payload_size(self):
+    def payload_size(self) -> int:
         """
         Returns the length (aka size) of the payload.
 
@@ -148,12 +148,12 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         return len(self.payload) if self.payload else 0
 
     @property
-    def time(self):
+    def time(self) -> float:
         """Return computed time (*timestamp / clock rate*)."""
         return self.timestamp / self.clock_rate
 
     @property
-    def header_bytes(self):
+    def header_bytes(self) -> bytearray:
         """
         Return the RTP header bytes.
 
@@ -223,13 +223,13 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         return header
 
     @property
-    def bytes(self):
+    def bytes(self) -> bytearray:
         """Return the RTP packet header and payload bytes."""
         return self.header_bytes + self.payload
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, data, length):
+    def __init__(self, data: bytearray | None, length: int) -> None:
         """
         This constructor will parse input bytes array to fill packet's fields.
         In case of error (e.g. bad version number) the constructor will abort filling
@@ -385,7 +385,12 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
 #        return EQUAL
 
     @classmethod
-    def create(cls, sequence, timestamp, payload_type, payload):
+    def create(
+            cls,
+            sequence: int,
+            timestamp: int,
+            payload_type: int,
+            payload: bytearray | str) -> RtpPacket:
         """
         Create a valid RTP packet with a given payload.
 
@@ -418,7 +423,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         rtp.payload = payload
         return rtp
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
         Equality test.
 
@@ -433,7 +438,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
             and self.payload_type == other.payload_type
             and self.payload == other.payload)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string containing a formated representation of the packet fields.
 

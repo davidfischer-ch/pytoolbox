@@ -7,7 +7,7 @@ import ezodf
 import pandas as pd
 
 
-def map_dict(df, key_column, value_column, *, dropna=True):
+def map_dict(df: pd.DataFrame, key_column: str, value_column: str, *, dropna: bool = True) -> dict:
     """Build a dictionary mapping *key_column* to *value_column* from a DataFrame."""
     df = df[[key_column, value_column]]
     if dropna:
@@ -15,7 +15,7 @@ def map_dict(df, key_column, value_column, *, dropna=True):
     return df.set_index(key_column)[value_column].to_dict()
 
 
-def read_ods(filename, sheet_no, *, header_pos=0):
+def read_ods(filename: str, sheet_no: int, *, header_pos: int = 0) -> pd.DataFrame:
     """Read an ODS spreadsheet sheet into a :class:`~pandas.DataFrame`."""
     tab = ezodf.opendoc(filename=filename).sheets[sheet_no]
     return pd.DataFrame({

@@ -145,7 +145,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, output: io.StringIO):
+    def __init__(self, output: io.StringIO) -> None:
         """
         Construct a new FecReceiver and register `output`.
 
@@ -217,7 +217,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def set_delay(self, value, units) -> None:
+    def set_delay(self, value: int, units: int) -> None:
         """Set desired size for the internal media buffer."""
         if units == self.PACKETS:
             self.delay_value = value
@@ -227,7 +227,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         else:
             raise ValueError(self.ER_DELAY_UNITS.format(units))
 
-    def put_media(self, media, onlyMP2TS):  # pylint:disable=invalid-name
+    def put_media(self, media: RtpPacket, onlyMP2TS: bool) -> None:  # pylint:disable=invalid-name
         """Put an incoming media packet."""
         if self.flushing:
             raise ValueError(self.ER_FLUSHING)
@@ -376,7 +376,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
 
     def recover_media_packet(  # pylint:disable=too-many-branches,too-many-statements
         self,
-        media_sequence,
+        media_sequence: int,
         cross: dict,
         fec: FecPacket | None
     ) -> None:
@@ -526,7 +526,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         else:
             raise ValueError(self.ER_DELAY_UNITS.format(units))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Return a string representing this instance.
 
@@ -570,7 +570,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Static >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @staticmethod
-    def compute_col_address(media_socket):
+    def compute_col_address(media_socket: str | dict[str, str | int]) -> dict[str, str | int]:
         """
         Compute column FEC socket based on media stream socket (port +2).
 
@@ -594,7 +594,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         return media_socket
 
     @staticmethod
-    def compute_row_address(media_socket):
+    def compute_row_address(media_socket: str | dict[str, str | int]) -> dict[str, str | int]:
         """
         Compute column FEC socket based on media stream socket (port +4).
 
@@ -618,7 +618,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         return media_socket
 
     @staticmethod
-    def validity_window(current, start, end):
+    def validity_window(current: int, start: int, end: int) -> bool:
         """
         Returns True if `current` is in the validity window bounded by `start` and `end`.
 

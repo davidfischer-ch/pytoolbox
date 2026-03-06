@@ -3,6 +3,8 @@ Extra iterator utilities complementing :mod:`itertools`.
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Generator, Iterable, Iterator
+from typing import Any
 import itertools
 
 from . import throttles
@@ -11,7 +13,7 @@ from .types import isiterable
 __all__ = ['chain', 'chunk', 'extract_single', 'throttle']
 
 
-def chain(*objects, callback=isiterable):
+def chain(*objects: Any, callback: Callable[[Any], bool] = isiterable) -> itertools.chain[Any]:
     """
     Chain the objects, handle non iterable objects gracefully.
 
@@ -30,7 +32,7 @@ def chain(*objects, callback=isiterable):
     return itertools.chain.from_iterable(o if callback(o) else [o] for o in objects)
 
 
-def chunk(objects, length, of_type=list):
+def chunk(objects: Iterable, length: int, of_type: type = list) -> Generator:
     """
     Yield successive chunks of defined `length` from `objects`. Last chunk may be smaller.
 
@@ -51,7 +53,7 @@ def chunk(objects, length, of_type=list):
         yield data
 
 
-def extract_single(objects):
+def extract_single(objects: Any) -> Any:
     """
     Return the object from objects if there is only one object, else return objects unmodified.
 
@@ -69,7 +71,7 @@ def extract_single(objects):
     return next(iter(objects)) if len(objects) == 1 else objects
 
 
-def throttle(objects, min_delay):
+def throttle(objects: Iterable, min_delay: float | str | Any) -> Iterator:
     """
     Consume and skips some objects to yield them at defined `min_delay`. First and last objects are
     always returned. This function is a shortcut for

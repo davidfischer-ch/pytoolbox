@@ -161,7 +161,11 @@ def guess_algorithm(
     ...
 
 
-def guess_algorithm(checksum_value, algorithms=None, *, unique=False):
+def guess_algorithm(
+        checksum_value: str,
+        algorithms: Iterable[Callable | str] | None = None,
+        *,
+        unique: bool = False) -> set[Callable] | Callable | None:
     """
     Guess the algorithms that have produced the checksum_value, based on its size.
 

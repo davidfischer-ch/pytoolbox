@@ -13,12 +13,12 @@ class Disabled(setuptools.Command):  # pylint:disable=duplicate-code
     description = 'Do not run this.'
     user_options = [('dummy=', 'd', 'dummy option to make setuptools happy')]
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         """Initialize options."""
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         """Finalize options."""
 
-    def run(self):
+    def run(self) -> None:
         """Exit immediately with a disabled message."""
         sys.exit('This command is disabled!')

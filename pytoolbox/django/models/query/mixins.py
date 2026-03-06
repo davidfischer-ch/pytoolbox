@@ -1,12 +1,18 @@
 """
 Mix-ins for building your own query-sets.
 """
+from __future__ import annotations
 
+from typing import TYPE_CHECKING
 import functools
 
 from django.db import transaction
 
 from pytoolbox import module
+
+if TYPE_CHECKING:
+    from django.db import models
+    from django.db.models import QuerySet
 
 _all = module.All(globals())
 
@@ -16,12 +22,18 @@ class AtomicGetUpdateOrCreateMixin(object):
 
     savepoint = False
 
-    def get_or_create(self, defaults=None, **kwargs):
+    def get_or_create(
+            self,
+            defaults: dict[str, object] | None = None,
+            **kwargs: object) -> tuple[models.Model, bool]:
         """Wrap ``get_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_or_create(defaults=defaults, **kwargs)
 
-    def update_or_create(self, defaults=None, **kwargs):
+    def update_or_create(
+            self,
+            defaults: dict[str, object] | None = None,
+            **kwargs: object) -> tuple[models.Model, bool]:
         """Wrap ``update_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().update_or_create(defaults=defaults, **kwargs)
@@ -32,7 +44,7 @@ class AtomicGetRestoreOrCreateMixin(object):
 
     savepoint = False
 
-    def get_restore_or_create(self, *args, **kwargs):
+    def get_restore_or_create(self, *args: object, **kwargs: object) -> object:
         """Wrap ``get_restore_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_restore_or_create(*args, **kwargs)
@@ -41,7 +53,7 @@ class AtomicGetRestoreOrCreateMixin(object):
 class CreateModelMethodMixin(object):
     """Delegate ``create`` to the model's ``create`` class method if available."""
 
-    def create(self, *args, **kwargs):
+    def create(self, *args: object, **kwargs: object) -> models.Model:
         """Delegate to the model's ``create`` class method if available."""
         if hasattr(self.model, 'create'):
             return self.model.create(*args, **kwargs)
@@ -64,7 +76,7 @@ class StateMixin(object):
 
     _skip_names = frozenset(['__getstate__', 'model'])
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> object:
         # avoid strange infinite recursion with defer()
         if name not in self._skip_names:
             all_states = set()
@@ -77,7 +89,7 @@ class StateMixin(object):
             return functools.partial(self.in_states, all_states)
         raise AttributeError
 
-    def in_states(self, states, inverse=False):
+    def in_states(self, states: set[str] | str, inverse: bool = False) -> QuerySet:
         """Filter query set to include instances in `states`."""
         method = self.exclude if inverse else self.filter
         return method(state__in={states} if isinstance(states, str) else states)

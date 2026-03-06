@@ -10,7 +10,7 @@ from pytoolbox import exceptions
 __all__ = ['ip_address', 'IPSocket']
 
 
-def IPSocket(socket):  # pylint:disable=invalid-name
+def IPSocket(socket: str) -> dict[str, str | int]:  # pylint:disable=invalid-name
     """
     This helper create a dictionary containing address and port from a parsed IP address string.
     Throws InvalidIPSocketError in case of failure.

@@ -37,11 +37,11 @@ class SlotsEqualityMixin(object):
     and theirs values are tested for equality.
     """
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         return get_slots(self) == get_slots(other) and \
             all(getattr(self, a) == getattr(other, a) for a in get_slots(self))
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
 
@@ -72,11 +72,11 @@ def _colorize(diff: Iterable[str]) -> Iterator[str]:
 # Versions -----------------------------------------------------------------------------------------
 
 
-def _eqn(a, b) -> bool | None:  # pylint:disable=invalid-name
+def _eqn(a: object, b: object) -> bool | None:  # pylint:disable=invalid-name
     return True if a == b else None
 
 
-def _nen(a, b) -> bool | None:  # pylint:disable=invalid-name
+def _nen(a: object, b: object) -> bool | None:  # pylint:disable=invalid-name
     return False if a == b else None
 
 
