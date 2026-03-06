@@ -31,19 +31,21 @@ _all = module.All(globals())
 class _AssertNumQueriesInContext(CaptureQueriesContext):
 
     def __init__(
-            self,
-            test_case: object,
-            num_range: range,
-            connection: BaseDatabaseWrapper) -> None:
+        self,
+        test_case: object,
+        num_range: range,
+        connection: BaseDatabaseWrapper
+    ) -> None:
         self.test_case = test_case
         self.range = num_range
         super().__init__(connection)
 
     def __exit__(
-            self,
-            exc_type: type[BaseException] | None,
-            exc_value: BaseException | None,
-            traceback: object) -> None:
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: object
+    ) -> None:
         super().__exit__(exc_type, exc_value, traceback)
         if exc_type is None:
             executed = len(self)
@@ -100,12 +102,13 @@ class FormWizardMixin(object):
             self.assertEqual(getattr(response.context['wizard']['steps'], key), value, msg=key)
 
     def post_wizard(
-            self,
-            url: str,
-            step: str,
-            data: dict[str, object] | None = None,
-            raw_data: dict[str, object] | None = None,
-            **kwargs: object) -> HttpResponse:
+        self,
+        url: str,
+        step: str,
+        data: dict[str, object] | None = None,
+        raw_data: dict[str, object] | None = None,
+        **kwargs: object
+    ) -> HttpResponse:
         """Post data to a specific wizard step."""
         from formtools.wizard.views import normalize_name
         name = normalize_name(resolve(reverse(url)).func.__name__)
@@ -119,11 +122,12 @@ class QueriesMixin(object):
     """Provide assertions for checking the number of database queries."""
 
     def assertNumQueriesIn(
-            self,
-            num_range: range,
-            func: Callable | None = None,
-            *args: object,
-            **kwargs: object) -> object:
+        self,
+        num_range: range,
+        func: Callable | None = None,
+        *args: object,
+        **kwargs: object
+    ) -> object:
         """Assert that the number of queries is within *num_range*."""
         connection = connections[kwargs.pop('using', DEFAULT_DB_ALIAS)]
         context = _AssertNumQueriesInContext(self, num_range, connection)
@@ -137,13 +141,14 @@ class UrlMixin(object):
     """Resolve URLs from view names, paths, or model instances."""
 
     def resolve(
-            self,
-            value: object,
-            qs: str | None = None,
-            urlconf: str | None = None,
-            args: list | None = None,
-            kwargs: dict | None = None,
-            current_app: str | None = None) -> str:
+        self,
+        value: object,
+        qs: str | None = None,
+        urlconf: str | None = None,
+        args: list | None = None,
+        kwargs: dict | None = None,
+        current_app: str | None = None
+    ) -> str:
         """Resolve *value* to a URL string, optionally appending a query string."""
         if isinstance(value, str) and '/' in value:
             url = value
@@ -177,20 +182,22 @@ class RestAPIMixin(UrlMixin):
         return response
 
     def delete(
-            self,
-            url: str,
-            data: object = None,
-            status: int = 204,
-            **kwargs: object) -> HttpResponse:
+        self,
+        url: str,
+        data: object = None,
+        status: int = 204,
+        **kwargs: object
+    ) -> HttpResponse:
         """Send a DELETE request and assert the response status."""
         return self._call('delete', url, data, status, **kwargs)
 
     def get(
-            self,
-            url: str,
-            data: object = None,
-            status: int = 200,
-            **kwargs: object) -> HttpResponse:
+        self,
+        url: str,
+        data: object = None,
+        status: int = 200,
+        **kwargs: object
+    ) -> HttpResponse:
         """Send a GET request and assert the response status."""
         return self._call('get', url, data, status, **kwargs)
 

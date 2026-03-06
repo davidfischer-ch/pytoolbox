@@ -665,10 +665,11 @@ class TempStorage(object):
         return self
 
     def __exit__(
-            self,
-            kind: type[BaseException] | None,
-            value: BaseException | None,
-            traceback: object) -> None:
+        self,
+        kind: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: object
+    ) -> None:
         self.remove_all()
 
     def create_tmp_directory(

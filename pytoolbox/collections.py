@@ -18,11 +18,12 @@ class EventsTable(object):
     """Scan a spare events table and replace missing entry by previous (non empty) entry."""
 
     def __init__(
-            self,
-            sparse_events_table: dict[int, str],
-            time_range: int,
-            time_speedup: int | float,
-            sleep_factor: float = 1.0) -> None:
+        self,
+        sparse_events_table: dict[int, str],
+        time_range: int,
+        time_speedup: int | float,
+        sleep_factor: float = 1.0
+    ) -> None:
         self.time_range = time_range
         self.time_speedup = time_speedup
         self.sleep_factor = sleep_factor
@@ -62,10 +63,11 @@ class EventsTable(object):
         return index, self.events.get(index, default_value)
 
     def sleep_time(
-            self,
-            time: TimeValue,
-            time_speedup: int | float | None = None,
-            sleep_factor: float | None = None) -> int:
+        self,
+        time: TimeValue,
+        time_speedup: int | float | None = None,
+        sleep_factor: float | None = None
+    ) -> int:
         """
         Return required sleep time to wait for next scheduled event.
 
@@ -210,9 +212,10 @@ def merge_dicts(*dicts: dict) -> dict:
 
 
 def swap_dict_of_values(
-        the_dict: dict,
-        type: type | None = set,  # pylint:disable=redefined-builtin
-        method: Any = set.add) -> dict:
+    the_dict: dict,
+    type: type | None = set,  # pylint:disable=redefined-builtin
+    method: Any = set.add
+) -> dict:
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
@@ -256,9 +259,10 @@ def swap_dict_of_values(
 
 
 def to_dict_of_values(
-        iterable: Iterable[tuple[Any, Any]],
-        type: type = list,  # pylint:disable=redefined-builtin
-        method: Any = list.append) -> collections.defaultdict:
+    iterable: Iterable[tuple[Any, Any]],
+    type: type = list,  # pylint:disable=redefined-builtin
+    method: Any = list.append
+) -> collections.defaultdict:
     """
     Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as
     key -> values.

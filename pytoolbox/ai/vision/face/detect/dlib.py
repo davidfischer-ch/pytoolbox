@@ -110,12 +110,13 @@ class DlibFaceDetector(object):
         self.detector = dlib.get_frontal_face_detector()  # pylint:disable=no-member
 
     def align(
-            self,
-            image: np.ndarray,
-            box: dlib.rectangle,
-            dimension: int = 96,
-            landmark_indices: list[int] | None = None,
-            landmarks: list[tuple[int, int]] | None = None) -> np.ndarray:
+        self,
+        image: np.ndarray,
+        box: dlib.rectangle,
+        dimension: int = 96,
+        landmark_indices: list[int] | None = None,
+        landmarks: list[tuple[int, int]] | None = None
+    ) -> np.ndarray:
         """
         Transform and align a face in an image.
 
@@ -148,21 +149,22 @@ class DlibFaceDetector(object):
         return cv2.warpAffine(image, H, (dimension, dimension))  # pylint:disable=no-member
 
     def extract_all_faces(
-            self,
-            image: np.ndarray,
-            dimension: int = 96,
-            landmark_indices: list[int] | None = None
+        self,
+        image: np.ndarray,
+        dimension: int = 96,
+        landmark_indices: list[int] | None = None
     ) -> Iterator[tuple[dlib.rectangle, np.ndarray]]:
         """Yield ``(box, aligned_face)`` tuples for every face in the image."""
         for box in self.get_all_faces_bounding_boxes(image):
             yield box, self.align(image, box, dimension, landmark_indices)
 
     def extract_largest_face(
-            self,
-            image: np.ndarray,
-            dimension: int = 96,
-            landmark_indices: list[int] | None = None,
-            skip_multi: bool = False) -> tuple[dlib.rectangle | None, np.ndarray | None]:
+        self,
+        image: np.ndarray,
+        dimension: int = 96,
+        landmark_indices: list[int] | None = None,
+        skip_multi: bool = False
+    ) -> tuple[dlib.rectangle | None, np.ndarray | None]:
         """Return ``(box, aligned_face)`` for the largest face, or ``(box, None)``."""
         box = self.get_largest_face_bounding_box(image, skip_multi=skip_multi)
         return box, (self.align(image, box, dimension, landmark_indices) if box else None)
@@ -198,9 +200,10 @@ class DlibFaceDetector(object):
             return []
 
     def get_largest_face_bounding_box(
-            self,
-            image: np.ndarray,
-            skip_multi: bool = False) -> dlib.rectangle | None:
+        self,
+        image: np.ndarray,
+        skip_multi: bool = False
+    ) -> dlib.rectangle | None:
         """
         Find the largest face bounding box in an image.
 

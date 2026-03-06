@@ -32,16 +32,17 @@ def get_object_url(bucket_name: str, location: str, key: str) -> str:
 
 
 def list_objects(
-        s3: Any,
-        bucket_name: str,
-        prefix: str = '',
-        patterns: str = '*',
-        *,
-        regex: bool = False) -> Iterator[dict]:
+    s3: Any,
+    bucket_name: str,
+    prefix: str = '',
+    patterns: str = '*',
+    *,
+    regex: bool = False
+) -> Iterator[dict]:
     """Yield objects in a bucket whose keys match the given patterns."""
     if prefix and prefix[-1] != '/':
         prefix += '/'
-    patterns = from_path_patterns(patterns, regex=regex)
+    re_patterns = from_path_patterns(patterns, regex=regex)
     for page in s3.get_paginator('list_objects').paginate(Bucket=bucket_name, Prefix=prefix):
         try:
             objects = page['Contents']
@@ -49,7 +50,7 @@ def list_objects(
             return
         for obj in objects:
             key = obj['Key']
-            if any(p.match(key) for p in patterns):
+            if any(p.match(key) for p in re_patterns):
                 yield obj
 
 
@@ -64,12 +65,13 @@ def load_object_meta(s3: Any, bucket_name: str, path: str, *, fail: bool = True)
 
 
 def read_object(
-        s3: Any,
-        bucket_name: str,
-        path: str,
-        file: IO | None = None,
-        *,
-        fail: bool = True) -> bytes | IO | None:
+    s3: Any,
+    bucket_name: str,
+    path: str,
+    file: IO | None = None,
+    *,
+    fail: bool = True
+) -> bytes | IO | None:
     """Download an object's content into memory or into an open file."""
     try:
         if file is None:

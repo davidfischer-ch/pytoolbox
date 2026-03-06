@@ -75,12 +75,13 @@ SUPER_COMMANDS = ('destroy-environment', )
 
 
 def juju_do(
-        command: str,
-        environment: str | None = None,
-        options: list | None = None,
-        fail: bool = True,
-        log: Any = None,
-        **kwargs) -> Any:
+    command: str,
+    environment: str | None = None,
+    options: list | None = None,
+    fail: bool = True,
+    log: Any = None,
+    **kwargs
+) -> Any:
     """
     Execute a command `command` into environment `environment`.
 
@@ -217,10 +218,11 @@ def add_environment(
 
 
 def get_environment(
-        environment: str,
-        environments: str | None = None,
-        get_status: bool = False,
-        status_timeout: int | None = None) -> dict:
+    environment: str,
+    environments: str | None = None,
+    get_status: bool = False,
+    status_timeout: int | None = None
+) -> dict:
     """Return the configuration dictionary of a named environment."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
@@ -238,9 +240,10 @@ def get_environment(
 
 
 def get_environments(
-        environments: str | None = None,
-        get_status: bool = False,
-        status_timeout: int | None = None) -> tuple[dict, str]:
+    environments: str | None = None,
+    get_status: bool = False,
+    status_timeout: int | None = None
+) -> tuple[dict, str]:
     """Return all environments and the default environment name."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
@@ -365,11 +368,12 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
     """
 
     def __init__(
-            self,
-            metadata: str | dict | None,
-            default_config: str | dict | None,
-            default_os_env: dict[str, str],
-            force_disable_juju: bool = False) -> None:
+        self,
+        metadata: str | dict | None,
+        default_config: str | dict | None,
+        default_os_env: dict[str, str],
+        force_disable_juju: bool = False
+    ) -> None:
         self.config = CharmConfig()
         self.local_config = None
         reason = 'Life is good !'
@@ -464,10 +468,11 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     # TODO add memoize decorator
     def relation_get(
-            self,
-            attribute: str | None = None,
-            unit: str | None = None,
-            relation_id: str | None = None) -> str:
+        self,
+        attribute: str | None = None,
+        unit: str | None = None,
+        relation_id: str | None = None
+    ) -> str:
         """Return a relation attribute via ``relation-get``."""
         if self.juju_ok:
             command = ['relation-get']
@@ -803,11 +808,12 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('get', self.name, options=[service], fail=fail)
 
     def get_service(
-            self,
-            service: str,
-            default: Any = None,
-            fail: bool = True,
-            timeout: int = 15) -> Any:
+        self,
+        service: str,
+        default: Any = None,
+        fail: bool = True,
+        timeout: int = 15
+    ) -> Any:
         """Return the status dictionary of a service."""
         if not (status_dict := self.status(fail=fail, timeout=timeout)):
             return default
@@ -1019,13 +1025,14 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return results
 
     def destroy_unit(
-            self,
-            service: str,
-            number: int,
-            terminate: bool,
-            delay_terminate: int = 5,
-            fail: bool = True,
-            timeout: int | None = None) -> Any:
+        self,
+        service: str,
+        number: int,
+        terminate: bool,
+        delay_terminate: int = 5,
+        fail: bool = True,
+        timeout: int | None = None
+    ) -> Any:
         """Destroy a unit and optionally terminate its machine."""
         name = f'{service}/{number}'
         unit_dict = self.get_unit(service, number, default=None, fail=fail, timeout=timeout)
@@ -1039,12 +1046,13 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('destroy-unit', self.name, options=[name])
 
     def get_unit(
-            self,
-            service: str,
-            number: int,
-            default: Any = None,
-            fail: bool = True,
-            timeout: int | None = None) -> Any:
+        self,
+        service: str,
+        number: int,
+        default: Any = None,
+        fail: bool = True,
+        timeout: int | None = None
+    ) -> Any:
         """Return the status dictionary of a specific unit."""
         # TODO maybe none if missing or something else
         name = f'{service}/{number}'
@@ -1101,10 +1109,11 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
             time.sleep(max(0, polling_delay - (time.time() - time_zero)))
 
     def add_units(  # pylint:disable=invalid-name
-            self,
-            service: str,
-            num_units: int = 1,
-            to: str | None = None) -> Any:
+        self,
+        service: str,
+        num_units: int = 1,
+        to: str | None = None
+    ) -> Any:
         """Add units to an existing service."""
         options = ['--num-units', num_units]
         if to is not None:
@@ -1145,11 +1154,12 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return juju_do('deploy', self.name, options=options)
 
     def get_units(
-            self,
-            service: str,
-            default: Any = None,
-            fail: bool = True,
-            timeout: int | None = None) -> dict | Any:
+        self,
+        service: str,
+        default: Any = None,
+        fail: bool = True,
+        timeout: int | None = None
+    ) -> dict | Any:
         """Return a dict mapping unit numbers to their status."""
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is None:
@@ -1158,11 +1168,12 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return {int(name.split('/')[1]): info for name, info in units_dict.items()}
 
     def get_units_count(
-            self,
-            service: str,
-            default: Any = None,
-            fail: bool = True,
-            timeout: int | None = None) -> int | Any:
+        self,
+        service: str,
+        default: Any = None,
+        fail: bool = True,
+        timeout: int | None = None
+    ) -> int | Any:
         """Return the number of units of a service."""
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
         if service_dict is None:
@@ -1189,11 +1200,12 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
     # Relations
 
     def add_relation(
-            self,
-            service1: str,
-            service2: str,
-            relation1: str | None = None,
-            relation2: str | None = None) -> Any:
+        self,
+        service1: str,
+        service2: str,
+        relation1: str | None = None,
+        relation2: str | None = None
+    ) -> Any:
         """Add a relation between 2 services. Knowing that the relation may already exists."""
         print(f'Add relation between {service1} and {service2}')
         if not self.auto and not console.confirm('do it now', default=False):
@@ -1211,11 +1223,12 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return result
 
     def remove_relation(
-            self,
-            service1: str,
-            service2: str,
-            relation1: str | None = None,
-            relation2: str | None = None) -> Any:
+        self,
+        service1: str,
+        service2: str,
+        relation1: str | None = None,
+        relation2: str | None = None
+    ) -> Any:
         """Remove a relation between 2 services. Knowing that the relation may not exists."""
         print(f'Remove relation between {service1} and {service2}')
         if not self.auto and not console.confirm('do it now', default=False):
@@ -1236,11 +1249,12 @@ class DeploymentScenario(object):
     """Base class for scripted Juju deployment scenarios."""
 
     def __init__(
-            self,
-            environments: list[Environment],
-            args: list[str] | None = None,
-            namespace: Any = None,
-            **kwargs) -> None:
+        self,
+        environments: list[Environment],
+        args: list[str] | None = None,
+        namespace: Any = None,
+        **kwargs
+    ) -> None:
         parser = self.get_parser(**kwargs)
         self.args = parser.parse_args(args=args, namespace=namespace)
         self.environments = environments
@@ -1284,10 +1298,11 @@ class SimulatedUnit(object):
     """A simulated unit with a really simple state machine having a latency to start and stop."""
 
     def __init__(
-            self,
-            start_latency_range: tuple[int, int],
-            stop_latency_range: tuple[int, int],
-            state: str = PENDING) -> None:
+        self,
+        start_latency_range: tuple[int, int],
+        stop_latency_range: tuple[int, int],
+        state: str = PENDING
+    ) -> None:
         self.counter = self.next_state = None
         self.state = state
         self.start_latency_range = start_latency_range
@@ -1316,18 +1331,20 @@ class SimulatedUnits(object):
     """Manage a set of simulated units."""
 
     def __init__(
-            self,
-            start_latency_range: tuple[int, int],
-            stop_latency_range: tuple[int, int]) -> None:
+        self,
+        start_latency_range: tuple[int, int],
+        stop_latency_range: tuple[int, int]
+    ) -> None:
         self.start_latency_range = start_latency_range
         self.stop_latency_range = stop_latency_range  # TODO not yet used by this simulator ...
         self.units = {}
         self.number = 0
 
     def ensure_num_units(
-            self,
-            num_units: int | None = 1,
-            units_number_to_keep: list[int] | None = None) -> str | dict | None:
+        self,
+        num_units: int | None = 1,
+        units_number_to_keep: list[int] | None = None
+    ) -> str | dict | None:
         """Ensure `num_units` units by adding new units or destroying useless units first !"""
         assert num_units is None or num_units >= 0
 

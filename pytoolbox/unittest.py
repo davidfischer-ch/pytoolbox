@@ -38,8 +38,9 @@ def skip_if_missing(binary: str) -> Callable:
 
 
 def with_tags(
-        tags: str | set[str] | None = None,
-        required: str | set[str] | None = None) -> Callable:
+    tags: str | set[str] | None = None,
+    required: str | set[str] | None = None
+) -> Callable:
     """Decorate a test method with filterable tags."""
     def _with_tags(f: Callable) -> Callable:
         f.tags = set([tags] if isinstance(tags, str) else tags or [])
@@ -57,18 +58,20 @@ class InMixin(object):
         return obj if isinstance(obj, (str, bytes)) else sorted(obj)
 
     def assertIn(  # pylint:disable=invalid-name
-            self,
-            obj_a: Any,
-            obj_b: Any,
-            msg: str | None = None) -> None:
+        self,
+        obj_a: Any,
+        obj_b: Any,
+        msg: str | None = None
+    ) -> None:
         """Assert that *obj_a* is contained in *obj_b*."""
         assert obj_a in obj_b, f"{obj_a} not in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
     def assertNotIn(  # pylint:disable=invalid-name
-            self,
-            obj_a: Any,
-            obj_b: Any,
-            msg: str | None = None) -> None:
+        self,
+        obj_a: Any,
+        obj_b: Any,
+        msg: str | None = None
+    ) -> None:
         """Assert that *obj_a* is not contained in *obj_b*."""
         assert obj_a not in obj_b, f"{obj_a} in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
@@ -117,11 +120,12 @@ class FilterByTagsMixin(InspectMixin):
 
     @staticmethod
     def should_run(
-            tags: set[str],
-            required_tags: set[str],
-            extra_tags: set[str],
-            only_tags: set[str],
-            skip_tags: set[str]) -> bool:
+        tags: set[str],
+        required_tags: set[str],
+        extra_tags: set[str],
+        only_tags: set[str],
+        skip_tags: set[str]
+    ) -> bool:
         """Return ``True`` if a test with the given tags should be executed."""
         all_tags = tags | required_tags
         if all_tags & skip_tags:
@@ -225,26 +229,29 @@ class FFmpegMixin(object):
             self.assertEqual(getattr(codec, attr), value, msg=f'Codec attribute {attr}')
 
     def assertAudioCodecEqual(  # pylint:disable=invalid-name
-            self,
-            path: str | Path,
-            index: int,
-            **codec_attrs: Any) -> None:
+        self,
+        path: str | Path,
+        index: int,
+        **codec_attrs: Any
+    ) -> None:
         """Assert that the audio codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'audio', index, **codec_attrs)
 
     def assertSubtitleCodecEqual(  # pylint:disable=invalid-name
-            self,
-            path: str | Path,
-            index: int,
-            **codec_attrs: Any) -> None:
+        self,
+        path: str | Path,
+        index: int,
+        **codec_attrs: Any
+    ) -> None:
         """Assert that the subtitle codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'subtitle', index, **codec_attrs)
 
     def assertVideoCodecEqual(  # pylint:disable=invalid-name
-            self,
-            path: str | Path,
-            index: int,
-            **codec_attrs: Any) -> None:
+        self,
+        path: str | Path,
+        index: int,
+        **codec_attrs: Any
+    ) -> None:
         """Assert that the video codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'video', index, **codec_attrs)
 
@@ -329,9 +336,10 @@ class FFmpegMixin(object):
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
 
     def assertEncodeState(  # pylint:disable=invalid-name
-            self,
-            generator: Generator,
-            state: ffmpeg.EncodeState) -> list:
+        self,
+        generator: Generator,
+        state: ffmpeg.EncodeState
+    ) -> list:
         """Assert that the encode *generator* ends in the expected *state*."""
         results = list(generator)
         result = io.StringIO()
@@ -347,18 +355,20 @@ class MissingMixin(object):
     """Mixin providing assertions for the :data:`~pytoolbox.types.Missing` sentinel."""
 
     def assertIsMissing(  # pylint:disable=invalid-name
-            self,
-            value: Any,
-            *args: Any,
-            **kwargs: Any) -> None:
+        self,
+        value: Any,
+        *args: Any,
+        **kwargs: Any
+    ) -> None:
         """Assert that *value* is the :data:`~pytoolbox.types.Missing` sentinel."""
         return self.assertIs(value, Missing, *args, **kwargs)
 
     def assertIsNotMissing(  # pylint:disable=invalid-name
-            self,
-            value: Any,
-            *args: Any,
-            **kwargs: Any) -> None:
+        self,
+        value: Any,
+        *args: Any,
+        **kwargs: Any
+    ) -> None:
         """Assert that *value* is not the :data:`~pytoolbox.types.Missing` sentinel."""
         return self.assertIsNot(value, Missing, *args, **kwargs)
 

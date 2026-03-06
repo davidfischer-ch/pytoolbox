@@ -19,15 +19,17 @@ def get_base_model(cls_or_instance: type[models.Model] | models.Model) -> type[m
 
 
 def get_related_manager(
-        cls_or_instance: type[models.Model] | models.Model,
-        field: str) -> models.Manager:
+    cls_or_instance: type[models.Model] | models.Model,
+    field: str
+) -> models.Manager:
     """Return the default manager for the model related through *field*."""
     return get_related_model(cls_or_instance, field)._default_manager
 
 
 def get_related_model(
-        cls_or_instance: type[models.Model] | models.Model,
-        field: str) -> type[models.Model]:
+    cls_or_instance: type[models.Model] | models.Model,
+    field: str
+) -> type[models.Model]:
     """Return the model class related through *field*."""
     if field == 'pk':
         field = cls_or_instance._meta.pk.attname.rstrip('_id')

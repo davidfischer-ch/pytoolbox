@@ -49,7 +49,8 @@ def has_code(validation_error: ValidationError, code: str) -> bool:
 
 
 def iter_validation_errors(
-        validation_error: ValidationError) -> Iterator[tuple[str | None, ValidationError]]:
+    validation_error: ValidationError
+) -> Iterator[tuple[str | None, ValidationError]]:
     """
     **Example usage**
 

@@ -41,7 +41,7 @@ def conv2d_bn(
     cv2_out: int | None = None,
     cv2_filter: tuple[int, int] = (3, 3),
     cv2_strides: tuple[int, int] = (1, 1),
-    padding: tuple[int, int] | None = None,
+    padding: tuple[int, int] | None = None
 ) -> tf.Tensor:
     """Apply one or two Conv2D + BatchNormalization + ReLU blocks."""
     num = '' if cv2_out is None else '1'

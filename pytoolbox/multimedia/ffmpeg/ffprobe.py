@@ -198,11 +198,12 @@ class FFprobe(object):
             fail=fail)
 
     def get_video_frame_rate(
-            self,
-            media: object,
-            *,
-            index: int = 0,
-            fail: bool = False) -> float | None:
+        self,
+        media: object,
+        *,
+        index: int = 0,
+        fail: bool = False
+    ) -> float | None:
         """
         Return the frame rate of the video stream at `index` in `media` or None in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -220,11 +221,12 @@ class FFprobe(object):
         return None
 
     def get_video_resolution(
-            self,
-            media: object,
-            *,
-            index: int = 0,
-            fail: bool = False) -> list[int] | None:
+        self,
+        media: object,
+        *,
+        index: int = 0,
+        fail: bool = False
+    ) -> list[int] | None:
         """
         Return [width, height] of the video stream at `index` in `media` or None in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of

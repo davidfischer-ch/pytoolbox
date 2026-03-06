@@ -107,10 +107,11 @@ def str_to_datetime(date: str, *, fmt: str = ..., fail: Literal[False]) -> datet
 
 
 def str_to_datetime(
-        date: str,
-        *,
-        fmt: str = '%Y-%m-%d %H:%M:%S',
-        fail: bool = True) -> datetime.datetime | None:
+    date: str,
+    *,
+    fmt: str = '%Y-%m-%d %H:%M:%S',
+    fail: bool = True
+) -> datetime.datetime | None:
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
     Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at
@@ -156,10 +157,11 @@ def multiply_time(
 
 
 def multiply_time(
-        value: TimeValue,
-        factor: float,
-        *,
-        as_delta: bool = False) -> datetime.time | datetime.timedelta:
+    value: TimeValue,
+    factor: float,
+    *,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`
     corresponding to `value` multiplied by a `factor`.
@@ -206,12 +208,13 @@ def parts_to_time(
 
 
 def parts_to_time(
-        hours: int | float,
-        minutes: int | float,
-        seconds: int | float,
-        microseconds: int | float,
-        *,
-        as_delta: bool = False) -> datetime.time | datetime.timedelta:
+    hours: int | float,
+    minutes: int | float,
+    seconds: int | float,
+    microseconds: int | float,
+    *,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` out of the parts.
 
@@ -245,9 +248,10 @@ def secs_to_time(value: float | int, *, as_delta: Literal[True]) -> datetime.tim
 
 
 def secs_to_time(
-        value: float | int,
-        *,
-        as_delta: bool = False) -> datetime.time | datetime.timedelta:
+    value: float | int,
+    *,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the
     number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
@@ -311,10 +315,11 @@ def str_to_time(
 
 
 def str_to_time(
-        value: str,
-        *,
-        defaults_to_zero: bool = False,
-        as_delta: bool = False) -> datetime.time | datetime.timedelta | None:
+    value: str,
+    *,
+    defaults_to_zero: bool = False,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta | None:
     """
     Return the string of format 'hh:mm:ss' into an instance of time.
 

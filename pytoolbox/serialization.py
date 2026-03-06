@@ -110,12 +110,13 @@ class PickleableObject(object):
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
     def read(
-            cls,
-            path: str,
-            *,
-            store_path: bool = False,
-            create_if_error: bool = False,
-            **kwargs: Any) -> PickleableObject:
+        cls,
+        path: str,
+        *,
+        store_path: bool = False,
+        create_if_error: bool = False,
+        **kwargs: Any
+    ) -> PickleableObject:
         """Return a deserialized instance of a pickleable object loaded from a file."""
         try:
             with open(path, 'rb') as f:
@@ -130,13 +131,14 @@ class PickleableObject(object):
         return the_object
 
     def write(
-            self,
-            path: str | None = None,
-            *,
-            store_path: bool = False,
-            safe: bool = False,
-            backup: bool = False,
-            makedirs: bool = False) -> None:
+        self,
+        path: str | None = None,
+        *,
+        store_path: bool = False,
+        safe: bool = False,
+        backup: bool = False,
+        makedirs: bool = False
+    ) -> None:
         """Serialize `self` to a file, excluding the attribute `_pickle_path`."""
         pickle_path = getattr(self, '_pickle_path', None)
         path = path or pickle_path
@@ -335,11 +337,12 @@ class JsoneableObject(object):
     """
     @classmethod
     def read(
-            cls,
-            path: str,
-            *,
-            store_path: bool = False,
-            inspect_constructor: bool = True) -> JsoneableObject:
+        cls,
+        path: str,
+        *,
+        store_path: bool = False,
+        inspect_constructor: bool = True
+    ) -> JsoneableObject:
         """Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(path, encoding='utf-8') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)

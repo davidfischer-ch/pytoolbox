@@ -104,10 +104,11 @@ def setup_postgresql_hstore_extension(sender: object, connection: object, **kwar
 
 
 def strip_strings_and_validate_model(
-        sender: object,
-        instance: models.Model,
-        raw: bool,
-        **kwargs: object) -> None:
+    sender: object,
+    instance: models.Model,
+    raw: bool,
+    **kwargs: object
+) -> None:
     """Strip the string fields of the instance and run the instance's full_clean()."""
     if not raw:
         logger.debug(f'Validate model {instance} on save() with kwargs={kwargs}')
