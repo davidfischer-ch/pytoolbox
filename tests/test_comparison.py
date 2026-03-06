@@ -35,6 +35,7 @@ class Point3D(comparison.SlotsEqualityMixin):
 
 
 def test_equality_same_class() -> None:
+    """Same-class instances are equal when all slots match, unequal otherwise."""
     point_1 = Point2D(10, -3, 'dot')
     point_2 = Point2D(10, -3, 'dot')
     point_3 = Point2D(10, -4, 'dot')
@@ -43,6 +44,7 @@ def test_equality_same_class() -> None:
 
 
 def test_equality_inheritance() -> None:
+    """Parent and subclass instances are equal when they share the same slots and values."""
     point_1 = Point2D(10, -3, 'dot')
     point_2 = Point2Dv2(10, -3, 'dot')
     point_3 = Point2Dv2(10, -4, 'dot')
@@ -51,6 +53,7 @@ def test_equality_inheritance() -> None:
 
 
 def test_equality_different_class() -> None:
+    """Instances with different slot sets are never equal, regardless of shared values."""
     point_1 = Point2D(10, -3, 'dot')
     point_2 = Point3D(10, -3, 5, 'dot')
     point_3 = Point3D(10, -4, 2, 'dot')
@@ -62,6 +65,7 @@ def test_equality_different_class() -> None:
 
 
 def test_unified_diff() -> None:
+    """Produces a standard unified diff between two strings without ANSI colors."""
     assert comparison.unified_diff(
         'Some T',
         'Other T',
@@ -80,7 +84,10 @@ def test_unified_diff() -> None:
 
 
 def test_unified_diff_colorize() -> None:
+    """Colorized diff wraps removed lines in red and added lines in green ANSI codes."""
+    import termcolor
     with patch.dict(os.environ, console.toggle_colors(colorize=True), clear=True):
+        termcolor.can_colorize.cache_clear()
         assert comparison.unified_diff(
             'Some T',
             'Other T',
@@ -96,6 +103,7 @@ def test_unified_diff_colorize() -> None:
 \x1b[31m-Some T\x1b[0m
 \x1b[32m+Other T\x1b[0m
 """).strip()
+
 
 
 # Versions -----------------------------------------------------------------------------------------
@@ -161,4 +169,5 @@ def test_unified_diff_colorize() -> None:
     ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
 ])
 def test_compare_versions(version_a, version_b, operation, expected) -> None:
+    """Compares semver, branch names, and commit hashes with the given operator."""
     assert comparison.compare_versions(version_a, version_b, operation) == expected

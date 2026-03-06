@@ -1,10 +1,15 @@
+"""
+Collection utilities and data structures.
+"""
 from __future__ import annotations
 
+from collections.abc import Iterable
+from typing import Any
 import collections
 import math
 
 from . import module
-from .datetime import total_seconds
+from .datetime import TimeValue, total_seconds
 
 _all = module.All(globals())
 
@@ -12,7 +17,13 @@ _all = module.All(globals())
 class EventsTable(object):
     """Scan a spare events table and replace missing entry by previous (non empty) entry."""
 
-    def __init__(self, sparse_events_table, time_range, time_speedup, sleep_factor=1.0):
+    def __init__(
+        self,
+        sparse_events_table: dict[int, str],
+        time_range: int,
+        time_speedup: int | float,
+        sleep_factor: float = 1.0
+    ) -> None:
         self.time_range = time_range
         self.time_speedup = time_speedup
         self.sleep_factor = sleep_factor
@@ -23,7 +34,13 @@ class EventsTable(object):
             self.events[index] = event
             previous_event = event
 
-    def get(self, time, time_speedup=None, default_value=None):
+    def get(
+            self,
+            time: TimeValue,
+            time_speedup: int | float | None = None,
+            default_value: str | None = None
+    ) -> tuple[int, str | None]:
+        """Return the event index and value for a given time."""
         # """
         # >>> def test_get_index(time_range, time_speedup):
         # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
@@ -46,7 +63,12 @@ class EventsTable(object):
         index = int(total_seconds(time) * (speedup / 3600) % self.time_range)
         return index, self.events.get(index, default_value)
 
-    def sleep_time(self, time, time_speedup=None, sleep_factor=None):
+    def sleep_time(
+        self,
+        time: TimeValue,
+        time_speedup: int | float | None = None,
+        sleep_factor: float | None = None
+    ) -> int:
         """
         Return required sleep time to wait for next scheduled event.
 
@@ -109,7 +131,8 @@ class pygal_deque(collections.deque):  # pylint:disable=invalid-name
 
     last = None
 
-    def append(self, value):  # pylint:disable=arguments-renamed
+    def append(self, value: Any) -> None:  # pylint:disable=arguments-renamed
+        """Append a value, replacing duplicates with ``None``."""
         if value != self.last and value is not None:
             try:
                 self[-1] = self.last
@@ -126,7 +149,8 @@ class pygal_deque(collections.deque):  # pylint:disable=invalid-name
         if self[0] is None:
             self[0] = first
 
-    def list(self, fill=False):
+    def list(self, fill: bool = False) -> list[Any]:
+        """Return the deque as a list, optionally filling ``None`` gaps."""
         self_list = list(self)
         try:
             if self.last is not None:
@@ -143,7 +167,7 @@ class pygal_deque(collections.deque):  # pylint:disable=invalid-name
         return self_list
 
 
-def flatten_dict(the_dict, key_template='{0}.{1}'):
+def flatten_dict(the_dict: dict, key_template: str = '{0}.{1}') -> dict:
     """
     Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given
     `key_template`.
@@ -157,7 +181,7 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
     >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}')
     {'c-b-a': ['d', 'e'], 'f-a': 'g'}
     """
-    def expand_item(key, value):
+    def expand_item(key: str, value: Any) -> list[tuple[str, Any]]:
         if isinstance(value, dict):
             return [
                 (key_template.format(key, k), v)
@@ -167,7 +191,7 @@ def flatten_dict(the_dict, key_template='{0}.{1}'):
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
-def merge_dicts(*dicts):
+def merge_dicts(*dicts: dict) -> dict:
     """
     Return a dictionary from multiple dictionaries.
 
@@ -188,7 +212,11 @@ def merge_dicts(*dicts):
     return merged_dict
 
 
-def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=redefined-builtin
+def swap_dict_of_values(
+    the_dict: dict,
+    type: type | None = set,  # pylint:disable=redefined-builtin
+    method: Any = set.add
+) -> dict:
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
@@ -231,7 +259,11 @@ def swap_dict_of_values(the_dict, type=set, method=set.add):  # pylint:disable=r
     return reversed_dict
 
 
-def to_dict_of_values(iterable, type=list, method=list.append):  # pylint:disable=redefined-builtin
+def to_dict_of_values(
+    iterable: Iterable[tuple[Any, Any]],
+    type: type = list,  # pylint:disable=redefined-builtin
+    method: Any = list.append
+) -> collections.defaultdict:
     """
     Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as
     key -> values.
@@ -252,7 +284,7 @@ def to_dict_of_values(iterable, type=list, method=list.append):  # pylint:disabl
     return dict_of_values
 
 
-def window(values, index, delta):
+def window(values: list, index: int, delta: int) -> tuple[list, int, int]:
     """
     Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with
     (items, left, right).

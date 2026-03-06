@@ -3,6 +3,8 @@ Decorators for enhancing your models.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
+
 try:
     from django.urls import reverse
 except ImportError:
@@ -12,7 +14,8 @@ except ImportError:
 __all__ = ['with_urls']
 
 
-def with_urls(base_url, *interface_actions, **kwargs):
+def with_urls(base_url: str, *interface_actions: str, **kwargs: object) -> Callable[[type], type]:
+    """Decorate a model to generate ``get_<action>_url`` methods from URL patterns."""
     base_url = base_url + ':'
 
     if not interface_actions:
@@ -23,7 +26,7 @@ def with_urls(base_url, *interface_actions, **kwargs):
     if kwargs:
         raise AttributeError(kwargs)
 
-    def _with_urls(model):
+    def _with_urls(model: type) -> type:
         model.interface_actions = interface_actions
 
         for action in interface_actions:
@@ -34,15 +37,15 @@ def with_urls(base_url, *interface_actions, **kwargs):
 
             if action == 'create':
                 @classmethod
-                def method(cls):
+                def method(cls) -> str:
                     return reverse(base_url + 'create')
             else:
-                def get_url(action, singleton):
+                def get_url(action: str, singleton: bool) -> Callable[..., str]:
                     if singleton:
-                        def _get_url(self):
+                        def _get_url(self) -> str:
                             return reverse(base_url + action)
                     else:
-                        def _get_url(self):
+                        def _get_url(self) -> str:
                             return reverse(base_url + action, args=[str(self.pk)])
                     return _get_url
                 method = get_url(action, singleton)

@@ -1,9 +1,12 @@
+"""
+Logging configuration helpers for Django projects.
+"""
 from __future__ import annotations
 
 __all__ = ['log_to_console']
 
 
-def log_to_console(settings):
+def log_to_console(settings: object) -> None:
     """
     Update settings to make all loggers use the console.
 

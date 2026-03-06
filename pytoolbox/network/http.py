@@ -1,3 +1,6 @@
+"""
+HTTP download utilities with progress tracking, hashing, and multi-file support.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator
@@ -12,8 +15,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import requests
 from requests.auth import AuthBase
+import requests
 
 from pytoolbox import console, crypto, filesystem, module
 from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
@@ -25,6 +28,7 @@ DEFAULT_CHUNK_SIZE: Final[int] = 100 * 1024
 
 @dataclass(frozen=True, slots=True)
 class Resource(object):  # pylint:disable=too-many-instance-attributes
+    """Describe a downloadable HTTP resource with optional hash verification."""
     name: str
     url: str
     path: Path
@@ -44,11 +48,13 @@ class Resource(object):  # pylint:disable=too-many-instance-attributes
 
 
 class SingleProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
+    """Callback protocol for single-file download progress."""
     def __call__(self, start_time: float, position: int, length: int, chunk: bytes | None) -> None:
         ...
 
 
 class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
+    """Callback protocol for multi-file download progress."""
     def __call__(
         self,
         *,
@@ -88,6 +94,7 @@ def iter_download_core(  # pylint:disable=too-many-arguments
     timeout: int | None = None,
     verify: bool = True
 ) -> Iterator[tuple[int, int, bytes]]:
+    """Yield ``(position, length, chunk)`` tuples while downloading *url*."""
     response = requests.get(
         url=url,
         allow_redirects=allow_redirects,
@@ -135,6 +142,7 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     timeout: int | None = None,
     verify: bool = True
 ) -> Iterator[tuple[int, int, bytes | None, bool, str | None]]:
+    """Download *url* to *path*, yielding progress tuples with hash info."""
     position = length = 0
     chunk: bytes | None = None
     file_hasher = None
@@ -297,9 +305,9 @@ def download_ext_multi(
     chunk_size: int | None = 1024 * 1024,
     force: bool = False,
     progress_callback: MultiProgressCallback = console.progress_bar,
-    progress_stream=sys.stdout,
-    progress_template='\r[{counter} of {total}] [{done}{todo}] {resource.name}'
-):
+    progress_stream: TextIO = sys.stdout,
+    progress_template: str = '\r[{counter} of {total}] [{done}{todo}] {resource.name}'
+) -> None:
     """
     Download resources, showing a progress bar by default.
 

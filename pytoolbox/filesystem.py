@@ -35,6 +35,7 @@ FindPatterns: TypeAlias = (
 
 
 class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
+    """Callback protocol for :func:`copy_recursive` progress reporting."""
     def __call__(
         self,
         start_date: datetime.datetime,
@@ -48,12 +49,13 @@ class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
 
 
 class TemplateHookFunc(Protocol):  # pylint:disable=too-few-public-methods
+    """Callback protocol for :func:`from_template` pre/post hooks."""
     def __call__(self, content: str, values: dict[str, Any], *, jinja2: bool = False) -> str:
         ...
 
 
 @contextlib.contextmanager
-def chdir(path: Path):
+def chdir(path: Path) -> Iterator[None]:
     """Set working directory then restore previous working directory value on exit."""
     here = Path.cwd()
     os.chdir(path)
@@ -154,7 +156,6 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             dst_file = dst_path.open('wb')  # pylint: disable=consider-using-with
 
             # Block-based copy loop
-            block_pos: int = 0
             prev_ratio: float = 0
             prev_time: float = 0
             while True:
@@ -184,7 +185,6 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
                         ratio=ratio)
 
                 block_length = len(block)
-                block_pos += block_length
                 dst_size += block_length
 
                 if not block:
@@ -482,7 +482,7 @@ def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
         raise  # Re-raise exception if a different error occurred
 
 
-def remove(path: Path | str, *, recursive: bool = False):
+def remove(path: Path | str, *, recursive: bool = False) -> bool:
     """
     Remove a file/directory (which may not exists) without throwing an exception.
     Returns True if operation is successful, False if file/directory not found and re-raise any
@@ -525,8 +525,7 @@ def remove(path: Path | str, *, recursive: bool = False):
             if recursive and (
                 isinstance(ex, OSError)
                 and ex.errno == errno.EISDIR  # pylint:disable=no-member
-                or PermissionError is not None
-                and isinstance(ex, PermissionError)
+                or isinstance(ex, PermissionError)
             ):
                 shutil.rmtree(path)
                 return True
@@ -538,7 +537,7 @@ def remove(path: Path | str, *, recursive: bool = False):
         raise  # Re-raise exception if a different error occurred
 
 
-def symlink(source, link_name):
+def symlink(source: str, link_name: str) -> bool:
     """
     Symlink a file/directory (which may already exists) without throwing an exception. Returns True
     if operation is successful, False if found & target is `link_name` and re-raise any other type
@@ -603,7 +602,7 @@ def symlink(source, link_name):
         raise  # Re-raise exception if a different error occurred
 
 
-def to_user_id(user: int | str | None):
+def to_user_id(user: int | str | None) -> int:
     """
     Return user ID.
 
@@ -622,7 +621,7 @@ def to_user_id(user: int | str | None):
     return -1 if user is None else user
 
 
-def to_group_id(group):
+def to_group_id(group: int | str | None) -> int:
     """
     Return group ID.
 
@@ -665,7 +664,12 @@ class TempStorage(object):
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, kind, value, traceback) -> None:
+    def __exit__(
+        self,
+        kind: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: object
+    ) -> None:
         self.remove_all()
 
     def create_tmp_directory(
@@ -676,7 +680,8 @@ class TempStorage(object):
         user: int | str | None = None,
         group: int | str | None = None
     ) -> Path:
-        """
+        """Create a temporary directory and return its path.
+
         **Example usage**
 
         >>> import os
@@ -737,16 +742,17 @@ class TempStorage(object):
 
     def create_tmp_file(
         self,
-        name='tmp-{uuid}',
-        extension=None,
+        name: str = 'tmp-{uuid}',
+        extension: str | None = None,
         *,
-        encoding='utf-8',
-        key=None,
-        user=None,
-        group=None,
-        return_file=True
-    ):
-        """
+        encoding: str | None = 'utf-8',
+        key: str | None = None,
+        user: int | str | None = None,
+        group: int | str | None = None,
+        return_file: bool = True
+    ) -> BinaryIO | TextIO | Path:
+        """Create a temporary file and return a file object or its path.
+
         **Example usage**
 
         >>> from pathlib import Path
@@ -780,7 +786,8 @@ class TempStorage(object):
         return path
 
     def remove_by_path(self, path: Path) -> None:
-        """
+        """Remove a tracked temporary path by its filesystem path.
+
         **Example usage**
 
         >>> from pytoolbox.unittest import asserts
@@ -798,7 +805,8 @@ class TempStorage(object):
         self._paths_by_key[key].remove(path)
 
     def remove_by_key(self, key: str | None = None) -> None:
-        """
+        """Remove all tracked temporary paths associated with a key.
+
         **Example usage**
 
         >>> tmp = TempStorage()
@@ -821,7 +829,8 @@ class TempStorage(object):
         del self._paths_by_key[key]
 
     def remove_all(self) -> None:
-        """
+        """Remove all tracked temporary paths.
+
         **Example usage**
 
         >>> with TempStorage() as tmp:
@@ -847,5 +856,6 @@ __all__ = _all.diff(globals())
 
 
 @deprecated('Use pytoolbox.filesystem.copy_recursive instead (drop-in replacement)')
-def recursive_copy(*args, **kwargs):  # pragma: no cover
+def recursive_copy(*args: Any, **kwargs: Any) -> dict[str, Any]:  # pragma: no cover
+    """Deprecated alias for :func:`copy_recursive`."""
     return copy_recursive(*args, **kwargs)

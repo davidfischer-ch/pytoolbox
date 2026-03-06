@@ -1,3 +1,6 @@
+"""
+Collection utilities for Django models and forms.
+"""
 from __future__ import annotations
 
 from pytoolbox.django.core.constants import DEFFERED_REGEX
@@ -49,11 +52,11 @@ class FieldsToValuesLookupDict(object):
     3. '<field_name>'
     """
 
-    def __init__(self, name, translations=None):
+    def __init__(self, name: str, translations: dict[str, object] | None = None) -> None:
         self.name = name
         self.translations = translations or {}
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str | tuple[type, str]) -> object:
         if isinstance(key, str):
             keys = [key]
         else:
@@ -69,5 +72,5 @@ class FieldsToValuesLookupDict(object):
                 return value
         raise KeyError(f'Entry for keys {keys} not found in {self.name}.')
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: object) -> None:
         self.translations[key] = value

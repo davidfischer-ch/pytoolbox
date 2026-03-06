@@ -1,3 +1,6 @@
+"""
+State machine enumerations with transition validation.
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -8,6 +11,7 @@ __all__ = ['StateEnumMetaclass', 'StateEnumMergeMetaclass', 'StateEnum']
 
 
 class StateEnumMetaclass(type):
+    """Metaclass that computes state sets and inverse transitions from ``TRANSITIONS``."""
 
     # TODO type hint class attributes?
 
@@ -24,6 +28,7 @@ class StateEnumMetaclass(type):
 
 
 class StateEnumMergeMetaclass(StateEnumMetaclass):
+    """Metaclass that merges transitions from multiple base state enums."""
 
     # TODO type hint class attributes?
 
@@ -45,11 +50,13 @@ class StateEnumMergeMetaclass(StateEnumMetaclass):
 
 
 class StateEnum(object, metaclass=StateEnumMetaclass):
+    """Base class for state enumerations with transition rules."""
 
     # TODO type hint class attributes?
 
     @classmethod
-    def get(cls, name: str):  # TODO return type hint
+    def get(cls, name: str) -> str | frozenset[str] | None:
+        """Return the state or state set matching a lowercase name."""
         if name.lower() == name:
             if (name := name.upper()) in cls.ALL_STATES:
                 return name
@@ -57,7 +64,12 @@ class StateEnum(object, metaclass=StateEnumMetaclass):
         return None
 
     @classmethod
-    def get_transit_from(cls, state: str, *, auto_inverse: bool = False):  # TODO return type hint
+    def get_transit_from(
+            cls,
+            state: str,
+            *,
+            auto_inverse: bool = False
+    ) -> frozenset[str] | tuple[frozenset[str], bool]:
         """
         Return a set with the states having a transition to given `state`.
 

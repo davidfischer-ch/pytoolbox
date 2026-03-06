@@ -1,3 +1,6 @@
+"""
+EXIF tag reading, type conversion, and cleaning utilities.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -15,6 +18,7 @@ __all__ = ['Tag', 'TagSet']
 
 
 class Tag(object):
+    """Represent a single EXIF tag with type-aware data access."""
 
     brand_class = Brand
     date_formats = ['%Y%m%d %H%M%S', '%Y%m%d']
@@ -48,15 +52,16 @@ class Tag(object):
         'XmpText': str
     }
 
-    def __init__(self, metadata, key):
+    def __init__(self, metadata: object, key: str) -> None:
         self.metadata = metadata
         self.key = key
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{type(self).__name__} {self.key}: {str(self.data)[:20]}>'
 
     @property
-    def data(self):
+    def data(self) -> object:
+        """Return the tag value converted to its Python type."""
         if self.data_bytes is None:
             return None
         if type_hook := self.get_type_hook(mode='get'):
@@ -67,35 +72,42 @@ class Tag(object):
         return self.data_bytes
 
     @property
-    def data_bytes(self):
+    def data_bytes(self) -> bytes | None:
+        """Return the raw bytes of the tag or ``None`` if absent."""
         tag_raw = self.metadata.exiv2.try_get_tag_raw(self.key)
         return tag_raw.get_data() if tag_raw else None
 
     @decorators.cached_property
     def description(self) -> str:
+        """Return the human-readable description of this tag."""
         return self.metadata.exiv2.get_tag_description(self.key)
 
     @property
     def brand(self) -> Brand | None:
+        """Return the :class:`Brand` associated with this tag's group."""
         if self.group in self.group_to_brand_blacklist:
             return None
         return self.brand_class(self.group)
 
     @property
     def group(self) -> str:
+        """Return the EXIF group name extracted from the tag key."""
         return self.key.split('.')[-2]
 
     @decorators.cached_property
     def label(self) -> str:
+        """Return the tag label, falling back to the key's last component."""
         return self.metadata.exiv2.try_get_tag_label(self.key) or self.key.split('.')[-1]
 
     @property
     def size(self) -> int:
+        """Return the size of the raw tag data in bytes."""
         raw = self.metadata.exiv2.try_get_tag_raw(self.key)
         return raw.get_size() if raw else 0
 
     @decorators.cached_property
     def type(self) -> type:
+        """Return the Python type corresponding to this tag's EXIF type."""
         tag_type = self.metadata.exiv2.try_get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
@@ -104,7 +116,8 @@ class Tag(object):
                 raise KeyError(f'Unknow tag type {tag_type}') from ex
         return bytes
 
-    def clean(self, data):
+    def clean(self, data: object) -> object:
+        """Convert raw tag data to the appropriate Python type."""
         if isinstance(data, str):
             data = data.strip()
         if self.type == datetime.time:
@@ -129,15 +142,18 @@ class Tag(object):
             data_repr=repr(data))
 
     def get_type_hook(self, *, mode: Literal['get', 'set']) -> Callable | None:
+        """Return the GExiv2 accessor method for *mode* (``'get'`` or ``'set'``)."""
         name = self.type_to_hook.get(self.type)
         return getattr(self.metadata.exiv2, f'try_{mode}_{name}') if name else None
 
 
 class TagSet(object):  # pylint:disable=too-few-public-methods
+    """Base class for groups of related EXIF tags."""
 
-    def __init__(self, metadata):
+    def __init__(self, metadata: object) -> None:
         self.metadata = metadata
 
     @staticmethod
-    def clean_number(number) -> int | Fraction | None:
+    def clean_number(number: int | Fraction | None) -> int | Fraction | None:
+        """Return *number* if positive, otherwise ``None``."""
         return number if number and number > 0 else None

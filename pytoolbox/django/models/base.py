@@ -11,8 +11,10 @@ __all__ = ['Timestamped']
 
 
 class Timestamped(models.Model):
+    """Abstract model with auto-managed ``created_at`` and ``updated_at`` fields."""
 
     class Meta:
+        """Default ordering by creation and update timestamps."""
         abstract = True
         get_latest_by = 'created_at'
         ordering = ('created_at', 'updated_at')

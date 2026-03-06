@@ -1,3 +1,6 @@
+"""
+Re-export all Selenium exceptions and add custom ones.
+"""
 from __future__ import annotations
 
 from selenium.common import exceptions
@@ -11,4 +14,4 @@ globals().update(things)
 
 
 class NoSuchSpecializedElementException(exceptions.NoSuchElementException):
-    pass
+    """Raised when no specialized web element class matches a component."""

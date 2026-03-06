@@ -1,3 +1,6 @@
+"""
+FFmpeg-related parsing utilities for bit rates, sizes, and frame rates.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -39,10 +42,12 @@ HEIGHT: Final[int] = 1
 
 
 def is_pipe(path: Path | str) -> bool:
+    """Return ``True`` if *path* refers to a pipe (e.g. ``-`` or ``pipe:0``)."""
     return isinstance(path, str) and bool(PIPE_REGEX.match(path))
 
 
 def to_bit_rate(bit_rate: str) -> int | None:
+    """Parse a bit rate string (e.g. ``'3302.3kbits/s'``) to an integer."""
     if match := BIT_RATE_REGEX.match(bit_rate):
         data = match.groupdict()
         return int(float(data['value']) * BIT_RATE_COEFFICIENT_FOR_UNIT[data['units'][0]])
@@ -52,6 +57,7 @@ def to_bit_rate(bit_rate: str) -> int | None:
 
 
 def to_frame_rate(frame_rate: float | str) -> float | None:
+    """Parse a frame rate value (e.g. ``'30000/1001'``) to a float."""
     if isinstance(frame_rate, str) and '/' in frame_rate:
         try:
             num, denom = frame_rate.split('/')
@@ -62,6 +68,7 @@ def to_frame_rate(frame_rate: float | str) -> float | None:
 
 
 def to_size(size: str) -> int:
+    """Parse a size string (e.g. ``'34623kB'``) to bytes as an integer."""
     if match := SIZE_REGEX.match(size):
         data = match.groupdict()
         return int(float(data['value']) * SIZE_COEFFICIENT_FOR_UNIT[data['units'][0].lower()])

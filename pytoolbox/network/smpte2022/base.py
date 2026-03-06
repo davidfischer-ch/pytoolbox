@@ -1,3 +1,6 @@
+"""
+SMPTE 2022-1 FEC packet parsing, creation, and XOR-based computation.
+"""
 from __future__ import annotations
 
 import struct
@@ -146,12 +149,12 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
-    def valid(self):
+    def valid(self) -> bool:
         """Returns True if this packet is a valid RTP packet (with FEC payload)."""
         return len(self.errors) == 0
 
     @property
-    def errors(self):
+    def errors(self) -> list[str]:
         """
         Returns an array containing any errors.
 
@@ -189,7 +192,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return errors
 
     @property
-    def D(self):  # pylint:disable=invalid-name
+    def D(self) -> int | None:  # pylint:disable=invalid-name
         """
         Returns the vertical size of the FEC matrix (rows).
 
@@ -204,7 +207,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return self.na if self.direction == self.COL else None
 
     @property
-    def L(self):  # pylint:disable=invalid-name
+    def L(self) -> int:  # pylint:disable=invalid-name
         """
         Returns the horizontal size of the FEC matrix (columns).
 
@@ -220,7 +223,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return self.offset if self.direction == self.COL else self.na
 
     @property
-    def header_size(self):
+    def header_size(self) -> int:
         """
         Returns the length (aka size) of the header.
 
@@ -236,7 +239,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return self.HEADER_LENGTH
 
     @property
-    def payload_size(self):
+    def payload_size(self) -> int:
         """
         Returns the length (aka size) of the payload.
 
@@ -252,7 +255,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return len(self.payload_recovery) if self.payload_recovery else 0
 
     @property
-    def header_bytes(self):
+    def header_bytes(self) -> bytearray:
         """
         Returns SMPTE 2022-1 FEC header bytes.
 
@@ -309,12 +312,13 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return header
 
     @property
-    def bytes(self):
+    def bytes(self) -> bytearray:
+        """Return the complete FEC packet bytes (header + payload recovery)."""
         return self.header_bytes + self.payload_recovery
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def __init__(self, data=None, length=0):
+    def __init__(self, data: bytearray | None = None, length: int = 0) -> None:
 
         # Fields default values
         self._errors = []
@@ -375,7 +379,15 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @classmethod
-    def compute(cls, sequence, algorithm, direction, L, D, packets):  # pylint:disable=invalid-name
+    def compute(  # pylint:disable=invalid-name
+            cls,
+            sequence: int,
+            algorithm: int,
+            direction: int,
+            L: int,
+            D: int,
+            packets: list[RtpPacket]
+    ) -> FecPacket:
         """
         This method will generate FEC packet's field by applying FEC algorithm to input packets.
         In case of error (e.g. bad version number) the method will abort filling fields and
@@ -545,17 +557,15 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             # XOR LOOP     fec.payload_recovery[i] ^= packet.payload[i]
         return fec
 
-    def compute_j(self, media_sequence):
-        """
-        TODO
-        """
+    def compute_j(self, media_sequence: int) -> int | None:
+        """Return the index *j* for *media_sequence* within this FEC packet."""
         if (delta := media_sequence - self.snbase) < 0:
             delta += RtpPacket.S_MASK + 1
         if delta % self.offset != 0:
             return None
         return int(delta / self.offset)
 
-    def set_missing(self, media_sequence):
+    def set_missing(self, media_sequence: int) -> int:
         """
         Register a protected media packet as missing.
 
@@ -644,16 +654,14 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             self.missing.append(media_sequence)
         return j
 
-    def set_recovered(self, media_sequence):
-        """
-        TODO
-        """
+    def set_recovered(self, media_sequence: int) -> int:
+        """Unregister a previously missing media packet as recovered."""
         if (j := self.compute_j(media_sequence)) is None:
             raise ValueError(self.ER_J)
         self.missing.remove(media_sequence)
         return j
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
         Test equality field by field !
         """
@@ -666,7 +674,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             and self.length_recovery == other.length_recovery
             and self.payload_recovery == other.payload_recovery)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string containing a formated representation of the packet fields.
 

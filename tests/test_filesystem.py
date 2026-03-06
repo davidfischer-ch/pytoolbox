@@ -68,3 +68,12 @@ def test_copy_recursive_missing(tmp_path: Path) -> None:
     # pylint:disable=use-implicit-booleaness-not-comparison
     assert filesystem.copy_recursive(tmp_path / 'missing', tmp_path / 'target')['src_size'] == 0
     assert list(filesystem.find_recursive(tmp_path / 'target', "*")) == []
+
+
+def test_remove_directory_recursive(tmp_path: Path) -> None:
+    """remove() with recursive=True should handle directories."""
+    directory = tmp_path / 'subdir'
+    directory.mkdir()
+    (directory / 'file.txt').write_text('hello')
+    assert filesystem.remove(directory, recursive=True) is True
+    assert not directory.exists()

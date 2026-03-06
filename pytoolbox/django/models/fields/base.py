@@ -39,18 +39,26 @@ class StripTextField(mixins.OptionsMixin, mixins.StripMixin, mixins.NullifyMixin
 
 
 class ExtraChoicesField(StripCharField):
+    """Allow additional choices beyond those defined in the field's ``choices``."""
 
-    def __init__(self, verbose_name=None, extra_choices=None, **kwargs):
+    def __init__(
+            self,
+            verbose_name: str | None = None,
+            extra_choices: list | None = None,
+            **kwargs: object
+    ) -> None:
         self.extra_choices = extra_choices or []
         super().__init__(verbose_name=verbose_name, **kwargs)
 
-    def deconstruct(self):
+    def deconstruct(self) -> tuple[str, str, list, dict]:
+        """Include ``extra_choices`` in the field's deconstructed representation."""
         name, path, args, kwargs = super().deconstruct()
         if self.extra_choices:
             kwargs['extra_choices'] = self.extra_choices
         return name, path, args, kwargs
 
-    def validate(self, value, model_instance):
+    def validate(self, value: object, model_instance: object) -> None:
+        """Validate against both standard and extra choices."""
         choices = self._choices
         try:
             self._choices = list(self.choices) + list(self.extra_choices)
@@ -62,11 +70,13 @@ class ExtraChoicesField(StripCharField):
 # Date and time
 
 class CreatedAtField(mixins.OptionsMixin, models.DateTimeField):
+    """Auto-set datetime field for creation timestamps."""
 
     default_options = {'default': now, 'editable': False, 'verbose_name': _('Created at')}
 
 
 class UpdatedAtField(mixins.OptionsMixin, models.DateTimeField):
+    """Auto-updated datetime field for modification timestamps."""
 
     default_options = {'auto_now': True, 'editable': False, 'verbose_name': _('Updated at')}
 
@@ -74,11 +84,13 @@ class UpdatedAtField(mixins.OptionsMixin, models.DateTimeField):
 # Miscellaneous
 
 class CreatedByField(mixins.OptionsMixin, models.ForeignKey):
+    """Non-editable foreign key to the user who created the instance."""
 
     default_options = {'to': settings.AUTH_USER_MODEL, 'editable': False}
 
 
 class MD5ChecksumField(StripCharField):
+    """Char field validated as a 32-character hexadecimal MD5 checksum."""
 
     default_error_messages = {'invalid': _('Enter a valid MD5 checksum')}
     default_options = {'max_length': 32}
@@ -86,8 +98,9 @@ class MD5ChecksumField(StripCharField):
 
 
 class MoneyField(mixins.OptionsMixin, models.DecimalField):
+    """Decimal field pre-configured with min/max validators for monetary values."""
 
-    def __init__(self, max_value, decimal_places=2, **kwargs):
+    def __init__(self, max_value: int, decimal_places: int = 2, **kwargs: object) -> None:
         self.max_value = max_value
         super().__init__(
             decimal_places=decimal_places,
@@ -98,7 +111,8 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
             ],
             **kwargs)
 
-    def deconstruct(self):
+    def deconstruct(self) -> tuple[str, str, list, dict]:
+        """Reconstruct with ``max_value`` as the sole positional argument."""
         name, path, args, kwargs = super(MoneyField, self).deconstruct()
         kwargs.pop('decimal_places', None)
         kwargs.pop('max_digits', None)
@@ -115,19 +129,22 @@ class URLField(StripCharField, models.URLField):
 # Storage
 
 class FieldFile(files.FieldFile):
+    """Extended :class:`~django.db.models.fields.files.FieldFile` with basename helpers."""
 
     @property
-    def basename(self):
+    def basename(self) -> str | None:
+        """Return the base name of the file or ``None`` if empty."""
         return os.path.basename(self.name) if self else None
 
     @basename.setter
-    def basename(self, value):
+    def basename(self, value: str) -> None:
         # TODO use storage.get_valid_name
         self.name = self.field.upload_to(self.instance, os.path.basename(value))
         setattr(self.instance, self.field.name, self.name)
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
+        """Return ``True`` if the file exists in storage."""
         return bool(self) and self.storage.exists(self.name)
 
 

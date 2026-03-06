@@ -1,3 +1,6 @@
+"""
+Subprocess execution with retries, timeouts, logging and screen management.
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
@@ -28,10 +31,7 @@ except ImportError:
     from subprocess import Popen
     NoSuchProcess = None
 
-try:
-    from shlex import quote
-except ImportError:
-    from pipes import quote  # pylint: disable=deprecated-module
+from shlex import quote  # noqa: E402  pylint:disable=wrong-import-position
 
 
 # Better to warn user than letting converting to string Any!
@@ -41,6 +41,7 @@ CallArgsType: TypeAlias = str | Iterable[CallArgType]
 
 
 class CallResult(TypedDict):
+    """Result dictionary returned by :func:`cmd`."""
     process: Popen | None
     returncode: int
     stdout: bytes | None
@@ -49,6 +50,7 @@ class CallResult(TypedDict):
 
 
 def kill(process: Popen) -> None:
+    """Kill a process, ignoring errors if it has already exited."""
     try:
         process.kill()
     except OSError as ex:
@@ -74,11 +76,11 @@ def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid
         import grp
         import pwd
 
-        def set_ids():
+        def set_ids() -> None:
             os.setgid(grp.getgrnam(group).gr_gid if isinstance(group, str) else group)
             os.setuid(pwd.getpwnam(user).pw_uid if isinstance(user, str) else user)
     except ImportError:
-        def set_ids():
+        def set_ids() -> None:
             return
     return set_ids
 
@@ -90,7 +92,7 @@ def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
 
 
 # http://stackoverflow.com/a/7730201/190597
-def read_async(fd) -> str:  # pylint:disable=invalid-name
+def read_async(fd: IO) -> str:  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
@@ -101,12 +103,14 @@ def read_async(fd) -> str:  # pylint:disable=invalid-name
 
 
 def to_args_list(args: CallArgsType | None) -> list[str]:
+    """Convert command arguments to a list of strings."""
     if not args:
         return []
     return shlex.split(args) if isinstance(args, str) else [str(a) for a in args if a is not None]
 
 
 def to_args_string(args: CallArgsType | None) -> str:
+    """Convert command arguments to a shell-quoted string."""
     if not args:
         return ''
     return args if isinstance(args, str) else ' '.join(quote(str(a)) for a in args if a is not None)
@@ -132,7 +136,12 @@ def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
 
 
 # thanks http://stackoverflow.com/questions/1191374$
-def _communicate_with_timeout(*, data, process, input) -> None:  # pylint:disable=redefined-builtin
+def _communicate_with_timeout(  # pylint:disable=redefined-builtin
+        *,
+        data: dict,
+        process: Popen,
+        input: str | None
+) -> None:
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
@@ -151,9 +160,9 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
-    success_codes: Iterable[int] = (0, ),
-    **kwargs
-):
+    success_codes: Iterable[int] = (0,),
+    **kwargs: object
+) -> CallResult:
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -369,7 +378,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     return cmd([c for c in command if c], **kwargs)
 
 
-def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs):
+def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: object) -> None:
     """Kill all screen instances called `name` or all if `name` is None."""
     for instance_name in screen_list(name=name, **kwargs):
         cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)
@@ -394,11 +403,13 @@ __all__ = _all.diff(globals())
 
 @deprecated('Use pytoolbox.git.clone_or_pull instead (drop-in replacement)')
 def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
+    """Deprecated alias for :func:`pytoolbox.git.clone_or_pull`."""
     from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
     return clone_or_pull(*args, **kwargs)
 
 
 @deprecated('Use pytoolbox.ssh.ssh instead (drop-in replacement)')
 def ssh(*args, **kwargs) -> dict:  # pragma: no cover
+    """Deprecated alias for :func:`pytoolbox.ssh.ssh`."""
     from pytoolbox.ssh import ssh as _ssh
     return _ssh(*args, **kwargs)

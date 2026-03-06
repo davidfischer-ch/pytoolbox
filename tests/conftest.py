@@ -6,6 +6,7 @@ import platform
 import tarfile
 
 import pytest
+
 from pytoolbox import filesystem, subprocess
 from pytoolbox.multimedia import ffmpeg
 from pytoolbox.network import http
@@ -88,6 +89,28 @@ class StaticEncodeStatisticsWithFrameBaseRatio(
 class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
     ffprobe_class = StaticFFprobe
     statistics_class = StaticEncodeStatistics
+
+
+def pytest_configure(config):  # pylint:disable=unused-argument
+    """Configure Django settings before test collection."""
+    import django
+    from django.conf import settings
+    if not settings.configured:
+        settings.configure(
+            DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
+            INSTALLED_APPS=[
+            'django.contrib.contenttypes',
+            'django.contrib.auth',
+            'rest_framework'
+        ],
+            TEMPLATES=[{
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'DIRS': [],
+                'OPTIONS': {'string_if_invalid': ''}
+            }],
+            STATIC_ROOT='/static',
+            DEBUG=True)
+        django.setup()
 
 
 @pytest.fixture(scope='function')

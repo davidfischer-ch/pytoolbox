@@ -6,7 +6,7 @@
 
         from . import signals
 
-        __all__ = ('MyApp', )
+        __all__ = ('MyApp',)
 
 
         class MyAppConfig(apps.AppConfig):
@@ -35,11 +35,16 @@
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from django.conf import settings
 from django.db.models import fields
 from django.db.models.fields.files import FileField
 
 from pytoolbox import logging
+
+if TYPE_CHECKING:
+    from django.db import models
 
 __all__ = [
     'logger',
@@ -52,7 +57,7 @@ __all__ = [
 logger = logging.get_logger(__name__)
 
 
-def clean_files_delete_handler(instance, signal, **kwargs):
+def clean_files_delete_handler(instance: models.Model, signal: object, **kwargs: object) -> None:
     """
     Remove the files of the instance's file fields when it is removed from the database.
 
@@ -72,7 +77,7 @@ def clean_files_delete_handler(instance, signal, **kwargs):
                 file_field.delete(save=False)
 
 
-def create_site(sender, **kwargs):
+def create_site(sender: object, **kwargs: object) -> None:
     """
     Ensure the site name and domain is well configured.
 
@@ -90,14 +95,20 @@ def create_site(sender, **kwargs):
         f'Updated settings of Site "{site.name}" with ID {site.pk} and domain {site.domain}')
 
 
-def setup_postgresql_hstore_extension(sender, connection, **kwargs):
+def setup_postgresql_hstore_extension(sender: object, connection: object, **kwargs: object) -> None:
+    """Create the PostgreSQL ``hstore`` extension and register it globally."""
     from psycopg2.extras import register_hstore
     cursor = connection.connection.cursor()
     cursor.execute('CREATE EXTENSION IF NOT EXISTS hstore')
     register_hstore(connection.connection, globally=True)
 
 
-def strip_strings_and_validate_model(sender, instance, raw, **kwargs):
+def strip_strings_and_validate_model(
+    sender: object,
+    instance: models.Model,
+    raw: bool,
+    **kwargs: object
+) -> None:
     """Strip the string fields of the instance and run the instance's full_clean()."""
     if not raw:
         logger.debug(f'Validate model {instance} on save() with kwargs={kwargs}')

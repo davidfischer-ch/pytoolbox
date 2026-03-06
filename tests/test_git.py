@@ -123,3 +123,113 @@ def test_scoped_ssh_key_with_options() -> None:
             (['git', 'push', 'somewhere'], ),
             (['git', 'config', '--unset', 'core.sshCommand'], )
         ]
+
+
+def test_scoped_ssh_key_options_with_spaces() -> None:
+    """Options with spaces or shell metacharacters must be quoted."""
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
+        with git.scoped_ssh_key(
+            Path('.'),
+            'key-data',
+            options=['ProxyCommand ssh -W %h:%p jump-host']
+        ):
+            config_call_args = cmd.call_args_list[0][0][0]
+            ssh_cmd = config_call_args[3]
+            assert "-o 'ProxyCommand ssh -W %h:%p jump-host'" in ssh_cmd
+
+
+def _make_called_process_error(msg='failed'):  # pylint:disable=unused-argument
+    """Create a CalledProcessError with required attributes."""
+    return exceptions.CalledProcessError(
+        cmd=['git', 'test'],
+        returncode=1,
+        stdout=b'',
+        stderr=b'')
+
+
+def test_scoped_ssh_key_config_fails() -> None:
+    """scoped_ssh_key re-raises CalledProcessError from git config."""
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.side_effect = _make_called_process_error()
+        with pytest.raises(exceptions.CalledProcessError):
+            with git.scoped_ssh_key(Path('.'), 'x' * 200):
+                pass  # pragma: no cover
+
+
+def test_clone_or_pull_existing_directory(tmp_path: Path) -> None:
+    """clone_or_pull fetches and resets when directory already exists."""
+    repo_dir = tmp_path / 'repo'
+    repo_dir.mkdir()
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
+        git.clone_or_pull(repo_dir, 'https://example.com/repo.git')
+    calls = [args[0][0] for args in cmd.call_args_list]
+    assert calls[0] == ['git', 'reset', '--hard']
+    assert calls[1] == ['git', 'pull']
+
+
+def test_clone_or_pull_existing_bare(tmp_path: Path) -> None:
+    """clone_or_pull with bare=True fetches without reset."""
+    repo_dir = tmp_path / 'repo'
+    repo_dir.mkdir()
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
+        git.clone_or_pull(repo_dir, 'https://example.com/repo.git', bare=True)
+    calls = [args[0][0] for args in cmd.call_args_list]
+    assert len(calls) == 1
+    assert calls[0] == ['git', 'fetch']
+
+
+def test_clone_or_pull_existing_no_reset(tmp_path: Path) -> None:
+    """clone_or_pull with reset=False skips git reset."""
+    repo_dir = tmp_path / 'repo'
+    repo_dir.mkdir()
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
+        git.clone_or_pull(
+            repo_dir,
+            'https://example.com/repo.git',
+            reset=False)
+    calls = [args[0][0] for args in cmd.call_args_list]
+    assert len(calls) == 1
+    assert calls[0] == ['git', 'pull']
+
+
+def test_clone_or_pull_new_directory(tmp_path: Path) -> None:
+    """clone_or_pull clones when directory does not exist."""
+    repo_dir = tmp_path / 'new_repo'
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
+        git.clone_or_pull(
+            repo_dir,
+            'https://example.com/repo.git',
+            clone_depth=1)
+    call_args = cmd.call_args_list[0][0][0]
+    assert call_args[:2] == ['git', 'clone']
+    assert '--depth' in call_args
+    assert 1 in call_args
+
+
+def test_clone_or_pull_new_bare(tmp_path: Path) -> None:
+    """clone_or_pull clones with --bare flag when bare=True."""
+    repo_dir = tmp_path / 'new_repo'
+    with patch('pytoolbox.subprocess.cmd') as cmd:
+        cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
+        git.clone_or_pull(
+            repo_dir,
+            'https://example.com/repo.git',
+            bare=True)
+    call_args = cmd.call_args_list[0][0][0]
+    assert '--bare' in call_args
+
+
+def test_create_tag_unknown_error(tmp_path: Path) -> None:
+    """create_tag re-raises CalledProcessError when tag is not a duplicate."""
+    with (
+        patch('pytoolbox.subprocess.cmd') as cmd,
+        patch('pytoolbox.git.get_tags', return_value=[])
+    ):
+        cmd.side_effect = _make_called_process_error()
+        with pytest.raises(exceptions.CalledProcessError):
+            git.create_tag(tmp_path, 'v1.0')

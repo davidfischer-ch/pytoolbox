@@ -1,3 +1,6 @@
+"""
+Private helpers and optional dependency imports (e.g. :mod:`bson`).
+"""
 from __future__ import annotations
 
 try:
@@ -7,7 +10,7 @@ except ImportError:
     InvalidId = ObjectId = None
 
 
-def _parse_kwargs_string(kwargs_string, **types):
+def _parse_kwargs_string(kwargs_string: str | None, **types: type) -> dict[str, object]:
     if not kwargs_string:
         return {}
     kwargs_list = [kwarg.strip().split('=') for kwarg in kwargs_string.split(';')]

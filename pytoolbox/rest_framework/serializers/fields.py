@@ -5,6 +5,8 @@ Extra `fields <http://www.django-rest-framework.org/api-guide/fields/>`_ for bui
 """
 from __future__ import annotations
 
+from typing import Any
+
 from rest_framework import serializers
 
 from pytoolbox.django.core.validators import EmptyValidator
@@ -13,11 +15,13 @@ __all__ = ['StripCharField']
 
 
 class StripCharField(serializers.CharField):
+    """A :class:`~rest_framework.serializers.CharField` that strips whitespace."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.validators.append(EmptyValidator(message=self.error_messages['blank']))
 
-    def to_internal_value(self, data):
+    def to_internal_value(self, data: Any) -> str:
+        """Return the stripped value of the incoming data."""
         data = super().to_internal_value(data)
         return data.strip() if data else data

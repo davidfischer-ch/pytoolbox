@@ -4,6 +4,12 @@ powered filters.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from django.db.models import Field
+    from django_filters import Filter
+
 __all__ = ['RaiseOnUnhandledFieldClassMixin']
 
 
@@ -14,7 +20,8 @@ class RaiseOnUnhandledFieldClassMixin(object):
     """
 
     @classmethod
-    def filter_for_field(cls, f, name, *, lookup_type='exact'):
+    def filter_for_field(cls, f: Field, name: str, *, lookup_type: str = 'exact') -> Filter:
+        """Return a filter for the field, raising if none is found."""
         value = super().filter_for_field(f, name, lookup_type)
         if not value:
             raise NotImplementedError(

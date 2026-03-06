@@ -4,16 +4,28 @@ Some utilities related to the forms.
 from __future__ import annotations
 
 from copy import copy
+from typing import TYPE_CHECKING
 
 from django.contrib import messages
 from django.forms.utils import ErrorList
 
 from pytoolbox import module
 
+if TYPE_CHECKING:
+    from django import forms
+    from django.db import models
+    from django.http import HttpRequest
+
 _all = module.All(globals())
 
 
-def conditional_required(form, required_dict, data=None, *, cleanup=False):
+def conditional_required(
+    form: forms.Form,
+    required_dict: dict[str, bool | None],
+    data: dict[str, object] | None = None,
+    *,
+    cleanup: bool = False
+) -> dict[str, object]:
     """
     Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'.
     """
@@ -27,7 +39,12 @@ def conditional_required(form, required_dict, data=None, *, cleanup=False):
     return data
 
 
-def get_instance(form, field_name, request, msg=None):
+def get_instance(
+    form: forms.Form,
+    field_name: str,
+    request: HttpRequest,
+    msg: str | None = None
+) -> models.Model | None:
     """
     Return the instance if the `form` is valid, or try to get it from database.
     Return None if not found and add an error message if set.
@@ -42,7 +59,7 @@ def get_instance(form, field_name, request, msg=None):
             messages.error(request, msg)
 
 
-def set_disabled(form, field_name, *, value=False):
+def set_disabled(form: forms.Form, field_name: str, *, value: bool = False) -> None:
     """Toggle the disabled attribute of a form's field."""
     if value:
         form.fields[field_name].widget.attrs['disabled'] = True
@@ -53,7 +70,7 @@ def set_disabled(form, field_name, *, value=False):
             pass
 
 
-def update_widget_attributes(widget, updates):
+def update_widget_attributes(widget: forms.Widget, updates: dict[str, object]) -> None:
     """
     Update attributes of a `widget` with content of `updates` handling classes addition [+],
     removal [-] and toggle [^].
@@ -86,7 +103,13 @@ def update_widget_attributes(widget, updates):
     widget.attrs.update(updates)
 
 
-def validate_start_end(form, data=None, *, start_name='start_date', end_name='end_date'):
+def validate_start_end(
+    form: forms.Form,
+    data: dict[str, object] | None = None,
+    *,
+    start_name: str = 'start_date',
+    end_name: str = 'end_date'
+) -> None:
     """
     Check that the field containing the value of the start field (time, ...) is not bigger (>) than
     the stop.

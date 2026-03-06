@@ -1,3 +1,6 @@
+"""
+Git helpers for cloning, tagging, blaming and SSH key management.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -5,6 +8,7 @@ from pathlib import Path
 from typing import Literal, TypeAlias
 import contextlib
 import os
+import shlex
 import stat
 import tempfile
 
@@ -27,6 +31,7 @@ RefKind: TypeAlias = Literal['branch', 'commit']
 
 
 def blame(file_path: Path) -> list[str]:
+    """Return the ``git blame`` output lines for a file."""
     lines = subprocess.cmd(
         ['git', 'blame', file_path],
         cwd=file_path.parent)['stdout'].decode('utf-8')
@@ -41,6 +46,7 @@ def clone_or_pull(
     clone_depth: int | None = None,
     reset: bool = True
 ) -> None:
+    """Clone a Git repository or pull if it already exists."""
     if directory.exists():
         if reset and not bare:
             subprocess.cmd(['git', 'reset', '--hard'], cwd=directory)
@@ -56,6 +62,8 @@ def clone_or_pull(
 
 
 def create_tag(directory: Path, name: str) -> None:
+    """Create a Git tag, raising
+    :class:`~pytoolbox.exceptions.DuplicateGitTagError` on duplicates."""
     try:
         subprocess.cmd(['git', 'tag', name], cwd=directory)
     except exceptions.CalledProcessError as ex:
@@ -112,14 +120,14 @@ def scoped_ssh_key(
         key_file.flush()
         try:
             log.debug(f'Set identity "...{content[100:120]}..."')
-            options_str = ' '.join(f'-o {o}' for o in options) if options else ''
+            options_str = ' '.join(f'-o {shlex.quote(o)}' for o in options) if options else ''
             ssh_cmd = f'ssh -F /dev/null -i {key_file.name} -o IdentitiesOnly=yes {options_str}'
             subprocess.cmd(
                 ['git', 'config', 'core.sshCommand', ssh_cmd],
                 cwd=directory,
                 env=os.environ)
         except exceptions.CalledProcessError:  # pylint:disable=try-except-raise
-            raise
+            raise  # Required to keep the else clause (yield only on success)
         else:
             yield key_file.name
         finally:

@@ -1,3 +1,6 @@
+"""
+FFmpeg and FFprobe wrappers for media encoding and inspection.
+"""
 from __future__ import annotations
 
 from .encode import (  # noqa: F401

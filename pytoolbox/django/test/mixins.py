@@ -3,6 +3,8 @@ Mix-ins for building your own test cases.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 import os
 
 from django.contrib.sites.models import Site
@@ -19,17 +21,31 @@ except ImportError:
 
 from pytoolbox import module
 
+if TYPE_CHECKING:
+    from django.db.backends.base.base import BaseDatabaseWrapper
+    from django.http import HttpResponse
+
 _all = module.All(globals())
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
 
-    def __init__(self, test_case, num_range, connection):
+    def __init__(
+        self,
+        test_case: object,
+        num_range: range,
+        connection: BaseDatabaseWrapper
+    ) -> None:
         self.test_case = test_case
         self.range = num_range
         super().__init__(connection)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: object
+    ) -> None:
         super().__exit__(exc_type, exc_value, traceback)
         if exc_type is None:
             executed = len(self)
@@ -42,22 +58,26 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
 
 
 class ClearSiteCacheMixin(object):
+    """Clear the :class:`~django.contrib.sites.models.Site` cache before each test."""
 
-    def clear_site_cache(self):
+    def clear_site_cache(self) -> None:
+        """Clear the Django sites framework cache."""
         Site.objects.clear_cache()
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.clear_site_cache()
         super().setUp()
 
-    def assertNumQueries(self, *args, **kwargs):
+    def assertNumQueries(self, *args: object, **kwargs: object) -> object:
+        """Clear the site cache before asserting on the number of queries."""
         self.clear_site_cache()
         return super().assertNumQueries(*args, **kwargs)
 
 
 class FixFlushMixin(object):
+    """Fix ``TransactionTestCase`` flush by enabling ``TRUNCATE CASCADE``."""
 
-    def _fixture_teardown(self):
+    def _fixture_teardown(self) -> None:
         """
         Fix TransactionTestCase tear-down by enabling TRUNCATE CASCADE. Issue with Django 1.8a1.
         """
@@ -74,12 +94,22 @@ class FixFlushMixin(object):
 
 
 class FormWizardMixin(object):
+    """Helpers for testing django-formtools wizard views."""
 
-    def assertWizardSteps(self, response, **kwargs):
+    def assertWizardSteps(self, response: HttpResponse, **kwargs: object) -> None:
+        """Assert that wizard step attributes match expected values."""
         for key, value in kwargs.items():
             self.assertEqual(getattr(response.context['wizard']['steps'], key), value, msg=key)
 
-    def post_wizard(self, url, step, data=None, raw_data=None, **kwargs):
+    def post_wizard(
+        self,
+        url: str,
+        step: str,
+        data: dict[str, object] | None = None,
+        raw_data: dict[str, object] | None = None,
+        **kwargs: object
+    ) -> HttpResponse:
+        """Post data to a specific wizard step."""
         from formtools.wizard.views import normalize_name
         name = normalize_name(resolve(reverse(url)).func.__name__)
         step_data = {f'{step}-{k}': v for k, v in data.items()} if data else {}
@@ -89,8 +119,16 @@ class FormWizardMixin(object):
 
 
 class QueriesMixin(object):
+    """Provide assertions for checking the number of database queries."""
 
-    def assertNumQueriesIn(self, num_range, func=None, *args, **kwargs):
+    def assertNumQueriesIn(
+        self,
+        num_range: range,
+        func: Callable | None = None,
+        *args: object,
+        **kwargs: object
+    ) -> object:
+        """Assert that the number of queries is within *num_range*."""
         connection = connections[kwargs.pop('using', DEFAULT_DB_ALIAS)]
         context = _AssertNumQueriesInContext(self, num_range, connection)
         if func is None:
@@ -100,8 +138,18 @@ class QueriesMixin(object):
 
 
 class UrlMixin(object):
+    """Resolve URLs from view names, paths, or model instances."""
 
-    def resolve(self, value, qs=None, urlconf=None, args=None, kwargs=None, current_app=None):
+    def resolve(
+        self,
+        value: object,
+        qs: str | None = None,
+        urlconf: str | None = None,
+        args: list | None = None,
+        kwargs: dict | None = None,
+        current_app: str | None = None
+    ) -> str:
+        """Resolve *value* to a URL string, optionally appending a query string."""
         if isinstance(value, str) and '/' in value:
             url = value
         elif hasattr(value, 'get_absolute_url'):
@@ -112,39 +160,57 @@ class UrlMixin(object):
 
 
 class RestAPIMixin(UrlMixin):
+    """Convenience methods for testing REST API endpoints."""
 
     def _call(
         self,
-        method,
-        url,
-        data,
-        status,
-        qs=None,
-        urlconf=None,
-        args=None,
-        kwargs=None,
-        current_app=None,
-        msg=lambda r: getattr(r, 'data', r),
-        **call_kwargs
-    ):
+        method: str,
+        url: str,
+        data: object,
+        status: int,
+        qs: str | None = None,
+        urlconf: str | None = None,
+        args: list | None = None,
+        kwargs: dict | None = None,
+        current_app: str | None = None,
+        msg: Callable[[HttpResponse], object] = lambda r: getattr(r, 'data', r),
+        **call_kwargs: object
+    ) -> HttpResponse:
         url = self.resolve(url, qs, urlconf, args, kwargs, current_app)
         response = getattr(self.client, method)(url, data, **call_kwargs)
         self.assertEqual(response.status_code, status, msg(response))
         return response
 
-    def delete(self, url, data=None, status=204, **kwargs):
+    def delete(
+        self,
+        url: str,
+        data: object = None,
+        status: int = 204,
+        **kwargs: object
+    ) -> HttpResponse:
+        """Send a DELETE request and assert the response status."""
         return self._call('delete', url, data, status, **kwargs)
 
-    def get(self, url, data=None, status=200, **kwargs):
+    def get(
+        self,
+        url: str,
+        data: object = None,
+        status: int = 200,
+        **kwargs: object
+    ) -> HttpResponse:
+        """Send a GET request and assert the response status."""
         return self._call('get', url, data, status, **kwargs)
 
-    def patch(self, url, data, status=200, **kwargs):
+    def patch(self, url: str, data: object, status: int = 200, **kwargs: object) -> HttpResponse:
+        """Send a PATCH request and assert the response status."""
         return self._call('patch', url, data, status, **kwargs)
 
-    def post(self, url, data, status=201, **kwargs):
+    def post(self, url: str, data: object, status: int = 201, **kwargs: object) -> HttpResponse:
+        """Send a POST request and assert the response status."""
         return self._call('post', url, data, status, **kwargs)
 
-    def put(self, url, data, status=200, **kwargs):
+    def put(self, url: str, data: object, status: int = 200, **kwargs: object) -> HttpResponse:
+        """Send a PUT request and assert the response status."""
         return self._call('put', url, data, status, **kwargs)
 
 

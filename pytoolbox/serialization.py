@@ -1,6 +1,9 @@
+"""
+Serialization to/from JSON, pickle, YAML and nested dictionaries.
+"""
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import Any, TypeAlias
 import errno
 import inspect
 import io
@@ -22,15 +25,15 @@ _all = module.All(globals())
 
 
 def to_file(
-    path,
-    data=None,
-    pickle_data=None,
+    path: str,
+    data: Any = None,
+    pickle_data: Any = None,
     *,
-    binary=False,
-    safe=False,
-    backup=False,
-    makedirs=False
-):
+    binary: bool = False,
+    safe: bool = False,
+    backup: bool = False,
+    makedirs: bool = False
+) -> str | None:
     """
     Write some data to a file, can be safe (tmp file -> rename), may create a backup before any
     write operation. Return the name of the backup path or None.
@@ -106,7 +109,14 @@ def to_file(
 class PickleableObject(object):
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
-    def read(cls, path, *, store_path=False, create_if_error=False, **kwargs):
+    def read(
+        cls,
+        path: str,
+        *,
+        store_path: bool = False,
+        create_if_error: bool = False,
+        **kwargs: Any
+    ) -> PickleableObject:
         """Return a deserialized instance of a pickleable object loaded from a file."""
         try:
             with open(path, 'rb') as f:
@@ -120,7 +130,15 @@ class PickleableObject(object):
             the_object._pickle_path = path  # pylint:disable=all
         return the_object
 
-    def write(self, path=None, *, store_path=False, safe=False, backup=False, makedirs=False):
+    def write(
+        self,
+        path: str | None = None,
+        *,
+        store_path: bool = False,
+        safe: bool = False,
+        backup: bool = False,
+        makedirs: bool = False
+    ) -> None:
         """Serialize `self` to a file, excluding the attribute `_pickle_path`."""
         pickle_path = getattr(self, '_pickle_path', None)
         path = path or pickle_path
@@ -148,8 +166,9 @@ class PickleableObject(object):
 
 # http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
 class SmartJSONEncoderV1(json.JSONEncoder):
+    """JSON encoder that serializes :class:`ObjectId` and ``__dict__``."""
 
-    def default(self, obj):  # pylint:disable=arguments-differ
+    def default(self, obj: Any) -> Any:  # pylint:disable=arguments-differ
         if ObjectId is not None and isinstance(obj, ObjectId):
             return str(obj)
         if hasattr(obj, '__dict__'):
@@ -158,8 +177,9 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 
 
 class SmartJSONEncoderV2(json.JSONEncoder):
+    """JSON encoder that also serializes properties alongside attributes."""
 
-    def default(self, obj):  # pylint:disable=arguments-differ
+    def default(self, obj: Any) -> Any:  # pylint:disable=arguments-differ
         if isinstance(obj, ObjectId):
             return str(obj)
         attributes = {}
@@ -172,7 +192,7 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
-def object_to_json(obj, include_properties, **kwargs):
+def object_to_json(obj: Any, include_properties: bool, **kwargs: Any) -> str:
     """
     Serialize an :class:`object` to a JSON string.
     Use one of the *smart* JSON encoder of this module.
@@ -207,7 +227,7 @@ def object_to_json(obj, include_properties, **kwargs):
         **kwargs)
 
 
-def json_to_object(cls, json_string, inspect_constructor):
+def json_to_object(cls: type, json_string: str, inspect_constructor: bool) -> Any:
     """
     Deserialize the JSON string `json_string` to an instance of `cls`.
 
@@ -217,7 +237,7 @@ def json_to_object(cls, json_string, inspect_constructor):
     return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
-def jsonfile_to_object(cls, path_or_file, inspect_constructor):
+def jsonfile_to_object(cls: type, path_or_file: str | io.IOBase, inspect_constructor: bool) -> Any:
     """
     Load and deserialize the JSON string stored in a file `path` to an instance of `cls`.
 
@@ -316,7 +336,13 @@ class JsoneableObject(object):
     >>> asserts.dict_equal(media_back.author.__dict__, media.author.__dict__)
     """
     @classmethod
-    def read(cls, path, *, store_path=False, inspect_constructor=True):
+    def read(
+        cls,
+        path: str,
+        *,
+        store_path: bool = False,
+        inspect_constructor: bool = True
+    ) -> JsoneableObject:
         """Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(path, encoding='utf-8') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
@@ -326,14 +352,14 @@ class JsoneableObject(object):
 
     def write(
         self,
-        path=None,
+        path: str | None = None,
         *,
-        include_properties=False,
-        safe=False,
-        backup=False,
-        makedirs=False,
-        **kwargs
-    ):
+        include_properties: bool = False,
+        safe: bool = False,
+        backup: bool = False,
+        makedirs: bool = False,
+        **kwargs: Any
+    ) -> None:
         """Serialize `self` to a file, excluding the attribute `_json_path`."""
         if path is None and hasattr(self, '_json_path'):
             path = self._json_path
@@ -359,12 +385,12 @@ class JsoneableObject(object):
         else:
             raise ValueError('A path must be specified')
 
-    def to_json(self, include_properties, **kwargs):
+    def to_json(self, include_properties: bool, **kwargs: Any) -> str:
         """Serialize this instance to a JSON string."""
         return object_to_json(self, include_properties, **kwargs)
 
     @classmethod
-    def from_json(cls, json_string, inspect_constructor):
+    def from_json(cls, json_string: str, inspect_constructor: bool) -> JsoneableObject:
         """Deserialize a JSON string to an instance of `JsoneableObject`."""
         return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
@@ -373,13 +399,13 @@ class JsoneableObject(object):
 
 
 def object_to_dict(
-    obj,
-    schema,
+    obj: Any,
+    schema: dict | list,
     *,
-    depth=0,
-    callback=lambda o, s, d: (o, s),
-    iterable_callback=lambda o, s, d: list
-):
+    depth: int = 0,
+    callback: Any = lambda o, s, d: (o, s),
+    iterable_callback: Any = lambda o, s, d: list
+) -> Any:
     """
     Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
 
@@ -538,13 +564,13 @@ def object_to_dict(
 
 
 def _object_to_dict_item(
-    obj,
-    schema,
+    obj: Any,
+    schema: dict,
     *,
-    depth=0,
-    callback=lambda o, s, d: (o, s),
-    iterable_callback=lambda o, s, d: list
-):
+    depth: int = 0,
+    callback: Any = lambda o, s, d: (o, s),
+    iterable_callback: Any = lambda o, s, d: list
+) -> dict | None:
     if obj is None:
         return None
 
@@ -573,7 +599,7 @@ def _object_to_dict_item(
     return obj_dict
 
 
-def dict_to_object(cls, the_dict, inspect_constructor):
+def dict_to_object(cls: type, the_dict: dict, inspect_constructor: bool) -> Any:
     """
     Convert a python dictionary to an instance of a class.
 
@@ -612,10 +638,12 @@ def dict_to_object(cls, the_dict, inspect_constructor):
 
 
 class SlotsToDictMixin(object):
+    """Mixin adding a :meth:`to_dict` method that serializes ``__slots__``."""
 
     extra_slots = None
 
-    def to_dict(self, *, extra_slots=True):
+    def to_dict(self, *, extra_slots: bool = True) -> dict[str, Any]:
+        """Return a dictionary of non-``None`` public slot values."""
         self_dict = {}
         slots = set(s for s in get_slots(self) if s[0] != '_')
         if extra_slots:

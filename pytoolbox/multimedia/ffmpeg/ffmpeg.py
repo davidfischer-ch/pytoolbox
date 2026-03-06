@@ -1,3 +1,6 @@
+"""
+FFmpeg process wrapper for media encoding with progress tracking.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -51,15 +54,15 @@ class FFmpeg(object):
 
     def encode(  # pylint:disable=too-many-locals
         self,
-        inputs,
-        outputs,
-        in_options=None,
-        out_options=None,
-        create_directories=True,
-        process_poll=True,
-        process_kwargs=None,
-        statistics_kwargs=None
-    ):
+        inputs: object,
+        outputs: object,
+        in_options: object = None,
+        out_options: object = None,
+        create_directories: bool = True,
+        process_poll: bool = True,
+        process_kwargs: dict | None = None,
+        statistics_kwargs: dict | None = None
+    ) -> object:
         """
         Encode a set of input files input to a set of output files and yields statistics about the
         encoding.
@@ -98,6 +101,7 @@ class FFmpeg(object):
 
     @staticmethod
     def get_frames_md5_checksum(filename: Path) -> str | None:
+        """Return the MD5 checksum of all frames in *filename*."""
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
@@ -105,7 +109,7 @@ class FFmpeg(object):
                 match = FRAME_MD5_REGEX.search(f.read())
             return match.group() if match else None
 
-    def _clean_medias_argument(self, value):
+    def _clean_medias_argument(self, value: object) -> list:
         """
         Return a list of Media instances from passed value.
         Value can be one or multiple instances of string or Media.
@@ -113,7 +117,13 @@ class FFmpeg(object):
         values = [value] if isinstance(value, (str, Path, self.ffprobe.media_class)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
 
-    def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
+    def _get_arguments(
+        self,
+        inputs: object,
+        outputs: object,
+        in_options: object = None,
+        out_options: object = None
+    ) -> tuple[list, list, list, list[str], list[str]]:
         """
         Return the arguments for the encoding process.
 
@@ -138,7 +148,7 @@ class FFmpeg(object):
             args.extend(output.to_args(is_input=False))
         return args, inputs, outputs, in_options, out_options
 
-    def _get_chunk(self, process):
+    def _get_chunk(self, process: subprocess.Popen) -> str | None:
         select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
             chunk = process.stderr.read()
@@ -151,7 +161,7 @@ class FFmpeg(object):
         return None
 
     @staticmethod
-    def _get_process(arguments, **process_kwargs):
+    def _get_process(arguments: list, **process_kwargs: object) -> subprocess.Popen:
         """Return an encoding process with stderr made asynchronous."""
         process = py_subprocess.raw_cmd(
             arguments,

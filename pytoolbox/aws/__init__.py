@@ -1,3 +1,6 @@
+"""
+Amazon Web Services integration helpers.
+"""
 from __future__ import annotations
 
 from . import s3

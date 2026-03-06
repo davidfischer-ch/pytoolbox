@@ -38,7 +38,6 @@ if sys.argv[-1] == 'test':
     sys.exit('Run pytest instead.')
 
 install_requires: list[str] = [
-    'argparse',
     'python-magic',
     'pytz',
     'requests',
@@ -271,6 +270,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'

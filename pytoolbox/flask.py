@@ -1,5 +1,9 @@
+"""
+Flask utilities for JSON responses and exception mapping.
+"""
 from __future__ import annotations
 
+from typing import Final
 import logging
 import uuid
 
@@ -12,10 +16,16 @@ from .validation import valid_uuid
 
 __all__ = ['STATUS_TO_EXCEPTION', 'check_id', 'json_response', 'map_exceptions']
 
-STATUS_TO_EXCEPTION = {400: TypeError, 404: IndexError, 415: ValueError, 501: NotImplementedError}
+STATUS_TO_EXCEPTION: Final[dict[int, type[Exception]]] = {
+    400: TypeError,
+    404: IndexError,
+    415: ValueError,
+    501: NotImplementedError
+}
 
 
-def check_id(value):
+def check_id(value: str) -> uuid.UUID | ObjectId:
+    """Validate and return a :class:`~uuid.UUID` or :class:`ObjectId` from a string."""
     if valid_uuid(value, objectid_allowed=False, none_allowed=False):
         return uuid.UUID(value)
     if ObjectId is not None and valid_uuid(value, objectid_allowed=True, none_allowed=False):
@@ -23,7 +33,8 @@ def check_id(value):
     raise ValueError(f'Wrong id format {value}')
 
 
-def json_response(status, value=None, include_properties=False):
+def json_response(status: int, value: object = None, include_properties: bool = False) -> Response:
+    """Build a JSON :class:`~flask.Response` with the given status and value."""
     response = Response(
         response=object_to_json({'status': status, 'value': value}, include_properties),
         status=status,
@@ -32,7 +43,7 @@ def json_response(status, value=None, include_properties=False):
     return response
 
 
-def map_exceptions(exception):
+def map_exceptions(exception: Exception | dict) -> object | None:
     """
     Maps a standard `exception` into corresponding HTTP exception class.
 

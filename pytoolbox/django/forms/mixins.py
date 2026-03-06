@@ -3,10 +3,15 @@ Mix-ins for building your own forms.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from django.forms import fields
 
 from pytoolbox import module
 from . import utils, widgets
+
+if TYPE_CHECKING:
+    from django.db import models
 
 _all = module.All(globals())
 
@@ -17,7 +22,7 @@ class ConvertEmailToTextMixin(object):
     http://html5doctor.com/html5-forms-input-types#input-email.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             if getattr(field.widget, 'input_type', None) == 'email':
@@ -25,9 +30,11 @@ class ConvertEmailToTextMixin(object):
 
 
 class EnctypeMixin(object):
+    """Provide an :attr:`enctype` property for use in form templates."""
 
     @property
-    def enctype(self):
+    def enctype(self) -> str:
+        """Return the appropriate HTML form ``enctype`` attribute value."""
         return 'multipart/form-data' if self.is_multipart() else 'application/x-www-form-urlencoded'
 
 
@@ -53,13 +60,18 @@ class HelpTextToPlaceholderMixin(object):
     #: Remove the help text after having copied it to the placeholder.
     placeholder_remove_help_text = True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
             if field and isinstance(field, self.placeholder_fields):
                 self.set_placeholder(name, field)
 
-    def set_placeholder(self, name, field):  # pylint:disable=unused-argument
+    def set_placeholder(  # pylint:disable=unused-argument
+            self,
+            name: str,
+            field: fields.Field
+    ) -> None:
+        """Copy the field's help text into the widget placeholder attribute."""
         field.widget.attrs['placeholder'] = field.help_text
         if self.placeholder_remove_help_text:
             field.help_text = None
@@ -73,7 +85,8 @@ class MapErrorsMixin(object):
 
     errors_map = {}
 
-    def add_error(self, field, error):
+    def add_error(self, field: str | None, error: object) -> None:
+        """Remap the field name through :attr:`errors_map` before adding."""
         field = self.errors_map.get(field, field)
         return super().add_error(field, error)
 
@@ -85,7 +98,8 @@ class ModelBasedFormCleanupMixin(object):
     (start/end dates, ...).
     """
 
-    def clean(self):
+    def clean(self) -> dict[str, object]:
+        """Delegate additional cleanup to the model's ``clean_form`` method."""
         super().clean()
         try:
             return self._meta.model.clean_form(self)
@@ -99,7 +113,7 @@ class RequestMixin(object):
     attribute of the object.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
@@ -107,7 +121,8 @@ class RequestMixin(object):
 class CreatedByMixin(RequestMixin):
     """Set instance's created_by field to current user if the instance is just created."""
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> models.Model:
+        """Set ``created_by`` to the current user on first save."""
         if hasattr(self.instance, 'created_by_id') and not self.instance.created_by_id:
             self.instance.created_by = self.request.user
         return super().save(commit=commit)
@@ -118,7 +133,7 @@ class StaffOnlyFieldsMixin(RequestMixin):
 
     staff_only_fields = ()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         if not self.request or not self.request.user.is_staff:
             for field in self.staff_only_fields:
@@ -141,7 +156,7 @@ class UpdateWidgetAttributeMixin(object):
     #: Attributes that are applied to all widgets of the form
     widgets_common_attrs = {}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             updates = self.widgets_rules.get(type(field))

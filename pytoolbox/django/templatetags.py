@@ -3,6 +3,9 @@ Pytoolbox's Template tag and filters.
 """
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Final
+import collections.abc
 import datetime
 import os
 import re
@@ -62,8 +65,8 @@ except Exception:
 
 register = template.Library()
 
-NUMERIC_TEST = re.compile(r'^\d+$')
-LABEL_TO_CLASS = {
+NUMERIC_TEST: Final[re.Pattern[str]] = re.compile(r'^\d+$')
+LABEL_TO_CLASS: Final[dict[str, str]] = {
     'ERROR': 'label-important',
     'FAILURE': 'label-important',
     'PENDING': 'label-warning',
@@ -92,7 +95,7 @@ def getattribute(value, attribute):
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
-    elif hasattr(value, 'has_key') and attribute in value:
+    elif isinstance(value, collections.abc.Mapping) and attribute in value:
         return value[attribute]
     elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
@@ -102,10 +105,11 @@ def getattribute(value, attribute):
 @register.filter(needs_autoescape=True, safe=True)
 @stringfilter
 def inline(filepath, msg=True, autoescape=True):
+    """Inline the contents of a static file into the template output."""
     if filepath in (None, string_if_invalid):
         return string_if_invalid
     if _include_is_allowed(filepath):
-        return open(filepath, encoding='utf-8').read()
+        return Path(filepath).read_text(encoding='utf-8')
     if settings.DEBUG and msg:
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
         return _("[Didn't have permission to include file {0}]").format(filepath_escaped)
@@ -204,8 +208,11 @@ def secs_to_time(value, defaults_to_zero=False):
         None|secs_to_time|time:"H:i:s.u"       -> (empty string)
         None|secs_to_time:True|time:"H:i:s.u"  -> 00:00:00.000000
     """
-    value = _secs_to_time(value, defaults_to_zero=defaults_to_zero)
-    return value if value is not None else string_if_invalid
+    if value is None:
+        if defaults_to_zero:
+            return _secs_to_time(0)
+        return string_if_invalid
+    return _secs_to_time(value)
 
 
 @register.filter(needs_autoescape=True)
@@ -271,9 +278,11 @@ def verbose_name_plural(instance):
 
 
 class StaticPathNode(StaticNode):
+    """Resolve a static file path using ``STATIC_ROOT`` instead of ``STATIC_URL``."""
 
     @classmethod
     def handle_simple(cls, path):
+        """Return the absolute filesystem path for a static file."""
         return os.path.join(PrefixNode.handle_simple('STATIC_ROOT'), path)
 
 

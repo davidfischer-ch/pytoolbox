@@ -10,7 +10,10 @@ __all__ = ['CalendarDateInput', 'ClockTimeInput']
 
 
 class CalendarDateInput(widgets.DateInput):
-    def render(self, *args, **kwargs):
+    """Date input widget wrapped with a calendar icon add-on."""
+
+    def render(self, *args: object, **kwargs: object) -> str:
+        """Render the date input with a calendar icon add-on."""
         html = super().render(*args, **kwargs)
         return mark_safe(
             '<div class="input-append date">'
@@ -18,7 +21,10 @@ class CalendarDateInput(widgets.DateInput):
 
 
 class ClockTimeInput(widgets.TimeInput):
-    def render(self, *args, **kwargs):
+    """Time input widget wrapped with a clock icon add-on."""
+
+    def render(self, *args: object, **kwargs: object) -> str:
+        """Render the time input with a clock icon add-on."""
         html = super().render(*args, **kwargs)
         return mark_safe(
             '<div class="input-append bootstrap-timepicker">'

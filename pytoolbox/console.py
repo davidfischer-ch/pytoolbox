@@ -1,3 +1,6 @@
+"""
+Console input, output, and interactive shell utilities.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -180,6 +183,7 @@ def shell(
 
 
 def set_columns(value: int | None = None, *, default: int = 120) -> int:
+    """Set the ``COLUMNS`` environment variable and return its value."""
     if value is None:
         try:
             value = shutil.get_terminal_size().columns
@@ -194,7 +198,7 @@ def toggle_colors(
     *,
     colorize: bool,
     disable_vars: list[str] | tuple[str, ...] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
-    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR', )
+    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR',)
 ) -> dict[str, str]:
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.

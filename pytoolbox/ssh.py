@@ -1,3 +1,6 @@
+"""
+SSH agent management and remote command execution.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterator
@@ -115,6 +118,7 @@ def ssh(
     remote_cmd: str | None = None,
     **kwargs
 ) -> dict:
+    """Execute an SSH command on a remote host."""
     command = ['ssh']
     if identity_file is not None:
         command.extend(['-i', identity_file])

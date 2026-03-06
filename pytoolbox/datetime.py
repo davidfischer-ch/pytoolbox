@@ -1,3 +1,6 @@
+"""
+Date, time, and epoch conversion utilities.
+"""
 from __future__ import annotations
 
 from typing import Annotated, Any, Literal, TypeAlias, overload
@@ -21,7 +24,7 @@ def datetime_now(
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
     tz: Any = pytz.utc
-) -> str:
+) -> datetime.datetime:
     ...
 
 
@@ -32,7 +35,7 @@ def datetime_now(
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
     tz: Any = pytz.utc
-) -> datetime.datetime:
+) -> str:
     ...
 
 
@@ -42,7 +45,7 @@ def datetime_now(
     append_utc: Annotated[bool, "Append ' UTC' to date string"] = False,
     offset: Annotated[datetime.timedelta | None, 'Offset to add to current time'] = None,
     tz: Annotated[Any, "The timezone (e.g. ``pytz.timezone('EST')``)"] = pytz.utc
-):
+) -> datetime.datetime | str:
     """
     Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a
     timezone. If `fmt` is not None, the date will be returned in a formatted string.
@@ -89,6 +92,7 @@ def datetime_to_str(
     fmt: str = '%Y-%m-%d %H:%M:%S',
     append_utc: bool = False
 ) -> str:
+    """Format a :class:`datetime.datetime` as a string."""
     return date_time.strftime(fmt) + (' UTC' if append_utc else '')
 
 
@@ -102,7 +106,12 @@ def str_to_datetime(date: str, *, fmt: str = ..., fail: Literal[False]) -> datet
     ...
 
 
-def str_to_datetime(date, *, fmt='%Y-%m-%d %H:%M:%S', fail=True):
+def str_to_datetime(
+    date: str,
+    *,
+    fmt: str = '%Y-%m-%d %H:%M:%S',
+    fail: bool = True
+) -> datetime.datetime | None:
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
     Handle 24h+ hour format like 2015:06:28 24:05:00 equal to the 28th June 2015 at
@@ -147,7 +156,12 @@ def multiply_time(
     ...
 
 
-def multiply_time(value: TimeValue, factor, *, as_delta=False):
+def multiply_time(
+    value: TimeValue,
+    factor: float,
+    *,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`
     corresponding to `value` multiplied by a `factor`.
@@ -193,7 +207,14 @@ def parts_to_time(
     ...
 
 
-def parts_to_time(hours, minutes, seconds, microseconds, *, as_delta=False):
+def parts_to_time(
+    hours: int | float,
+    minutes: int | float,
+    seconds: int | float,
+    microseconds: int | float,
+    *,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` out of the parts.
 
@@ -226,7 +247,11 @@ def secs_to_time(value: float | int, *, as_delta: Literal[True]) -> datetime.tim
     ...
 
 
-def secs_to_time(value, *, as_delta=False):
+def secs_to_time(
+    value: float | int,
+    *,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the
     number of seconds + microseconds (e.g. 10.3 = 10s 3000us).
@@ -289,7 +314,12 @@ def str_to_time(
     ...
 
 
-def str_to_time(value, *, defaults_to_zero=False, as_delta=False):
+def str_to_time(
+    value: str,
+    *,
+    defaults_to_zero: bool = False,
+    as_delta: bool = False
+) -> datetime.time | datetime.timedelta | None:
     """
     Return the string of format 'hh:mm:ss' into an instance of time.
 
@@ -298,7 +328,7 @@ def str_to_time(value, *, defaults_to_zero=False, as_delta=False):
     >>> str_to_time('08:23:57')
     datetime.time(8, 23, 57)
     >>> str_to_time('00:03:02.12')
-    datetime.time(0, 3, 2, 120)
+    datetime.time(0, 3, 2, 120000)
     >>> result = str_to_time('08:23:57', as_delta=True)
     >>> type(result)
     <class 'datetime.timedelta'>
@@ -316,7 +346,7 @@ def str_to_time(value, *, defaults_to_zero=False, as_delta=False):
         if as_delta:
             return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds_float)
         seconds = int(seconds_float)
-        return datetime.time(hours, minutes, seconds, int(1000 * (seconds_float - seconds)))
+        return datetime.time(hours, minutes, seconds, int(1000000 * (seconds_float - seconds)))
     except (TypeError, ValueError):
         if defaults_to_zero and not value:
             return datetime.timedelta(seconds=0) if as_delta else datetime.time(second=0)
@@ -418,13 +448,13 @@ def datetime_to_epoch(
         -3600
     """
     if not utc:
-        int(mktime(date_time.timetuple()) * factor)
+        return int(mktime(date_time.timetuple()) * factor)
     if hasattr(date_time, 'utctimetuple'):
         return int(timegm(date_time.utctimetuple()) * factor)
     return int(timegm(date_time.timetuple()) * factor)
 
 
-def epoch_to_datetime(unix_epoch: int, *, tz=pytz.utc, factor: int = 1) -> datetime.datetime:
+def epoch_to_datetime(unix_epoch: int, *, tz: Any = pytz.utc, factor: int = 1) -> datetime.datetime:
     """
     Return the Unix epoch converted to a :class:`datetime.datetime`.
     Default `factor` means that the `unix_epoch` is in seconds.

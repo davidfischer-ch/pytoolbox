@@ -1,5 +1,9 @@
+"""
+x264 encoder wrapper (not yet fully implemented).
+"""
 from __future__ import annotations
 
+from typing import Final
 import re
 
 from .ffmpeg import FFmpeg
@@ -7,22 +11,29 @@ from .ffmpeg import FFmpeg
 __all__ = ['ENCODING_REGEX', 'X264']
 
 # [79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02
-ENCODING_REGEX = re.compile(
+ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
     r'\[(?P<percent>\d+\.\d*)%\]\s+(?P<frame>\d+)/(?P<frame_total>\d+)\s+frames,\s+'
     r'(?P<frame_rate>\d+\.\d*)\s+fps,\s+(?P<bit_rate>[^,]+),\s+eta\s+(?P<eta>[\d:]+)'
 )
 
 
 class X264(FFmpeg):
+    """Wrap the x264 standalone encoder (not yet implemented)."""
 
     # encoding_regex = ENCODING_REGEX
     executable = 'x264'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
 
-    def _get_arguments(self, inputs, outputs, in_options=None, out_options=None):
+    def _get_arguments(
+        self,
+        inputs: object,
+        outputs: object,
+        in_options: object = None,
+        out_options: object = None
+    ) -> tuple[list, list, list, list[str], list[str]]:
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
         # in_paths = [f for f in ([in_paths] if isinstance(in_paths, str) else in_paths)]
         # if len(in_paths) > 1:
