@@ -21,6 +21,17 @@ Repository: https://github.com/davidfischer-ch/pytoolbox
 
 This library supports Python 3.11 and more recent.
 
+The entire codebase is **fully type-hinted** (Python 3.10+ syntax).
+This means you get autocompletion, inline documentation and static analysis
+out of the box in editors like Sublime Text, VS Code, PyCharm, or any tool supporting
+`PEP 484 <https://peps.python.org/pep-0484/>`_ (e.g. mypy, pyright).
+
+.. note::
+
+   Type hints are provided on a **best-effort** basis and are not yet
+   validated by a type checker in CI.  If you spot an incorrect annotation,
+   please open an issue or a pull request.
+
 ------------------------------------
 What the release number stands for ?
 ------------------------------------
