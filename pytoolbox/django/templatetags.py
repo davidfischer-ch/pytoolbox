@@ -3,7 +3,9 @@ Pytoolbox's Template tag and filters.
 """
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Final
+import collections.abc
 import datetime
 import os
 import re
@@ -93,7 +95,7 @@ def getattribute(value, attribute):
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
-    elif isinstance(value, dict) and attribute in value:
+    elif isinstance(value, collections.abc.Mapping) and attribute in value:
         return value[attribute]
     elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
@@ -107,8 +109,7 @@ def inline(filepath, msg=True, autoescape=True):
     if filepath in (None, string_if_invalid):
         return string_if_invalid
     if _include_is_allowed(filepath):
-        with open(filepath, encoding='utf-8') as f:
-            return f.read()
+        return Path(filepath).read_text(encoding='utf-8')
     if settings.DEBUG and msg:
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
         return _("[Didn't have permission to include file {0}]").format(filepath_escaped)
