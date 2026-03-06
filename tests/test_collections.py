@@ -54,3 +54,11 @@ def test_pygal_deque() -> None:
     data.append(None)
     data.append(2)
     assert data.list(fill=False) == [2, 3, 3, 2]
+
+
+def test_pygal_deque_list_empty_with_last_set() -> None:
+    """list() handles the case where deque is empty but last is set."""
+    data = pygal_deque()
+    data.last = 42  # Manually set last without appending
+    # list() should handle the IndexError on self_list[-1] gracefully
+    assert not data.list()
