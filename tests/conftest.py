@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Final
+from unittest import mock
 import platform
 import tarfile
 
@@ -165,3 +166,13 @@ def small_mp4(request) -> Path:  # pylint:disable=unused-argument
         hash_algorithm=SMALL_MP4_CHECKSUM[0],
         force=False)
     return SMALL_MP4_FILENAME
+
+
+@pytest.fixture(scope='function')
+def request_mock():
+    return mock.MagicMock()
+
+
+@pytest.fixture(scope='function')
+def view_mock():
+    return mock.MagicMock()
