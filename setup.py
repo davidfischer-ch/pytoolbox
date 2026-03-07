@@ -247,6 +247,7 @@ setuptools.setup(
     version=pytoolbox.__version__,
     packages=setuptools.find_packages(exclude=['tests']),
     package_data={
+        'pytoolbox': ['py.typed'],
         'pytoolbox.ai.vision.face.detect': ['data/*'],
         'pytoolbox.ai.vision.face.recognize': ['data/*']
     },
