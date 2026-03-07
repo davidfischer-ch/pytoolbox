@@ -88,8 +88,8 @@ class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
     ValueError: Attribute locale must be set to an instance of str | list
     """
     def __setattr__(self, name: str, value: Any) -> None:
-        if the_type := get_type_hints(self.__init__).get(name):
-            default = inspect.signature(self.__init__).parameters[name].default
+        if the_type := get_type_hints(type(self).__init__).get(name):
+            default = inspect.signature(type(self).__init__).parameters[name].default
             if value != default and not isinstance(value, the_type):
                 raise ValueError(f'Attribute {name} must be set to an instance of {the_type}')
         super().__setattr__(name, value)
@@ -263,7 +263,7 @@ def valid_uri(
             return conn.getresponse().status != 404
         except socket.error as ex:
             # Resource does not exist
-            if isinstance(ex, socket.timeout) or ex.errno in excepted_errnos:
+            if isinstance(ex, socket.timeout) or ex.errno is not None and ex.errno in excepted_errnos:
                 return False
             raise  # Re-raise exception if a different error occurred
         finally:

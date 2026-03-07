@@ -128,7 +128,7 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     then a `IOError` is raised.
     """
     try:  # pylint:disable=too-many-try-statements
-        start_date = datetime_now()
+        start_date = datetime_now(fmt=None)
         start_time = time.time()
         src_size = get_size(
             path=source_path,
@@ -659,7 +659,9 @@ class TempStorage(object):
     def __init__(self, root: Path | None = None) -> None:
         self.root: Path = root or Path(tempfile.gettempdir())
         self._path_to_key: dict[Path, str | None] = {}
-        self._paths_by_key = collections.defaultdict(set)
+        self._paths_by_key: (
+            collections.defaultdict[str | None, set[Path]]
+        ) = collections.defaultdict(set)
 
     def __enter__(self) -> Self:
         return self
@@ -781,7 +783,8 @@ class TempStorage(object):
         chown(path, user, group)
 
         if return_file:
-            return path.open(mode, encoding=encoding)  # pylint: disable=consider-using-with
+            f = path.open(mode, encoding=encoding)  # pylint: disable=consider-using-with
+            return f  # type: ignore[return-value]
 
         return path
 

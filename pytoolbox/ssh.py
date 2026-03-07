@@ -14,6 +14,7 @@ import stat
 import tempfile
 
 from . import exceptions, logging, subprocess
+from .subprocess import CallArgType, CallResultFull
 
 __all__ = [
     'AGENT_START_REGEX',
@@ -51,9 +52,9 @@ def add_key(content: str) -> None:
         try:
             output: bytes = subprocess.cmd(['ssh-add', key_file.name], env=os.environ)['stderr']
         except exceptions.CalledProcessError as ex:
-            if b'Could not open' in ex.stderr:
+            if b'Could not open' in (ex.stderr or b''):
                 raise exceptions.SSHAgentConnectionError()
-            if b'Error loading key' in ex.stderr:
+            if b'Error loading key' in (ex.stderr or b''):
                 raise exceptions.SSHAgentLoadingKeyError()
             raise
         log.debug(output.decode('utf-8'))
@@ -117,9 +118,9 @@ def ssh(
     identity_file: Path | None = None,
     remote_cmd: str | None = None,
     **kwargs
-) -> dict:
+) -> CallResultFull:
     """Execute an SSH command on a remote host."""
-    command = ['ssh']
+    command: list[CallArgType] = ['ssh']
     if identity_file is not None:
         command.extend(['-i', identity_file])
     command.append(host)

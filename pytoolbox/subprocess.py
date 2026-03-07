@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import IO, TypeAlias, TypedDict
+from typing import IO, Literal, TypeAlias, TypedDict, overload
 import errno
 import multiprocessing
 import os
@@ -46,6 +46,15 @@ class CallResult(TypedDict):
     returncode: int
     stdout: bytes | None
     stderr: bytes | None
+    exception: OSError | None
+
+
+class CallResultFull(TypedDict):
+    """Result returned by :func:`cmd` when ``communicate`` is True and ``cli_output`` is False."""
+    process: Popen | None
+    returncode: int
+    stdout: bytes
+    stderr: bytes
     exception: OSError | None
 
 
@@ -145,7 +154,66 @@ def _communicate_with_timeout(  # pylint:disable=redefined-builtin
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
-# TODO Refine type hints with overloads
+@overload
+def cmd(  # type: ignore[overload-overlap]
+    command: CallArgsType,
+    *,
+    user: str | None = ...,
+    input: str | None = ...,
+    cli_input: str | None = ...,
+    cli_output: bool = ...,
+    communicate: Literal[False],
+    timeout: float | None = ...,
+    fail: bool = ...,
+    log: LoggerType = ...,
+    tries: int = ...,
+    delay_min: float = ...,
+    delay_max: float = ...,
+    success_codes: Iterable[int] = ...,
+    **kwargs: object
+) -> CallResult: ...
+
+
+@overload
+def cmd(  # type: ignore[overload-overlap]
+    command: CallArgsType,
+    *,
+    user: str | None = ...,
+    input: str | None = ...,
+    cli_input: str | None = ...,
+    cli_output: Literal[True],
+    communicate: bool = ...,
+    timeout: float | None = ...,
+    fail: bool = ...,
+    log: LoggerType = ...,
+    tries: int = ...,
+    delay_min: float = ...,
+    delay_max: float = ...,
+    success_codes: Iterable[int] = ...,
+    **kwargs: object
+) -> CallResult: ...
+
+
+@overload
+def cmd(
+    command: CallArgsType,
+    *,
+    user: str | None = ...,
+    input: str | None = ...,
+    cli_input: str | None = ...,
+    cli_output: bool = ...,
+    communicate: bool = ...,
+    timeout: float | None = ...,
+    fail: bool = ...,
+    log: LoggerType = ...,
+    tries: int = ...,
+    delay_min: float = ...,
+    delay_max: float = ...,
+    success_codes: Iterable[int] = ...,
+    **kwargs: object
+) -> CallResultFull: ...
+
+
 def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
     command: CallArgsType,
     *,
@@ -162,7 +230,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,
     delay_max: float = 10,
     success_codes: Iterable[int] = (0,),
     **kwargs: object
-) -> CallResult:
+) -> CallResult | CallResultFull:
     """
     Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
 
@@ -381,7 +449,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
 def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: object) -> None:
     """Kill all screen instances called `name` or all if `name` is None."""
     for instance_name in screen_list(name=name, **kwargs):
-        cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)
+        cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)  # type: ignore[call-overload]
 
 
 def screen_launch(name: str, command: CallArgsType, **kwargs) -> CallResult:
@@ -409,7 +477,7 @@ def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
 
 
 @deprecated('Use pytoolbox.ssh.ssh instead (drop-in replacement)')
-def ssh(*args, **kwargs) -> dict:  # pragma: no cover
+def ssh(*args, **kwargs) -> CallResultFull:  # pragma: no cover
     """Deprecated alias for :func:`pytoolbox.ssh.ssh`."""
     from pytoolbox.ssh import ssh as _ssh
     return _ssh(*args, **kwargs)

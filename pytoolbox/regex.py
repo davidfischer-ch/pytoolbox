@@ -71,7 +71,9 @@ def embed_in_regex(
     """
     regex: list[str] = list(regex_parts)
     regex[index:index + len(string)] = string
-    return index, ''.join(regex) if as_string else regex
+    if as_string:
+        return index, ''.join(regex)
+    return index, regex
 
 
 def findall_partial(

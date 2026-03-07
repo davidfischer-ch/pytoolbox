@@ -7,7 +7,7 @@ try:
     from bson.objectid import ObjectId  # pylint:disable=unused-import
     from bson.errors import InvalidId   # pylint:disable=unused-import
 except ImportError:
-    InvalidId = ObjectId = None
+    InvalidId = ObjectId = None  # type: ignore[assignment, misc]
 
 
 def _parse_kwargs_string(kwargs_string: str | None, **types: type) -> dict[str, object]:
