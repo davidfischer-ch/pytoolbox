@@ -13,7 +13,7 @@ from . import exceptions
 
 __all__ = ['handlers_by_signal', 'propagate_handler', 'register_handler', 'register_callback']
 
-handlers_by_signal = collections.defaultdict(list)
+handlers_by_signal: collections.defaultdict[int, list[Callable]] = collections.defaultdict(list)
 
 
 def propagate_handler(signum: int, frame: FrameType | None) -> None:

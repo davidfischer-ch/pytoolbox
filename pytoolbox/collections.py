@@ -278,7 +278,7 @@ def to_dict_of_values(
     ...     'a': {1, 2}
     ... }
     """
-    dict_of_values = collections.defaultdict(type)
+    dict_of_values: collections.defaultdict[Any, Any] = collections.defaultdict(type)
     for key, value in iterable:
         method(dict_of_values[key], value)
     return dict_of_values

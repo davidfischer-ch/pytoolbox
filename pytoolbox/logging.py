@@ -4,7 +4,7 @@ Logging setup helpers, colorization filter and logger factory.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final, Literal, Protocol, TypeAlias
+from typing import Final, Literal, Protocol, TypeAlias, cast
 import logging
 import sys
 
@@ -64,6 +64,9 @@ Color: TypeAlias = Literal[
 
 class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
     """Protocol for a simple callable accepting a log message string."""
+    __module__: str
+    __name__: str
+
     def __call__(self, message: str) -> None:
         ...
 
@@ -75,7 +78,7 @@ class BasicFuncLogger(logging.Logger):
         self._log_func = log_func
         super().__init__(name=f'{log_func.__module__}.{log_func.__name__}')
 
-    def _log(  # pylint:disable=unused-argument
+    def _log(  # type: ignore[override]  # pylint:disable=unused-argument
             self,
             level: int,
             msg: str,
@@ -96,8 +99,8 @@ def get_logger(log: LoggerType) -> logging.Logger:
         return log
     if isinstance(log, str):
         return logging.getLogger(log)
-    if hasattr(log, '__call__'):
-        return BasicFuncLogger(log_func=log)
+    if callable(log):
+        return BasicFuncLogger(log_func=cast(BasicLoggerFunc, log))
     raise NotImplementedError(f'Logging with {log!r} of type {type(log)}')
 
 
@@ -129,7 +132,7 @@ def setup_logging(
     console: bool = False,
     level: int | str = logging.DEBUG,
     colorize: bool = False,
-    color_by_level: dict[int | str, str] | None = None,
+    color_by_level: dict[int | str, Color] | None = None,
     fmt: str = '%(asctime)s %(levelname)-8s - %(message)s',
     datefmt: str = '%d/%m/%Y %H:%M:%S'
 ) -> logging.Logger:
@@ -212,11 +215,16 @@ class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
         logging.WARNING: 'yellow'
     }
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(
+        self,
+        *args: object,
+        color_by_level: dict[int | str, Color] | None = None,
+        **kwargs: object
+    ) -> None:
         self.color_by_level = merge_dicts(
             self.color_by_level,
-            kwargs.pop('color_by_level', None) or {})
-        super().__init__(*args, **kwargs)
+            color_by_level or {})
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
 
     def filter(self, record: logging.LogRecord) -> Literal[True]:
         """Apply color to the record message based on its level."""

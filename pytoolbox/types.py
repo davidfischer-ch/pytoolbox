@@ -4,9 +4,10 @@ Type introspection helpers, dummy/echo objects and a sentinel :data:`Missing` va
 from __future__ import annotations
 
 from collections.abc import Callable, Generator, Iterable
-from typing import Any, Literal, Self, TypeVar, overload
+from typing import Any, Self, TypeVar
 import inspect
 import itertools
+import types
 
 from . import module
 from .collections import merge_dicts
@@ -57,16 +58,6 @@ def get_slots(obj: Any) -> set[str]:
     )
 
 
-@overload
-def get_subclasses(obj: Any, *, nested: Literal[True] = True) -> Iterable[type]:
-    ...
-
-
-@overload
-def get_subclasses(obj: Any, *, nested: Literal[False]) -> Iterable[tuple[type, list[type]]]:
-    ...
-
-
 def get_subclasses(obj: Any, *, nested: bool = True) -> Iterable[tuple[type, list[type]]]:
     """
     Walk the inheritance tree of ``obj``. Yield tuples with (class, subclasses).
@@ -106,7 +97,7 @@ def get_subclasses(obj: Any, *, nested: bool = True) -> Iterable[tuple[type, lis
             yield from get_subclasses(subclass, nested=nested)
 
 
-def isiterable(obj: Any, *, blacklist: type = bytes | str) -> bool:
+def isiterable(obj: Any, *, blacklist: type | types.UnionType = bytes | str) -> bool:
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 

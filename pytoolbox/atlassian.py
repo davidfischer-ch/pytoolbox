@@ -25,18 +25,21 @@ class JiraProject(object):
         self.server = server
         self.auth = auth
         self.feature_type = feature_type
-        self._fields = self._jira = None
+        self._fields: list[dict[str, Any]] | None = None
+        self._jira: JIRA | None = None
 
     @property
     def fields(self) -> list[dict[str, Any]]:
         """Return the list of fields, caching the result."""
-        self._fields = self._fields or self.jira.fields()
+        if self._fields is None:
+            self._fields = self.jira.fields()
         return self._fields
 
     @property
     def features(self) -> ValuesView:
         """Return all issues of the configured feature type."""
-        count, issues = None, {}
+        count: int | None = None
+        issues: dict[str, Any] = {}
         while count != len(issues):
             count = len(issues)
             issues.update({
@@ -69,6 +72,7 @@ class JiraProject(object):
 
     def get_field_value(self, issue: Any, name: str, default: Any = None) -> Any:
         """Return the value of a named field on the given issue."""
-        field_id = self.get_field(name)['id']
-        field_value = getattr(issue.fields, field_id) or default
+        field = self.get_field(name)
+        assert field is not None
+        field_value = getattr(issue.fields, field['id']) or default
         return getattr(field_value, 'value', field_value)

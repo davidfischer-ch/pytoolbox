@@ -325,12 +325,12 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         self.sequence = 0
         self.timestamp = 0
         self.ssrc = 0
-        self.csrc = []
-        self.payload = []
-        self._error = None
+        self.csrc: list[int] = []
+        self.payload: bytearray = bytearray()
+        self._error: str | None = None
 
         offset = self.HEADER_LENGTH
-        if length < offset:
+        if data is None or length < offset:
             return
 
         self.version = (data[0] & self.V_MASK) >> 6
@@ -421,7 +421,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         rtp.timestamp = timestamp & cls.TS_MASK
         rtp.ssrc = 0
         rtp.csrc = []
-        rtp.payload = payload
+        rtp.payload = payload  # type: ignore[assignment]
         return rtp
 
     def __eq__(self, other: object) -> bool:
