@@ -180,7 +180,10 @@ def multiply_time(
     >>> print(res)
     0:02:32.500000
     """
-    return secs_to_time(total_seconds(value) * factor, as_delta=as_delta)
+    seconds = total_seconds(value) * factor
+    if as_delta:
+        return secs_to_time(seconds, as_delta=True)
+    return secs_to_time(seconds, as_delta=False)
 
 
 @overload  # type: ignore[misc]
@@ -234,7 +237,7 @@ def parts_to_time(
             minutes=minutes,
             seconds=seconds,
             microseconds=microseconds)
-    return datetime.time(hours, minutes, seconds, microseconds)
+    return datetime.time(int(hours), int(minutes), int(seconds), int(microseconds))
 
 
 @overload  # type: ignore[misc]
@@ -341,8 +344,8 @@ def str_to_time(
     '0:03:02.120000'
     """
     try:
-        hours, minutes, seconds_float = value.split(':')
-        hours, minutes, seconds_float = int(hours), int(minutes), float(seconds_float)
+        h_str, m_str, s_str = value.split(':')
+        hours, minutes, seconds_float = int(h_str), int(m_str), float(s_str)
         if as_delta:
             return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds_float)
         seconds = int(seconds_float)

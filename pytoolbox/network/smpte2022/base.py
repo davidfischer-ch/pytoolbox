@@ -185,10 +185,11 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             errors.append(self.ER_PAYLOAD)
         if self.L < 1 or self.L > 50:
             errors.append(self.ER_L)
-        if self.direction == self.COL and self.L * self.D > 256:
-            errors.append(self.ER_LD)
-        if self.direction == self.COL and (self.D < 4 or self.D > 50):
-            errors.append(self.ER_D)
+        if self.D is not None:
+            if self.direction == self.COL and self.L * self.D > 256:
+                errors.append(self.ER_LD)
+            if self.direction == self.COL and self.D < 4 or self.D > 50:
+                errors.append(self.ER_D)
         return errors
 
     @property
@@ -331,13 +332,13 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         self.payload_type_recovery = 0
         self.timestamp_recovery = 0
         self.length_recovery = 0
-        self.payload_recovery = []
+        self.payload_recovery: bytearray = bytearray()
         # (Unused as defined in SMPTE 2022-1-1)
         self.index = 0
         self.mask = 0
         self.extended = True
         self.n = False  # pylint:disable=invalid-name
-        self.missing = []
+        self.missing: list[int] = []
 
         if data is not None:
             packet = RtpPacket(data, length)

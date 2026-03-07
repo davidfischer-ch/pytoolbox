@@ -35,7 +35,7 @@ def IPSocket(socket: str) -> dict[str, str | int]:  # pylint:disable=invalid-nam
         (address, port) = socket.rsplit(':', 1)
         # address = address.translate(None, '[]')
         ip_address(address)  # Seem not IPv6 ready
-        port = int(port)
+        port_int = int(port)
     except Exception as ex:
         raise exceptions.InvalidIPSocketError(socket=socket) from ex
-    return {'ip': address, 'port': port}
+    return {'ip': address, 'port': port_int}
