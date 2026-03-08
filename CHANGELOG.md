@@ -2,6 +2,41 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.9.0 (2026-03-08)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.7...14.9.0
+
+### Minor compatibility breaks
+
+* Module `logging`: `ColorizeFilter` removed — replace with `ColorizeFormatter` (wraps a `Formatter`, attach to handlers instead of loggers)
+
+### Features
+
+* Add Sphinx-compatible docstrings to entire library
+* Add type hints to all function signatures; pytoolbox is now fully typed (`py.typed`)
+* Add `Final` type annotations to module-level constants
+* Module `argparse`: Fix `FullPaths` action with `nargs='?'` (handle `None` values)
+* Module `django.templatetags`: Make templatetags more generic and Pythonic
+* Module `logging`: Replace `ColorizeFilter` with `ColorizeFormatter` for proper ANSI color support
+
+### Fix and enhancements
+
+* Fix Django 4+ compatibility and templatetag issues
+* Fix bugs in `datetime`, `filesystem` and `subprocess` modules
+* Fix mypy errors across some modules (datetime, network/smpte2022, ... still many to come)
+* Fix SSH option quoting in `git` module
+* Fix typo in logging `Protocol`
+* Silent linter and style issues
+* Merge MRs from dependabot
+
+Tests:
+
+* Expand test coverage; set coverage threshold to 75%
+* Split monolithic Django tests into per-module files
+* Fix `termcolor` tests by clearing `can_colorize` cache between tests
+* Fix `test_inline` to patch `pathlib.Path.read_text` instead of `builtins.open`
+
+
 ## v14.8.7 (2026-03-05)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.6...14.8.7
