@@ -1,5 +1,5 @@
 """
-Logging setup helpers, colorization filter and logger factory.
+Logging setup helpers, colorization formatter and logger factory.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ __all__ = [
     'get_logger',
     'reset_logger',
     'setup_logging',
-    'ColorizeFilter'
+    'ColorizeFormatter'
 ]
 
 CRITICAL: Final[int] = logging.CRITICAL
@@ -156,11 +156,11 @@ def setup_logging(
     Colorization is not guaranteed (your environment may disable it).
     Use `pytoolbox.console.toggle_colors` appropriately to ensure it.
 
-    Colorize (test is disabled because pytest disable colored outputs):
+    Colorize (test is disabled because pytest disables colored outputs):
 
     >> log = setup_logging('foo', console=True, colorize=True, fmt='%(levelname)-8s - %(message)s')
     >> log.warning('Attention please!')
-    WARNING  - \x1b[33mAttention please!\x1b[0m
+    \x1b[33mWARNING  - Attention please!\x1b[0m
 
     Show how to reset handlers of the logger to avoid duplicated messages (e.g. in doctest):
 
@@ -192,23 +192,25 @@ def setup_logging(
     if reset:
         reset_logger(log)
     log.setLevel(level)
-    if colorize:
-        log.addFilter(ColorizeFilter(color_by_level=color_by_level))
     if path:
         file_handler = logging.FileHandler(path)
         file_handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(file_handler)
     if console:
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
+        if colorize:
+            formatter = ColorizeFormatter(fmt=fmt, datefmt=datefmt, color_by_level=color_by_level)
+        else:
+            formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
+        console_handler.setFormatter(formatter)
         log.addHandler(console_handler)
     return log
 
 
-class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
-    """Logging filter that colorizes messages based on log level."""
+class ColorizeFormatter(logging.Formatter):
+    """Formatter that colorizes the final output based on log level."""
 
-    color_by_level: dict[int | str, Color] = {
+    DEFAULT_COLORS: dict[int | str, Color] = {
         logging.DEBUG: 'cyan',
         logging.ERROR: 'red',
         logging.INFO: 'white',
@@ -217,19 +219,19 @@ class ColorizeFilter(logging.Filter):  # pylint:disable=too-few-public-methods
 
     def __init__(
         self,
-        *args: object,
-        color_by_level: dict[int | str, Color] | None = None,
-        **kwargs: object
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        color_by_level: dict[int | str, Color] | None = None
     ) -> None:
-        self.color_by_level = merge_dicts(
-            self.color_by_level,
+        super().__init__(fmt=fmt, datefmt=datefmt)
+        self.color_by_level: dict[int | str, Color] = merge_dicts(
+            self.DEFAULT_COLORS,
             color_by_level or {})
-        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
 
-    def filter(self, record: logging.LogRecord) -> Literal[True]:
-        """Apply color to the record message based on its level."""
-        record.raw_msg = record.msg
+    def format(self, record: logging.LogRecord) -> str:
+        """Format the record then wrap the message part in ANSI color."""
+        text = super().format(record)
         if color := self.color_by_level.get(record.levelno):
             import termcolor
-            record.msg = termcolor.colored(record.msg, color)
-        return True
+            text = termcolor.colored(text, color)
+        return text
