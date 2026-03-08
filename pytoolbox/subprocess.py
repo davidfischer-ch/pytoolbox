@@ -156,7 +156,7 @@ def _communicate_with_timeout(  # pylint:disable=redefined-builtin
 
 
 @overload
-def cmd(  # type: ignore[overload-overlap]  # pylint:disable=too-many-arguments
+def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
@@ -176,7 +176,7 @@ def cmd(  # type: ignore[overload-overlap]  # pylint:disable=too-many-arguments
 
 
 @overload
-def cmd(  # type: ignore[overload-overlap]  # pylint:disable=too-many-arguments
+def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
@@ -202,8 +202,8 @@ def cmd(  # pylint:disable=too-many-arguments
     user: str | None = ...,
     input: str | None = ...,  # pylint:disable=redefined-builtin
     cli_input: str | None = ...,
-    cli_output: bool = ...,
-    communicate: bool = ...,
+    cli_output: Literal[False] = ...,
+    communicate: Literal[True] = ...,
     timeout: float | None = ...,
     fail: bool = ...,
     log: LoggerType = ...,  # pylint:disable=redefined-outer-name
