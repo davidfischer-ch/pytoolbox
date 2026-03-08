@@ -57,6 +57,6 @@ class MultiTablesMixin(object):
         """Return the queryset for the given datatable name."""
         qs = super().get_queryset()
         name = self.get_datatable_name(name)
-        if name not in set(n for n, l in self.multi_datatables):
+        if name not in set(n for n, _ in self.multi_datatables):
             return qs.none()  # Bad name, returns nothing!
         return getattr(self, f'get_{name}_queryset')(qs)

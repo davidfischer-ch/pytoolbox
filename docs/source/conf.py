@@ -12,7 +12,8 @@
 
 import sys
 
-import pytoolbox, sphinx_rtd_theme
+import pytoolbox
+import sphinx_rtd_theme
 from django.core.management import execute_from_command_line
 
 

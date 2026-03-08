@@ -284,7 +284,10 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
     try:
         import magic
     except ImportError as ex:
-        warnings.warn(f'file_mime() requires python-magic / libmagic: {ex}', ImportWarning, stacklevel=2)
+        warnings.warn(
+            f'file_mime() requires python-magic / libmagic: {ex}',
+            ImportWarning,
+            stacklevel=2)
         return None
     try:
         return magic.from_file(str(path), mime=mime)
