@@ -96,8 +96,9 @@ def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid
 
 # http://stackoverflow.com/a/7730201/190597
 def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
-    """Add the O_NONBLOCK flag to a file descriptor."""
-    os.set_blocking(fd.fileno() if hasattr(fd, 'fileno') else fd, False)
+    """Add the O_NONBLOCK flag to a file descriptor. No-op on Windows."""
+    if hasattr(os, 'set_blocking'):
+        os.set_blocking(fd.fileno() if hasattr(fd, 'fileno') else fd, False)
 
 
 # http://stackoverflow.com/a/7730201/190597

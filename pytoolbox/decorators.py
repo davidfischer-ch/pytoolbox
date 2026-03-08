@@ -156,7 +156,7 @@ def root_required(error_message: str = 'This script must be run as root.') -> Ca
     def _root_required(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            if not os.geteuid() == 0:
+            if getattr(os, 'geteuid', lambda: 0)() != 0:
                 raise RuntimeError(error_message)
             return func(*args, **kwargs)
         return wrapper

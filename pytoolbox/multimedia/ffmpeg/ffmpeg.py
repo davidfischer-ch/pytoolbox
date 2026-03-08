@@ -149,7 +149,8 @@ class FFmpeg(object):
         return args, inputs, outputs, in_options, out_options
 
     def _get_chunk(self, process: subprocess.Popen) -> str | None:
-        select.select([process.stderr], [], [], self.chunk_read_timeout)
+        if sys.platform != 'win32':
+            select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
             chunk = process.stderr.read()
             if chunk is None or isinstance(chunk, str):

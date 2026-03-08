@@ -121,7 +121,7 @@ def scoped_ssh_key(
         try:
             log.debug(f'Set identity "...{content[100:120]}..."')
             options_str = ' '.join(f'-o {shlex.quote(o)}' for o in options) if options else ''
-            ssh_cmd = f'ssh -F /dev/null -i {key_file.name} -o IdentitiesOnly=yes {options_str}'
+            ssh_cmd = f'ssh -F {os.devnull} -i {key_file.name} -o IdentitiesOnly=yes {options_str}'
             subprocess.cmd(
                 ['git', 'config', 'core.sshCommand', ssh_cmd],
                 cwd=directory,

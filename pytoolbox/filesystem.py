@@ -79,6 +79,8 @@ def chown(
     Change owner/group of a path, can be recursive.
     Both can be a name, an id or None to leave it unchanged.
     """
+    if not hasattr(os, 'chown'):
+        return
     uid = to_user_id(user)
     gid = to_group_id(group)
     if recursive:

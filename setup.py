@@ -38,19 +38,12 @@ if sys.argv[-1] == 'test':
     sys.exit('Run pytest instead.')
 
 install_requires: list[str] = [
-    'python-magic',
+    'python-magic-bin' if sys.platform == 'win32' else 'python-magic',
     'pytz',
     'requests',
     'ruamel.yaml',
     'termcolor'
 ]
-
-try:
-    import grp
-    _ = grp
-except ImportError:
-    # Required on Windows
-    install_requires.append('python-magic-bin')
 
 extras_require: dict[str, list[str]] = {
     'atlassian': [
