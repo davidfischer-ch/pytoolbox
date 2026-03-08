@@ -449,7 +449,10 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
 def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: object) -> None:
     """Kill all screen instances called `name` or all if `name` is None."""
     for instance_name in screen_list(name=name, **kwargs):
-        cmd(['screen', '-S', instance_name, '-X', 'quit'], fail=fail, **kwargs)  # type: ignore[call-overload]
+        cmd(  # type: ignore[call-overload]
+            ['screen', '-S', instance_name, '-X', 'quit'],
+            fail=fail,
+            **kwargs)
 
 
 def screen_launch(name: str, command: CallArgsType, **kwargs) -> CallResult:
