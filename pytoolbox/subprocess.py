@@ -155,17 +155,17 @@ def _communicate_with_timeout(  # pylint:disable=redefined-builtin
 
 
 @overload
-def cmd(  # type: ignore[overload-overlap]
+def cmd(  # type: ignore[overload-overlap]  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
-    input: str | None = ...,
+    input: str | None = ...,  # pylint:disable=redefined-builtin
     cli_input: str | None = ...,
     cli_output: bool = ...,
     communicate: Literal[False],
     timeout: float | None = ...,
     fail: bool = ...,
-    log: LoggerType = ...,
+    log: LoggerType = ...,  # pylint:disable=redefined-outer-name
     tries: int = ...,
     delay_min: float = ...,
     delay_max: float = ...,
@@ -175,17 +175,17 @@ def cmd(  # type: ignore[overload-overlap]
 
 
 @overload
-def cmd(  # type: ignore[overload-overlap]
+def cmd(  # type: ignore[overload-overlap]  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
-    input: str | None = ...,
+    input: str | None = ...,  # pylint:disable=redefined-builtin
     cli_input: str | None = ...,
     cli_output: Literal[True],
     communicate: bool = ...,
     timeout: float | None = ...,
     fail: bool = ...,
-    log: LoggerType = ...,
+    log: LoggerType = ...,  # pylint:disable=redefined-outer-name
     tries: int = ...,
     delay_min: float = ...,
     delay_max: float = ...,
@@ -195,17 +195,17 @@ def cmd(  # type: ignore[overload-overlap]
 
 
 @overload
-def cmd(
+def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
-    input: str | None = ...,
+    input: str | None = ...,  # pylint:disable=redefined-builtin
     cli_input: str | None = ...,
     cli_output: bool = ...,
     communicate: bool = ...,
     timeout: float | None = ...,
     fail: bool = ...,
-    log: LoggerType = ...,
+    log: LoggerType = ...,  # pylint:disable=redefined-outer-name
     tries: int = ...,
     delay_min: float = ...,
     delay_max: float = ...,
@@ -214,7 +214,7 @@ def cmd(
 ) -> CallResultFull: ...
 
 
-def cmd(  # pylint:disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
+def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     command: CallArgsType,
     *,
     user: str | None = None,
