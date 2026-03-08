@@ -2,6 +2,16 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.9.1 (2026-03-08)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.0...14.9.1
+
+### Fix and enhancements
+
+* Fix Windows incompatibilities to prevent import-time crashes
+* Module `filesystem`: Defer `import magic` into `file_mime()` with `ImportWarning` fallback when `python-magic` / `libmagic` is unavailable
+* Fix linter issues
+
 ## v14.9.0 (2026-03-08)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.7...14.9.0
