@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, BinaryIO, Literal, Protocol, Self, TypeAlias, TextIO, overload
 import contextlib
 import collections
+import warnings
 import copy
 import datetime
 import errno
@@ -17,8 +18,6 @@ import shutil
 import tempfile
 import time
 import uuid
-
-import magic
 
 from . import module
 from .datetime import datetime_now
@@ -282,6 +281,11 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
     >>> file_mime('missing-file') is None
     True
     """
+    try:
+        import magic
+    except ImportError as ex:
+        warnings.warn(f'file_mime() requires python-magic / libmagic: {ex}', ImportWarning, stacklevel=2)
+        return None
     try:
         return magic.from_file(str(path), mime=mime)
     except OSError:
