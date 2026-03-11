@@ -1,0 +1,286 @@
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+# https://iscinumpy.dev/post/bound-version-constraints/
+
+[build-system]
+requires = ['setuptools>=41', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'pytoolbox'
+version = '14.9.1'
+
+authors = [
+    {name = 'David Fischer', email = 'david@fisch3r.net'}
+]
+description = 'Toolbox for Python scripts'
+keywords = [
+    'celery',
+    'django',
+    'ffmpeg',
+    'flask',
+    'json',
+    'juju',
+    'mock',
+    'pillow',
+    'rsync',
+    'rtp',
+    'screen',
+    'selenium',
+    'smpte 2022-1',
+    'subprocess'
+]
+license = {text = 'EUPL 1.1'}
+readme = {file = 'README.rst', content-type = 'text/x-rst'}
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Framework :: Django',
+    'Framework :: Flask',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)',
+    'Natural Language :: English',
+    'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Topic :: Software Development :: Libraries :: Python Modules'
+]
+
+requires-python = '>=3.11'
+dependencies = [
+    'python-magic-bin; sys_platform == "win32"',
+    'python-magic; sys_platform != "win32"',
+    'pytz',
+    'requests',
+    'ruamel.yaml',
+    'setuptools',
+    'termcolor'
+]
+
+[project.optional-dependencies]
+atlassian = ['jira']
+aws = ['boto3']
+django = ['django']
+django_filter = ['django-filter']
+django_formtools = ['django-formtools']
+flask = ['flask']
+imaging = [
+    'pillow',
+    'PyGObject'
+]
+jinja2 = ['jinja2']
+mongodb = ['pymongo']
+network = ['tldextract']
+pandas = [
+    'ezodf',
+    'lxml',
+    'pandas'
+]
+rest_framework = [
+    'django-oauth-toolkit',
+    'djangorestframework>=3'
+]
+selenium = ['selenium']
+smpte2022 = ['fastxor']
+vision = [
+    'dlib',
+    'keras',
+    'numpy',
+    'opencv-python',
+    'tensorflow'
+]
+voluptuous = ['voluptuous']
+all = [
+    'pytoolbox[atlassian,aws,django,django_filter,django_formtools,flask,imaging,jinja2,mongodb,network,pandas,rest_framework,selenium,smpte2022,vision,voluptuous]'
+]
+doc = [
+    'sphinx>=7.2.6',           # 2024-03-19 Released 2023-09-14
+    'sphinx-rtd-theme>=2.0.0'  # 2024-03-19 Released 2023-11-28
+]
+test = [
+    'colored>=2.2.4',         # 2024-03-19 Released 2023-12-19
+    'coverage>=7.4.4',        # 2024-03-19 Released 2024-03-14
+    'mypy>=1.9.0',            # 2024-03-19 Released 2024-03-08
+    'pylint>=3.1.0',          # 2024-03-19 Released 2024-02-25
+    'pytest>=8.1.1',          # 2024-03-19 Released 2024-03-09
+    'pytest-cov>=4.1.0',      # 2024-03-19 Released 2023-05-24
+    'pytest-pylint>=0.21.0',  # 2024-03-19 Released 2023-10-06
+    'pytest-ruff>=0.3.1',     # 2024-03-19 Released 2024-03-09
+    'ruff>=0.3.3',            # 2024-03-19 Released 2024-03-15
+    # Stubs
+    'PyGObject-stubs>=2.10.0',          # 2024-03-19 Released 2023-11-16
+    'types-pytz>=2024.1.0.20240203',    # 2024-03-19 Released 2024-02-03
+    'types-requests>=2.31.0.20240311',  # 2024-03-19 Released 2023-10-18
+    'types-urllib3>=1.26.25.14'         # 2024-03-19 Released 2023-07-20
+]
+
+[project.urls]
+homepage   = 'https://github.com/davidfischer-ch/pytoolbox'
+repository = 'https://github.com/davidfischer-ch/pytoolbox'
+
+[tool.setuptools.packages.find]
+exclude = ['tests']
+
+[tool.setuptools.package-data]
+pytoolbox = ['py.typed']
+'pytoolbox.ai.vision.face.detect' = ['data/*']
+'pytoolbox.ai.vision.face.recognize' = ['data/*']
+
+# Testing -------------------------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+addopts = """
+    --cov=pytoolbox
+    --cov-fail-under=75
+    --cov-report term-missing
+    --cov-report html
+    --cov-report xml
+    --doctest-modules
+    --ignore=docs/source
+    --ignore=pytoolbox/django
+    --ignore=pytoolbox/django_datatable_view
+    --ignore=pytoolbox/django_filter
+    --ignore=pytoolbox/django_formtools
+    --ignore=pytoolbox/rest_framework
+    --pylint
+    --ruff
+"""
+doctest_optionflags = ['ELLIPSIS', 'NORMALIZE_WHITESPACE']
+
+# Linters -------------------------------------------------------------------------------------------
+
+[tool.mypy]
+disable_error_code = ['import-untyped']
+
+[[tool.mypy.overrides]]
+module = [
+    'pytoolbox.django.forms.mixins',
+    'pytoolbox.django.models.decorators',
+    'pytoolbox.django.models.metaclass',
+    'pytoolbox.django.models.mixins',
+    'pytoolbox.django.test.mixins',
+    'pytoolbox.django.test.runner.mixins',
+    'pytoolbox.django.utils.logging',
+    'pytoolbox.django.views.mixins',
+    'pytoolbox.django_datatable_view.views.mixins',
+    'pytoolbox.django_filter.filterset.mixins',
+    'pytoolbox.django_formtools.views.mixins',
+    'pytoolbox.rest_framework.metadata.mixins',
+    'pytoolbox.rest_framework.serializers.mixins',
+    'pytoolbox.rest_framework.views.mixins',
+    'pytoolbox.selenium.test',
+    'pytoolbox.unittest'
+]
+ignore_errors = true
+
+[tool.pylint.main]
+jobs = 0
+py-version = '3.11'
+load-plugins = [
+    'pylint.extensions.bad_builtin',
+    'pylint.extensions.broad_try_clause',
+    'pylint.extensions.check_elif',
+    'pylint.extensions.code_style',
+    'pylint.extensions.comparison_placement',
+    'pylint.extensions.consider_refactoring_into_while_condition',
+    'pylint.extensions.dict_init_mutate',
+    'pylint.extensions.docparams',
+    'pylint.extensions.for_any_all',
+    'pylint.extensions.overlapping_exceptions',
+    'pylint.extensions.redefined_variable_type',
+    'pylint.extensions.set_membership',
+    'pylint.extensions.typing'
+]
+
+[tool.pylint.basic]
+good-names          = ['_', 'df', 'ex', 'f', 'i', 'j', 'k', 'Run', 's3', 'tz', 'x', 'y', 'z']
+bad-names           = ['bar', 'baz', 'foo', 'tata', 'toto', 'tutu']
+function-rgx        = '([a-z_][a-z0-9_]{2,40}$|test_[a-z_][a-z0-9_]{2,60}$)'
+variable-rgx        = '[a-z_][a-z0-9_]{2,30}$'
+const-rgx           = '(([A-Z_][A-Z0-9_]*)|(__.*__))$'
+attr-rgx            = '[a-z_][a-z0-9_]{2,}$'
+argument-rgx        = '[a-z_][a-z0-9_]{2,30}$'
+class-attribute-rgx = '([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$'
+class-rgx           = '[A-Z_][a-zA-Z0-9]+$'
+module-rgx          = '(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$'
+method-rgx          = '[a-z_][a-z0-9_]{2,}$'
+
+[tool.pylint.design]
+max-args              = 9
+max-locals            = 19
+max-returns           = 11
+max-branches          = 20
+max-attributes        = 11
+max-statements        = 50
+max-try-statements    = 7
+max-positional-arguments = 12
+
+[tool.pylint.format]
+max-line-length   = 100
+ignore-long-lines = '^\s*(# )?<?https?://\S+>?$'
+max-module-lines  = 2000
+
+[tool.pylint."messages control"]
+enable = [
+    'use-symbolic-message-instead',
+    'useless-suppression'
+]
+disable = [
+    'attribute-defined-outside-init',
+    'consider-using-assignment-expr',
+    'cyclic-import',
+    'fixme',
+    'import-outside-toplevel',
+    'invalid-name',
+    'logging-fstring-interpolation',
+    'missing-class-docstring',
+    'missing-function-docstring',
+    'missing-module-docstring',
+    'protected-access',
+    'too-few-public-methods',
+    'wrong-import-order'
+]
+
+[tool.pylint.refactoring]
+never-returning-functions = ['argparse.parse_error', 'sys.exit']
+
+[tool.pylint.similarities]
+min-similarity-lines = 6
+ignore-imports       = true
+ignore-signatures    = true
+
+[tool.pylint.spelling]
+spelling-ignore-comment-directives = 'fmt: on,fmt: off,noqa:,noqa,nosec,isort:skip,mypy:,pragma:,# noinspection'
+spelling-private-dict-file         = 'custom_dict.txt'
+
+[tool.pylint.typecheck]
+generated-members = ['REQUEST', 'acl_users', 'aq_parent', 'argparse.Namespace']
+
+[tool.pylint.typing]
+runtime-typing = false
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ['D', 'E', 'F', 'N', 'UP004', 'W']
+ignore = [
+    'D100',  # missing docstring in public module
+    'D101',  # missing docstring in public class
+    'D102',  # missing docstring in public method
+    'D103',  # missing docstring in public function
+    'D104',  # missing docstring in public package
+    'D105',  # missing docstring in magic method
+    'D106',  # missing docstring in public nested class
+    'D107',  # missing docstring in __init__
+    'D200',  # one-line docstring should fit on one line
+    'D204',  # one blank line required after class docstring
+    'D205',  # one blank line required between summary and description
+    'D212',  # multi-line docstring summary should start at first line
+    'D400',  # first line should end with a period
+    'N814',  # camelcase imported as constant
+    'N999'   # invalid module name
+]

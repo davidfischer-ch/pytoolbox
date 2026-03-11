@@ -3,8 +3,8 @@ pytoolbox.network.smpte2022 package
 
 .. automodule:: pytoolbox.network.smpte2022
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

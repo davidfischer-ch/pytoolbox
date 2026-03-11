@@ -3,8 +3,8 @@ pytoolbox.django.models.fields package
 
 .. automodule:: pytoolbox.django.models.fields
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

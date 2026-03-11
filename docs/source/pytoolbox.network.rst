@@ -3,8 +3,8 @@ pytoolbox.network package
 
 .. automodule:: pytoolbox.network
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------

@@ -3,8 +3,8 @@ pytoolbox.multimedia.ffmpeg package
 
 .. automodule:: pytoolbox.multimedia.ffmpeg
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

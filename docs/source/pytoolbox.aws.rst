@@ -3,8 +3,8 @@ pytoolbox.aws package
 
 .. automodule:: pytoolbox.aws
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

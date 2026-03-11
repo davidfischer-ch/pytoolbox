@@ -3,8 +3,8 @@ pytoolbox.rest\_framework.metadata package
 
 .. automodule:: pytoolbox.rest_framework.metadata
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

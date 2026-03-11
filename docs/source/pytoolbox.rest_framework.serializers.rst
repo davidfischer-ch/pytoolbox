@@ -3,8 +3,8 @@ pytoolbox.rest\_framework.serializers package
 
 .. automodule:: pytoolbox.rest_framework.serializers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

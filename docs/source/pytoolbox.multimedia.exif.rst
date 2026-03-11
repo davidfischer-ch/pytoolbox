@@ -3,8 +3,8 @@ pytoolbox.multimedia.exif package
 
 .. automodule:: pytoolbox.multimedia.exif
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

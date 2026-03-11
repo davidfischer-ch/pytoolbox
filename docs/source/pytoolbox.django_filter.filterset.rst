@@ -3,8 +3,8 @@ pytoolbox.django\_filter.filterset package
 
 .. automodule:: pytoolbox.django_filter.filterset
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

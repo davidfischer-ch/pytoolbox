@@ -3,8 +3,8 @@ pytoolbox.django.test package
 
 .. automodule:: pytoolbox.django.test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------

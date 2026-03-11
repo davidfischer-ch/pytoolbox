@@ -3,8 +3,8 @@ pytoolbox package
 
 .. automodule:: pytoolbox
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------
@@ -41,6 +41,7 @@ Submodules
    pytoolbox.exceptions
    pytoolbox.filesystem
    pytoolbox.flask
+   pytoolbox.git
    pytoolbox.humanize
    pytoolbox.itertools
    pytoolbox.juju
@@ -53,6 +54,7 @@ Submodules
    pytoolbox.serialization
    pytoolbox.setuptools
    pytoolbox.signals
+   pytoolbox.ssh
    pytoolbox.states
    pytoolbox.string
    pytoolbox.subprocess

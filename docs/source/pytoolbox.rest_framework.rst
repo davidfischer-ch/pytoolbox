@@ -3,8 +3,8 @@ pytoolbox.rest\_framework package
 
 .. automodule:: pytoolbox.rest_framework
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------

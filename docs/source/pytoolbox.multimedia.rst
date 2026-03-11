@@ -3,8 +3,8 @@ pytoolbox.multimedia package
 
 .. automodule:: pytoolbox.multimedia
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------

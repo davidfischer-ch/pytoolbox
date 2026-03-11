@@ -3,8 +3,8 @@ pytoolbox.django.forms package
 
 .. automodule:: pytoolbox.django.forms
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

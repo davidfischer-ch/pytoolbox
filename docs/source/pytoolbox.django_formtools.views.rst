@@ -3,8 +3,8 @@ pytoolbox.django\_formtools.views package
 
 .. automodule:: pytoolbox.django_formtools.views
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

@@ -3,8 +3,8 @@ pytoolbox.ai.vision package
 
 .. automodule:: pytoolbox.ai.vision
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------

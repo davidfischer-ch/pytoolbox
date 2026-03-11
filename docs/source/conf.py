@@ -12,9 +12,10 @@
 
 import sys
 
+import django
 import pytoolbox
 import sphinx_rtd_theme
-from django.core.management import execute_from_command_line
+from django.conf import settings
 
 
 def setup(app):
@@ -33,7 +34,22 @@ autodoc_member_order = 'bysource'
 #sys.path.insert(0, os.path.abspath('.'))
 
 # Set up the Django settings/environment
-execute_from_command_line([sys.argv[0]] + ['--help'])
+if not settings.configured:
+    settings.configure(
+        DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
+        INSTALLED_APPS=[
+            'django.contrib.contenttypes',
+            'django.contrib.auth',
+            'rest_framework'
+        ],
+        TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [],
+            'OPTIONS': {'string_if_invalid': ''}
+        }],
+        STATIC_ROOT='/static',
+        DEBUG=True)
+    django.setup()
 
 # -- General configuration ------------------------------------------------
 
@@ -85,7 +101,7 @@ release = pytoolbox.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -375,4 +391,4 @@ epub_exclude_files = ['search.html']
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}

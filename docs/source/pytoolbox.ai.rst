@@ -3,8 +3,8 @@ pytoolbox.ai package
 
 .. automodule:: pytoolbox.ai
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Subpackages
 -----------

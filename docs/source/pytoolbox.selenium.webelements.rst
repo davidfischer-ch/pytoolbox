@@ -3,8 +3,8 @@ pytoolbox.selenium.webelements package
 
 .. automodule:: pytoolbox.selenium.webelements
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------
