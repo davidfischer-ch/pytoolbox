@@ -2,6 +2,21 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.9.2 (2026-03-11)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.1...14.9.2
+
+### Fix and enhancements
+
+* Migrate configuration from `.pylintrc` / `pytest.ini` to `pyproject.toml`
+* Fix ruff and pylint linting violations (D-rules, N-rules, code quality)
+* Apply pylint code quality improvements across Django modules
+* Update copyright year to 2026 in docs
+
+### Tests
+
+* Expand test coverage to cover exception branches and signal handler preservation
+
 ## v14.9.1 (2026-03-08)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.0...14.9.1
