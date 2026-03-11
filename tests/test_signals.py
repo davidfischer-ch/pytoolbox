@@ -76,6 +76,16 @@ class TestSignals(unittest.TestCase):
                 signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
         os.kill(os.getpid(), signal.SIGTERM)
 
+    def test_handler_appends_existing_function_handler(self) -> None:
+        """A pre-existing function handler is preserved when register_handler is called."""
+        def existing_handler(signum, frame):  # pylint:disable=unused-argument
+            pass
+        signal.signal(signal.SIGTERM, existing_handler)
+        signals.register_handler(signal.SIGTERM, self.set_flag_handler)
+        assert existing_handler in signals.handlers_by_signal[signal.SIGTERM]
+        self.name = 'test_handler_appends_existing_function_handler'
+        os.kill(os.getpid(), signal.SIGTERM)
+
     def test_handler_error_propagation(self) -> None:
         """Exceptions from signal handlers are collected and re-raised as RuntimeError."""
         def failing_handler(signum, frame):  # pylint:disable=unused-argument
