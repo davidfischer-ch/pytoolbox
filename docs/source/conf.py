@@ -83,7 +83,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pytoolbox'
-copyright = '2015, David Fischer'
+copyright = '2015-2026, David Fischer'
 author = 'David Fischer'
 
 # The version info for the project you're documenting, acts as replacement for
