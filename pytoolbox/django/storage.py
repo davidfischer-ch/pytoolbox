@@ -27,7 +27,7 @@ class ExpressTemporaryFileMixin:
         """
         start_time = time.time()
         if hasattr(content.file, 'temporary_file_path'):
-            content.temporary_file_path = lambda: content.file.temporary_file_path()
+            content.temporary_file_path = content.file.temporary_file_path
         result = super()._save(name, content)
         logger.debug(f'Saved protected file "{name}" in {time.time() - start_time:.2g} seconds')
         return result

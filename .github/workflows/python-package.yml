@@ -28,7 +28,7 @@ jobs:
         sudo apt-get install -qq libcairo2 libcairo2-dev libexiv2-dev libgexiv2-dev libgirepository-2.0-dev
     - name: Install Python dependencies
       run: |
-        pip install --upgrade pip setuptools wheel
+        pip install -U pip setuptools wheel
         pip install -U -e .[all,test]
         pip freeze
     - name: Debug env
@@ -36,7 +36,7 @@ jobs:
         env | sort | grep -i -E 'COLOR|TERM|CI'
     - name: Test with pytest
       run: |
-        pytest
+        pytest -vvvv
     - name: Coveralls
       uses: coverallsapp/github-action@v2
 ...

@@ -48,6 +48,8 @@ from pytoolbox import logging
 if TYPE_CHECKING:
     from django.db import models
 
+# pylint:disable=unused-argument
+
 __all__ = [
     'logger',
     'clean_files_delete_handler',

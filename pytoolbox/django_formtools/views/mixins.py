@@ -57,6 +57,7 @@ class DataTableViewCompositionMixin:
             view.object_list = None
             view.request = self.request
             return view
+        return None
 
 
 class SerializeStepInstanceMixin:

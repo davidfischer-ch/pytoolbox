@@ -185,7 +185,8 @@ class BetterUniquenessErrorsMixin:
                         if fields:
                             error = self.unique_error_message(type(self), fields)
                             raise ValidationError({fields[0]: error}) if len(fields) == 1 else error
-                        return self._handle_hidden_duplicate_key_error(ex)
+                        self._handle_hidden_duplicate_key_error(ex)
+                        return  # handler didn't raise; treat as handled
             raise
 
     def _handle_hidden_duplicate_key_error(self, ex: IntegrityError) -> None:

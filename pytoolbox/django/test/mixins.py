@@ -135,6 +135,7 @@ class QueriesMixin:
             return context
         with context:
             func(*args, **kwargs)
+        return None
 
 
 class UrlMixin:
@@ -156,7 +157,7 @@ class UrlMixin:
             url = value.get_absolute_url()
         else:
             url = reverse(value, urlconf, args, kwargs, current_app)
-        return url if qs is None else '{0}?{1}'.format(url, qs)
+        return url if qs is None else f'{url}?{qs}'
 
 
 class RestAPIMixin(UrlMixin):

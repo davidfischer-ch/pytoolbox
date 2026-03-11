@@ -57,6 +57,7 @@ def try_get_field(instance: models.Model, field_name: str) -> object:
     except Exception as ex:
         if type(ex).__name__ != 'RelatedObjectDoesNotExist':
             raise
+        return None
 
 
 __all__ = _all.diff(globals())

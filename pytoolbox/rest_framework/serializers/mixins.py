@@ -45,8 +45,10 @@ class FromPrivateKeyMixin:
             return self.Meta.model.objects.get(pk=data)
         except ObjectDoesNotExist:
             self.fail('does_not_exist', pk_value=smart_str(data))
+            return None  # self.fail() always raises
         except (TypeError, ValueError):
             self.fail('incorrect_type', data_type=type(data).__name__)
+            return None  # self.fail() always raises
 
     def create(self, validated_data: Any) -> Any:
         """Return the instance directly if already resolved, otherwise create it."""

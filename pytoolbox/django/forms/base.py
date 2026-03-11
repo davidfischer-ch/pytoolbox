@@ -37,5 +37,5 @@ class SerializedInstanceForm:
         """Return ``True`` if the serialized instance exists in the database."""
         try:
             return bool(self.instance)
-        except Exception:
+        except Exception:  # pylint:disable=broad-exception-caught
             return False

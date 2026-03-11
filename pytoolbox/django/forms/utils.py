@@ -57,6 +57,7 @@ def get_instance(
     except (KeyError, queryset.model.DoesNotExist):
         if msg:
             messages.error(request, msg)
+        return None
 
 
 def set_disabled(form: forms.Form, field_name: str, *, value: bool = False) -> None:
@@ -66,7 +67,7 @@ def set_disabled(form: forms.Form, field_name: str, *, value: bool = False) -> N
     else:
         try:
             del form.fields[field_name].widget.attrs['disabled']
-        except Exception:
+        except KeyError:
             pass
 
 
@@ -88,12 +89,12 @@ def update_widget_attributes(widget: forms.Widget, updates: dict[str, object]) -
     """
     updates = copy(updates)
     if 'class' in updates:
-        class_set = set([c for c in widget.attrs.get('class', '').split(' ') if c])
-        for cls in set([c for c in updates['class'].split(' ') if c]):
+        class_set = {c for c in widget.attrs.get('class', '').split(' ') if c}
+        for cls in {c for c in updates['class'].split(' ') if c}:
             operation, cls = cls[0], cls[1:]
             if operation == '+' or (operation == '^' and cls not in class_set):
                 class_set.add(cls)
-            elif operation in ('-', '^'):
+            elif operation in {'-', '^'}:
                 class_set.discard(cls)
             else:
                 raise ValueError(

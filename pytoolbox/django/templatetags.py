@@ -40,10 +40,10 @@ except ImportError:
 string_if_invalid = ''  # Official default value
 try:  # Django >= 1.8
     string_if_invalid = settings.TEMPLATES['OPTIONS']['string_if_invalid']
-except Exception:
+except (KeyError, TypeError):
     try:  # Django < 1.8
         string_if_invalid = settings.TEMPLATE_STRING_IF_INVALID
-    except Exception:
+    except AttributeError:
         pass  # Use default
 
 
@@ -96,9 +96,9 @@ def getattribute(value, attribute):
     """
     if hasattr(value, str(attribute)):
         return getattr(value, attribute)
-    elif isinstance(value, collections.abc.Mapping) and attribute in value:
+    if isinstance(value, collections.abc.Mapping) and attribute in value:
         return value[attribute]
-    elif NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
+    if NUMERIC_TEST.match(str(attribute)) and len(value) > int(attribute):
         return value[int(attribute)]
     return string_if_invalid
 
@@ -184,15 +184,15 @@ def rst_title(value, level):
     """
     value, level = str(value), str(level)
     length = len(value)
-    if level in ('1', 'document'):
+    if level in {'1', 'document'}:
         return f"{'=' * length}{os.linesep}{value}{os.linesep}{'=' * length}{os.linesep}"
-    elif level in ('2', 'subtitle'):
+    if level in {'2', 'subtitle'}:
         return f"{'-' * length}{os.linesep}{value}{os.linesep}{'-' * length}{os.linesep}"
-    elif level in ('3', 'chapter'):
+    if level in {'3', 'chapter'}:
         return f"{value}{os.linesep}{'=' * length}{os.linesep}"
-    elif level in ('4', 'section'):
+    if level in {'4', 'section'}:
         return f"{value}{os.linesep}{'-' * length}{os.linesep}"
-    elif level in ('5', 'subsection'):
+    if level in {'5', 'subsection'}:
         return f"{value}{os.linesep}{'~' * length}{os.linesep}"
     return string_if_invalid
 

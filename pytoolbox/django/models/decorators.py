@@ -36,14 +36,15 @@ def with_urls(base_url: str, *interface_actions: str, **kwargs: object) -> Calla
                 continue
 
             if action == 'create':
-                @classmethod
-                def method(cls) -> str:
+                @staticmethod
+                def method() -> str:
                     return reverse(base_url + 'create')
             else:
                 def get_url(action: str, singleton: bool) -> Callable[..., str]:
                     if singleton:
-                        def _get_url(self) -> str:
+                        def _get_url() -> str:
                             return reverse(base_url + action)
+                        return staticmethod(_get_url)
                     else:
                         def _get_url(self) -> str:
                             return reverse(base_url + action, args=[str(self.pk)])

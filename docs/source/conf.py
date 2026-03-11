@@ -10,7 +10,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 
 import django
 import pytoolbox

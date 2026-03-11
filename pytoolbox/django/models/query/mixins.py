@@ -82,8 +82,8 @@ class StateMixin:
         # avoid strange infinite recursion with defer()
         if name not in self._skip_names:
             all_states = set()
-            for name in name.split('_or_'):
-                states = self.model.states.get(name)
+            for state_name in name.split('_or_'):
+                states = self.model.states.get(state_name)
                 if not states:
                     raise AttributeError
                 method = all_states.add if isinstance(states, str) else all_states.update

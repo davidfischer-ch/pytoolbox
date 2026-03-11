@@ -66,8 +66,8 @@ class FieldsToValuesLookupDict:
             if meta and hasattr(meta, 'model'):
                 # cleanup model name when some fields are deferred (Media vs Media_Deffered_...)
                 keys.insert(1, f"{DEFFERED_REGEX.sub('', meta.model.__name__)}.{field_name}")
-        for key in keys:
-            value = self.translations.get(key)
+        for lookup_key in keys:
+            value = self.translations.get(lookup_key)
             if value:
                 return value
         raise KeyError(f'Entry for keys {keys} not found in {self.name}.')
