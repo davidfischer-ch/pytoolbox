@@ -1,37 +1,39 @@
 """
-    :file:`apps.py` ::
+Signal handlers for Django applications.
 
-        from django import apps
-        from django.utils.translation import gettext_lazy as _
+:file:`apps.py` ::
 
-        from . import signals
+from django import apps
+from django.utils.translation import gettext_lazy as _
 
-        __all__ = ('MyApp',)
+from . import signals
+
+__all__ = ('MyApp',)
 
 
-        class MyAppConfig(apps.AppConfig):
-            name = 'myapp'
-            verbose_name = _('My Application')
+class MyAppConfig(apps.AppConfig):
+name = 'myapp'
+verbose_name = _('My Application')
 
-            def ready(self):
-                signals.connect(self)
+def ready(self):
+signals.connect(self)
 
-    :file:`signals.py` ::
+:file:`signals.py` ::
 
-        from django.db.models import signals as dj_signals
-        from django.db.backends import signals as dj_db_signals
-        from pytoolbox.django.signals import (
-            create_site, setup_postgresql_hstore_extension, strip_strings_and_validate_model
-        )
+from django.db.models import signals as dj_signals
+from django.db.backends import signals as dj_db_signals
+from pytoolbox.django.signals import (
+create_site, setup_postgresql_hstore_extension, strip_strings_and_validate_model
+)
 
-        # ...
+# ...
 
-        def connect(config):
-            '''Connect signal handlers to signals.'''
-            dj_db_signals.connection_created.connect(setup_postgresql_hstore_extension)
-            dj_signals.post_migrate.connect(create_site, sender=config)
-            dj_signals.pre_save.connect(
-                strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
+def connect(config):
+'''Connect signal handlers to signals.'''
+dj_db_signals.connection_created.connect(setup_postgresql_hstore_extension)
+dj_signals.post_migrate.connect(create_site, sender=config)
+dj_signals.pre_save.connect(
+strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
 from __future__ import annotations
 

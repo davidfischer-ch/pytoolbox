@@ -17,7 +17,7 @@ _all = module.All(globals())
 # TODO Use pydantic or dataclass or StrongTypedMixin kind of?
 
 
-class MessageMixin(Exception):
+class MessageMixin(Exception):  # noqa: N818
     """Mixin providing a formattable :attr:`message` and attribute-based repr."""
     attrs: Annotated[tuple[str, ...], 'Attributes to expose to the __repr__'] = tuple()
     message: str
@@ -163,7 +163,8 @@ def assert_raises_item(
     value: Any | None = None,
     delete: bool = False
 ) -> None:
-    """Assert that accessing, setting, or deleting an item raises an exception.
+    """
+    Assert that accessing, setting, or deleting an item raises an exception.
 
     **Example usage**
 
@@ -217,7 +218,7 @@ def assert_raises_item(
 
 
 def get_exception_with_traceback(exception: Exception) -> str:
-    """
+    r"""
     Return a string with the exception traceback.
 
     **Example usage**
@@ -225,7 +226,7 @@ def get_exception_with_traceback(exception: Exception) -> str:
     If the exception was not raised then there are no traceback:
 
     >>> get_exception_with_traceback(ValueError('yé'))
-    'ValueError: yé\\n'
+    'ValueError: yé\n'
 
     If the exception was raised then there is a traceback:
 

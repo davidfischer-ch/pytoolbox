@@ -11,7 +11,7 @@ from .brand import Brand
 __all__ = ['Equipement']
 
 
-class Equipement(object, metaclass=abc.ABCMeta):
+class Equipement(metaclass=abc.ABCMeta):
     """Abstract base for photographic equipment identified from EXIF data."""
 
     def __init__(self, metadata: object) -> None:

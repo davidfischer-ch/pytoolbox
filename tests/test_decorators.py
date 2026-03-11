@@ -96,18 +96,18 @@ class TestHybridmethod:
     """Tests for the hybridmethod descriptor."""
 
     def test_class_level_access(self) -> None:
-        """hybridmethod called on the class receives the class."""
+        """Hybridmethod called on the class receives the class."""
         class MyClass:
             value = 'class_val'
 
             @decorators.hybridmethod
-            def get_value(receiver):  # pylint:disable=no-self-argument
+            def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
                 return receiver.value
 
         assert MyClass.get_value() == 'class_val'
 
     def test_instance_level_access(self) -> None:
-        """hybridmethod called on an instance receives the instance."""
+        """Hybridmethod called on an instance receives the instance."""
         class MyClass:
             value = 'class_val'
 
@@ -115,7 +115,7 @@ class TestHybridmethod:
                 self.value = 'instance_val'
 
             @decorators.hybridmethod
-            def get_value(receiver):  # pylint:disable=no-self-argument
+            def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
                 return receiver.value
 
         assert MyClass().get_value() == 'instance_val'
@@ -124,7 +124,7 @@ class TestHybridmethod:
         """The bound hybrid callable exposes __func__ and __self__."""
         class MyClass:
             @decorators.hybridmethod
-            def method(receiver):  # pylint:disable=no-self-argument
+            def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
                 return 42
 
         bound = MyClass.__dict__['method'].__get__(None, MyClass)
@@ -135,7 +135,7 @@ class TestHybridmethod:
         """__self__ on an instance-bound hybrid is the instance."""
         class MyClass:
             @decorators.hybridmethod
-            def method(receiver):  # pylint:disable=no-self-argument
+            def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
                 return 42
 
         obj = MyClass()
@@ -143,10 +143,10 @@ class TestHybridmethod:
         assert bound.__self__ is obj
 
     def test_hybrid_with_args(self) -> None:
-        """hybridmethod passes extra positional and keyword args."""
+        """Hybridmethod passes extra positional and keyword args."""
         class MyClass:
             @decorators.hybridmethod
-            def add(receiver, a, b=0):  # pylint:disable=no-self-argument
+            def add(receiver, a, b=0):  # pylint:disable=no-self-argument  # noqa: N805
                 return a + b
 
         assert MyClass.add(3, b=7) == 10

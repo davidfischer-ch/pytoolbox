@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 _all = module.All(globals())
 
 
-class AddRequestToFormKwargsMixin(object):
+class AddRequestToFormKwargsMixin:
     """Add the view request to the keywords arguments for instantiating the form."""
 
     def get_form_kwargs(self, *args: object, **kwargs: object) -> dict[str, object]:
@@ -36,12 +36,14 @@ class AddRequestToFormKwargsMixin(object):
         return kwargs
 
     def should_add_request_to_form_kwargs(self) -> bool:
-        """Check whether the form class is a
-        :class:`~pytoolbox.django.forms.mixins.RequestMixin`."""
+        """
+        Check whether the form class is a
+        :class:`~pytoolbox.django.forms.mixins.RequestMixin`.
+        """
         return issubclass(self.get_form_class(), forms_mixins.RequestMixin)
 
 
-class BaseModelMultipleMixin(object):
+class BaseModelMultipleMixin:
     """Derive context object name from the base model of the queryset."""
 
     def get_context_object_name(self, instance_list: object) -> str | None:
@@ -52,7 +54,7 @@ class BaseModelMultipleMixin(object):
             return f'{utils.get_base_model(instance_list.model)._meta.model_name}_list'
 
 
-class BaseModelSingleMixin(object):
+class BaseModelSingleMixin:
     """Derive context object name from the base model of the instance."""
 
     def get_context_object_name(self, instance: object) -> str | None:
@@ -63,7 +65,7 @@ class BaseModelSingleMixin(object):
             return utils.get_base_model(instance)._meta.model_name
 
 
-class InitialMixin(object):
+class InitialMixin:
     """Add helpers to safely use the URL query string to fill a form with initial values."""
 
     initials = {}
@@ -127,7 +129,7 @@ class InitialMixin(object):
         return value
 
 
-class LoggedCookieMixin(object):
+class LoggedCookieMixin:
     """Add a "logged" cookie set to "True" if user is authenticated else to "False"."""
 
     def post(self, *args: object, **kwargs: object) -> HttpResponse:
@@ -138,7 +140,7 @@ class LoggedCookieMixin(object):
         return response
 
 
-class RedirectMixin(object):
+class RedirectMixin:
     """Redirect to a page."""
 
     redirect_view = None
@@ -163,9 +165,11 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
         ]
 
 
-class ValidationErrorsMixin(object):
-    """Catch :class:`~django.core.exceptions.ValidationError` during save
-    and re-display the form."""
+class ValidationErrorsMixin:
+    """
+    Catch :class:`~django.core.exceptions.ValidationError` during save
+    and re-display the form.
+    """
 
     def form_valid(self, form: forms.Form) -> HttpResponse:
         """Catch :class:`~django.core.exceptions.ValidationError` and re-display the form."""

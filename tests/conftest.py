@@ -31,7 +31,7 @@ SMALL_MP4_FILENAME: Final[Path] = TMP_DIRECTORY / 'small.mp4'
 
 
 # TODO Promote it to the library (merge)
-class DownloadStaticFFmpegMixin(object):  # pylint:disable=too-few-public-methods
+class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
     executable: Path
 
     def __init__(self, *args, **kwargs) -> None:

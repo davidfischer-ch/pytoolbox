@@ -62,8 +62,10 @@ def clone_or_pull(
 
 
 def create_tag(directory: Path, name: str) -> None:
-    """Create a Git tag, raising
-    :class:`~pytoolbox.exceptions.DuplicateGitTagError` on duplicates."""
+    """
+    Create a Git tag, raising
+    :class:`~pytoolbox.exceptions.DuplicateGitTagError` on duplicates.
+    """
     try:
         subprocess.cmd(['git', 'tag', name], cwd=directory)
     except exceptions.CalledProcessError as ex:

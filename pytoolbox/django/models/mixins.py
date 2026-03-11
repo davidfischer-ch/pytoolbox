@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 _all = module.All(globals())
 
 
-class AlwaysUpdateFieldsMixin(object):
+class AlwaysUpdateFieldsMixin:
     """
     Ensure fields listed in the attribute ``self.always_update_fields`` are always updated by
     ``self.save()``. Makes the usage of ``self.save(update_fields=...)`` cleaner.
@@ -62,7 +62,7 @@ class AlwaysUpdateFieldsMixin(object):
         super().save(*args, **kwargs)
 
 
-class AutoForceInsertMixin(object):
+class AutoForceInsertMixin:
     """Automatically set ``force_insert`` based on the instance's adding state."""
 
     def save(self, *args: object, **kwargs: object) -> None:
@@ -72,7 +72,7 @@ class AutoForceInsertMixin(object):
         super().save(*args, **kwargs)
 
 
-class AutoRemovePKFromUpdateFieldsMixin(object):
+class AutoRemovePKFromUpdateFieldsMixin:
     """
     If the primary key is set but unchanged, then remove the primary key from the list of fields to
     update. This fix an issue when saving, ``ValueError: The following fields do not exist in this
@@ -101,7 +101,7 @@ class AutoRemovePKFromUpdateFieldsMixin(object):
         self.previous_pk = self.pk
 
 
-class AutoUpdateFieldsMixin(object):
+class AutoUpdateFieldsMixin:
     """
     Keep track of what fields were set in order to make UPDATE queries lighter.
 
@@ -145,7 +145,7 @@ class AutoUpdateFieldsMixin(object):
         self._setted_fields = set()
 
 
-class BetterUniquenessErrorsMixin(object):
+class BetterUniquenessErrorsMixin:
     """
     Hide some fields from the unique-together errors.
     Convert uniqueness integrity errors to validation errors.
@@ -212,7 +212,7 @@ class BetterUniquenessErrorsMixin(object):
         return filtered_errors_by_field
 
 
-class CallFieldsPreSaveMixin(object):
+class CallFieldsPreSaveMixin:
     """
     If you wanna be sure the fields pre_save method are called, now you can!
 
@@ -226,7 +226,7 @@ class CallFieldsPreSaveMixin(object):
         super().save(*args, **kwargs)
 
 
-class PublicMetaMixin(object):
+class PublicMetaMixin:
     """
     Make `_meta` public in templates through a class method called `meta`.
     """
@@ -236,7 +236,7 @@ class PublicMetaMixin(object):
         return cls._meta
 
 
-class RelatedModelMixin(object):
+class RelatedModelMixin:
     """Provide shortcuts to access related model classes and managers."""
 
     @classmethod
@@ -250,7 +250,7 @@ class RelatedModelMixin(object):
         return utils.get_related_model(cls, field)
 
 
-class ReloadMixin(object):
+class ReloadMixin:
     """Provide a :meth:`reload` method to re-fetch the instance from the database."""
 
     def reload(self) -> models.Model:
@@ -258,7 +258,7 @@ class ReloadMixin(object):
         return self._meta.model._default_manager.get(pk=self.pk)
 
 
-class SaveInstanceFilesMixin(object):
+class SaveInstanceFilesMixin:
     """
     Overrides saves() with a method that saves the instance first and then the instance's file
     fields this ensure that the upload_path method will get a valid instance id / private key.
@@ -278,7 +278,7 @@ class SaveInstanceFilesMixin(object):
         super().save(*args, **kwargs)
 
 
-class UpdatePreconditionsMixin(object):
+class UpdatePreconditionsMixin:
     """Guard row updates with filter/exclude preconditions for optimistic concurrency."""
 
     precondition_error_class = exceptions.DatabaseUpdatePreconditionsError
@@ -334,7 +334,7 @@ class UpdatePreconditionsMixin(object):
         return updated
 
 
-class StateTransitionEventsMixin(object):
+class StateTransitionEventsMixin:
     """Send :data:`~pytoolbox.django.signals.post_state_transition` after state changes."""
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -366,7 +366,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
 
     def can_transit_to(self, state: str, fail: bool = False, noop_skip: bool = False) -> bool:
         """
-        Helper that return the following:
+        Return a value depending on whether the transition to `state` is allowed.
 
         * True if transition to `state` is allowed.
         * False if `fail` is set to False or `noop_skip` is set to True and state is unchanged.
@@ -407,7 +407,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         return args, kwargs, any(self._preconditions)
 
 
-class ValidateOnSaveMixin(object):
+class ValidateOnSaveMixin:
     """Run :meth:`full_clean` automatically before every save."""
 
     validate_on_save = True

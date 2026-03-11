@@ -133,7 +133,7 @@ def test_model_based_form_cleanup_mixin_delegates() -> None:
             pass
 
     class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
-        class _meta:
+        class _meta:  # noqa: N801
             model = MagicMock()
 
         cleaned_data = {'field': 'value'}
@@ -152,7 +152,7 @@ def test_model_based_form_cleanup_mixin_fallback() -> None:
             pass
 
     class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
-        class _meta:
+        class _meta:  # noqa: N801
             model = object()  # No clean_form method
 
         cleaned_data = {'field': 'value'}

@@ -10,7 +10,7 @@ from . import client  # pylint:disable=unused-import
 __all__ = ['LiveTestCaseMixin']
 
 
-class LiveTestCaseMixin(object):
+class LiveTestCaseMixin:
     """Mixin that provides a shared :class:`LiveClient` for live server tests."""
 
     live_client_class = client.LiveClient  # pylint:disable=used-before-assignment
@@ -31,7 +31,7 @@ class LiveTestCaseMixin(object):
 
     # Asserts
 
-    def assertElementEqual(  # pylint:disable=invalid-name
+    def assertElementEqual(  # noqa: N802
             self,
             name: str,
             value: str,
@@ -44,13 +44,13 @@ class LiveTestCaseMixin(object):
         else:
             self.assertElementIsDisabled(name)
         element = self.client.find_name(name)
-        Select = self.client.web_driver.web_element_classes['select']  # pylint:disable=invalid-name
+        Select = self.client.web_driver.web_element_classes['select']  # noqa: N806
         if isinstance(element, Select):
             self.assertSelectOptions(name, value)
         else:
             self.assertElementValue(name, value)
 
-    def assertElementIsDisabled(  # pylint:disable=invalid-name
+    def assertElementIsDisabled(  # noqa: N802
             self,
             name: str,
             *args,
@@ -59,7 +59,7 @@ class LiveTestCaseMixin(object):
         """Assert the named element is disabled."""
         self.assertFalse(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
-    def assertElementIsEnabled(  # pylint:disable=invalid-name
+    def assertElementIsEnabled(  # noqa: N802
             self,
             name: str,
             *args,
@@ -68,11 +68,11 @@ class LiveTestCaseMixin(object):
         """Assert the named element is enabled."""
         self.assertTrue(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
-    def assertElementIsReadOnly(self, name: str) -> None:  # pylint:disable=invalid-name
+    def assertElementIsReadOnly(self, name: str) -> None:  # noqa: N802
         """Assert the named element has a ``readonly`` attribute."""
         self.assertIsNotNone(self.client.find_name(name).get_attribute('readonly'))
 
-    def assertElementValue(  # pylint:disable=invalid-name
+    def assertElementValue(  # noqa: N802
             self,
             name: str,
             value: str,
@@ -88,7 +88,7 @@ class LiveTestCaseMixin(object):
             *args,
             **kwargs)
 
-    def assertSelectOptions(  # pylint:disable=invalid-name
+    def assertSelectOptions(  # noqa: N802
             self,
             name: str,
             texts: str | list[str],

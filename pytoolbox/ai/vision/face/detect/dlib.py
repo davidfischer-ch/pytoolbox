@@ -72,7 +72,7 @@ TPL_MIN, TPL_MAX = np.min(TEMPLATE, axis=0), np.max(TEMPLATE, axis=0)
 MINMAX_TEMPLATE: Final[np.ndarray] = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
 
 
-class DlibFaceDetector(object):
+class DlibFaceDetector:
     """
     Use `dlib's landmark estimation
     <http://blog.dlib.net/2014/08/real-time-face-pose-estimation.html>`_
@@ -143,7 +143,7 @@ class DlibFaceDetector(object):
         landmarks = np.float32(landmarks)
         landmark_indices = np.array(landmark_indices)  # pylint:disable=redefined-variable-type
 
-        H = cv2.getAffineTransform(       # pylint:disable=invalid-name,no-member
+        H = cv2.getAffineTransform(       # pylint:disable=no-member  # noqa: N806
             landmarks[landmark_indices],  # pylint:disable=unsubscriptable-object
             dimension * MINMAX_TEMPLATE[landmark_indices])
 

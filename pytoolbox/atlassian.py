@@ -11,7 +11,7 @@ from jira import JIRA
 __all__ = ['JiraProject']
 
 
-class JiraProject(object):
+class JiraProject:
     """A JIRA project class with a simple API leveraging the class :class:`jira.JIRA`."""
 
     def __init__(

@@ -14,7 +14,7 @@ from .datetime import TimeValue, total_seconds
 _all = module.All(globals())
 
 
-class EventsTable(object):
+class EventsTable:
     """Scan a spare events table and replace missing entry by previous (non empty) entry."""
 
     def __init__(
@@ -108,7 +108,7 @@ class EventsTable(object):
         return math.ceil(duration - (total_seconds(time) % duration))
 
 
-class pygal_deque(collections.deque):  # pylint:disable=invalid-name
+class pygal_deque(collections.deque):  # noqa: N801
     """
     A deque None'ing duplicated values to produce nicer `pygal <pygal.org>`_ line charts
     (e.g. 5555322211111 -> 5__532_21___1).

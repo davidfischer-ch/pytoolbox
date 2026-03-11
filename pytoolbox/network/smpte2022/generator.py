@@ -10,7 +10,7 @@ from .base import FecPacket
 __all__ = ['FecGenerator']
 
 
-class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
+class FecGenerator:  # pylint:disable=too-many-instance-attributes
     """
     A SMPTE 2022-1 FEC streams generator.
     This generator accept incoming RTP media packets and compute corresponding FEC packets.
@@ -19,7 +19,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @property
-    def L(self) -> int:  # pylint:disable=invalid-name
+    def L(self) -> int:  # noqa: N802
         """
         Returns the Horizontal size of the FEC matrix (columns).
 
@@ -31,7 +31,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
         return self._L
 
     @property
-    def D(self) -> int:  # pylint:disable=invalid-name
+    def D(self) -> int:  # noqa: N802
         """
         Returns the vertical size of the FEC matrix (rows).
 
@@ -46,8 +46,8 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
 
     def __init__(  # pylint:disable=invalid-name,too-many-instance-attributes
             self,
-            L: int,
-            D: int
+            L: int,  # noqa: N803
+            D: int  # noqa: N803
     ) -> None:
         """
         Construct a FecGenerator.
@@ -66,7 +66,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
     @staticmethod
     def on_new_col(col: FecPacket) -> None:
         """
-        Called by FecGenerator when a new column FEC packet is generated and available for output.
+        Handle a new column FEC packet from FecGenerator when it is ready for output.
 
         By default this method only print a message to `stdout`.
 
@@ -86,7 +86,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
     @staticmethod
     def on_new_row(row: FecPacket) -> None:
         """
-        Called by FecGenerator when a new row FEC packet is generated and available for output.
+        Handle a new row FEC packet from FecGenerator when it is ready for output.
 
         By default this method only print a message to `stdout`.
 
@@ -105,7 +105,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
 
     def on_reset(self, media: RtpPacket) -> None:
         """
-        Called by FecGenerator when the algorithm is reseted (an incoming media is out of sequence).
+        Handle FecGenerator reset when an incoming media packet is out of sequence.
 
         By default this method only print a message to `stdout`.
 
@@ -249,7 +249,7 @@ class FecGenerator(object):  # pylint:disable=too-many-instance-attributes
 
     def __str__(self) -> str:
         """
-        Returns a string containing a formated representation of the FEC streams generator.
+        Return a string containing a formatted representation of the FEC streams generator.
 
         **Example usage**
 

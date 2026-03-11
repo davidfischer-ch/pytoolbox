@@ -49,7 +49,7 @@ class StateEnumMergeMetaclass(StateEnumMetaclass):
         super().__init__(name, bases, cls_dict)
 
 
-class StateEnum(object, metaclass=StateEnumMetaclass):
+class StateEnum(metaclass=StateEnumMetaclass):
     """Base class for state enumerations with transition rules."""
 
     # TODO type hint class attributes?

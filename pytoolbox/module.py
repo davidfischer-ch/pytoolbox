@@ -8,7 +8,7 @@ from typing import Any
 __all__ = ['All']
 
 
-class All(object):  # pylint:disable=too-few-public-methods
+class All:  # pylint:disable=too-few-public-methods
     """Track new public names added to a module's globals for ``__all__``."""
 
     def __init__(self, globals_: dict[str, Any]) -> None:

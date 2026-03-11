@@ -94,7 +94,7 @@ LogRecord = logging.LogRecord
 
 
 def get_logger(log: LoggerType) -> logging.Logger:
-    """Convenient function returning an instance of logger for various use cases."""
+    """Return an instance of logger for various use cases."""
     if isinstance(log, Logger):
         return log
     if isinstance(log, str):
@@ -136,8 +136,8 @@ def setup_logging(
     fmt: str = '%(asctime)s %(levelname)-8s - %(message)s',
     datefmt: str = '%d/%m/%Y %H:%M:%S'
 ) -> logging.Logger:
-    """
-    Setup logging.
+    r"""
+    Set up logging.
 
     **Example usage**
 

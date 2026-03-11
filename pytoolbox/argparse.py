@@ -122,7 +122,7 @@ def separator(value: str, sep: str | None) -> list[str]:
     return [v for v in values if v]
 
 
-class Range(object):  # pylint:disable=too-few-public-methods
+class Range:  # pylint:disable=too-few-public-methods
     """Argparse type that validates a value is within ``[min, max]``."""
 
     def __init__(self, type: type, min: Any, max: Any) -> None:  # pylint:disable=redefined-builtin
@@ -156,7 +156,7 @@ FILE_ARG: Final[dict[str, str | Callable]] = {'action': 'fullpaths', 'type': is_
 REMAINDER_ARG: Final[dict[str, Any]] = {'nargs': argparse.REMAINDER}
 
 
-def MULTI_ARG(sep: str | None = None) -> dict[str, str | Callable]:  # pylint:disable=invalid-name
+def MULTI_ARG(sep: str | None = None) -> dict[str, str | Callable]:  # noqa: N802
     """Return argument config for chaining multiple separated values."""
     return {'action': 'chain', 'nargs': '+', 'type': functools.partial(separator, sep=sep)}
 

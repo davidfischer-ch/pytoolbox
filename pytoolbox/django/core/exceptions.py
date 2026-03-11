@@ -26,6 +26,8 @@ def get_message(validation_error: ValidationError) -> str:
 
 def has_code(validation_error: ValidationError, code: str) -> bool:
     """
+    Return True if any error in `validation_error` has the given `code`.
+
     **Example usage**
 
     >>> from django.core.exceptions import ValidationError
@@ -52,6 +54,8 @@ def iter_validation_errors(
     validation_error: ValidationError
 ) -> Iterator[tuple[str | None, ValidationError]]:
     """
+    Iterate over all validation errors as ``(field, error)`` tuples.
+
     **Example usage**
 
     >>> from django.core.exceptions import ValidationError

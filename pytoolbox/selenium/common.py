@@ -11,7 +11,7 @@ from . import exceptions
 __all__ = ['FindMixin']
 
 
-class FindMixin(object):
+class FindMixin:
     """Mixin providing shortcut methods for finding web elements."""
 
     @staticmethod

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 __all__ = ['LowerCaseMixin', 'OptionsMixin', 'StripMixin']
 
 
-class LowerCaseMixin(object):
+class LowerCaseMixin:
     """Convert field values to lowercase before saving to the database."""
 
     def get_prep_value(self, value: str | None) -> str | None:
@@ -24,7 +24,7 @@ class LowerCaseMixin(object):
         return value
 
 
-class NullifyMixin(object):
+class NullifyMixin:
     """Replace falsy values by None if NULL is allowed."""
 
     def pre_save(self, model_instance: models.Model, add: bool) -> object:
@@ -36,7 +36,7 @@ class NullifyMixin(object):
         return value
 
 
-class OptionsMixin(object):
+class OptionsMixin:
     """Apply default and override keyword arguments to field constructors."""
 
     default_options = {}
@@ -46,8 +46,8 @@ class OptionsMixin(object):
         super().__init__(**{**self.default_options, **kwargs, **self.override_options})
 
 
-class StripMixin(object):
-    """https://code.djangoproject.com/ticket/6362#no1"""
+class StripMixin:
+    """Strip whitespace (see Django ticket 6362)."""
 
     default_validators = [validators.EmptyValidator()]
 

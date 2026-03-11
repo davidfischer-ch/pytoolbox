@@ -8,7 +8,7 @@ from pytoolbox.django.core.constants import DEFFERED_REGEX
 __all__ = ['FieldsToValuesLookupDict']
 
 
-class FieldsToValuesLookupDict(object):
+class FieldsToValuesLookupDict:
     """
     Global registry for mapping X class fields to W values.
 

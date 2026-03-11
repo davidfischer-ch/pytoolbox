@@ -12,9 +12,9 @@ from pytoolbox.network.rtp import RtpPacket
 __all__ = ['FecPacket']
 
 
-class FecPacket(object):  # pylint:disable=too-many-instance-attributes
+class FecPacket:  # pylint:disable=too-many-instance-attributes
     """
-    This represent a real-time transport protocol (RTP) packet.
+    Model a real-time transport protocol (RTP) packet.
 
     * :rfc:`2733`
     * `Wikipedia (RTP) <http://en.wikipedia.org/wiki/Real-time_Transport_Protocol>`_
@@ -193,7 +193,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return errors
 
     @property
-    def D(self) -> int | None:  # pylint:disable=invalid-name
+    def D(self) -> int | None:  # noqa: N802
         """
         Returns the vertical size of the FEC matrix (rows).
 
@@ -208,7 +208,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
         return self.na if self.direction == self.COL else None
 
     @property
-    def L(self) -> int:  # pylint:disable=invalid-name
+    def L(self) -> int:  # noqa: N802
         """
         Returns the horizontal size of the FEC matrix (columns).
 
@@ -385,13 +385,13 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
             sequence: int,
             algorithm: int,
             direction: int,
-            L: int,
-            D: int,
+            L: int,  # noqa: N803
+            D: int,  # noqa: N803
             packets: list[RtpPacket]
     ) -> FecPacket:
         """
-        This method will generate FEC packet's field by applying FEC algorithm to input packets.
-        In case of error (e.g. bad version number) the method will abort filling fields and
+        Generate FEC packet's field by applying FEC algorithm to input packets.
+        In case of error (e.g. bad version number) abort filling fields and
         un-updated fields are set to their corresponding default value.
 
         :param sequence: Sequence number of computed FEC packet
@@ -677,7 +677,7 @@ class FecPacket(object):  # pylint:disable=too-many-instance-attributes
 
     def __str__(self) -> str:
         """
-        Returns a string containing a formated representation of the packet fields.
+        Return a string containing a formatted representation of the packet fields.
 
         **Example usage**
 

@@ -81,7 +81,6 @@ def choice(
         [male, female]? female
         female
     """
-
     # Generate question and choices list
     choices_string = ', '.join(choices)
     if not question:

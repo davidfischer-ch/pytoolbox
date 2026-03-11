@@ -10,7 +10,7 @@ from django.conf import settings
 __all__ = ['CeleryInMemoryMixin', 'FastPasswordHasherMixin', 'TemporarySendfileRootMixin']
 
 
-class CeleryInMemoryMixin(object):
+class CeleryInMemoryMixin:
     """Configure Celery to run tasks eagerly in memory during tests."""
 
     def setup_test_environment(self) -> None:
@@ -21,7 +21,7 @@ class CeleryInMemoryMixin(object):
         settings.CELERY_ALWAYS_EAGER = True
 
 
-class FastPasswordHasherMixin(object):
+class FastPasswordHasherMixin:
     """Use MD5 password hashing during tests for speed."""
 
     def setup_test_environment(self) -> None:
@@ -30,7 +30,7 @@ class FastPasswordHasherMixin(object):
         settings.PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher',)
 
 
-class TemporarySendfileRootMixin(object):
+class TemporarySendfileRootMixin:
     """Set ``SENDFILE_ROOT`` to a temporary directory during tests."""
 
     def setup_test_environment(self) -> None:

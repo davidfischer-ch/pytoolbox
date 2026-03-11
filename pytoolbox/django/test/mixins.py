@@ -57,7 +57,7 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
                 f"{os.linesep.join(query['sql'] for query in self.captured_queries)}")
 
 
-class ClearSiteCacheMixin(object):
+class ClearSiteCacheMixin:
     """Clear the :class:`~django.contrib.sites.models.Site` cache before each test."""
 
     def clear_site_cache(self) -> None:
@@ -68,13 +68,13 @@ class ClearSiteCacheMixin(object):
         self.clear_site_cache()
         super().setUp()
 
-    def assertNumQueries(self, *args: object, **kwargs: object) -> object:
+    def assertNumQueries(self, *args: object, **kwargs: object) -> object:  # noqa: N802
         """Clear the site cache before asserting on the number of queries."""
         self.clear_site_cache()
         return super().assertNumQueries(*args, **kwargs)
 
 
-class FixFlushMixin(object):
+class FixFlushMixin:
     """Fix ``TransactionTestCase`` flush by enabling ``TRUNCATE CASCADE``."""
 
     def _fixture_teardown(self) -> None:
@@ -93,10 +93,10 @@ class FixFlushMixin(object):
                 inhibit_post_migrate=self.available_apps is not None)
 
 
-class FormWizardMixin(object):
+class FormWizardMixin:
     """Helpers for testing django-formtools wizard views."""
 
-    def assertWizardSteps(self, response: HttpResponse, **kwargs: object) -> None:
+    def assertWizardSteps(self, response: HttpResponse, **kwargs: object) -> None:  # noqa: N802
         """Assert that wizard step attributes match expected values."""
         for key, value in kwargs.items():
             self.assertEqual(getattr(response.context['wizard']['steps'], key), value, msg=key)
@@ -118,10 +118,10 @@ class FormWizardMixin(object):
         return self.post(url, step_data, **kwargs)
 
 
-class QueriesMixin(object):
+class QueriesMixin:
     """Provide assertions for checking the number of database queries."""
 
-    def assertNumQueriesIn(
+    def assertNumQueriesIn(  # noqa: N802
         self,
         num_range: range,
         func: Callable | None = None,
@@ -137,7 +137,7 @@ class QueriesMixin(object):
             func(*args, **kwargs)
 
 
-class UrlMixin(object):
+class UrlMixin:
     """Resolve URLs from view names, paths, or model instances."""
 
     def resolve(

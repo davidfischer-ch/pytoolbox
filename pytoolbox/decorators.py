@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-class cached_property(object):  # pylint:disable=invalid-name,too-few-public-methods
+class cached_property:  # pylint:disable=too-few-public-methods  # noqa: N801
     """
     Decorator that converts a method with a single self argument into a property
     cached on the instance.
@@ -53,8 +53,7 @@ def deprecated(guidelines: str = '') -> Callable:
     """Return a decorator that marks a function as deprecated."""
     def _deprecated(func: Callable) -> Callable:
         """
-        Decorator that can be used to mark functions as deprecated.
-        It will result in a warning being emitted when the function is used.
+        Emit a :class:`DeprecationWarning` when the decorated function is used.
 
         Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
         """
@@ -71,7 +70,7 @@ def deprecated(guidelines: str = '') -> Callable:
     return _deprecated
 
 
-class hybridmethod(object):  # pylint:disable=invalid-name,too-few-public-methods
+class hybridmethod:  # pylint:disable=too-few-public-methods  # noqa: N801
     """
     Decorator that allows a method to be both used as a class method and an instance method.
 

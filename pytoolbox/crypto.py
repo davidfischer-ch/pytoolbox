@@ -32,7 +32,7 @@ def checksum(
     algorithm: Callable | str = hashlib.sha256,
     chunk_size: int | None = None
 ) -> str:
-    """
+    r"""
     Return the result of hashing `data` by given hash `algorithm`.
 
     **Example usage**
@@ -47,9 +47,9 @@ def checksum(
     'd41d8cd98f00b204e9800998ecf8427e'
     >>> checksum('give me some hash please')
     'cebf462dd7771c78d3957446b1b4a2f5928731ca41eff66aa8817a6513ea1313'
-    >>> checksum('et ça fonctionne !\\n')
+    >>> checksum('et ça fonctionne !\n')
     'ced3a2b067d105accb9f54c0b37eb79c9ec009a61fee5df7faa8aefdbff1ddef'
-    >>> checksum('et ça fonctionne !\\n', algorithm='md5')
+    >>> checksum('et ça fonctionne !\n', algorithm='md5')
     '3ca34e7965fd59beaa13b6e7094f43e7'
     >>> checksum(directory / '..' / 'LICENSE.rst')
     '793b47e008d4261d4fdc5ed24d56eb8d879b9a2e72d37c24a6944558b87909f8'
@@ -96,7 +96,7 @@ def githash(
     encoding: str = 'utf-8',
     chunk_size: int | None = None
 ) -> str:
-    """
+    r"""
     Return the blob of some data.
 
     This is how Git `calculates <http://stackoverflow.com/questions/552659>`_
@@ -114,7 +114,7 @@ def githash(
     'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'
     >>> githash('give me some hash please')
     'abdd1818289725c072eff0f5ce185457679650be'
-    >>> githash('et ça fonctionne !\\n')
+    >>> githash('et ça fonctionne !\n')
     '91de5baf6aaa1af4f662aac4383b27937b0e663d'
     >>> githash(directory / '..' / 'LICENSE.rst')
     'b699ab5e129290e7bce9cbbc70443bf1cdede4ea'

@@ -13,7 +13,7 @@ from .types import Missing
 __all__ = ['TimeThrottle', 'TimeAndRatioThrottle']
 
 
-class TimeThrottle(object):
+class TimeThrottle:
     """
     Time based throttling class.
 

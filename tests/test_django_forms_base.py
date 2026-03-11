@@ -30,7 +30,7 @@ def test_serialized_instance_form_serialize() -> None:
 
 
 def test_serialized_instance_form_instance_property() -> None:
-    """instance property calls get_instance and caches the result."""
+    """Instance property calls get_instance and caches the result."""
     form = base.SerializedInstanceForm(
         app_label='myapp',
         model='article',

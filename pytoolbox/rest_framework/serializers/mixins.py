@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 __all__ = ['BaseModelMixin', 'FromPrivateKeyMixin', 'NestedWriteMixin', 'ReadOnlyMixin']
 
 
-class BaseModelMixin(object):
+class BaseModelMixin:
     """Build URL fields using the base (non-proxy) model class."""
 
     def build_url_field(self, field_name: str, model_class: type[models.Model]) -> Any:
@@ -26,7 +26,7 @@ class BaseModelMixin(object):
         return super().build_url_field(field_name, utils.get_base_model(model_class))
 
 
-class FromPrivateKeyMixin(object):
+class FromPrivateKeyMixin:
     """
     Allow to provide the PK of the model to retrieve it instead of creating a new instance with
     fields from data.
@@ -55,7 +55,7 @@ class FromPrivateKeyMixin(object):
         return super().create(validated_data)
 
 
-class NestedWriteMixin(object):
+class NestedWriteMixin:
     """Return ``(serializer, validated_data)`` tuples for nested writes."""
 
     def to_internal_value(self, data: Any) -> tuple[Serializer, Any]:
@@ -66,7 +66,7 @@ class NestedWriteMixin(object):
         return self, super().to_internal_value(data)
 
 
-class ReadOnlyMixin(object):
+class ReadOnlyMixin:
     """Force the serializer into read-only mode, rejecting create and update."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

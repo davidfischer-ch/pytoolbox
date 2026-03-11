@@ -1,7 +1,6 @@
 """
 Test mixins and assertion helpers for :mod:`unittest`-based test suites.
 """
-# pylint:disable=no-member
 from __future__ import annotations
 
 from collections.abc import Callable, Generator, Iterator
@@ -49,7 +48,7 @@ def with_tags(
     return _with_tags
 
 
-class InMixin(object):
+class InMixin:
     """Mixin providing ``assertIn`` / ``assertNotIn`` with sorted output."""
 
     @staticmethod
@@ -57,7 +56,7 @@ class InMixin(object):
         """Return *obj* sorted if it is not a string or bytes sequence."""
         return obj if isinstance(obj, (str, bytes)) else sorted(obj)
 
-    def assertIn(  # pylint:disable=invalid-name
+    def assertIn(  # pylint:disable=invalid-name  # noqa: N802
         self,
         obj_a: Any,
         obj_b: Any,
@@ -66,7 +65,7 @@ class InMixin(object):
         """Assert that *obj_a* is contained in *obj_b*."""
         assert obj_a in obj_b, f"{obj_a} not in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
-    def assertNotIn(  # pylint:disable=invalid-name
+    def assertNotIn(  # pylint:disable=invalid-name  # noqa: N802
         self,
         obj_a: Any,
         obj_b: Any,
@@ -76,7 +75,7 @@ class InMixin(object):
         assert obj_a not in obj_b, f"{obj_a} in {self.assert_in_hook(obj_b)}: {msg or ''}"
 
 
-class InspectMixin(object):
+class InspectMixin:
     """Mixin providing introspection of test methods."""
 
     @property
@@ -93,10 +92,10 @@ class InspectMixin(object):
         )
 
 
-class AwareTearDownMixin(object):
+class AwareTearDownMixin:
     """Mixin calling :meth:`awareTearDown` with the test result after each run."""
 
-    def awareTearDown(self, result: unittest.TestResult) -> None:  # pylint:disable=invalid-name
+    def awareTearDown(self, result: unittest.TestResult) -> None:  # noqa: N802
         """Handle post-test cleanup with access to the test *result*."""
         pass  # de bleu, c'est fantastique !  # pylint:disable=unnecessary-pass
 
@@ -197,7 +196,7 @@ class FilterByTagsMixin(InspectMixin):
         super().setUp()
 
 
-class FFmpegMixin(object):
+class FFmpegMixin:
     """Mixin providing FFmpeg/FFprobe assertions for media tests."""
 
     ffmpeg_class = ffmpeg.FFmpeg
@@ -216,19 +215,19 @@ class FFmpegMixin(object):
 
     # Codecs Asserts
 
-    def assertMediaCodecEqual(
+    def assertMediaCodecEqual(  # noqa: N802
         self,
         path: str | Path,
         stream_type: str,
         index: int,
         **codec_attrs: Any
-    ) -> None:  # pylint:disable=invalid-name
+    ) -> None:
         """Assert that the codec attributes of a stream match expected values."""
         codec = getattr(self.ffprobe, f'get_{stream_type}_streams')(path)[index].codec
         for attr, value in codec_attrs.items():
             self.assertEqual(getattr(codec, attr), value, msg=f'Codec attribute {attr}')
 
-    def assertAudioCodecEqual(  # pylint:disable=invalid-name
+    def assertAudioCodecEqual(  # noqa: N802
         self,
         path: str | Path,
         index: int,
@@ -237,7 +236,7 @@ class FFmpegMixin(object):
         """Assert that the audio codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'audio', index, **codec_attrs)
 
-    def assertSubtitleCodecEqual(  # pylint:disable=invalid-name
+    def assertSubtitleCodecEqual(  # noqa: N802
         self,
         path: str | Path,
         index: int,
@@ -246,7 +245,7 @@ class FFmpegMixin(object):
         """Assert that the subtitle codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'subtitle', index, **codec_attrs)
 
-    def assertVideoCodecEqual(  # pylint:disable=invalid-name
+    def assertVideoCodecEqual(  # pylint:disable=invalid-name  # noqa: N802
         self,
         path: str | Path,
         index: int,
@@ -257,7 +256,7 @@ class FFmpegMixin(object):
 
     # Streams Asserts
 
-    def assertAudioStreamEqual(  # pylint:disable=invalid-name
+    def assertAudioStreamEqual(  # pylint:disable=invalid-name  # noqa: N802
         self,
         first_path: str | Path,
         second_path: str | Path,
@@ -273,7 +272,7 @@ class FFmpegMixin(object):
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
 
-    def assertMediaFormatEqual(  # pylint:disable=invalid-name
+    def assertMediaFormatEqual(  # pylint:disable=invalid-name  # noqa: N802
         self,
         first_path: str | Path,
         second_path: str | Path,
@@ -303,7 +302,7 @@ class FFmpegMixin(object):
             self.assertRelativeEqual(*start_times, msg='Start time mistmatch.')
         self.assertDictEqual(*formats)
 
-    def assertVideoStreamEqual(  # pylint:disable=invalid-name
+    def assertVideoStreamEqual(  # noqa: N802
         self,
         first_path: str | Path,
         second_path: str | Path,
@@ -327,15 +326,18 @@ class FFmpegMixin(object):
 
     # Encoding Asserts
 
-    def assertEncodeFailure(self, generator: Generator) -> list:  # pylint:disable=invalid-name
+    def assertEncodeFailure(  # pylint:disable=invalid-name  # noqa: N802
+        self,
+        generator: Generator
+    ) -> list:
         """Assert that the encode *generator* ends in a failure state."""
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
 
-    def assertEncodeSuccess(self, generator: Generator) -> list:  # pylint:disable=invalid-name
+    def assertEncodeSuccess(self, generator: Generator) -> list:  # noqa: N802
         """Assert that the encode *generator* ends in a success state."""
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
 
-    def assertEncodeState(  # pylint:disable=invalid-name
+    def assertEncodeState(  # noqa: N802
         self,
         generator: Generator,
         state: ffmpeg.EncodeState
@@ -351,10 +353,10 @@ class FFmpegMixin(object):
         return results
 
 
-class MissingMixin(object):
+class MissingMixin:
     """Mixin providing assertions for the :data:`~pytoolbox.types.Missing` sentinel."""
 
-    def assertIsMissing(  # pylint:disable=invalid-name
+    def assertIsMissing(  # pylint:disable=invalid-name  # noqa: N802
         self,
         value: Any,
         *args: Any,
@@ -363,7 +365,7 @@ class MissingMixin(object):
         """Assert that *value* is the :data:`~pytoolbox.types.Missing` sentinel."""
         return self.assertIs(value, Missing, *args, **kwargs)
 
-    def assertIsNotMissing(  # pylint:disable=invalid-name
+    def assertIsNotMissing(  # pylint:disable=invalid-name  # noqa: N802
         self,
         value: Any,
         *args: Any,
@@ -373,7 +375,7 @@ class MissingMixin(object):
         return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
-class SnakeCaseMixin(object):  # pylint:disable=too-few-public-methods
+class SnakeCaseMixin:  # pylint:disable=too-few-public-methods
     """Mixin allowing snake_case access to camelCase assertion methods."""
 
     def __getattr__(self, name: str) -> Any:
@@ -383,7 +385,7 @@ class SnakeCaseMixin(object):  # pylint:disable=too-few-public-methods
         raise AttributeError
 
 
-class TimingMixin(object):
+class TimingMixin:
     """Mixin that logs each test's execution time."""
 
     timing_logger = None
@@ -401,7 +403,7 @@ class TimingMixin(object):
 class Asserts(InMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):
     """Standalone assertion helper combining all assertion mixins."""
 
-    def runTest(self, *args: Any, **kwargs: Any) -> None:  # pylint:disable=invalid-name
+    def runTest(self, *args: Any, **kwargs: Any) -> None:  # noqa: N802
         """No-op required by :class:`unittest.TestCase` for standalone use."""
 
 

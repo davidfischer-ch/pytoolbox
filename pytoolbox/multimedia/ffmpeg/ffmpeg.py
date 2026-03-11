@@ -22,7 +22,7 @@ __all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
 FRAME_MD5_REGEX: Final[re.Pattern] = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
 
-class FFmpeg(object):
+class FFmpeg:
     """
     Encode a set of input files input to a set of output files and yields statistics about the
     encoding.

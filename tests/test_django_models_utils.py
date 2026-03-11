@@ -61,7 +61,7 @@ def test_try_get_field_success() -> None:
 
 def test_try_get_field_related_does_not_exist() -> None:
     """Returns None when RelatedObjectDoesNotExist is raised."""
-    class RelatedObjectDoesNotExist(Exception):
+    class RelatedObjectDoesNotExist(Exception):  # noqa: N818
         pass
 
     instance = MagicMock()

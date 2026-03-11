@@ -52,7 +52,7 @@ class PlayerState(states.StateEnum):
 
 
 class MergeState(MediaState, PlayerState, metaclass=states.StateEnumMergeMetaclass):
-    """This class is used only for testing: Its not engineered for brewing coffee!"""
+    """Class used only for testing: not engineered for brewing coffee!"""
 
 
 def test_state_enum_get() -> None:

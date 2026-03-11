@@ -201,8 +201,9 @@ def naturalweight(
 
 def natural_int_key(text: str) -> list[int | str]:
     """
-    Function to be called as the key argument for list.sort() or sorted() in order to sort
-    collections containing textual numbers on a more intuitive way.
+    Sort collections containing textual numbers in a more intuitive way.
+
+    Use as the key argument for :func:`list.sort` or :func:`sorted`.
 
     **Example usage**
 

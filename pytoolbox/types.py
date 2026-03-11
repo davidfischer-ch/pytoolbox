@@ -181,7 +181,7 @@ def merge_bases_attribute(
     return value
 
 
-class DummyObject(object):  # pylint:disable=too-few-public-methods
+class DummyObject:  # pylint:disable=too-few-public-methods
     """
     Easy way to generate a dynamic object with the attributes defined at instantiation.
 
@@ -197,7 +197,7 @@ class DummyObject(object):  # pylint:disable=too-few-public-methods
         self.__dict__.update(kwargs)
 
 
-class EchoObject(object):
+class EchoObject:
     """
     Object that return any missing attribute as an instance of :class:`EchoObject` with the name set
     to the Python expression used to access it. Also implements __getitem__. Some examples are worth
@@ -290,7 +290,7 @@ class EchoDict(dict):
         self._name = name
 
     def __contains__(self, key: Any) -> bool:
-        """Always return True because missing items are generated."""
+        """Return True because missing items are generated."""
         return True
 
     def __getitem__(self, key: Any) -> Any:
@@ -300,7 +300,7 @@ class EchoDict(dict):
             return self.item_class(f'{self._name}[{repr(key)}]')
 
 
-class MissingType(object):
+class MissingType:
     """Singleton type used as a sentinel for missing values."""
 
     def __copy__(self) -> Self:

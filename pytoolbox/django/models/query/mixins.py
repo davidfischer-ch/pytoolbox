@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 _all = module.All(globals())
 
 
-class AtomicGetUpdateOrCreateMixin(object):
+class AtomicGetUpdateOrCreateMixin:
     """Wrap ``get_or_create`` and ``update_or_create`` in atomic blocks."""
 
     savepoint = False
@@ -41,7 +41,7 @@ class AtomicGetUpdateOrCreateMixin(object):
             return super().update_or_create(defaults=defaults, **kwargs)
 
 
-class AtomicGetRestoreOrCreateMixin(object):
+class AtomicGetRestoreOrCreateMixin:
     """Wrap ``get_restore_or_create`` in an atomic block."""
 
     savepoint = False
@@ -52,7 +52,7 @@ class AtomicGetRestoreOrCreateMixin(object):
             return super().get_restore_or_create(*args, **kwargs)
 
 
-class CreateModelMethodMixin(object):
+class CreateModelMethodMixin:
     """Delegate ``create`` to the model's ``create`` class method if available."""
 
     def create(self, *args: object, **kwargs: object) -> models.Model:
@@ -63,7 +63,7 @@ class CreateModelMethodMixin(object):
     create.alters_data = True
 
 
-class StateMixin(object):
+class StateMixin:
     """
     Generate on the fly utility query-set filtering methods to a model using a
     :class:`pytoolbox.states.StateEnum` to implement its own state machine. Then you can use

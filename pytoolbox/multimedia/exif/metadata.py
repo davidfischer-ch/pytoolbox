@@ -17,7 +17,7 @@ __all__ = ['Metadata']
 # See https://valadoc.org/gexiv2/GExiv2.Metadata
 
 
-class Metadata(object):
+class Metadata:
     """Read and write EXIF/IPTC/XMP metadata for an image file or buffer."""
 
     camera_class = camera.Camera

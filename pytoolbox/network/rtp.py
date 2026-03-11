@@ -8,9 +8,9 @@ import struct
 __all__ = ['RtpPacket']
 
 
-class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
+class RtpPacket:  # pylint:disable=too-many-instance-attributes
     """
-    This represent a real-time transport protocol (RTP) packet.
+    Model a real-time transport protocol (RTP) packet.
 
     * :rfc:`3550`
     * `Wikipedia (RTP) <http://en.wikipedia.org/wiki/Real-time_Transport_Protocol>`_
@@ -80,7 +80,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         return len(self.errors) == 0
 
     @property
-    def validMP2T(self) -> bool:  # pylint:disable=invalid-name
+    def validMP2T(self) -> bool:  # noqa: N802
         """Returns True if this packet is a valid RTP packet containing a MPEG2-TS payload."""
         return self.valid and self.payload_type == self.MP2T_PT
 
@@ -230,10 +230,10 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(self, data: bytearray | None, length: int) -> None:
-        """
-        This constructor will parse input bytes array to fill packet's fields.
-        In case of error (e.g. bad version number) the constructor will abort filling
-        fields and un-updated fields are set to their corresponding default value.
+        r"""
+        Parse input bytes array to fill packet's fields.
+        In case of error (e.g. bad version number) abort filling
+        fields and leave un-updated fields at their default value.
 
         :param bytes: Input array of bytes to parse as a RTP packet
         :type bytes: bytearray
@@ -313,9 +313,8 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
         >>> rtp.csrc
         [286331153, 572662306, 858993459, 1145324612, 1431655765]
         >>> rtp.payload
-        bytearray(b'\\x124')
+        bytearray(b'\x124')
         """
-
         # Fields default values
         self.version = 0
         self.padding = False
@@ -441,7 +440,7 @@ class RtpPacket(object):  # pylint:disable=too-many-instance-attributes
 
     def __str__(self) -> str:
         """
-        Returns a string containing a formated representation of the packet fields.
+        Return a string containing a formatted representation of the packet fields.
 
         **Example usage**
 

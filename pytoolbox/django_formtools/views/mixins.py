@@ -15,7 +15,7 @@ from pytoolbox.django import forms
 __all__ = ['CrispyFormsMixin', 'DataTableViewCompositionMixin', 'SerializeStepInstanceMixin']
 
 
-class CrispyFormsMixin(object):
+class CrispyFormsMixin:
     """Integrate crispy-forms layout with the form wizard management form."""
 
     def get_context_data(self, form: Form, **kwargs: Any) -> dict[str, Any]:
@@ -28,7 +28,7 @@ class CrispyFormsMixin(object):
         return context
 
 
-class DataTableViewCompositionMixin(object):
+class DataTableViewCompositionMixin:
     """Compose the wizard with some tables views."""
 
     table_view_classes = {}
@@ -59,7 +59,7 @@ class DataTableViewCompositionMixin(object):
             return view
 
 
-class SerializeStepInstanceMixin(object):
+class SerializeStepInstanceMixin:
     """Serialize and restore model instances across wizard steps."""
 
     serialized_instance_form_class = forms.SerializedInstanceForm

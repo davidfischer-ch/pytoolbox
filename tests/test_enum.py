@@ -67,23 +67,23 @@ class TestOrderedEnum:
         assert Priority.LOW.__eq__(42) is NotImplemented
 
     def test_ne_different_type_returns_not_implemented(self) -> None:
-        """ne with a non-member returns NotImplemented."""
+        """Ne with a non-member returns NotImplemented."""
         assert Priority.LOW.__ne__(42) is NotImplemented
 
     def test_lt_different_type_returns_not_implemented(self) -> None:
-        """lt with a non-member returns NotImplemented."""
+        """Lt with a non-member returns NotImplemented."""
         assert Priority.LOW.__lt__(42) is NotImplemented
 
     def test_le_different_type_returns_not_implemented(self) -> None:
-        """le with a non-member returns NotImplemented."""
+        """Le with a non-member returns NotImplemented."""
         assert Priority.LOW.__le__(42) is NotImplemented
 
     def test_gt_different_type_returns_not_implemented(self) -> None:
-        """gt with a non-member returns NotImplemented."""
+        """Gt with a non-member returns NotImplemented."""
         assert Priority.LOW.__gt__(42) is NotImplemented
 
     def test_ge_different_type_returns_not_implemented(self) -> None:
-        """ge with a non-member returns NotImplemented."""
+        """Ge with a non-member returns NotImplemented."""
         assert Priority.LOW.__ge__(42) is NotImplemented
 
     def test_usable_in_set(self) -> None:
@@ -92,8 +92,10 @@ class TestOrderedEnum:
         assert len(s) == 2
 
     def test_cross_enum_comparison(self) -> None:
-        """Comparing members of different OrderedEnum subclasses
-        returns NotImplemented."""
+        """
+        Comparing members of different OrderedEnum subclasses
+        returns NotImplemented.
+        """
         class Other(enum.OrderedEnum):
             A = 1
 

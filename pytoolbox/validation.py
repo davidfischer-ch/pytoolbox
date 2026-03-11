@@ -21,7 +21,7 @@ from .private import InvalidId, ObjectId
 _all = module.All(globals())
 
 
-class CleanAttributesMixin(object):  # pylint:disable=too-few-public-methods
+class CleanAttributesMixin:  # pylint:disable=too-few-public-methods
     """
     Put validation logic, cleanup code, ... into a method clean_<attribute_name> and this method
     will be called every time the attribute is set.
@@ -53,7 +53,7 @@ class CleanAttributesMixin(object):  # pylint:disable=too-few-public-methods
         super().__setattr__(name, value)
 
 
-class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
+class StrongTypedMixin:  # pylint:disable=too-few-public-methods
     """
     Annotate arguments of the class __init__ with types and then you'll get a class with type
     checking.
@@ -97,7 +97,7 @@ class StrongTypedMixin(object):  # pylint:disable=too-few-public-methods
 
 def valid_filename(name: str) -> bool:
     """
-    Returns True if `name` is a valid file name.
+    Return True if `name` is a valid file name.
 
     **Example usage**
 
@@ -114,7 +114,7 @@ def valid_filename(name: str) -> bool:
 
 def valid_ip(address: str) -> bool:
     """
-    Returns True if `ip` is a valid IP address.
+    Return True if `ip` is a valid IP address.
 
     **Example usage**
 
@@ -132,7 +132,7 @@ def valid_ip(address: str) -> bool:
 
 def valid_email(email: str) -> bool:
     """
-    Returns True if `email` is a valid e-mail address.
+    Return True if `email` is a valid e-mail address.
 
     **Example usage**
 
@@ -149,7 +149,7 @@ def valid_email(email: str) -> bool:
 
 def valid_int(value: Any) -> bool:
     """
-    Returns True if `value` is a valid integer (can be converted to an int).
+    Return True if `value` is a valid integer (can be converted to an int).
 
     **Example usage**
 
@@ -167,7 +167,7 @@ def valid_int(value: Any) -> bool:
 
 def valid_port(port: int | str) -> bool:
     """
-    Returns True if `port` is a valid port.
+    Return True if `port` is a valid port.
 
     **Example usage**
 
@@ -185,7 +185,7 @@ def valid_port(port: int | str) -> bool:
 
 def valid_secret(secret: str | None, *, none_allowed: bool) -> bool:
     """
-    Returns True if `secret` is a valid secret.
+    Return True if `secret` is a valid secret.
 
     A valid secret contains at least 8 alpha-numeric characters.
 
@@ -276,7 +276,7 @@ def valid_uri(
 
 def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool = False) -> bool:
     """
-    Returns True if `id` is a valid UUID / ObjectId.
+    Return True if `id` is a valid UUID / ObjectId.
 
     **Example usage**
 

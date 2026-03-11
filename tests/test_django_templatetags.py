@@ -27,7 +27,7 @@ def test_getattribute_missing_returns_invalid() -> None:
 
 
 def test_inline_reads_allowed_file() -> None:
-    """inline filter returns file content when the path is allowed."""
+    """Inline filter returns file content when the path is allowed."""
     filepath = '/static/test.js'
     with (
         patch('pytoolbox.django.templatetags._include_is_allowed', return_value=True),

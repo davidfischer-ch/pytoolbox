@@ -27,7 +27,7 @@ DEFAULT_CHUNK_SIZE: Final[int] = 100 * 1024
 
 
 @dataclass(frozen=True, slots=True)
-class Resource(object):  # pylint:disable=too-many-instance-attributes
+class Resource:  # pylint:disable=too-many-instance-attributes
     """Describe a downloadable HTTP resource with optional hash verification."""
     name: str
     url: str
@@ -83,7 +83,6 @@ def iter_download_core(  # pylint:disable=too-many-arguments
     *,
     code: int = 200,
     chunk_size: int | None = DEFAULT_CHUNK_SIZE,
-
     allow_redirects: bool = True,
     auth: AuthBase | tuple[str, str] | None = None,
     cert: str | tuple[str, str] | None = None,

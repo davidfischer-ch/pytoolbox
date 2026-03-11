@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from keras import backend as K
+from keras import backend as K  # noqa: N812
 from keras.layers import (  # pylint:disable=import-error
     Activation,
     AveragePooling2D,
@@ -61,14 +61,13 @@ def conv2d_bn(
     return tensor
 
 
-def LRN2D(tensor: tf.Tensor) -> tf.Tensor:  # pylint:disable=invalid-name
+def LRN2D(tensor: tf.Tensor) -> tf.Tensor:  # noqa: N802
     """Apply Local Response Normalization."""
     return tf.nn.lrn(tensor, alpha=1e-4, beta=0.75)
 
 
 def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statements
     """Build the NN4.Small2.v1 Keras model (96x96 input, 128-d embedding)."""
-
     inputs = Input(shape=(96, 96, 3))
 
     tensor = ZeroPadding2D(padding=(3, 3), input_shape=(96, 96, 3))(inputs)
@@ -91,7 +90,7 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
 
     # Inception 3a
 
-    Norm = BatchNormalization
+    Norm = BatchNormalization  # noqa: N806
 
     inception_3a_3x3 = Conv2D(96, (1, 1), name='inception_3a_3x3_conv1')(tensor)
     inception_3a_3x3 = Norm(axis=3, epsilon=E, name='inception_3a_3x3_bn1')(inception_3a_3x3)

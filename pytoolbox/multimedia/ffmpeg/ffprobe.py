@@ -27,7 +27,7 @@ DURATION_REGEX: Final[re.Pattern] = re.compile(
     r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
 
 
-class FFprobe(object):
+class FFprobe:
     """Probe media files for format, streams, and duration information."""
     executable: Path = Path('ffprobe')
     duration_regex: re.Pattern = DURATION_REGEX
@@ -56,7 +56,7 @@ class FFprobe(object):
         fail: bool = False
     ) -> datetime.timedelta | datetime.time | None:
         """
-        Returns the duration of a media as an instance of time or None in case of error.
+        Return the duration of a media as an instance of time or None in case of error.
 
         Set `media` to an instance of `self.media_class`, a path or the output of
         `get_media_info()`.

@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 
-class SlotsEqualityMixin(object):
+class SlotsEqualityMixin:
     """
     Implement the comparison operators based on the slots.
     Both the name of the slots retrieved with :func:`pytoolbox.types.get_slots`

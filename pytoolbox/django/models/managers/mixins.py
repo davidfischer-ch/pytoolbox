@@ -20,7 +20,7 @@ CreateModelMethodMixin = query_mixins.CreateModelMethodMixin
 StateMixin = query_mixins.StateMixin
 
 
-class RelatedModelMixin(object):
+class RelatedModelMixin:
     """Provide shortcuts to access related model classes and managers."""
 
     def get_related_manager(self, field: str) -> models.Manager:

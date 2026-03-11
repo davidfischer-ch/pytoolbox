@@ -219,7 +219,7 @@ def find_recursive(
     on_error: Callable | None = None,
     follow_symlinks: bool = False
 ) -> Iterator[Path]:
-    """
+    r"""
     Yield filenames matching any of the patterns.
     Patterns will be compiled to regular expressions, if necessary.
 
@@ -242,8 +242,8 @@ def find_recursive(
     True
     >>> (directory / 'django') in filenames  # Its a directory
     False
-    >>> a_files = set(find_recursive(directory, re.compile(r'.*/st.+\\.py$')))
-    >>> b_files = set(find_recursive(directory, ['.*/st.+\\.py$'], regex=True))
+    >>> a_files = set(find_recursive(directory, re.compile(r'.*/st.+\.py$')))
+    >>> b_files = set(find_recursive(directory, ['.*/st.+\.py$'], regex=True))
     >>> a_files == b_files
     True
     >>> [f.name for f in sorted(a_files)]
@@ -274,7 +274,7 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
     >>>
     >>> directory = Path(__file__).resolve().parent
     >>>
-    >>> file_mime(directory / '../pytest.ini')
+    >>> file_mime(directory / '../pyproject.toml')
     'text/plain'
     >>> file_mime(directory / 'filesystem.py') in ('text/plain', 'text/x-python')
     True
@@ -297,7 +297,7 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
 
 def first_that_exist(*paths: Path) -> Path | None:
     """
-    Returns the first file/directory that exist.
+    Return the first file/directory that exists.
 
     **Example usage**
 
@@ -417,8 +417,8 @@ def get_size(
     on_error: Callable | None = None,
     follow_symlinks: bool = False
 ) -> int:
-    """
-    Returns the size of a file or directory.
+    r"""
+    Return the size of a file or directory.
 
     If given `path` is a directory (or symlink to a directory), then returned value is computed by
     summing the size of all files, and that recursively.
@@ -433,7 +433,7 @@ def get_size(
     5747
     >>> get_size(directory / '..', '*.rst') > 1000
     True
-    >>> get_size(directory / '..', '.*/v[^/]+\\.py', regex=True) > 10000
+    >>> get_size(directory / '..', '.*/v[^/]+\.py', regex=True) > 10000
     True
     """
     if path.is_file():
@@ -649,7 +649,7 @@ def to_group_id(group: int | str | None) -> int:
     return -1 if group is None else group
 
 
-class TempStorage(object):
+class TempStorage:
     """
     Temporary storage handling made easy.
 
@@ -691,7 +691,8 @@ class TempStorage(object):
         user: int | str | None = None,
         group: int | str | None = None
     ) -> Path:
-        """Create a temporary directory and return its path.
+        """
+        Create a temporary directory and return its path.
 
         **Example usage**
 
@@ -762,7 +763,8 @@ class TempStorage(object):
         group: int | str | None = None,
         return_file: bool = True
     ) -> BinaryIO | TextIO | Path:
-        """Create a temporary file and return a file object or its path.
+        """
+        Create a temporary file and return a file object or its path.
 
         **Example usage**
 
@@ -798,7 +800,8 @@ class TempStorage(object):
         return path
 
     def remove_by_path(self, path: Path) -> None:
-        """Remove a tracked temporary path by its filesystem path.
+        """
+        Remove a tracked temporary path by its filesystem path.
 
         **Example usage**
 
@@ -817,7 +820,8 @@ class TempStorage(object):
         self._paths_by_key[key].remove(path)
 
     def remove_by_key(self, key: str | None = None) -> None:
-        """Remove all tracked temporary paths associated with a key.
+        """
+        Remove all tracked temporary paths associated with a key.
 
         **Example usage**
 
@@ -841,7 +845,8 @@ class TempStorage(object):
         del self._paths_by_key[key]
 
     def remove_all(self) -> None:
-        """Remove all tracked temporary paths.
+        """
+        Remove all tracked temporary paths.
 
         **Example usage**
 
@@ -869,5 +874,5 @@ __all__ = _all.diff(globals())
 
 @deprecated('Use pytoolbox.filesystem.copy_recursive instead (drop-in replacement)')
 def recursive_copy(*args: Any, **kwargs: Any) -> dict[str, Any]:  # pragma: no cover
-    """Deprecated alias for :func:`copy_recursive`."""
+    """Forward all arguments to :func:`copy_recursive` (deprecated)."""
     return copy_recursive(*args, **kwargs)

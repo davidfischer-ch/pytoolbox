@@ -21,7 +21,7 @@ UUID_PK: Final[str] = r'(?P<pk>%s)' % UUID_REGEX
 
 
 def get_named_patterns() -> Generator[tuple[str, str], None, None]:
-    """Returns a generator containing (pattern name, pattern) tuples."""
+    """Return a generator containing (pattern name, pattern) tuples."""
     return (
         (k, v[0][0][0])
         for k, v in get_resolver(None).reverse_dict.items()

@@ -25,7 +25,7 @@ ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
 )
 
 
-class EncodeState(object):  # pylint:disable=too-few-public-methods
+class EncodeState:  # pylint:disable=too-few-public-methods
     """Enumeration of encoding process states."""
     NEW = 'NEW'
     STARTED = 'STARTED'
@@ -37,7 +37,7 @@ class EncodeState(object):  # pylint:disable=too-few-public-methods
     FINAL_STATES = frozenset([SUCCESS, FAILURE])
 
 
-class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
+class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
     """Track and report FFmpeg encoding progress and statistics."""
 
     default_in_duration = datetime.timedelta(seconds=0)
@@ -164,7 +164,6 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
         out_options: list[str]
     ) -> tuple[datetime.timedelta, int]:
         """Adjust duration and size if we only encode a sub-clip."""
-
         try:
             sub_duration = cls._to_time(out_options[out_options.index('-t') + 1])
         except (IndexError, ValueError):
@@ -204,7 +203,7 @@ class EncodeStatistics(object):  # pylint:disable=too-many-instance-attributes
         return method(value, as_delta=True)
 
 
-class FrameBasedRatioMixin(object):  # pylint:disable=too-few-public-methods
+class FrameBasedRatioMixin:  # pylint:disable=too-few-public-methods
     # pylint:disable=no-member
     """
     Compute ratio based on estimated input number of frames and current output number of frames.

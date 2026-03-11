@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _all = module.All(globals())
 
 
-class ActionToQuerysetMixin(object):
+class ActionToQuerysetMixin:
     """Select the queryset based on the current viewset action."""
 
     querysets = {}
@@ -29,7 +29,7 @@ class ActionToQuerysetMixin(object):
         return self.querysets.get(self.action, self.queryset)
 
 
-class ActionToSerializerMixin(object):
+class ActionToSerializerMixin:
     """Select the serializer class based on the current viewset action."""
 
     serializers_classes = {}
@@ -39,7 +39,7 @@ class ActionToSerializerMixin(object):
         return self.serializers_classes.get(self.action, self.serializer_class)
 
 
-class MethodToQuerysetMixin(object):
+class MethodToQuerysetMixin:
     """Select the queryset based on the HTTP request method."""
 
     querysets = {}
@@ -49,7 +49,7 @@ class MethodToQuerysetMixin(object):
         return self.querysets.get(self.request.method, self.queryset)
 
 
-class MethodToSerializerMixin(object):
+class MethodToSerializerMixin:
     """Select the serializer class based on the HTTP request method."""
 
     serializers_classes = {}
@@ -59,7 +59,7 @@ class MethodToSerializerMixin(object):
         return self.serializers_classes.get(self.request.method, self.serializer_class)
 
 
-class RedirectToLoginMixin(object):
+class RedirectToLoginMixin:
     """Redirect unauthenticated browsable API requests to the login page."""
 
     redirected_classes = (renderers.BrowsableAPIRenderer,)

@@ -179,6 +179,7 @@ ignore_errors = true
 [tool.pylint.main]
 jobs = 0
 py-version = '3.11'
+ignored-modules = ['gi', 'gi.repository']
 load-plugins = [
     'pylint.extensions.bad_builtin',
     'pylint.extensions.broad_try_clause',

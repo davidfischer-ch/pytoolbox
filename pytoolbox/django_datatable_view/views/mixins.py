@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 __all__ = ['MultiTablesMixin']
 
 
-class MultiTablesMixin(object):
+class MultiTablesMixin:
     """Implements the base code for using multiple django-datatable-views powered tables."""
 
     multi_default = 'default'

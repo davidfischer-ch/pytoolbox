@@ -233,7 +233,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     **kwargs: object
 ) -> CallResult | CallResultFull:
     """
-    Calls the `command` and returns a dictionary with process, stdout, stderr, and the returncode.
+    Call the `command` and return a dictionary with process, stdout, stderr, and the returncode.
 
     Returned returncode, stdout and stderr will be None if `communicate` is set to False.
 
@@ -462,7 +462,7 @@ def screen_launch(name: str, command: CallArgsType, **kwargs) -> CallResult:
 
 
 def screen_list(name: str | None = None, **kwargs) -> list[str]:
-    """Returns a list containing all instances of screen. Can be filtered by `name`."""
+    """Return a list containing all instances of screen, optionally filtered by `name`."""
     screens = cmd(['screen', '-ls', name], fail=False, **kwargs)['stdout']
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', (screens or b'').decode('utf-8'))
 
@@ -475,13 +475,13 @@ __all__ = _all.diff(globals())
 
 @deprecated('Use pytoolbox.git.clone_or_pull instead (drop-in replacement)')
 def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
-    """Deprecated alias for :func:`pytoolbox.git.clone_or_pull`."""
+    """Forward all arguments to :func:`pytoolbox.git.clone_or_pull` (deprecated)."""
     from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
     return clone_or_pull(*args, **kwargs)
 
 
 @deprecated('Use pytoolbox.ssh.ssh instead (drop-in replacement)')
 def ssh(*args, **kwargs) -> CallResultFull:  # pragma: no cover
-    """Deprecated alias for :func:`pytoolbox.ssh.ssh`."""
+    """Forward all arguments to :func:`pytoolbox.ssh.ssh` (deprecated)."""
     from pytoolbox.ssh import ssh as _ssh
     return _ssh(*args, **kwargs)

@@ -45,7 +45,7 @@ def json_response(status: int, value: object = None, include_properties: bool = 
 
 def map_exceptions(exception: Exception | dict) -> object | None:
     """
-    Maps a standard `exception` into corresponding HTTP exception class.
+    Map a standard `exception` into corresponding HTTP exception class.
 
     **Example usage**
 

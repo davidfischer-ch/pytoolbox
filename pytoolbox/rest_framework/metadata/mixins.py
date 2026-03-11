@@ -14,7 +14,7 @@ from rest_framework import serializers
 __all__ = ['ExcludeRelatedChoicesMixin']
 
 
-class ExcludeRelatedChoicesMixin(object):
+class ExcludeRelatedChoicesMixin:
     """Do not includes related fields to avoid having choices with hundreds instances."""
 
     related_fields = (serializers.RelatedField, serializers.ManyRelatedField)

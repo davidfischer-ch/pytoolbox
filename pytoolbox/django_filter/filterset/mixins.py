@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 __all__ = ['RaiseOnUnhandledFieldClassMixin']
 
 
-class RaiseOnUnhandledFieldClassMixin(object):
+class RaiseOnUnhandledFieldClassMixin:
     """
     Raise an exception when the filter set is unable to find a suitable filter for any of the model
     fields to filter.

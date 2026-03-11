@@ -8,7 +8,7 @@ from pytoolbox import collections, exceptions
 __all__ = ['Brand']
 
 
-class Brand(object):
+class Brand:
     """Normalize and validate camera/device brand names from EXIF data."""
 
     brands = frozenset([

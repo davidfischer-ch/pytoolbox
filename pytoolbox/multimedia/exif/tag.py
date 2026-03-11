@@ -17,7 +17,7 @@ from .brand import Brand
 __all__ = ['Tag', 'TagSet']
 
 
-class Tag(object):
+class Tag:
     """Represent a single EXIF tag with type-aware data access."""
 
     brand_class = Brand
@@ -147,7 +147,7 @@ class Tag(object):
         return getattr(self.metadata.exiv2, f'try_{mode}_{name}') if name else None
 
 
-class TagSet(object):  # pylint:disable=too-few-public-methods
+class TagSet:  # pylint:disable=too-few-public-methods
     """Base class for groups of related EXIF tags."""
 
     def __init__(self, metadata: object) -> None:

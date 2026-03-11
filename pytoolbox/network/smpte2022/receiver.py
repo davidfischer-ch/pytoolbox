@@ -15,7 +15,7 @@ from .base import FecPacket
 __all__ = ['FecReceiver']
 
 
-class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
+class FecReceiver:  # pylint:disable=too-many-instance-attributes
     """
     A SMPTE 2022-1 FEC streams receiver.
     This receiver accept incoming RTP media and FEC packets and make available the recovered media
@@ -228,7 +228,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         else:
             raise ValueError(self.ER_DELAY_UNITS.format(units))
 
-    def put_media(self, media: RtpPacket, onlyMP2TS: bool) -> None:  # pylint:disable=invalid-name
+    def put_media(self, media: RtpPacket, onlyMP2TS: bool) -> None:  # noqa: N803
         """Put an incoming media packet."""
         if self.flushing:
             raise ValueError(self.ER_FLUSHING)
@@ -256,8 +256,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
         fec: FecPacket
     ) -> None:
         """
-        Put an incoming FEC packet, the algorithm will do the following according to these
-        scenarios:
+        Put an incoming FEC packet and apply the recovery algorithm.
 
         1. The fec packet is useless if none of the protected media packets is missing
         2. Only on media packet missing, fec packet is able to recover it now !
@@ -624,7 +623,7 @@ class FecReceiver(object):  # pylint:disable=too-many-instance-attributes
     @staticmethod
     def validity_window(current: int, start: int, end: int) -> bool:
         """
-        Returns True if `current` is in the validity window bounded by `start` and `end`.
+        Return True if `current` is in the validity window bounded by `start` and `end`.
 
         This method is circular-buffer aware and they are 2 cases (validity window ``[====]``)::
 

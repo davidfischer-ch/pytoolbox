@@ -14,7 +14,7 @@ _all = module.All(globals())
 logger = logging.get_logger(__name__)
 
 
-class ExpressTemporaryFileMixin(object):
+class ExpressTemporaryFileMixin:
     """Speed up saving by enabling rename for temporary uploaded files."""
 
     def _save(self, name: str, content: object) -> str:
@@ -33,7 +33,7 @@ class ExpressTemporaryFileMixin(object):
         return result
 
 
-class OverwriteMixin(object):
+class OverwriteMixin:
     """
     Update get_available_name to remove any previously stored file (if any) before returning the
     name.

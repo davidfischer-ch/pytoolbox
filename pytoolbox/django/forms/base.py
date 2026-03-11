@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 __all__ = ['SerializedInstanceForm']
 
 
-class SerializedInstanceForm(object):
+class SerializedInstanceForm:
     """Form that serializes and deserializes a model instance by content type."""
 
     def __init__(self, **kwargs: object) -> None:

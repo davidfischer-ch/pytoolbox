@@ -105,7 +105,7 @@ def from_path_patterns(
     *,
     regex: bool = False
 ) -> list[re.Pattern]:
-    """
+    r"""
     Return patterns compiled to regular expressions, if necessary.
 
     If `regex` is set to False, then any string pattern will be converted from the unix-style
@@ -116,13 +116,13 @@ def from_path_patterns(
     >>> from pytoolbox.unittest import asserts
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns('*.txt')],
-    ...     ['(?s:.*\\\\.txt)\\\\Z'])
+    ...     ['(?s:.*\\.txt)\\Z'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns(['text', 'something*'], regex=True)],
     ...     ['text', 'something*'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'fo?'])],
-    ...     ['a?c', '(?s:fo.)\\\\Z'])
+    ...     ['a?c', '(?s:fo.)\\Z'])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'foo?'], regex=True)],
     ...     ['a?c', 'foo?'])
@@ -160,7 +160,7 @@ def group_replace(
     return string
 
 
-class Match(object):
+class Match:
     """
     Assert that a given string meets some expectations.
 

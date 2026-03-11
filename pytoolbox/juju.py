@@ -82,7 +82,7 @@ def juju_do(
     log: Any = None,
     **kwargs
 ) -> Any:
-    """
+    r"""
     Execute a command `command` into environment `environment`.
 
     **Known issue**:
@@ -90,7 +90,7 @@ def juju_do(
     Locking Juju status 'are you sure you want to continue connecting (yes/no)'.
 
     We need a way to confirm our choice
-    ``cmd('juju status --environment %s' % environment, cli_input='yes\\n')``
+    ``cmd('juju status --environment %s' % environment, cli_input='yes\n')``
     seem to not work as expected. This happens the first time (and only the first time)
     juju connect to a freshly deployed environment.
 
@@ -126,7 +126,7 @@ def juju_do(
 
 def load_unit_config(config: str | dict, log: Any = None) -> dict:
     """
-    Returns a dictionary containing the options names as keys and options default values as values.
+    Return a dictionary containing the options names as keys and options default values as values.
 
     The parameter `config` can be:
 
@@ -293,7 +293,7 @@ def get_ip() -> str:
     return __get_ip
 
 
-class CharmConfig(object):  # pylint:disable=too-few-public-methods
+class CharmConfig:  # pylint:disable=too-few-public-methods
     """Container for charm configuration options."""
 
     def __init__(self) -> None:
@@ -303,7 +303,7 @@ class CharmConfig(object):  # pylint:disable=too-few-public-methods
         return str(self.__dict__)
 
 
-class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods
+class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public-methods
     """
     A base class to build charms based on python hooks, callable even if juju is not installed.
 
@@ -512,26 +512,26 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
     # Convenience methods for logging --------------------------------------------------------------
 
     def debug(self, message: str) -> None:
-        """Convenience method for logging a debug-related message."""
+        """Log a debug-related message."""
         return self.log(f'[DEBUG] {message}') if self.config.verbose else None
 
     def info(self, message: str) -> None:
-        """Convenience method for logging a standard message."""
+        """Log a standard message."""
         return self.log(f'[INFO] {message}')
 
     def hook(self, message: str) -> None:
-        """Convenience method for logging the triggering of a hook."""
+        """Log the triggering of a hook."""
         return self.log(f'[HOOK] {message}')
 
     def remark(self, message: str) -> None:
-        """Convenience method for logging an important remark."""
+        """Log an important remark."""
         return self.log(f'[REMARK] {message} !')
 
     # ----------------------------------------------------------------------------------------------
 
     def load_config(self, config: str | dict) -> None:
         """
-        Updates `config` attribute with given configuration.
+        Update `config` attribute with given configuration.
 
         **Example usage**
 
@@ -568,7 +568,9 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     def load_metadata(self, metadata: str | dict | None) -> None:
         """
-        Set `metadata` attribute with given metadata, `metadata` can be:
+        Set `metadata` attribute with given metadata.
+
+        `metadata` can be:
 
         * The path of a charm metadata file (e.g. `metadata.yaml`)
         * A dictionary containing the metadata.
@@ -600,7 +602,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
 
     def cmd(self, command: list[str], logging: bool = True, **kwargs) -> dict:
         """
-        Calls the `command` and returns a dictionary with `stdout`, `stderr`, and the `returncode`.
+        Call the `command` and return a dictionary with `stdout`, `stderr`, and the `returncode`.
         """
         return subprocess.cmd(command, log=self.debug if logging else None, **kwargs)
 
@@ -637,7 +639,7 @@ class CharmHooks(object):  # pylint:disable=too-many-instance-attributes,too-man
             self.hook(f'Exiting {type(self).__name__} hook {hook_name}')
 
 
-class Environment(object):  # pylint:disable=too-many-instance-attributes,too-many-public-methods
+class Environment:  # pylint:disable=too-many-instance-attributes,too-many-public-methods
     """Manage a Juju environment (bootstrap, deploy, destroy, etc.)."""
 
     def __init__(
@@ -1245,7 +1247,7 @@ class Environment(object):  # pylint:disable=too-many-instance-attributes,too-ma
         return result
 
 
-class DeploymentScenario(object):
+class DeploymentScenario:
     """Base class for scripted Juju deployment scenarios."""
 
     def __init__(
@@ -1272,9 +1274,10 @@ class DeploymentScenario(object):
         auto: bool = False
     ) -> argparse.ArgumentParser:  # pylint:disable=invalid-name
         """Return an :class:`~pytoolbox.argparse.ArgumentParser` for scenarios."""
-        HELP_A = 'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
-        HELP_M = 'Directory (repository) of any local charm.'
-        HELP_R = 'Ubuntu serie to deploy by JuJu.'
+        HELP_A = (  # noqa: N806
+            'Toggle automatic confirmation of the actions, WARNING: Use it with care.')
+        HELP_M = 'Directory (repository) of any local charm.'  # noqa: N806
+        HELP_R = 'Ubuntu serie to deploy by JuJu.'  # noqa: N806
         parser = argparse.ArgumentParser(epilog=epilog)
         arg = parser.add_argument
         arg('-a', '--auto', action='store_true', default=auto, help=HELP_A)
@@ -1294,7 +1297,7 @@ class DeploymentScenario(object):
 # implementation of ... Do not use it for your own purposes !!!
 
 
-class SimulatedUnit(object):
+class SimulatedUnit:
     """A simulated unit with a really simple state machine having a latency to start and stop."""
 
     def __init__(
@@ -1327,7 +1330,7 @@ class SimulatedUnit(object):
                 self.next_state = None
 
 
-class SimulatedUnits(object):
+class SimulatedUnits:
     """Manage a set of simulated units."""
 
     def __init__(

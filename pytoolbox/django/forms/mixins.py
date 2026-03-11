@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 _all = module.All(globals())
 
 
-class ConvertEmailToTextMixin(object):
+class ConvertEmailToTextMixin:
     """
     Set email inputs as text to avoid the i18n issue
     http://html5doctor.com/html5-forms-input-types#input-email.
@@ -29,7 +29,7 @@ class ConvertEmailToTextMixin(object):
                 field.widget.input_type = 'text'
 
 
-class EnctypeMixin(object):
+class EnctypeMixin:
     """Provide an :attr:`enctype` property for use in form templates."""
 
     @property
@@ -38,7 +38,7 @@ class EnctypeMixin(object):
         return 'multipart/form-data' if self.is_multipart() else 'application/x-www-form-urlencoded'
 
 
-class HelpTextToPlaceholderMixin(object):
+class HelpTextToPlaceholderMixin:
     """
     Update the widgets of the form to copy (and remove) the field's help text to the widget's
     placeholder.
@@ -77,7 +77,7 @@ class HelpTextToPlaceholderMixin(object):
             field.help_text = None
 
 
-class MapErrorsMixin(object):
+class MapErrorsMixin:
     """
     Map errors based on field name. Mandatory when the form contains a field from a model named
     differently.
@@ -91,7 +91,7 @@ class MapErrorsMixin(object):
         return super().add_error(field, error)
 
 
-class ModelBasedFormCleanupMixin(object):
+class ModelBasedFormCleanupMixin:
     """
     Make possible the cleanup of the form by the model through a class method called `clean_form`.
     Useful to cleanup the form based on complex conditions, e.g. if two fields are inter-related
@@ -107,7 +107,7 @@ class ModelBasedFormCleanupMixin(object):
             return self.cleaned_data
 
 
-class RequestMixin(object):
+class RequestMixin:
     """
     Accept request as a optional (default: None) argument of the constructor and set it as an
     attribute of the object.
@@ -140,7 +140,7 @@ class StaffOnlyFieldsMixin(RequestMixin):
                 self.fields.pop(field, None)
 
 
-class UpdateWidgetAttributeMixin(object):
+class UpdateWidgetAttributeMixin:
     """
     Update the widgets of the form based on a set of rules applied depending of the form field's
     class. The rules can change the class of the widget and/or update the attributes of the widget

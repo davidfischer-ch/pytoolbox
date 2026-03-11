@@ -31,7 +31,8 @@ try:
 except ImportError:
     def _include_is_allowed(filepath):
         """
-        Removed since Django 1.10
+        Return whether including `filepath` is allowed (removed since Django 1.10).
+
         See commit 04ee4059d71dbc6aa029907e251360eaf00e11bb#diff-45fa5fdd90e8a31a18a1e55ec2f94fa3
         """
         return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
@@ -82,7 +83,7 @@ LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
 @register.filter(is_safe=True)
 def getattribute(value, attribute):
     """
-    Gets an attribute of an object dynamically from a string name.
+    Get an attribute of an object dynamically from a string name.
 
     Source : https://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
 
@@ -161,7 +162,7 @@ def naturalfilesize(the_bytes, kwargs_string=None):
 
 @register.filter(is_safe=True)
 def rst_title(value, level):
-    """
+    r"""
     Return a title formatted with reSTructuredtext markup.
 
     * level as number: (1, 2, 3, 4, 5)
@@ -289,7 +290,7 @@ class StaticPathNode(StaticNode):
 @register.tag('static_abspath')
 def static_abspath(parser, token):
     """
-    Joins the given path with the STATIC_ROOT setting.
+    Join the given path with the STATIC_ROOT setting.
 
     Usage::
 

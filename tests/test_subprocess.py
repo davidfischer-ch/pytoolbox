@@ -201,8 +201,10 @@ class TestSu:
     """Tests for the su() preexec helper."""
 
     def test_su_with_integer_ids(self) -> None:
-        """su() with integer user/group returns a callable that calls
-        os.setgid and os.setuid."""
+        """
+        su() with integer user/group returns a callable that calls
+        os.setgid and os.setuid.
+        """
         with (
             mock.patch('os.setgid') as mock_setgid,
             mock.patch('os.setuid') as mock_setuid
@@ -312,8 +314,10 @@ class TestCmdAdvanced:
         assert result['process'] is not None
 
     def test_cmd_fail_raises_called_process_error(self) -> None:
-        """cmd() raises CalledProcessError when fail=True
-        and process returns non-zero."""
+        """
+        cmd() raises CalledProcessError when fail=True
+        and process returns non-zero.
+        """
         from pytoolbox import exceptions
         with pytest.raises(exceptions.CalledProcessError):
             subprocess.cmd('cat missing_file_xyz_123')
@@ -386,8 +390,10 @@ class TestMake:
             assert 'make install' in results
 
     def test_make_with_cmake(self) -> None:
-        """make() with with_cmake=True runs cmake instead of
-        configure."""
+        """
+        make() with with_cmake=True runs cmake instead of
+        configure.
+        """
         with (
             patch.object(
                 subprocess.setuptools.archive_util,

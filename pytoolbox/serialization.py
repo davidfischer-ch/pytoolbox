@@ -106,7 +106,7 @@ def to_file(
 # Object <-> Pickle file ---------------------------------------------------------------------------
 
 
-class PickleableObject(object):
+class PickleableObject:
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
     @classmethod
     def read(
@@ -277,7 +277,7 @@ def jsonfile_to_object(cls: type, path_or_file: str | io.IOBase, inspect_constru
     return json_to_object(cls, f.read(), inspect_constructor)
 
 
-class JsoneableObject(object):
+class JsoneableObject:
     """
     An :class:`object` serializable/deserializable by :mod:`json`.
 
@@ -637,7 +637,7 @@ def dict_to_object(cls: type, the_dict: dict, inspect_constructor: bool) -> Any:
     return cls(**the_dict)
 
 
-class SlotsToDictMixin(object):
+class SlotsToDictMixin:
     """Mixin adding a :meth:`to_dict` method that serializes ``__slots__``."""
 
     extra_slots = None
