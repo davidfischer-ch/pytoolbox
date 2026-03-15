@@ -29,7 +29,7 @@ import itertools
 import re
 
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError
+from django.db import DatabaseError, models as dj_models
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 from django.utils.functional import cached_property
@@ -38,6 +38,12 @@ from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
 from pytoolbox import itertools as py_itertools, module  # pylint:disable=reimported
 from . import utils
+
+try:
+    _ModelNotUpdated: type[Exception] = dj_models.Model.NotUpdated
+except AttributeError:
+    class _ModelNotUpdated(Exception):  # type: ignore[no-redef]
+        """Sentinel: Django < 6 does not raise Model.NotUpdated."""
 
 if TYPE_CHECKING:
     from django.db import models
@@ -313,6 +319,10 @@ class UpdatePreconditionsMixin:
         args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
         try:
             super().save(*args, **kwargs)
+        except _ModelNotUpdated:
+            if has_preconditions:
+                raise self.precondition_error_class()
+            raise
         except DatabaseError as ex:
             if has_preconditions and 'did not affect' in str(ex):
                 raise self.precondition_error_class()
