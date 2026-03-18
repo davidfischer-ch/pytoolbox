@@ -1,54 +1,25 @@
-"""
-Pytoolbox's Template tag and filters.
-"""
+"""Miscellaneous template filters and tags."""
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final, cast
+from typing import Any, Final
 import collections.abc
 import datetime
 import os
 import re
 
-from django import template
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.templatetags.static import PrefixNode, StaticNode
-from django.utils.html import conditional_escape
 from django.utils.encoding import force_str
-from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
+from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy as _l
 
-from pytoolbox import humanize, module
 from pytoolbox.datetime import secs_to_time as _secs_to_time
-from pytoolbox.multimedia.exif.image import Orientation
-from pytoolbox.multimedia.exif.photo import ExposureMode, SensingMethod, WhiteBalance
-from pytoolbox.private import _parse_kwargs_string
-from .core import constants
+from pytoolbox.django.core import constants
 
-_all = module.All(globals())
-
-try:
-    from django.template.defaulttags import include_is_allowed as _include_is_allowed
-except ImportError:
-    def _include_is_allowed(filepath):
-        """
-        Return whether including `filepath` is allowed (removed since Django 1.10).
-
-        See commit 04ee4059d71dbc6aa029907e251360eaf00e11bb#diff-45fa5fdd90e8a31a18a1e55ec2f94fa3
-        """
-        return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
-
-string_if_invalid = ''  # Official default value
-try:  # Django >= 1.8
-    string_if_invalid = settings.TEMPLATES['OPTIONS']['string_if_invalid']
-except (KeyError, TypeError):
-    try:  # Django < 1.8
-        string_if_invalid = settings.TEMPLATE_STRING_IF_INVALID
-    except AttributeError:
-        pass  # Use default
-
+from . import register, string_if_invalid
 
 # ==================== ===================== =============== =============== =====================
 # description          decorator             arguments       input           output
@@ -59,7 +30,7 @@ except (KeyError, TypeError):
 # ==================== ===================== =============== =============== =====================
 #
 # [1] Types of string passed to a template code:
-#     1. Raw str or unicode. They’re escaped on output if auto-escaping is in effect and presented
+#     1. Raw str or unicode. They're escaped on output if auto-escaping is in effect and presented
 #        unchanged, otherwise
 #     2. Already marker as safe (SafeBytes/Text, base: SafeData) commonly used for output that
 #        contains raw HTML to keep
@@ -67,7 +38,16 @@ except (KeyError, TypeError):
 #        not, EscapeBytes/Text
 # [2]: esc = conditional_escape if autoescape else lambda x: x
 
-register = template.Library()
+try:
+    from django.template.defaulttags import include_is_allowed as _include_is_allowed
+except ImportError:
+    def _include_is_allowed(filepath: str) -> bool:
+        """
+        Return whether including `filepath` is allowed (removed since Django 1.10).
+
+        See commit 04ee4059d71dbc6aa029907e251360eaf00e11bb#diff-45fa5fdd90e8a31a18a1e55ec2f94fa3
+        """
+        return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
 
 NUMERIC_TEST: Final[re.Pattern[str]] = re.compile(r'^\d+$')
 LABEL_TO_CLASS: Final[dict[str, str]] = {
@@ -82,51 +62,9 @@ LABEL_TO_CLASS: Final[dict[str, str]] = {
 }
 LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
 
-EXPOSURE_MODE_LABELS: Final[dict[ExposureMode, str]] = cast(dict[ExposureMode, str], {
-    ExposureMode.AUTO: _l('Auto exposure'),
-    ExposureMode.MANUAL: _l('Manual exposure'),
-    ExposureMode.BRACKET: _l('Auto bracket')
-})
-
-ORIENTATION_LABELS: Final[dict[Orientation, str]] = cast(dict[Orientation, str], {
-    Orientation.NORMAL: _l('Normal orientation'),
-    Orientation.HOR_FLIP: _l('Horizontal flip'),
-    Orientation.ROT_180_CCW: _l('Rotation 180° CCW'),
-    Orientation.VERT_FLIP: _l('Vertical flip'),
-    Orientation.HOR_FLIP_ROT_270_CW: _l('Horizontal flip + rotation 270° CW'),
-    Orientation.ROT_90_CW: _l('Rotation 90° CW'),
-    Orientation.HOR_FLIP_ROT_90_CW: _l('Horizontal flip + rotation 90° CW'),
-    Orientation.ROT_270_CW: _l('Rotation 270° CW')
-})
-
-SENSING_METHOD_LABELS: Final[dict[SensingMethod, str]] = cast(dict[SensingMethod, str], {
-    SensingMethod.UNDEFINED: _l('Undefined sensing method'),
-    SensingMethod.ONE_CHIP_COLOR_AREA: _l('One-chip color area sensing method'),
-    SensingMethod.TWO_CHIP_COLOR_AREA: _l('Two-chip color area sensing method'),
-    SensingMethod.THREE_CHIP_COLOR_AREA: _l('Three-chip color area sensing method'),
-    SensingMethod.COLOR_SEQUENTIAL_AREA: _l('Color sequential area sensing method'),
-    SensingMethod.TRILINEAR: _l('Trilinear sensing method'),
-    SensingMethod.COLOR_SEQUENTIAL_LINEAR: _l('Color sequential linear sensing method')
-})
-
-WHITE_BALANCE_LABELS: Final[dict[WhiteBalance, str]] = cast(dict[WhiteBalance, str], {
-    WhiteBalance.AUTO: _l('Auto white balance'),
-    WhiteBalance.MANUAL: _l('Manual white balance')
-})
-
 
 @register.filter(is_safe=True)
-def exposure_mode(value, autoescape=True):
-    """Return the human-readable exposure mode label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
-        return string_if_invalid
-    if not isinstance(value, ExposureMode):
-        value = ExposureMode(value)
-    return EXPOSURE_MODE_LABELS.get(value, string_if_invalid)
-
-
-@register.filter(is_safe=True)
-def getattribute(value, attribute):
+def getattribute(value: Any, attribute: Any) -> Any:
     """
     Get an attribute of an object dynamically from a string name.
 
@@ -150,7 +88,7 @@ def getattribute(value, attribute):
 
 @register.filter(needs_autoescape=True, safe=True)
 @stringfilter
-def inline(filepath, msg=True, autoescape=True):
+def inline(filepath: str, msg: bool = True, *, autoescape: bool = True) -> str:
     """Inline the contents of a static file into the template output."""
     if filepath in (None, string_if_invalid):
         return string_if_invalid
@@ -163,60 +101,7 @@ def inline(filepath, msg=True, autoescape=True):
 
 
 @register.filter(is_safe=True)
-def naturalbitrate(bps, kwargs_string=None):
-    """
-    Return a human readable representation of a bit rate taking `bps` as the rate in bits/s.
-    See documentation of :func:`pytoolbox.humanize.naturalbitrate` for further examples.
-
-    Output::
-
-        16487211.33|naturalbitrate -> 16.5 Mb/s
-        16487211.33|naturalbitrate:'format={value:.0f} {unit}' -> 16 Mb/s
-        16487211.33|naturalbitrate:'format={sign}{value:.0f} {unit}; scale=1' -> 16487 kb/s
-        -16487211.33|naturalbitrate:'format={sign}{value:.0f} {unit}' -> -16 Mb/s
-        None|naturalbitrate -> (empty string)
-        (empty string)|naturalbitrate -> (empty string)
-    """
-    if bps in (None, string_if_invalid):
-        return string_if_invalid
-    return humanize.naturalbitrate(
-        bps, **_parse_kwargs_string(kwargs_string, format=str, scale=int))
-
-
-@register.filter(is_safe=True)
-def naturalfilesize(the_bytes, kwargs_string=None):
-    """
-    Return a human readable representation of a *file* size taking `the_bytes` as the size in bytes.
-    See documentation of :func:`pytoolbox.humanize.naturalfilesize` for further examples.
-
-    Output::
-
-        16487211.33|naturalfilesize -> 15.7 MB
-        16487211.33|naturalfilesize:'system=si' -> 16.5 MiB
-        16487211.33|naturalfilesize:'format={value:.0f} {unit}; system=gnu' -> 16 M
-        16487211.33|naturalfilesize:'format={sign}{value:.0f} {unit}; scale=1' -> 16101 kB
-        -16487211.33|naturalfilesize:'format={sign}{value:.0f} {unit}' -> -16 MB
-        None|naturalfilesize -> (empty string)
-        (empty string)|naturalfilesize -> (empty string)
-    """
-    if the_bytes in (None, string_if_invalid):
-        return string_if_invalid
-    return humanize.naturalfilesize(
-        the_bytes, **_parse_kwargs_string(kwargs_string, format=str, scale=int, system=str))
-
-
-@register.filter(is_safe=True)
-def orientation(value, autoescape=True):
-    """Return the human-readable orientation label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
-        return string_if_invalid
-    if not isinstance(value, Orientation):
-        value = Orientation(value)
-    return ORIENTATION_LABELS.get(value, string_if_invalid)
-
-
-@register.filter(is_safe=True)
-def rst_title(value, level):
+def rst_title(value: Any, level: Any) -> str:
     r"""
     Return a title formatted with reSTructuredtext markup.
 
@@ -253,7 +138,7 @@ def rst_title(value, level):
 
 
 @register.filter(is_safe=True)
-def secs_to_time(value, defaults_to_zero=False):
+def secs_to_time(value: float | None, defaults_to_zero: bool = False) -> datetime.time | str:
     """
     Return an instance of time, taking value as the number of seconds + microseconds
     (e.g. 10.3 = 10s 3000us).
@@ -271,19 +156,9 @@ def secs_to_time(value, defaults_to_zero=False):
     return _secs_to_time(value)
 
 
-@register.filter(is_safe=True)
-def sensing_method(value, autoescape=True):
-    """Return the human-readable sensing method label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
-        return string_if_invalid
-    if not isinstance(value, SensingMethod):
-        value = SensingMethod(value)
-    return SENSING_METHOD_LABELS.get(value, string_if_invalid)
-
-
 @register.filter(needs_autoescape=True)
 @stringfilter
-def status_label(value, autoescape=None, default=''):
+def status_label(value: str, *, autoescape: bool | None = None, default: str = '') -> SafeString:
     """
     Return the status string represented as a span with a Twitter Bootstrap class.
 
@@ -304,7 +179,7 @@ def status_label(value, autoescape=None, default=''):
 
 
 @register.filter(is_safe=True)
-def timedelta(value, digits=0):
+def timedelta(value: datetime.timedelta | float | None, digits: int = 0) -> str:
     """
     Return a string with representation of total seconds given timedelta or a number.
 
@@ -325,7 +200,7 @@ def timedelta(value, digits=0):
 
 
 @register.filter
-def verbose_name(instance):
+def verbose_name(instance: Any) -> str:
     """Return the verbose name (singular) of a model."""
     if instance in (None, string_if_invalid):
         return string_if_invalid
@@ -333,21 +208,11 @@ def verbose_name(instance):
 
 
 @register.filter
-def verbose_name_plural(instance):
+def verbose_name_plural(instance: Any) -> str:
     """Return the verbose name (plural) of a model."""
     if instance in (None, string_if_invalid):
         return string_if_invalid
     return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
-
-
-@register.filter(is_safe=True)
-def white_balance(value, autoescape=True):
-    """Return the human-readable white balance label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
-        return string_if_invalid
-    if not isinstance(value, WhiteBalance):
-        value = WhiteBalance(value)
-    return WHITE_BALANCE_LABELS.get(value, string_if_invalid)
 
 
 # Tags ---------------------------------------------------------------------------------------------
@@ -357,7 +222,7 @@ class StaticPathNode(StaticNode):
     """Resolve a static file path using ``STATIC_ROOT`` instead of ``STATIC_URL``."""
 
     @classmethod
-    def handle_simple(cls, path):
+    def handle_simple(cls, path: str) -> str:
         """Return the absolute filesystem path for a static file."""
         return os.path.join(PrefixNode.handle_simple('STATIC_ROOT'), path)
 
@@ -380,6 +245,3 @@ def static_abspath(parser, token):
 
     """
     return StaticPathNode.handle_token(parser, token)
-
-
-__all__ = _all.diff(globals())
