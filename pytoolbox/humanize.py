@@ -375,6 +375,24 @@ def parse_weight(
         pattern=pattern)
 
 
+def pluralize(number: int | float, singular: str, plural: str) -> str:
+    """
+    Return `singular` or `plural` depending on whether `number` is exactly one.
+
+    **Example usage**
+
+    >>> pluralize(1, 'item', 'items')
+    'item'
+    >>> pluralize(2, 'item', 'items')
+    'items'
+    >>> pluralize(0, 'item', 'items')
+    'items'
+    >>> pluralize(-1, 'item', 'items')
+    'item'
+    """
+    return singular if abs(number) == 1 else plural
+
+
 def _natural_number(
     number: int | float,
     base: int,
