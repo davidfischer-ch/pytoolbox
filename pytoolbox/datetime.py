@@ -356,6 +356,41 @@ def str_to_time(
         return None
 
 
+def set_default_tz(
+    date: datetime.datetime,
+    tzinfo: Any
+) -> datetime.datetime:
+    """
+    Attach timezone info to a naive datetime, leaving an aware datetime unchanged.
+
+    **Example usage**
+
+    >>> import pytz
+    >>> naive = datetime.datetime(2024, 1, 1, 12, 0)
+    >>> aware = set_default_tz(naive, 'Europe/Zurich')
+    >>> aware.tzinfo is not None
+    True
+    >>> already_aware = datetime.datetime(2024, 1, 1, 12, 0, tzinfo=pytz.utc)
+    >>> set_default_tz(already_aware, 'Europe/Zurich') is already_aware
+    True
+    """
+    return pytz.timezone(tzinfo).localize(date) if date.tzinfo is None else date
+
+
+def timedelta_to_time(value: datetime.timedelta) -> datetime.time:
+    """
+    Convert a :class:`datetime.timedelta` to a :class:`datetime.time` (time of day).
+
+    **Example usage**
+
+    >>> timedelta_to_time(datetime.timedelta(hours=1, minutes=30))
+    datetime.time(1, 30)
+    >>> timedelta_to_time(datetime.timedelta(0))
+    datetime.time(0, 0)
+    """
+    return (datetime.datetime.min + value).time()
+
+
 def time_ratio(
     numerator: TimeValue,
     denominator: TimeValue,

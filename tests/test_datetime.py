@@ -33,3 +33,19 @@ def test_datetime_now_fmt_none_returns_datetime() -> None:
 def test_datetime_now_fmt_str_returns_str() -> None:
     result = dt_module.datetime_now(fmt='%Y-%m-%d')
     assert isinstance(result, str)
+
+
+def test_timedelta_to_time_basic() -> None:
+    """Converts a timedelta to the equivalent time of day."""
+    result = dt_module.timedelta_to_time(datetime.timedelta(hours=1, minutes=30, seconds=45))
+    assert result == datetime.time(1, 30, 45)
+
+
+def test_timedelta_to_time_zero() -> None:
+    """Zero timedelta returns midnight."""
+    assert dt_module.timedelta_to_time(datetime.timedelta(0)) == datetime.time(0, 0)
+
+
+def test_timedelta_to_time_seconds_only() -> None:
+    """Timedelta with only seconds converts correctly."""
+    assert dt_module.timedelta_to_time(datetime.timedelta(seconds=3661)) == datetime.time(1, 1, 1)
