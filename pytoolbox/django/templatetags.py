@@ -4,7 +4,7 @@ Pytoolbox's Template tag and filters.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 import collections.abc
 import datetime
 import os
@@ -18,9 +18,12 @@ from django.utils.html import conditional_escape
 from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _l
 
 from pytoolbox import humanize, module
 from pytoolbox.datetime import secs_to_time as _secs_to_time
+from pytoolbox.multimedia.exif.image import Orientation
+from pytoolbox.multimedia.exif.photo import ExposureMode, SensingMethod, WhiteBalance
 from pytoolbox.private import _parse_kwargs_string
 from .core import constants
 
@@ -78,6 +81,48 @@ LABEL_TO_CLASS: Final[dict[str, str]] = {
     'SUCCESS': 'label-success'
 }
 LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
+
+EXPOSURE_MODE_LABELS: Final[dict[ExposureMode, str]] = cast(dict[ExposureMode, str], {
+    ExposureMode.AUTO: _l('Auto exposure'),
+    ExposureMode.MANUAL: _l('Manual exposure'),
+    ExposureMode.BRACKET: _l('Auto bracket')
+})
+
+ORIENTATION_LABELS: Final[dict[Orientation, str]] = cast(dict[Orientation, str], {
+    Orientation.NORMAL: _l('Normal orientation'),
+    Orientation.HOR_FLIP: _l('Horizontal flip'),
+    Orientation.ROT_180_CCW: _l('Rotation 180° CCW'),
+    Orientation.VERT_FLIP: _l('Vertical flip'),
+    Orientation.HOR_FLIP_ROT_270_CW: _l('Horizontal flip + rotation 270° CW'),
+    Orientation.ROT_90_CW: _l('Rotation 90° CW'),
+    Orientation.HOR_FLIP_ROT_90_CW: _l('Horizontal flip + rotation 90° CW'),
+    Orientation.ROT_270_CW: _l('Rotation 270° CW')
+})
+
+SENSING_METHOD_LABELS: Final[dict[SensingMethod, str]] = cast(dict[SensingMethod, str], {
+    SensingMethod.UNDEFINED: _l('Undefined sensing method'),
+    SensingMethod.ONE_CHIP_COLOR_AREA: _l('One-chip color area sensing method'),
+    SensingMethod.TWO_CHIP_COLOR_AREA: _l('Two-chip color area sensing method'),
+    SensingMethod.THREE_CHIP_COLOR_AREA: _l('Three-chip color area sensing method'),
+    SensingMethod.COLOR_SEQUENTIAL_AREA: _l('Color sequential area sensing method'),
+    SensingMethod.TRILINEAR: _l('Trilinear sensing method'),
+    SensingMethod.COLOR_SEQUENTIAL_LINEAR: _l('Color sequential linear sensing method')
+})
+
+WHITE_BALANCE_LABELS: Final[dict[WhiteBalance, str]] = cast(dict[WhiteBalance, str], {
+    WhiteBalance.AUTO: _l('Auto white balance'),
+    WhiteBalance.MANUAL: _l('Manual white balance')
+})
+
+
+@register.filter(is_safe=True)
+def exposure_mode(value, autoescape=True):
+    """Return the human-readable exposure mode label for the given EXIF integer or enum."""
+    if value in (None, string_if_invalid):
+        return string_if_invalid
+    if not isinstance(value, ExposureMode):
+        value = ExposureMode(value)
+    return EXPOSURE_MODE_LABELS.get(value, string_if_invalid)
 
 
 @register.filter(is_safe=True)
@@ -161,6 +206,16 @@ def naturalfilesize(the_bytes, kwargs_string=None):
 
 
 @register.filter(is_safe=True)
+def orientation(value, autoescape=True):
+    """Return the human-readable orientation label for the given EXIF integer or enum."""
+    if value in (None, string_if_invalid):
+        return string_if_invalid
+    if not isinstance(value, Orientation):
+        value = Orientation(value)
+    return ORIENTATION_LABELS.get(value, string_if_invalid)
+
+
+@register.filter(is_safe=True)
 def rst_title(value, level):
     r"""
     Return a title formatted with reSTructuredtext markup.
@@ -214,6 +269,16 @@ def secs_to_time(value, defaults_to_zero=False):
             return _secs_to_time(0)
         return string_if_invalid
     return _secs_to_time(value)
+
+
+@register.filter(is_safe=True)
+def sensing_method(value, autoescape=True):
+    """Return the human-readable sensing method label for the given EXIF integer or enum."""
+    if value in (None, string_if_invalid):
+        return string_if_invalid
+    if not isinstance(value, SensingMethod):
+        value = SensingMethod(value)
+    return SENSING_METHOD_LABELS.get(value, string_if_invalid)
 
 
 @register.filter(needs_autoescape=True)
@@ -273,6 +338,16 @@ def verbose_name_plural(instance):
     if instance in (None, string_if_invalid):
         return string_if_invalid
     return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
+
+
+@register.filter(is_safe=True)
+def white_balance(value, autoescape=True):
+    """Return the human-readable white balance label for the given EXIF integer or enum."""
+    if value in (None, string_if_invalid):
+        return string_if_invalid
+    if not isinstance(value, WhiteBalance):
+        value = WhiteBalance(value)
+    return WHITE_BALANCE_LABELS.get(value, string_if_invalid)
 
 
 # Tags ---------------------------------------------------------------------------------------------
