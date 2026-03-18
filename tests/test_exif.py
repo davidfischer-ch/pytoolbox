@@ -118,7 +118,7 @@ def test_metadata_on_macro_jpg() -> None:
     assert metadata.photo.focal_length == Fraction(65, 1)
     assert metadata.photo.iso_speed == 100
     assert metadata.photo.sensing_method is None
-    assert metadata.photo.white_balance == 0
+    assert metadata.photo.white_balance is exif.WhiteBalance.AUTO
 
 
 @requires_gexiv2

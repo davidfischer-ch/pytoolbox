@@ -10,14 +10,31 @@ from pytoolbox.enum import OrderedEnum
 
 from .tag import TagSet
 
-__all__ = ['ExposureMode', 'Photo']
+__all__ = ['ExposureMode', 'Photo', 'SensingMethod', 'WhiteBalance']
 
 
 class ExposureMode(OrderedEnum):
-    """EXIF exposure mode values."""
+    """EXIF exposure mode values (tag Exif.Photo.ExposureMode)."""
     AUTO = 0
     MANUAL = 1
     BRACKET = 2
+
+
+class SensingMethod(OrderedEnum):
+    """EXIF sensing method values (tag Exif.Photo.SensingMethod)."""
+    UNDEFINED = 1
+    ONE_CHIP_COLOR_AREA = 2
+    TWO_CHIP_COLOR_AREA = 3
+    THREE_CHIP_COLOR_AREA = 4
+    COLOR_SEQUENTIAL_AREA = 5
+    TRILINEAR = 7
+    COLOR_SEQUENTIAL_LINEAR = 8
+
+
+class WhiteBalance(OrderedEnum):
+    """EXIF white balance values (tag Exif.Photo.WhiteBalance)."""
+    AUTO = 0
+    MANUAL = 1
 
 
 class Photo(TagSet):
@@ -55,11 +72,13 @@ class Photo(TagSet):
         return self.clean_number(self.metadata['Exif.Photo.ISOSpeedRatings'].data)
 
     @property
-    def sensing_method(self) -> int | None:
-        """Return the sensing method identifier."""
-        return self.metadata['Exif.Photo.SensingMethod'].data
+    def sensing_method(self) -> SensingMethod | None:
+        """Return the :class:`SensingMethod` or ``None``."""
+        data = self.metadata['Exif.Photo.SensingMethod'].data
+        return None if data is None else SensingMethod(data)
 
     @property
-    def white_balance(self) -> int | None:
-        """Return the white balance mode identifier."""
-        return self.metadata['Exif.Photo.WhiteBalance'].data
+    def white_balance(self) -> WhiteBalance | None:
+        """Return the :class:`WhiteBalance` or ``None``."""
+        data = self.metadata['Exif.Photo.WhiteBalance'].data
+        return None if data is None else WhiteBalance(data)
