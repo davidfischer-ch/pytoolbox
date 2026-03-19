@@ -46,7 +46,7 @@ jobs:
       shell: bash
     - name: Test with pytest
       run: |
-        pytest -vvvv
+        python -m pytest -vvvv
     - name: Coveralls
       if: runner.os == 'Linux'
       uses: coverallsapp/github-action@v2
