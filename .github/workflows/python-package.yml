@@ -45,7 +45,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         pip install -U pip setuptools wheel
-        pip install -U -e .[test]
+        pip install -U -e .[atlassian,aws,django,django_filter,django_formtools,flask,jinja2,mongodb,network,pandas,rest_framework,selenium,voluptuous,test]
         pip freeze
     - name: Debug env
       run: |
