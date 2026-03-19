@@ -9,40 +9,49 @@ on:
     branches: ["main"]
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         python-version: ["3.11", "3.12", "3.13"]
-        include:
-          - os: windows-latest
-            python-version: "3.13"
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install System dependencies (Linux)
-      if: runner.os == 'Linux'
+    - name: Install System dependencies
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq cmake ffmpeg screen
         sudo apt-get install -qq liblzma-dev libxml2-dev libxslt-dev libyaml-dev libz-dev
         sudo apt-get install -qq libcairo2 libcairo2-dev libexiv2-dev libgexiv2-dev libgirepository-2.0-dev
-    - name: Install System dependencies (Windows)
-      if: runner.os == 'Windows'
-      run: choco install ffmpeg --no-progress -y
-    - name: Install Python dependencies (Linux)
-      if: runner.os == 'Linux'
+    - name: Install Python dependencies
       run: |
         pip install -U pip setuptools wheel
         pip install -U -e .[all,test]
         pip freeze
-    - name: Install Python dependencies (Windows)
-      if: runner.os == 'Windows'
+    - name: Debug env
+      run: |
+        env | sort | grep -i -E 'COLOR|TERM|CI'
+    - name: Test with pytest
+      run: |
+        python -m pytest -vvvv
+    - name: Coveralls
+      uses: coverallsapp/github-action@v2
+
+  build-windows:
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - name: Install System dependencies
+      run: choco install ffmpeg --no-progress -y
+    - name: Install Python dependencies
       run: |
         pip install -U pip setuptools wheel
         pip install -U -e .[atlassian,aws,django,django_filter,django_formtools,flask,jinja2,mongodb,network,pandas,rest_framework,selenium,voluptuous,test]
@@ -54,7 +63,4 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest -vvvv
-    - name: Coveralls
-      if: runner.os == 'Linux'
-      uses: coverallsapp/github-action@v2
 ...
