@@ -91,11 +91,20 @@ def chown(
             followlinks=follow_symlinks
         ):
             dir_path = Path(dirpath)
-            os.chown(dir_path, uid, gid)
+            _chown(dir_path, uid, gid)
             for filename in filenames:
-                os.chown(dir_path / filename, uid, gid)
+                _chown(dir_path / filename, uid, gid)
     else:
+        _chown(path, uid, gid)
+
+
+def _chown(path: Path, uid: int, gid: int) -> None:
+    """Call ``os.chown``, silencing ``FileNotFoundError`` on broken symlinks."""
+    try:
         os.chown(path, uid, gid)
+    except FileNotFoundError:
+        if not path.is_symlink():
+            raise
 
 
 def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals

@@ -37,6 +37,31 @@ def test_chown(tmp_path: Path) -> None:
     ], any_order=True)
 
 
+def _strict_chown(path: Path, _uid: int, _gid: int) -> None:
+    """Mimic real os.chown: raise FileNotFoundError on broken symlinks."""
+    if Path(path).is_symlink() and not Path(path).exists():
+        raise FileNotFoundError(2, 'No such file or directory', str(path))
+
+
+def test_chown_broken_symlink(tmp_path: Path) -> None:
+    """chown() must not raise on a broken symlink."""
+    broken = tmp_path / 'broken'
+    broken.symlink_to(tmp_path / 'missing')
+
+    with mock.patch('os.chown', side_effect=_strict_chown):
+        filesystem.chown(broken, 'root')  # must not raise
+
+
+def test_chown_recursive_broken_symlink(tmp_path: Path) -> None:
+    """chown() with recursive=True must not raise when a broken symlink is encountered."""
+    (tmp_path / 'real.txt').touch()
+    broken = tmp_path / 'broken'
+    broken.symlink_to(tmp_path / 'missing')
+
+    with mock.patch('os.chown', side_effect=_strict_chown):
+        filesystem.chown(tmp_path, 'root', recursive=True)  # must not raise
+
+
 def test_copy_recursive(tmp_path: Path) -> None:
     src_path = Path(__file__).parent.parent / 'pytoolbox'
     stats = filesystem.copy_recursive(src_path, tmp_path, ["*/camera.py", "*/ffmpeg.py"])
