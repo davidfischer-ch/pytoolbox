@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock, patch
+import shutil
 
 import pytest
 from pytoolbox import logging, regex, subprocess
@@ -132,6 +133,7 @@ def test_cmd_retry_no_success() -> None:
     ])
 
 
+@pytest.mark.skipif(shutil.which('screen') is None, reason='screen not installed')
 def test_screen() -> None:
     try:
         # Launch some screens

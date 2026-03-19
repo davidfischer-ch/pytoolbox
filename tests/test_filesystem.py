@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 from unittest import mock
+import sys
 
 from pytest import mark
 
 from pytoolbox import filesystem
 
 
+@mark.skipif(sys.platform == 'win32', reason='os.chown is POSIX only')
 def test_chown(tmp_path: Path) -> None:
     file_a = tmp_path / 'a.txt'
     file_b = tmp_path / 'b.txt'
@@ -43,6 +45,7 @@ def _strict_chown(path: Path, _uid: int, _gid: int) -> None:
         raise FileNotFoundError(2, 'No such file or directory', str(path))
 
 
+@mark.skipif(sys.platform == 'win32', reason='os.chown is POSIX only')
 def test_chown_broken_symlink(tmp_path: Path) -> None:
     """chown() must not raise on a broken symlink."""
     broken = tmp_path / 'broken'
@@ -52,6 +55,7 @@ def test_chown_broken_symlink(tmp_path: Path) -> None:
         filesystem.chown(broken, 'root')  # must not raise
 
 
+@mark.skipif(sys.platform == 'win32', reason='os.chown is POSIX only')
 def test_chown_recursive_broken_symlink(tmp_path: Path) -> None:
     """chown() with recursive=True must not raise when a broken symlink is encountered."""
     (tmp_path / 'real.txt').touch()
