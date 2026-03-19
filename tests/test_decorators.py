@@ -92,175 +92,171 @@ def test_root_required_custom_message() -> None:
             privileged()
 
 
-class TestHybridmethod:
-    """Tests for the hybridmethod descriptor."""
+def test_hybridmethod_class_level_access() -> None:
+    """Hybridmethod called on the class receives the class."""
+    class MyClass:
+        value = 'class_val'
 
-    def test_class_level_access(self) -> None:
-        """Hybridmethod called on the class receives the class."""
-        class MyClass:
-            value = 'class_val'
+        @decorators.hybridmethod
+        def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            return receiver.value
 
-            @decorators.hybridmethod
-            def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
-                return receiver.value
-
-        assert MyClass.get_value() == 'class_val'
-
-    def test_instance_level_access(self) -> None:
-        """Hybridmethod called on an instance receives the instance."""
-        class MyClass:
-            value = 'class_val'
-
-            def __init__(self):
-                self.value = 'instance_val'
-
-            @decorators.hybridmethod
-            def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
-                return receiver.value
-
-        assert MyClass().get_value() == 'instance_val'
-
-    def test_hybrid_has_func_and_self(self) -> None:
-        """The bound hybrid callable exposes __func__ and __self__."""
-        class MyClass:
-            @decorators.hybridmethod
-            def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
-                return 42
-
-        bound = MyClass.__dict__['method'].__get__(None, MyClass)
-        assert hasattr(bound, '__func__')
-        assert bound.__self__ is MyClass
-
-    def test_hybrid_instance_self(self) -> None:
-        """__self__ on an instance-bound hybrid is the instance."""
-        class MyClass:
-            @decorators.hybridmethod
-            def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
-                return 42
-
-        obj = MyClass()
-        bound = MyClass.__dict__['method'].__get__(obj, MyClass)
-        assert bound.__self__ is obj
-
-    def test_hybrid_with_args(self) -> None:
-        """Hybridmethod passes extra positional and keyword args."""
-        class MyClass:
-            @decorators.hybridmethod
-            def add(receiver, a, b=0):  # pylint:disable=no-self-argument  # noqa: N805
-                return a + b
-
-        assert MyClass.add(3, b=7) == 10
+    assert MyClass.get_value() == 'class_val'
 
 
-class TestConfirmIt:
-    """Tests for the confirm_it decorator."""
+def test_hybridmethod_instance_level_access() -> None:
+    """Hybridmethod called on an instance receives the instance."""
+    class MyClass:
+        value = 'class_val'
 
-    def test_confirm_it_proceeds(self) -> None:
-        """When user confirms, the decorated function executes."""
-        @decorators.confirm_it('Are you sure?')
-        def do_thing():
-            return 'done'
+        def __init__(self):
+            self.value = 'instance_val'
 
-        with patch.object(
-            decorators.console,
-            'confirm',
-            return_value=True
-        ):
-            assert do_thing() == 'done'
+        @decorators.hybridmethod
+        def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            return receiver.value
 
-    def test_confirm_it_aborts(self, capsys) -> None:
-        """When user declines, abort message is printed."""
-        @decorators.confirm_it('Are you sure?', abort_message='Nope')
-        def do_thing():
-            return 'done'
-
-        with patch.object(
-            decorators.console,
-            'confirm',
-            return_value=False
-        ):
-            result = do_thing()
-            assert result is None
-            assert 'Nope' in capsys.readouterr().out
-
-    def test_confirm_it_default_abort_message(self, capsys) -> None:
-        """Default abort message is printed when user declines."""
-        @decorators.confirm_it('Sure?')
-        def do_thing():
-            return 'done'
-
-        with patch.object(
-            decorators.console,
-            'confirm',
-            return_value=False
-        ):
-            do_thing()
-            assert 'Operation aborted' in capsys.readouterr().out
+    assert MyClass().get_value() == 'instance_val'
 
 
-class TestDisableIptables:
-    """Tests for the disable_iptables decorator."""
+def test_hybridmethod_has_func_and_self() -> None:
+    """The bound hybrid callable exposes __func__ and __self__."""
+    class MyClass:
+        @decorators.hybridmethod
+        def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            return 42
 
-    def test_iptables_stop_and_start(self) -> None:
-        """When iptables stop succeeds, it is re-started after."""
-        @decorators.disable_iptables
-        def do_thing():
-            return 'result'
-
-        with (
-            patch(
-                'pytoolbox.subprocess.cmd'
-            ) as mock_cmd,
-            patch('builtins.print')
-        ):
-            result = do_thing()
-            assert result == 'result'
-            assert mock_cmd.call_count == 2
-
-    def test_iptables_not_available(self) -> None:
-        """When iptables stop fails, start is not called."""
-        @decorators.disable_iptables
-        def do_thing():
-            return 'result'
-
-        with (
-            patch(
-                'pytoolbox.subprocess.cmd',
-                side_effect=RuntimeError('no iptables')
-            ) as mock_cmd,
-            patch('builtins.print')
-        ):
-            result = do_thing()
-            assert result == 'result'
-            # cmd called once for stop (which failed), not for start
-            assert mock_cmd.call_count == 1
+    bound = MyClass.__dict__['method'].__get__(None, MyClass)
+    assert hasattr(bound, '__func__')
+    assert bound.__self__ is MyClass
 
 
-class TestCachedProperty:
-    """Tests for the cached_property descriptor."""
+def test_hybridmethod_instance_self() -> None:
+    """__self__ on an instance-bound hybrid is the instance."""
+    class MyClass:
+        @decorators.hybridmethod
+        def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            return 42
 
-    def test_caches_on_instance(self) -> None:
-        """Value is computed once and stored in instance __dict__."""
-        call_count = 0
+    obj = MyClass()
+    bound = MyClass.__dict__['method'].__get__(obj, MyClass)
+    assert bound.__self__ is obj
 
-        class MyClass:
-            @decorators.cached_property
-            def expensive(self):
-                nonlocal call_count
-                call_count += 1
-                return 42
 
-        obj = MyClass()
-        assert obj.expensive == 42
-        assert obj.expensive == 42
-        assert call_count == 1
-        assert 'expensive' in obj.__dict__
+def test_hybridmethod_with_args() -> None:
+    """Hybridmethod passes extra positional and keyword args."""
+    class MyClass:
+        @decorators.hybridmethod
+        def add(receiver, a, b=0):  # pylint:disable=no-self-argument  # noqa: N805
+            return a + b
 
-    def test_class_access_returns_descriptor(self) -> None:
-        """Accessing via the class returns the descriptor itself."""
-        class MyClass:
-            @decorators.cached_property
-            def prop(self):
-                return 99
+    assert MyClass.add(3, b=7) == 10
 
-        assert isinstance(MyClass.prop, decorators.cached_property)
+
+def test_confirm_it_proceeds() -> None:
+    """When user confirms, the decorated function executes."""
+    @decorators.confirm_it('Are you sure?')
+    def do_thing():
+        return 'done'
+
+    with patch.object(
+        decorators.console,
+        'confirm',
+        return_value=True
+    ):
+        assert do_thing() == 'done'
+
+
+def test_confirm_it_aborts(capsys) -> None:
+    """When user declines, abort message is printed."""
+    @decorators.confirm_it('Are you sure?', abort_message='Nope')
+    def do_thing():
+        return 'done'
+
+    with patch.object(
+        decorators.console,
+        'confirm',
+        return_value=False
+    ):
+        result = do_thing()
+        assert result is None
+        assert 'Nope' in capsys.readouterr().out
+
+
+def test_confirm_it_default_abort_message(capsys) -> None:
+    """Default abort message is printed when user declines."""
+    @decorators.confirm_it('Sure?')
+    def do_thing():
+        return 'done'
+
+    with patch.object(
+        decorators.console,
+        'confirm',
+        return_value=False
+    ):
+        do_thing()
+        assert 'Operation aborted' in capsys.readouterr().out
+
+
+def test_disable_iptables_stop_and_start() -> None:
+    """When iptables stop succeeds, it is re-started after."""
+    @decorators.disable_iptables
+    def do_thing():
+        return 'result'
+
+    with (
+        patch(
+            'pytoolbox.subprocess.cmd'
+        ) as mock_cmd,
+        patch('builtins.print')
+    ):
+        result = do_thing()
+        assert result == 'result'
+        assert mock_cmd.call_count == 2
+
+
+def test_disable_iptables_not_available() -> None:
+    """When iptables stop fails, start is not called."""
+    @decorators.disable_iptables
+    def do_thing():
+        return 'result'
+
+    with (
+        patch(
+            'pytoolbox.subprocess.cmd',
+            side_effect=RuntimeError('no iptables')
+        ) as mock_cmd,
+        patch('builtins.print')
+    ):
+        result = do_thing()
+        assert result == 'result'
+        # cmd called once for stop (which failed), not for start
+        assert mock_cmd.call_count == 1
+
+
+def test_cached_property_caches_on_instance() -> None:
+    """Value is computed once and stored in instance __dict__."""
+    call_count = 0
+
+    class MyClass:
+        @decorators.cached_property
+        def expensive(self):
+            nonlocal call_count
+            call_count += 1
+            return 42
+
+    obj = MyClass()
+    assert obj.expensive == 42
+    assert obj.expensive == 42
+    assert call_count == 1
+    assert 'expensive' in obj.__dict__
+
+
+def test_cached_property_class_access_returns_descriptor() -> None:
+    """Accessing via the class returns the descriptor itself."""
+    class MyClass:
+        @decorators.cached_property
+        def prop(self):
+            return 99
+
+    assert isinstance(MyClass.prop, decorators.cached_property)
