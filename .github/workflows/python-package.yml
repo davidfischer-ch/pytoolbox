@@ -35,10 +35,17 @@ jobs:
     - name: Install System dependencies (Windows)
       if: runner.os == 'Windows'
       run: choco install ffmpeg --no-progress -y
-    - name: Install Python dependencies
+    - name: Install Python dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         pip install -U pip setuptools wheel
         pip install -U -e .[all,test]
+        pip freeze
+    - name: Install Python dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        pip install -U pip setuptools wheel
+        pip install -U -e .[test]
         pip freeze
     - name: Debug env
       run: |
