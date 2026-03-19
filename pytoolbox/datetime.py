@@ -7,8 +7,7 @@ from typing import Annotated, Any, Literal, TypeAlias, overload
 from calendar import timegm
 from time import mktime
 import datetime
-
-import pytz
+import zoneinfo
 
 from . import module
 
@@ -23,7 +22,7 @@ def datetime_now(
     *,
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
-    tz: Any = pytz.utc
+    tz: Any = datetime.timezone.utc
 ) -> datetime.datetime:
     ...
 
@@ -34,7 +33,7 @@ def datetime_now(
     *,
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
-    tz: Any = pytz.utc
+    tz: Any = datetime.timezone.utc
 ) -> str:
     ...
 
@@ -44,7 +43,7 @@ def datetime_now(
     *,
     append_utc: Annotated[bool, "Append ' UTC' to date string"] = False,
     offset: Annotated[datetime.timedelta | None, 'Offset to add to current time'] = None,
-    tz: Annotated[Any, "The timezone (e.g. ``pytz.timezone('EST')``)"] = pytz.utc
+    tz: Annotated[Any, "The timezone (e.g. ``zoneinfo.ZoneInfo('EST')``)"] = datetime.timezone.utc
 ) -> datetime.datetime | str:
     """
     Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a
@@ -66,16 +65,16 @@ def datetime_now(
 
     >>> type(datetime_now())
     <class 'str'>
-    >>> assert ' UTC' not in datetime_now(tz=pytz.utc, append_utc=False)
+    >>> assert ' UTC' not in datetime_now(tz=datetime.timezone.utc, append_utc=False)
     >>> assert ' UTC' not in datetime_now(tz=None, append_utc=True)
-    >>> assert ' UTC' not in datetime_now(tz=pytz.timezone('EST'), append_utc=True)
-    >>> assert ' UTC' in datetime_now(tz=pytz.utc, append_utc=True)
+    >>> assert ' UTC' not in datetime_now(tz=zoneinfo.ZoneInfo('EST'), append_utc=True)
+    >>> assert ' UTC' in datetime_now(tz=datetime.timezone.utc, append_utc=True)
 
     Play with timezones::
 
-        >> datetime_now(tz=pytz.timezone('Europe/Zurich'))
+        >> datetime_now(tz=zoneinfo.ZoneInfo('Europe/Zurich'))
         '2013-10-17 09:54:08'
-        >> datetime_now(tz=pytz.timezone('US/Eastern'))
+        >> datetime_now(tz=zoneinfo.ZoneInfo('US/Eastern'))
         '2013-10-17 03:54:08'
     """
     now = datetime.datetime.now(tz)
@@ -83,7 +82,7 @@ def datetime_now(
         now += offset
     if fmt is None:
         return now
-    return now.strftime(fmt) + (' UTC' if tz == pytz.utc and append_utc else '')
+    return now.strftime(fmt) + (' UTC' if tz == datetime.timezone.utc and append_utc else '')
 
 
 def datetime_to_str(
@@ -365,16 +364,15 @@ def set_default_tz(
 
     **Example usage**
 
-    >>> import pytz
     >>> naive = datetime.datetime(2024, 1, 1, 12, 0)
     >>> aware = set_default_tz(naive, 'Europe/Zurich')
     >>> aware.tzinfo is not None
     True
-    >>> already_aware = datetime.datetime(2024, 1, 1, 12, 0, tzinfo=pytz.utc)
+    >>> already_aware = datetime.datetime(2024, 1, 1, 12, 0, tzinfo=datetime.timezone.utc)
     >>> set_default_tz(already_aware, 'Europe/Zurich') is already_aware
     True
     """
-    return pytz.timezone(tzinfo).localize(date) if date.tzinfo is None else date
+    return date.replace(tzinfo=zoneinfo.ZoneInfo(tzinfo)) if date.tzinfo is None else date
 
 
 def timedelta_to_time(value: datetime.timedelta) -> datetime.time:
@@ -492,7 +490,12 @@ def datetime_to_epoch(
     return int(timegm(date_time.timetuple()) * factor)
 
 
-def epoch_to_datetime(unix_epoch: int, *, tz: Any = pytz.utc, factor: int = 1) -> datetime.datetime:
+def epoch_to_datetime(
+    unix_epoch: int,
+    *,
+    tz: Any = datetime.timezone.utc,
+    factor: int = 1
+) -> datetime.datetime:
     """
     Return the Unix epoch converted to a :class:`datetime.datetime`.
     Default `factor` means that the `unix_epoch` is in seconds.
@@ -500,14 +503,14 @@ def epoch_to_datetime(unix_epoch: int, *, tz: Any = pytz.utc, factor: int = 1) -
     **Example usage**
 
     >>> epoch_to_datetime(0)
-    datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>)
+    datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
     >>> epoch_to_datetime(1276128000)
-    datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
-    >>> epoch_to_datetime(1276128000, tz=pytz.timezone('Europe/Zurich'))
-    datetime.datetime(2010, 6, 10, 2, 0, tzinfo=<DstTzInfo 'Europe/Zurich' CEST+2:00:00 DST>)
+    datetime.datetime(2010, 6, 10, 0, 0, tzinfo=datetime.timezone.utc)
+    >>> epoch_to_datetime(1276128000, tz=zoneinfo.ZoneInfo('Europe/Zurich'))
+    datetime.datetime(2010, 6, 10, 2, 0, tzinfo=zoneinfo.ZoneInfo(key='Europe/Zurich'))
     >>> epoch_to_datetime(1276128000000, factor=1000)
-    datetime.datetime(2010, 6, 10, 0, 0, tzinfo=<UTC>)
-    >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=pytz.utc)
+    datetime.datetime(2010, 6, 10, 0, 0, tzinfo=datetime.timezone.utc)
+    >>> today = datetime.datetime(1985, 6, 1, 5, 2, 0, tzinfo=datetime.timezone.utc)
     >>> epoch_to_datetime(datetime_to_epoch(today, factor=1000), factor=1000) == today
     True
     """

@@ -53,7 +53,7 @@ requires-python = '>=3.11'
 dependencies = [
     'python-magic-bin; sys_platform == "win32"',
     'python-magic; sys_platform != "win32"',
-    'pytz',
+    'tzdata',
     'requests',
     'ruamel.yaml',
     'setuptools',
@@ -112,7 +112,6 @@ test = [
     'ruff>=0.3.3',            # 2024-03-19 Released 2024-03-15
     # Stubs
     'PyGObject-stubs>=2.10.0',          # 2024-03-19 Released 2023-11-16
-    'types-pytz>=2024.1.0.20240203',    # 2024-03-19 Released 2024-02-03
     'types-requests>=2.31.0.20240311',  # 2024-03-19 Released 2023-10-18
     'types-urllib3>=1.26.25.14'         # 2024-03-19 Released 2023-07-20
 ]
