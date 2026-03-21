@@ -29,6 +29,7 @@ ORIENTATION_LABELS: Final[dict[Orientation, str]] = cast(dict[Orientation, str],
 })
 
 SENSING_METHOD_LABELS: Final[dict[SensingMethod, str]] = cast(dict[SensingMethod, str], {
+    SensingMethod.NOT_DEFINED: _l('Undefined sensing method'),
     SensingMethod.UNDEFINED: _l('Undefined sensing method'),
     SensingMethod.ONE_CHIP_COLOR_AREA: _l('One-chip color area sensing method'),
     SensingMethod.TWO_CHIP_COLOR_AREA: _l('Two-chip color area sensing method'),

@@ -22,6 +22,7 @@ class ExposureMode(OrderedEnum):
 
 class SensingMethod(OrderedEnum):
     """EXIF sensing method values (tag Exif.Photo.SensingMethod)."""
+    NOT_DEFINED = 0
     UNDEFINED = 1
     ONE_CHIP_COLOR_AREA = 2
     TWO_CHIP_COLOR_AREA = 3
