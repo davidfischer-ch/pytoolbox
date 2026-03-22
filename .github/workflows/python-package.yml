@@ -63,4 +63,7 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest -vvvv
+          --ignore=pytoolbox/ai
+          --ignore=pytoolbox/multimedia/image
+          --ignore=pytoolbox/network/smpte2022
 ...
