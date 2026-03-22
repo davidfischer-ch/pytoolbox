@@ -97,23 +97,23 @@ all = [
     'pytoolbox[atlassian,aws,django,django_filter,django_formtools,flask,imaging,jinja2,mongodb,network,pandas,rest_framework,selenium,smpte2022,vision,voluptuous]'
 ]
 doc = [
-    'sphinx>=7.2.6',           # 2024-03-19 Released 2023-09-14
-    'sphinx-rtd-theme>=2.0.0'  # 2024-03-19 Released 2023-11-28
+    'sphinx>=7.2.6',
+    'sphinx-rtd-theme>=2.0.0'
 ]
 test = [
-    'colored>=2.2.4',         # 2024-03-19 Released 2023-12-19
-    'coverage>=7.4.4',        # 2024-03-19 Released 2024-03-14
-    'mypy>=1.9.0',            # 2024-03-19 Released 2024-03-08
-    'pylint>=3.1.0',          # 2024-03-19 Released 2024-02-25
-    'pytest>=8.1.1',          # 2024-03-19 Released 2024-03-09
-    'pytest-cov>=4.1.0',      # 2024-03-19 Released 2023-05-24
-    'pytest-pylint>=0.21.0',  # 2024-03-19 Released 2023-10-06
-    'pytest-ruff>=0.3.1',     # 2024-03-19 Released 2024-03-09
-    'ruff>=0.3.3',            # 2024-03-19 Released 2024-03-15
+    'colored>=2.2.4',
+    'coverage>=7.4.4',
+    'mypy>=1.9.0',
+    'pylint>=3.1.0',
+    'pytest>=8.1.1',
+    'pytest-cov>=4.1.0',
+    'pytest-pylint>=0.21.0',
+    'pytest-ruff>=0.3.1',
+    'ruff>=0.3.3',
     # Stubs
-    'PyGObject-stubs>=2.10.0',          # 2024-03-19 Released 2023-11-16
-    'types-requests>=2.31.0.20240311',  # 2024-03-19 Released 2023-10-18
-    'types-urllib3>=1.26.25.14'         # 2024-03-19 Released 2023-07-20
+    'PyGObject-stubs>=2.10.0; sys_platform != "win32"',
+    'types-requests>=2.31.0.20240311',
+    'types-urllib3>=1.26.25.14'
 ]
 
 [project.urls]
