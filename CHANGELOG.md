@@ -2,6 +2,32 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.10.0 (2026-03-22)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.2...14.10.0
+
+### Minor compatibility breaks
+
+* Module `datetime`: Replace `pytz` with `zoneinfo` (stdlib) + `tzdata`
+
+### Features
+
+* Module `datetime`: Add `set_default_tz` and `timedelta_to_time`
+* Module `django.http`: Add `set_attachment`
+* Module `django.templatetags`: Add `exif` filters and `duration` filter; add `humanize.pluralize` filter
+* Module `humanize`: Add `pluralize`
+* Module `multimedia.exif.photo`: Add `SensingMethod` (including value 0, not in spec but found in practice) and `WhiteBalance`
+
+### Fix and enhancements
+
+* Module `django.models.mixins`: Fix `UpdatePreconditionsMixin` for Django 6 `Model.NotUpdated`
+* Module `filesystem`: Handle broken symlinks in `chown`
+
+### Tests
+
+* Add Windows CI support; skip POSIX-only tests on Windows
+* Add tests for new modules and functions
+
 ## v14.9.2 (2026-03-11)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.1...14.9.2
