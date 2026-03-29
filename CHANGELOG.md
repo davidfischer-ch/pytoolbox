@@ -2,6 +2,18 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.10.1 (2026-03-29)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.0...14.10.1
+
+### Features
+
+* Module `crypto`: Add `generate_rsa_key_pair` and `sign_rsa_approval_token` (RSA/PKCS1v15/SHA-256)
+
+### Fix and enhancements
+
+* Module `crypto`: Fix mypy type errors in `new` and `guess_algorithm`
+
 ## v14.10.0 (2026-03-22)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.2...14.10.0
