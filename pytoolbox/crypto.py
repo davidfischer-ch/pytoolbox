@@ -9,16 +9,28 @@ import hashlib
 import os
 import random
 import string
+from base64 import b64encode
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Literal, overload
 
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
 from . import filesystem
 
-__all__ = ['new', 'checksum', 'get_password_generator', 'githash', 'guess_algorithm']
+__all__ = [
+    'new',
+    'checksum',
+    'generate_rsa_key_pair',
+    'get_password_generator',
+    'githash',
+    'guess_algorithm',
+    'sign_rsa_approval_token'
+]
 
 
-def new(algorithm: Callable | str = hashlib.sha256) -> Callable:
+def new(algorithm: Callable | str = hashlib.sha256) -> hashlib._Hash:
     """
     Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm`
     is a string else instantiate algorithm.
@@ -151,7 +163,7 @@ def guess_algorithm(
     algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: Literal[False] = False,
-) -> Callable | None: ...
+) -> set[hashlib._Hash]: ...
 
 
 @overload
@@ -160,7 +172,7 @@ def guess_algorithm(
     algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: Literal[True],
-) -> set[Callable]: ...
+) -> hashlib._Hash | None: ...
 
 
 def guess_algorithm(
@@ -168,7 +180,7 @@ def guess_algorithm(
     algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: bool = False,
-) -> set[Callable] | Callable | None:
+) -> set[hashlib._Hash] | hashlib._Hash | None:
     """
     Guess the algorithms that have produced the checksum_value, based on its size.
 
@@ -194,19 +206,62 @@ def guess_algorithm(
     {'sha256'}
     """
     digest_size = len(checksum_value) / 2
+    resolved: list[hashlib._Hash]
     if algorithms:
-        algorithms = [hashlib.new(a) if isinstance(a, str) else a for a in algorithms]
+        resolved = [hashlib.new(a) if isinstance(a, str) else a() for a in algorithms]
     else:
         try:
-            algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
+            resolved = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
         except AttributeError as ex:
             raise NotImplementedError(
                 "Your version of hashlib doesn't implement algorithms_available",
             ) from ex
-    digest_size_to_algorithms = collections.defaultdict(set)
-    for algorithm in algorithms:
+    digest_size_to_algorithms: collections.defaultdict[float, set[hashlib._Hash]] = (
+        collections.defaultdict(set)
+    )
+    for algorithm in resolved:
         digest_size_to_algorithms[algorithm.digest_size].add(algorithm)
     possible_algorithms = digest_size_to_algorithms[digest_size]
     if unique:
         return possible_algorithms.pop() if len(possible_algorithms) == 1 else None
     return possible_algorithms
+
+
+# RSA ----------------------------------------------------------------------------------------------
+
+
+def generate_rsa_key_pair(bits: int = 2048) -> tuple[str, str]:
+    """
+    Generate an RSA key pair, return ``(private_pem, public_pem)``.
+
+    **Example usage**
+
+    >>> private_pem, public_pem = generate_rsa_key_pair()
+    >>> private_pem.startswith('-----BEGIN RSA PRIVATE KEY-----')
+    True
+    >>> public_pem.startswith('-----BEGIN PUBLIC KEY-----')
+    True
+    """
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=bits)
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode()
+    public_pem = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode()
+    return private_pem, public_pem
+
+
+def sign_rsa_approval_token(signing_key: str, token: str) -> str:
+    """
+    Sign a ``token`` with an RSA private key using PKCS1v15/SHA-256, return base64.
+
+    Designed for the Wise SCA (Strong Customer Authentication) flow.
+    """
+    private_key = serialization.load_pem_private_key(signing_key.encode(), password=None)
+    assert isinstance(private_key, rsa.RSAPrivateKey)
+    signature = private_key.sign(token.encode('ascii'), padding.PKCS1v15(), hashes.SHA256())
+    return b64encode(signature).decode('ascii')
