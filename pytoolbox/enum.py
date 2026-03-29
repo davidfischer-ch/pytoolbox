@@ -1,10 +1,11 @@
 """
 Module related to enumeration.
 """
+
 from __future__ import annotations
 
-from typing import Any
 import enum
+from typing import Any
 
 __all__ = ['OrderedEnum']
 

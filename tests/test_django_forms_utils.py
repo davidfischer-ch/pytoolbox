@@ -74,7 +74,7 @@ def test_validate_start_end() -> None:
     form._errors = {}
     form.cleaned_data = {
         'start_date': datetime.date(2025, 3, 10),
-        'end_date': datetime.date(2025, 3, 1)
+        'end_date': datetime.date(2025, 3, 1),
     }
     utils.validate_start_end(form)
     assert 'end_date' in form._errors

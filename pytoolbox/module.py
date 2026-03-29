@@ -1,6 +1,7 @@
 """
 Utilities for building a module's ``__all__`` list automatically.
 """
+
 from __future__ import annotations
 
 from typing import Any

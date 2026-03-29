@@ -1,21 +1,23 @@
 """
 Version comparison and content diffing utilities.
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
-from typing import TypeAlias
 import difflib
 import operator as op
 import os
-
-from packaging.version import (  # pylint:disable=ungrouped-imports
-    parse as _parse_version,
-    InvalidVersion,
-    Version
-)
+from collections.abc import Iterable, Iterator
+from typing import TypeAlias
 
 import termcolor
+from packaging.version import (
+    InvalidVersion,
+    Version,
+)
+from packaging.version import (  # pylint:disable=ungrouped-imports
+    parse as _parse_version,
+)
 
 from .types import get_slots
 
@@ -26,7 +28,7 @@ __all__ = [
     'Version',
     'compare_versions',
     'satisfy_version_constraints',
-    'try_parse_version'
+    'try_parse_version',
 ]
 
 
@@ -38,8 +40,9 @@ class SlotsEqualityMixin:
     """
 
     def __eq__(self, other: object) -> bool:
-        return get_slots(self) == get_slots(other) and \
-            all(getattr(self, a) == getattr(other, a) for a in get_slots(self))
+        return get_slots(self) == get_slots(other) and all(
+            getattr(self, a) == getattr(other, a) for a in get_slots(self)
+        )
 
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
@@ -82,12 +85,13 @@ def _nen(a: object, b: object) -> bool | None:  # pylint:disable=invalid-name
 
 VERSION_OPERATIONS: dict = {  # pylint:disable=consider-using-namedtuple-or-dataclass
     Version: {'<': op.lt, '<=': op.le, '==': op.eq, '!=': op.ne, '>=': op.ge, '>': op.gt},
-    str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen}
+    str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen},
 }
 
 
 try:
     from packaging.version import LegacyVersion  # type: ignore[attr-defined]
+
     VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
     ParseVersionTypes: TypeAlias = str | Version | LegacyVersion
 except ImportError:
@@ -97,7 +101,7 @@ except ImportError:
 def compare_versions(
     a: str,  # pylint:disable=invalid-name
     b: str,  # pylint:disable=invalid-name
-    operator: str
+    operator: str,
 ) -> bool | None:
     """Compare two version strings using the given operator."""
     version_a = try_parse_version(a)

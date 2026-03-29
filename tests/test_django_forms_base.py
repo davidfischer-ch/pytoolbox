@@ -10,7 +10,8 @@ def test_serialized_instance_form_init() -> None:
     form = base.SerializedInstanceForm(
         app_label='myapp',
         model='article',
-        pk=42)
+        pk=42,
+    )
     assert form.app_label == 'myapp'
     assert form.model == 'article'
     assert form.pk == 42
@@ -22,7 +23,7 @@ def test_serialized_instance_form_serialize() -> None:
     expected = {'app_label': 'myapp', 'model': 'article', 'pk': 1}
     with patch(
         'pytoolbox.django.forms.base.utils.get_content_type_dict',
-        return_value=expected
+        return_value=expected,
     ) as mock_ct:
         result = base.SerializedInstanceForm.serialize(instance)
         mock_ct.assert_called_once_with(instance)
@@ -34,11 +35,12 @@ def test_serialized_instance_form_instance_property() -> None:
     form = base.SerializedInstanceForm(
         app_label='myapp',
         model='article',
-        pk=42)
+        pk=42,
+    )
     expected = MagicMock()
     with patch(
         'pytoolbox.django.forms.base.utils.get_instance',
-        return_value=expected
+        return_value=expected,
     ) as mock_get:
         result = form.instance
         mock_get.assert_called_once_with('myapp', 'article', 42)
@@ -50,10 +52,11 @@ def test_serialized_instance_form_is_valid_true() -> None:
     form = base.SerializedInstanceForm(
         app_label='myapp',
         model='article',
-        pk=42)
+        pk=42,
+    )
     with patch(
         'pytoolbox.django.forms.base.utils.get_instance',
-        return_value=MagicMock()
+        return_value=MagicMock(),
     ):
         assert form.is_valid() is True
 
@@ -63,9 +66,10 @@ def test_serialized_instance_form_is_valid_false() -> None:
     form = base.SerializedInstanceForm(
         app_label='myapp',
         model='article',
-        pk=999)
+        pk=999,
+    )
     with patch(
         'pytoolbox.django.forms.base.utils.get_instance',
-        side_effect=Exception('not found')
+        side_effect=Exception('not found'),
     ):
         assert form.is_valid() is False

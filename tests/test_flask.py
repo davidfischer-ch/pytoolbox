@@ -8,7 +8,6 @@ from werkzeug import exceptions as w_exceptions
 
 from pytoolbox import flask as flask_utils
 
-
 # check_id() tests -------------------------------------------------------
 
 
@@ -34,11 +33,9 @@ def test_check_id_objectid_when_bson_available() -> None:
     value = '507f1f77bcf86cd799439011'
     with (
         patch.object(flask_utils, 'ObjectId', mock_objectid_cls),
-        patch.object(flask_utils, 'valid_uuid') as mock_valid
+        patch.object(flask_utils, 'valid_uuid') as mock_valid,
     ):
-        mock_valid.side_effect = lambda v, **kw: (
-            kw.get('objectid_allowed', False)
-        )
+        mock_valid.side_effect = lambda v, **kw: kw.get('objectid_allowed', False)
         result = flask_utils.check_id(value)
     assert result is mock_objectid_instance
 

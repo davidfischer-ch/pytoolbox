@@ -1,6 +1,7 @@
 """
 Custom Selenium WebDriver subclasses with element specialization.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -17,7 +18,7 @@ class Firefox(common.FindMixin, webdriver.Firefox):
 
     web_element_classes = {
         'default': webelements.WebElement,
-        'select': select.Select
+        'select': select.Select,
     }
 
     def _wrap_value(self, value: Any) -> Any:

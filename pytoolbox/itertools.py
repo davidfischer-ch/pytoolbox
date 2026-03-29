@@ -1,11 +1,12 @@
 """
 Extra iterator utilities complementing :mod:`itertools`.
 """
+
 from __future__ import annotations
 
+import itertools
 from collections.abc import Callable, Generator, Iterable, Iterator
 from typing import Any
-import itertools
 
 from . import throttles
 from .types import isiterable
@@ -49,7 +50,7 @@ def chunk(objects: Iterable, length: int, of_type: type = list) -> Generator:
     [{0}, {1}, {(2, 3)}]
     """
     iterable = iter(objects)
-    while (data := of_type(itertools.islice(iterable, 0, length))):
+    while data := of_type(itertools.islice(iterable, 0, length)):
         yield data
 
 

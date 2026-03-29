@@ -1,10 +1,11 @@
 """
 Django core constants.
 """
+
 from __future__ import annotations
 
-from typing import Final
 import re
+from typing import Final
 
 __all__ = ['DEFFERED_REGEX']
 

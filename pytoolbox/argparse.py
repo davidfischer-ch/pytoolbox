@@ -15,16 +15,17 @@ Traceback (most recent call last):
     ...
 SystemExit: 2
 """
+
 from __future__ import annotations
 
+import argparse
+import functools
+import getpass
+import os
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final
-import argparse
-import getpass
-import functools
-import os
-import sys
 
 from . import console, exceptions, itertools, logging, module
 from .decorators import deprecated
@@ -35,21 +36,21 @@ _all = module.All(globals())
 
 from argparse import (  # noqa:E402,F401 pylint:disable=unused-import,wrong-import-position
     ArgumentTypeError,
-    Namespace
+    Namespace,
 )
-
 
 # Argument Parsing Actions -------------------------------------------------------------------------
 
 
 class ChainAction(argparse._AppendAction):  # pylint:disable=protected-access
     """Argparse action that flattens and appends chained values."""
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
         namespace: Namespace,
         values: Any,
-        option_string: str | None = None
+        option_string: str | None = None,
     ) -> None:
         items = getattr(namespace, self.dest, None)
         items = argparse._copy_items(items)  # type: ignore[attr-defined]
@@ -63,12 +64,13 @@ class FullPaths(argparse.Action):
 
     Credits https://gist.github.com/brantfaircloth/1443543
     """
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
         namespace: Namespace,
         values: Any,
-        option_string: str | None = None
+        option_string: str | None = None,
     ) -> None:
         if values is None:
             setattr(namespace, self.dest, None)
@@ -102,8 +104,10 @@ def is_file(path: Path | str) -> Path:
 
 def multiple(func: Callable[[Any], Any]) -> Callable:
     """Return a list with the result of `func`(value) for value in values."""
+
     def _multiple(values: Any) -> Any:
         return [func(v) for v in values] if isinstance(values, list | tuple) else func(values)
+
     return _multiple
 
 

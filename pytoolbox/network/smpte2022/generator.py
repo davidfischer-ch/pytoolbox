@@ -1,6 +1,7 @@
 """
 SMPTE 2022-1 FEC stream generator from incoming RTP media packets.
 """
+
 from __future__ import annotations
 
 from pytoolbox.network.rtp import RtpPacket
@@ -45,9 +46,9 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def __init__(  # pylint:disable=invalid-name,too-many-instance-attributes
-            self,
-            L: int,  # noqa: N803
-            D: int  # noqa: N803
+        self,
+        L: int,  # noqa: N803
+        D: int,  # noqa: N803
     ) -> None:
         """
         Construct a FecGenerator.
@@ -81,7 +82,8 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
             f'seq={col.sequence} '
             f'snbase={col.snbase} '
             f'LxD={col.L}x{col.D} '
-            f'trec={col.timestamp_recovery}')
+            f'trec={col.timestamp_recovery}',
+        )
 
     @staticmethod
     def on_new_row(row: FecPacket) -> None:
@@ -101,7 +103,8 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
             f'seq={row.sequence} '
             f'snbase={row.snbase} '
             f'LxD={row.L}x{row.D} '
-            f'trec={row.timestamp_recovery}')
+            f'trec={row.timestamp_recovery}',
+        )
 
     def on_reset(self, media: RtpPacket) -> None:
         """
@@ -117,7 +120,8 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
         """
         print(
             f'Media seq={media.sequence} is out of sequence '
-            f'(expected {self._media_sequence}) : FEC algorithm reseted !')
+            f'(expected {self._media_sequence}) : FEC algorithm reseted !',
+        )
 
     def put_media(self, media: RtpPacket) -> None:
         """
@@ -217,7 +221,7 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
 
         # Compute a new row FEC packet when a new row just filled with packets
         if len(self._medias) % self._L == 0:
-            row_medias = self._medias[-self._L:]
+            row_medias = self._medias[-self._L :]
             assert len(row_medias) == self._L
             row = FecPacket.compute(
                 self._row_sequence,
@@ -225,14 +229,15 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
                 FecPacket.ROW,
                 self._L,
                 self._D,
-                row_medias)
+                row_medias,
+            )
             self._row_sequence = (self._row_sequence + 1) & RtpPacket.S_MASK
             self.on_new_row(row)
 
         # Compute a new column FEC packet when a new column just filled with packets
         if len(self._medias) > self._L * (self._D - 1):
             first = len(self._medias) - self._L * (self._D - 1) - 1
-            col_medias = self._medias[first::self._L]
+            col_medias = self._medias[first :: self._L]
             assert len(col_medias) == self._D
             col = FecPacket.compute(
                 self._col_sequence,
@@ -240,7 +245,8 @@ class FecGenerator:  # pylint:disable=too-many-instance-attributes
                 FecPacket.COL,
                 self._L,
                 self._D,
-                col_medias)
+                col_medias,
+            )
             self._col_sequence = (self._col_sequence + 1) & RtpPacket.S_MASK
             self.on_new_col(col)
 

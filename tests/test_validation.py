@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from pytoolbox.validation import valid_email, valid_filename, valid_secret, validate_list
 
 

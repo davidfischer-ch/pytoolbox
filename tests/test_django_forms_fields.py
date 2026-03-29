@@ -18,7 +18,8 @@ def test_strip_char_field_default_widget_attrs() -> None:
 def test_strip_char_field_custom_widget_attrs() -> None:
     """Custom widget_attrs are merged with defaults."""
     field = fields.StripCharField(
-        widget_attrs={'placeholder': 'Search...'})
+        widget_attrs={'placeholder': 'Search...'},
+    )
     assert field.widget.attrs.get('autofocus') == 'autofocus'
     assert field.widget.attrs.get('placeholder') == 'Search...'
 

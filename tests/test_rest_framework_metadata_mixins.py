@@ -9,6 +9,7 @@ from pytoolbox.rest_framework.metadata import mixins
 
 def test_exclude_related_choices_non_related_field() -> None:
     """Non-related fields pass through get_field_info unchanged."""
+
     class Base:
         def get_field_info(self, field):  # pylint:disable=unused-argument
             return {'type': 'string'}
@@ -24,6 +25,7 @@ def test_exclude_related_choices_non_related_field() -> None:
 
 def test_exclude_related_choices_related_field() -> None:
     """Related fields have their choices temporarily hidden, then class is restored."""
+
     class Base:
         def get_field_info(self, field):
             has_choices = hasattr(field, 'choices')
@@ -42,6 +44,7 @@ def test_exclude_related_choices_related_field() -> None:
 
 def test_exclude_related_choices_restores_class_on_error() -> None:
     """Field's original class is restored even when get_field_info raises an exception."""
+
     class Base:
         def get_field_info(self, field):
             raise RuntimeError('boom')

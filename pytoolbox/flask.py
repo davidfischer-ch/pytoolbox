@@ -1,13 +1,14 @@
 """
 Flask utilities for JSON responses and exception mapping.
 """
+
 from __future__ import annotations
 
-from typing import Final
 import logging
 import uuid
+from typing import Final
 
-from flask import abort, Response
+from flask import Response, abort
 from werkzeug.exceptions import HTTPException
 
 from .private import ObjectId
@@ -20,7 +21,7 @@ STATUS_TO_EXCEPTION: Final[dict[int, type[Exception]]] = {
     400: TypeError,
     404: IndexError,
     415: ValueError,
-    501: NotImplementedError
+    501: NotImplementedError,
 }
 
 
@@ -38,7 +39,8 @@ def json_response(status: int, value: object = None, include_properties: bool = 
     response = Response(
         response=object_to_json({'status': status, 'value': value}, include_properties),
         status=status,
-        mimetype='application/json')
+        mimetype='application/json',
+    )
     response.status_code = status
     return response
 

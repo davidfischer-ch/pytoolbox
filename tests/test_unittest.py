@@ -4,12 +4,12 @@ import unittest
 
 from pytoolbox.types import Missing
 from pytoolbox.unittest import (
+    FilterByTagsMixin,
+    MissingMixin,
+    SnakeCaseMixin,
     asserts,
     skip_if_missing,
     with_tags,
-    FilterByTagsMixin,
-    MissingMixin,
-    SnakeCaseMixin
 )
 
 
@@ -59,7 +59,6 @@ def test_skip_if_missing_skipped() -> None:
 
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
-
     def test_fast_class_skip(self) -> None:
 
         class TestCaseWithTags(FilterByTagsMixin):
@@ -102,7 +101,7 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
                     TestCaseWithTags.get_required_tags(method),
                     TestCaseWithTags.get_extra_tags(),
                     TestCaseWithTags.get_only_tags(),
-                    TestCaseWithTags.get_skip_tags()
+                    TestCaseWithTags.get_skip_tags(),
                 )
                 msg.append([counter, name, TestCaseWithTags.should_run(*args), args])
             assert skipped == skip, msg
@@ -116,9 +115,15 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
         test(7, True, extra_tags={'r'}, skip_tags={'TestCaseWithTags'})
         test(8, False, extra_tags={'r'}, skip_tags={'TestCaseWithTags.a'})
         test(9, False, extra_tags={'r'}, skip_tags={'TestCaseWithTags.test_1'})
-        test(10, True, extra_tags={'r'}, skip_tags={
-            'TestCaseWithTags.test_1', 'TestCaseWithTags.test_2'
-        })
+        test(
+            10,
+            True,
+            extra_tags={'r'},
+            skip_tags={
+                'TestCaseWithTags.test_1',
+                'TestCaseWithTags.test_2',
+            },
+        )
         test(11, False, extra_tags={'r'}, skip_tags={'AnotherTestCase'})
 
     @with_tags(required='should-not-run')
@@ -127,7 +132,6 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
 
 
 class TestMissingAndSnakeCaseMixins(MissingMixin, SnakeCaseMixin, unittest.TestCase):
-
     def test_core(self) -> None:
         self.equal(10, 10)
         with self.raises(AssertionError):

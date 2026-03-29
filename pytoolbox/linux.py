@@ -1,13 +1,14 @@
 """
 GNU/Linux-specific helpers (kernel configuration, etc.).
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Final
 import configparser
 import os
 import re
+from pathlib import Path
+from typing import Final
 
 __all__ = ['CONFIG_PREFIX', 'DRIVER_IN_KERNEL', 'DRIVER_HAS_MODULE', 'get_kernel_config']
 

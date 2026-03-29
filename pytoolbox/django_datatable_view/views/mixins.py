@@ -3,6 +3,7 @@ Mix-ins for building your own
 `Django Datatable View <https://github.com/pivotal-energy-solutions/django-datatable-view>`_
 powered views.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -32,7 +33,8 @@ class MultiTablesMixin:
             (
                 name,
                 label,
-                (default_table if name == self.multi_default else self.get_datatable(name=name)))
+                (default_table if name == self.multi_default else self.get_datatable(name=name)),
+            )
             for name, label in self.multi_datatables
         ]
         return context
@@ -51,7 +53,8 @@ class MultiTablesMixin:
         return self.datatable_structure_class(
             self.get_ajax_url(name=name),
             options,
-            model=self.get_model())
+            model=self.get_model(),
+        )
 
     def get_queryset(self, name: str | None = None) -> QuerySet:
         """Return the queryset for the given datatable name."""

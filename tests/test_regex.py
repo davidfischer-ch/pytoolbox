@@ -3,46 +3,48 @@ from __future__ import annotations
 import re
 
 from pytest import mark, raises
+
 from pytoolbox import exceptions, regex
 
 
-@mark.parametrize('mapping, expected', [
-    (
+@mark.parametrize(
+    'mapping, expected',
+    [
         (
-            ('money', 'EUR'),
-            ('amount', '110')
+            (
+                ('money', 'EUR'),
+                ('amount', '110'),
+            ),
+            'Our price 110 EUR',
         ),
-        'Our price 110 EUR'
-    ),
-    (
         (
-            ('money', 'XMR'),
-            ('amount', '35')
+            (
+                ('money', 'XMR'),
+                ('amount', '35'),
+            ),
+            'Our price 35 XMR',
         ),
-        'Our price 35 XMR'
-    ),
-    (
         (
-            ('amount', '35'),
-            ('money', 'XMR')
+            (
+                ('amount', '35'),
+                ('money', 'XMR'),
+            ),
+            # Known issue here (mutating string not in reverse order)
+            'Our price 35 CXMR',
         ),
-        # Known issue here (mutating string not in reverse order)
-        'Our price 35 CXMR'
-    ),
-    (
         (
-            ('money', 'EUR'),
-            ('amount', None)
+            (
+                ('money', 'EUR'),
+                ('amount', None),
+            ),
+            'Our price 100 EUR',
         ),
-        'Our price 100 EUR'
-    ),
-    (
         (
-            ('amount', '1000'),
+            (('amount', '1000'),),
+            'Our price 1000 CHF',
         ),
-        'Our price 1000 CHF'
-    )
-])
+    ],
+)
 def test_group_replace(mapping, expected: str) -> None:
     pattern = re.compile(r'(?P<amount>\d+) (?P<money>[A-Z]{3})')
     text = 'Our price 100 CHF'

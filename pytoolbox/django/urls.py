@@ -1,6 +1,7 @@
 """
 Some utilities related to the URLs.
 """
+
 from __future__ import annotations
 
 try:
@@ -23,7 +24,5 @@ UUID_PK: Final[str] = f'(?P<pk>{UUID_REGEX})'
 def get_named_patterns() -> Generator[tuple[str, str]]:
     """Return a generator containing (pattern name, pattern) tuples."""
     return (
-        (k, v[0][0][0])
-        for k, v in get_resolver(None).reverse_dict.items()
-        if isinstance(k, str)
+        (k, v[0][0][0]) for k, v in get_resolver(None).reverse_dict.items() if isinstance(k, str)
     )

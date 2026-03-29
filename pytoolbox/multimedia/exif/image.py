@@ -1,6 +1,7 @@
 """
 EXIF image metadata including orientation and dimensions.
 """
+
 from __future__ import annotations
 
 import enum
@@ -12,6 +13,7 @@ __all__ = ['Image', 'Orientation']
 
 class Orientation(enum.Enum):
     """EXIF image orientation values as defined in the TIFF specification."""
+
     NORMAL = 1
     HOR_FLIP = 2
     ROT_180_CCW = 3
@@ -34,7 +36,7 @@ class Image(TagSet):
         # 5 = Mirror horizontal and rotate 270 CW
         Orientation.ROT_90_CW: -90,
         # 7 = Mirror horizontal and rotate 90 CW
-        Orientation.ROT_270_CW: -270
+        Orientation.ROT_270_CW: -270,
     }
 
     def __init__(self, metadata: object, orientation: Orientation | int | None = None) -> None:

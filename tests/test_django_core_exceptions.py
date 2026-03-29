@@ -19,10 +19,12 @@ def test_has_code() -> None:
     assert exceptions.has_code(ValidationError('yo', code='bad'), 'bad')
     assert exceptions.has_code(
         ValidationError({'__all__': ValidationError('yo', code='bad')}),
-        'bad')
+        'bad',
+    )
     assert exceptions.has_code(
         ValidationError([ValidationError('yo', code='bad')]),
-        'bad')
+        'bad',
+    )
 
 
 def test_iter_validation_errors() -> None:

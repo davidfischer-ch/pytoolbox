@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import pytest
+
 from pytoolbox.private import _parse_kwargs_string
 
 
 def test_parse_kwargs_string() -> None:
     assert _parse_kwargs_string('year=1950 ;  style=jazz', year=int, style=str) == {
         'year': 1950,
-        'style': 'jazz'
+        'style': 'jazz',
     }
     assert _parse_kwargs_string(' like_it=True ', like_it=lambda x: x == 'True') == {
-        'like_it': True
+        'like_it': True,
     }
 
 

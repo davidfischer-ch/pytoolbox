@@ -1,11 +1,12 @@
 """
 High-level EXIF metadata access wrapping GExiv2.
 """
+
 from __future__ import annotations
 
+import datetime
 from collections.abc import Iterable
 from pathlib import Path
-import datetime
 
 from pytoolbox import exceptions
 from pytoolbox.itertools import chain
@@ -31,11 +32,13 @@ class Metadata:
         path: Path | None = None,
         buf: bytes | None = None,
         orientation: image.Orientation | int | None = None,
-        gexiv2_version: str = '0.10'
+        gexiv2_version: str = '0.10',
     ) -> None:
         import gi
+
         gi.require_version('GExiv2', gexiv2_version)
         from gi.repository import GExiv2  # type: ignore[attr-defined]
+
         self.path = path
         self.exiv2 = GExiv2.Metadata()
         if buf:
@@ -66,7 +69,7 @@ class Metadata:
 
     def get_date(
         self,
-        keys: Iterable[str] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime')
+        keys: Iterable[str] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'),
     ) -> datetime.datetime | None:
         """Return the first valid date found among the given EXIF keys."""
         for key in chain(keys):

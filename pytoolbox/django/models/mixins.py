@@ -21,34 +21,40 @@ Order for these does not matter:
 - ReloadMixin
 - SaveInstanceFilesMixin
 """
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import collections
 import itertools
 import re
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError, models as dj_models
+from django.db import DatabaseError
+from django.db import models as dj_models
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 from django.utils.functional import cached_property
 
+from pytoolbox import itertools as py_itertools  # pylint:disable=reimported
+from pytoolbox import module
 from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
-from pytoolbox import itertools as py_itertools, module  # pylint:disable=reimported
+
 from . import utils
 
 try:
     _ModelNotUpdated: type[Exception] = dj_models.Model.NotUpdated
 except AttributeError:
+
     class _ModelNotUpdated(Exception):  # type: ignore[no-redef]
         """Sentinel: Django < 6 does not raise Model.NotUpdated."""
 
+
 if TYPE_CHECKING:
     from django.db import models
-    from django.db.models import options as meta_module
     from django.db.models import QuerySet
+    from django.db.models import options as meta_module
 
 _all = module.All(globals())
 
@@ -58,6 +64,7 @@ class AlwaysUpdateFieldsMixin:
     Ensure fields listed in the attribute ``self.always_update_fields`` are always updated by
     ``self.save()``. Makes the usage of ``self.save(update_fields=...)`` cleaner.
     """
+
     def save(self, *args: object, **kwargs: object) -> None:
         """Add ``always_update_fields`` to ``update_fields`` before saving."""
         update_fields = kwargs.get('update_fields')
@@ -89,6 +96,7 @@ class AutoRemovePKFromUpdateFieldsMixin:
     duplicate the model by saving it with a new primary key. So the mix-in let Django save with its
     own default options for save.
     """
+
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         self.previous_pk = self.pk
@@ -126,6 +134,7 @@ class AutoUpdateFieldsMixin:
     * Filter the primary key from the list of fields to update - AutoRemovePKFromUpdateFieldsMixin
       after this mix-in.
     """
+
     default_force_update = False
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -171,6 +180,7 @@ class BetterUniquenessErrorsMixin:
     Implementation: Set `unique_from_integrity_error` to True. And subclass
     :class:`pytoolbox.django.views.mixins.ValidationErrorsMixin` in your edit views.
     """
+
     unique_from_integrity_error = True
     unique_together_hide_fields = ()
 
@@ -183,8 +193,7 @@ class BetterUniquenessErrorsMixin:
                 match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', ex.args[0])
                 if match:
                     fields = {
-                        f.strip().replace('_id', '')
-                        for f in match.groupdict()['fields'].split(',')
+                        f.strip().replace('_id', '') for f in match.groupdict()['fields'].split(',')
                     }
                     if fields in (set(u) for u in self._meta.unique_together):
                         fields = sorted(fields - set(self.unique_together_hide_fields))
@@ -211,9 +220,9 @@ class BetterUniquenessErrorsMixin:
                     fields = [f for f in error.params['unique_check'] if f not in hidden_fields]
                     if fields:
                         error = self.unique_error_message(type(self), fields)
-                        filtered_errors_by_field[
-                            fields[0] if len(fields) == 1 else field
-                        ].append(error)
+                        filtered_errors_by_field[fields[0] if len(fields) == 1 else field].append(
+                            error
+                        )
                 else:
                     filtered_errors_by_field[field].append(error)
         return filtered_errors_by_field
@@ -225,6 +234,7 @@ class CallFieldsPreSaveMixin:
 
     For more information see: https://code.djangoproject.com/ticket/25363
     """
+
     def save(self, *args: object, **kwargs: object) -> None:
         """Call each non-PK field's :meth:`pre_save` before saving."""
         non_pk_fields = (f for f in self._meta.local_concrete_fields if not f.primary_key)
@@ -237,6 +247,7 @@ class PublicMetaMixin:
     """
     Make `_meta` public in templates through a class method called `meta`.
     """
+
     @classmethod
     def meta(cls) -> meta_module.Options:
         """Return the model's ``_meta`` options for use in templates."""
@@ -270,6 +281,7 @@ class SaveInstanceFilesMixin:
     Overrides saves() with a method that saves the instance first and then the instance's file
     fields this ensure that the upload_path method will get a valid instance id / private key.
     """
+
     def save(self, *args: object, **kwargs: object) -> None:
         """Save the instance before file fields so ``upload_to`` gets a valid PK."""
         saved_fields = {}
@@ -291,13 +303,13 @@ class UpdatePreconditionsMixin:
     precondition_error_class = exceptions.DatabaseUpdatePreconditionsError
 
     def apply_preconditions(
-            self,
-            base_qs: QuerySet,
-            using: str,
-            pk_val: object,
-            values: list,
-            update_fields: set | None,
-            force_update: bool
+        self,
+        base_qs: QuerySet,
+        using: str,
+        pk_val: object,
+        values: list,
+        update_fields: set | None,
+        force_update: bool,
     ) -> tuple[QuerySet, str, object, list, set | None, bool]:
         """Apply stored precondition filters to the update query set."""
         if hasattr(self, '_preconditions'):
@@ -329,13 +341,13 @@ class UpdatePreconditionsMixin:
             raise
 
     def _do_update(
-            self,
-            base_qs: QuerySet,
-            using: str,
-            pk_val: object,
-            values: list,
-            update_fields: set | None,
-            force_update: bool
+        self,
+        base_qs: QuerySet,
+        using: str,
+        pk_val: object,
+        values: list,
+        update_fields: set | None,
+        force_update: bool,
     ) -> bool:
         # FIXME _do_update is called once for each model in the inheritance hierarchy: Handle this!
         args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
@@ -358,7 +370,8 @@ class StateTransitionEventsMixin:
             instance=self,
             previous_state=self.previous_state,
             args=args,
-            kwargs=kwargs)
+            kwargs=kwargs,
+        )
 
     def save(self, *args: object, **kwargs: object) -> None:
         """Save and fire post-state-transition signal if state was updated."""
@@ -403,9 +416,8 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         Add state precondition if state will be saved and state is not enforced by preconditions.
         """
         args, kwargs, _ = super().pop_preconditions(*args, **kwargs)
-        if (
-            kwargs.pop('check_state', self.check_state)
-            and 'state' in kwargs.get('update_fields', ['state'])
+        if kwargs.pop('check_state', self.check_state) and 'state' in kwargs.get(
+            'update_fields', ['state']
         ):
             pre_excludes, pre_filters = self._preconditions
             if not any(f.startswith('state') for f in itertools.chain(pre_excludes, pre_filters)):
@@ -442,7 +454,7 @@ class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
         """Return kwargs that skip uniqueness and relation field validation."""
         return {
             'exclude': [f.name for f in self._meta.concrete_fields if f.is_relation],
-            'validate_unique': False
+            'validate_unique': False,
         }
 
 

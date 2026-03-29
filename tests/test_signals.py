@@ -5,12 +5,12 @@ import signal
 import unittest
 
 import pytest
+
 from pytoolbox import exceptions, signals
 
 
 # TODO Convert to simple pytest tests
 class TestSignals(unittest.TestCase):
-
     def append_list_callback(self, number) -> None:
         self.flag = True
         self.list.append(number)
@@ -22,7 +22,7 @@ class TestSignals(unittest.TestCase):
         self.flag = True
 
     def set_flag_callback(self, *args, **kwargs) -> None:
-        assert args == (None, )
+        assert args == (None,)
         assert not kwargs
         self.flag = True
 
@@ -73,13 +73,19 @@ class TestSignals(unittest.TestCase):
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
         with pytest.raises(exceptions.MultipleSignalHandlersError):
             signals.register_callback(
-                signal.SIGTERM, self.set_flag_callback, append=False, args=[None])
+                signal.SIGTERM,
+                self.set_flag_callback,
+                append=False,
+                args=[None],
+            )
         os.kill(os.getpid(), signal.SIGTERM)
 
     def test_handler_appends_existing_function_handler(self) -> None:
         """A pre-existing function handler is preserved when register_handler is called."""
+
         def existing_handler(signum, frame):  # pylint:disable=unused-argument
             pass
+
         signal.signal(signal.SIGTERM, existing_handler)
         signals.register_handler(signal.SIGTERM, self.set_flag_handler)
         assert existing_handler in signals.handlers_by_signal[signal.SIGTERM]
@@ -88,6 +94,7 @@ class TestSignals(unittest.TestCase):
 
     def test_handler_error_propagation(self) -> None:
         """Exceptions from signal handlers are collected and re-raised as RuntimeError."""
+
         def failing_handler(signum, frame):  # pylint:disable=unused-argument
             raise ValueError('handler failed')
 

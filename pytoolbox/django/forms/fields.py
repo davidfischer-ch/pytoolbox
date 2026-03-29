@@ -1,6 +1,7 @@
 """
 Extra fields for your forms.
 """
+
 from __future__ import annotations
 
 import copy
@@ -23,4 +24,5 @@ class StripCharField(forms.RegexField):
             r'\S+',
             max_length=self.max_length,
             widget=forms.TextInput(attrs),
-            **kwargs)
+            **kwargs,
+        )

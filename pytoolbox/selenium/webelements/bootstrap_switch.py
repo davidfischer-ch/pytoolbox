@@ -2,9 +2,10 @@
 """
 Web element mixin for Bootstrap Switch components.
 """
+
 from __future__ import annotations
 
-from pytoolbox.selenium import common, Keys
+from pytoolbox.selenium import Keys, common
 
 __all__ = ['BootstrapSwitchMixin']
 

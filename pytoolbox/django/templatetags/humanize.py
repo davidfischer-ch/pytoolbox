@@ -1,4 +1,5 @@
 """Humanize-related template filters."""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -19,11 +20,13 @@ def duration(value: dt.timedelta | None, autoescape: bool = True) -> str:
         return string_if_invalid
     t = timedelta_to_time(value)
     h, m, s = t.hour, t.minute, t.second
-    return ' '.join([
-        (f'{h} ' + humanize.pluralize(h, _('hour'), _('hours'))) if h else '',
-        (f'{m} ' + humanize.pluralize(m, _('minute'), _('minutes'))) if m else '',
-        f'{s} ' + humanize.pluralize(s, _('second'), _('seconds'))
-    ])
+    return ' '.join(
+        [
+            (f'{h} ' + humanize.pluralize(h, _('hour'), _('hours'))) if h else '',
+            (f'{m} ' + humanize.pluralize(m, _('minute'), _('minutes'))) if m else '',
+            f'{s} ' + humanize.pluralize(s, _('second'), _('seconds')),
+        ]
+    )
 
 
 @register.filter(is_safe=True)
@@ -43,10 +46,14 @@ def naturalbitrate(bps: float | None, kwargs_string: str | None = None) -> str:
     """
     if bps in (None, string_if_invalid):
         return string_if_invalid
-    return humanize.naturalbitrate(bps, **_parse_kwargs_string(
-        kwargs_string,
-        format=str,
-        scale=int))
+    return humanize.naturalbitrate(
+        bps,
+        **_parse_kwargs_string(
+            kwargs_string,
+            format=str,
+            scale=int,
+        ),
+    )
 
 
 @register.filter(is_safe=True)
@@ -67,8 +74,12 @@ def naturalfilesize(the_bytes: float | None, kwargs_string: str | None = None) -
     """
     if the_bytes in (None, string_if_invalid):
         return string_if_invalid
-    return humanize.naturalfilesize(the_bytes, **_parse_kwargs_string(
-        kwargs_string,
-        format=str,
-        scale=int,
-        system=str))
+    return humanize.naturalfilesize(
+        the_bytes,
+        **_parse_kwargs_string(
+            kwargs_string,
+            format=str,
+            scale=int,
+            system=str,
+        ),
+    )

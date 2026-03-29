@@ -1,6 +1,7 @@
 """
 SMPTE 2022-1 FEC packet parsing, creation, and XOR-based computation.
 """
+
 from __future__ import annotations
 
 import struct
@@ -119,7 +120,7 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
     ER_LD = 'SMPTE 2022-1 Header : The following limitation failed : L*D <= 256'
     ER_L = 'SMPTE 2022-1 Header : The following limitation failed : 1 <= L <= 50'
     ER_D = 'SMPTE 2022-1 Header : The following limitation failed : 4 <= D <= 50'
-    ER_PAYLOAD = "FEC packet must have a payload"
+    ER_PAYLOAD = 'FEC packet must have a payload'
     ER_ALGORITHM = 'SMPTE 2022-1 Header : Only XOR FEC algorithm is handled'
     ER_VALID_MP2T = 'One of the packets is an invalid RTP packet (+expected MPEG2-TS payload)'
     ER_OFFSET = '(packets) Computed offset is out of range [1..255]'
@@ -129,13 +130,13 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
 
     HEADER_LENGTH = 16
     E_MASK = 0x80
-    PT_MASK = 0x7f
+    PT_MASK = 0x7F
     N_MASK = 0x80
     D_MASK = 0x40
     T_MASK = 0x38
     T_SHIFT = 3
     I_MASK = 0x07
-    SNBL_MASK = 0xffff
+    SNBL_MASK = 0xFFFF
     SNBE_SHIFT = 16
 
     DIRECTION_NAMES = ('COL', 'ROW')
@@ -298,15 +299,16 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
         struct.pack_into(b'!H', header, 0, self.snbase & self.SNBL_MASK)
         struct.pack_into(b'!H', header, 2, self.length_recovery)
         struct.pack_into(b'!I', header, 4, self.mask)
-        header[4] = (
-            (self.payload_type_recovery & self.PT_MASK)
-            + (self.E_MASK if self.extended else 0))
+        header[4] = (self.payload_type_recovery & self.PT_MASK) + (
+            self.E_MASK if self.extended else 0
+        )
         struct.pack_into(b'!I', header, 8, self.timestamp_recovery)
         header[12] = (
             (self.N_MASK if self.n else 0)
             + (self.D_MASK if self.direction else 0)
             + ((self.algorithm << self.T_SHIFT) & self.T_MASK)
-            + (self.index & self.I_MASK))
+            + (self.index & self.I_MASK)
+        )
         header[13] = self.offset
         header[14] = self.na
         header[15] = self.snbase >> self.SNBE_SHIFT
@@ -359,8 +361,8 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
             # if self.mask != 0:
             #     return
             self.timestamp_recovery = (
-                ((packet.payload[8] * 256 + packet.payload[9]) * 256 + packet.payload[10]) * 256
-                + packet.payload[11])
+                (packet.payload[8] * 256 + packet.payload[9]) * 256 + packet.payload[10]
+            ) * 256 + packet.payload[11]
             self.n = (packet.payload[12] & self.N_MASK) != 0
             # if self.n:
             #     return
@@ -375,19 +377,19 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
             self.na = packet.payload[14]
             self.snbase += packet.payload[15] << 16
             # And finally ... The payload !
-            self.payload_recovery = packet.payload[self.HEADER_LENGTH:]
+            self.payload_recovery = packet.payload[self.HEADER_LENGTH :]
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     @classmethod
     def compute(  # pylint:disable=invalid-name
-            cls,
-            sequence: int,
-            algorithm: int,
-            direction: int,
-            L: int,  # noqa: N803
-            D: int,  # noqa: N803
-            packets: list[RtpPacket]
+        cls,
+        sequence: int,
+        algorithm: int,
+        direction: int,
+        L: int,  # noqa: N803
+        D: int,  # noqa: N803
+        packets: list[RtpPacket],
     ) -> FecPacket:
         """
         Generate FEC packet's field by applying FEC algorithm to input packets.
@@ -540,7 +542,6 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
 
         # Compute FEC packet's fields based on input packets
         for packet in packets:
-
             # Update (...) recovery fields by xor'ing corresponding fields of all packets
             fec.payload_type_recovery ^= packet.payload_type
             fec.timestamp_recovery ^= packet.timestamp
@@ -668,12 +669,16 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
         """
         return (
             isinstance(other, type(self))
-            and self.sequence == other.sequence and self.algorithm == other.algorithm
-            and self.direction == other.direction and self.snbase == other.snbase
-            and self.offset == other.offset and self.na == other.na
+            and self.sequence == other.sequence
+            and self.algorithm == other.algorithm
+            and self.direction == other.direction
+            and self.snbase == other.snbase
+            and self.offset == other.offset
+            and self.na == other.na
             and self.payload_type_recovery == other.payload_type_recovery
             and self.length_recovery == other.length_recovery
-            and self.payload_recovery == other.payload_recovery)
+            and self.payload_recovery == other.payload_recovery
+        )
 
     def __str__(self) -> str:
         """

@@ -80,7 +80,8 @@ def test_choice_valid_input() -> None:
         result = console.choice(
             'Favorite color?',
             choices=['blue', 'red'],
-            stream=io.StringIO())
+            stream=io.StringIO(),
+        )
     assert result == 'blue'
 
 
@@ -98,7 +99,8 @@ def test_choice_invalid_then_valid() -> None:
         result = console.choice(
             'Color?',
             choices=['blue', 'red'],
-            stream=stream)
+            stream=stream,
+        )
     assert result == 'red'
     assert 'Please choose between' in stream.getvalue()
 
@@ -137,7 +139,8 @@ def test_progress_bar_writes_correct_bar() -> None:
         total=10,
         size=10,
         template='[{done}{todo}]',
-        stream=stream)
+        stream=stream,
+    )
     assert stream.getvalue() == '[=====     ]'
 
 
@@ -149,7 +152,8 @@ def test_progress_bar_zero_total() -> None:
         current=0,
         total=0,
         template='[{done}{todo}]',
-        stream=stream)
+        stream=stream,
+    )
     assert stream.getvalue() == ''
 
 

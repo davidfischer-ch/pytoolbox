@@ -1,11 +1,12 @@
 """
 State machine enumerations with transition validation.
 """
+
 from __future__ import annotations
 
-from typing import Any
 import collections
 import inspect
+from typing import Any
 
 __all__ = ['StateEnumMetaclass', 'StateEnumMergeMetaclass', 'StateEnum']
 
@@ -65,10 +66,10 @@ class StateEnum(metaclass=StateEnumMetaclass):
 
     @classmethod
     def get_transit_from(
-            cls,
-            state: str,
-            *,
-            auto_inverse: bool = False
+        cls,
+        state: str,
+        *,
+        auto_inverse: bool = False,
     ) -> frozenset[str] | tuple[frozenset[str], bool]:
         """
         Return a set with the states having a transition to given `state`.

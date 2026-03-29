@@ -42,7 +42,8 @@ def test_setup_logging_colorize_only_on_console_handler() -> None:
         'test_colorize_console',
         reset=True,
         console=True,
-        colorize=True)
+        colorize=True,
+    )
     console_handler = log.handlers[0]
     assert isinstance(console_handler.formatter, logging.ColorizeFormatter)
 
@@ -53,7 +54,8 @@ def test_setup_logging_file_handler_not_colorized(tmp_path) -> None:
         reset=True,
         path=tmp_path / 'test.log',
         console=True,
-        colorize=True)
+        colorize=True,
+    )
     file_handler = log.handlers[0]
     console_handler = log.handlers[1]
     assert not isinstance(file_handler.formatter, logging.ColorizeFormatter)
@@ -66,7 +68,8 @@ def test_setup_logging_child_logger_gets_colorized(tmp_path) -> None:
         reset=True,
         path=tmp_path / 'test.log',
         console=True,
-        colorize=True)
+        colorize=True,
+    )
     child = stdlib_logging.getLogger('test_parent.child')
     child.setLevel(stdlib_logging.DEBUG)
     child.warning('colored warning')
@@ -85,7 +88,8 @@ def test_colorize_formatter_warning() -> None:
         lineno=0,
         msg='Attention',
         args=(),
-        exc_info=None)
+        exc_info=None,
+    )
     result = formatter.format(record)
     assert '\x1b[33m' in result
     assert 'Attention' in result
@@ -101,7 +105,8 @@ def test_colorize_formatter_error() -> None:
         lineno=0,
         msg='Boom',
         args=(),
-        exc_info=None)
+        exc_info=None,
+    )
     result = formatter.format(record)
     assert '\x1b[31m' in result
     assert 'Boom' in result
@@ -116,7 +121,8 @@ def test_colorize_formatter_no_color_for_unknown_level() -> None:
         lineno=0,
         msg='Fatal',
         args=(),
-        exc_info=None)
+        exc_info=None,
+    )
     result = formatter.format(record)
     assert '\x1b[' not in result
     assert 'Fatal' in result
@@ -124,7 +130,8 @@ def test_colorize_formatter_no_color_for_unknown_level() -> None:
 
 def test_colorize_formatter_custom_color_by_level() -> None:
     formatter = logging.ColorizeFormatter(
-        color_by_level={stdlib_logging.CRITICAL: 'magenta'})
+        color_by_level={stdlib_logging.CRITICAL: 'magenta'},
+    )
     record = stdlib_logging.LogRecord(
         name='test',
         level=stdlib_logging.CRITICAL,
@@ -132,7 +139,8 @@ def test_colorize_formatter_custom_color_by_level() -> None:
         lineno=0,
         msg='Fatal',
         args=(),
-        exc_info=None)
+        exc_info=None,
+    )
     result = formatter.format(record)
     assert '\x1b[35m' in result
 
@@ -146,6 +154,7 @@ def test_colorize_formatter_does_not_mutate_record() -> None:
         lineno=0,
         msg='Keep me clean',
         args=(),
-        exc_info=None)
+        exc_info=None,
+    )
     formatter.format(record)
     assert record.msg == 'Keep me clean'

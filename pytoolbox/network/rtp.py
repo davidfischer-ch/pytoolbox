@@ -1,6 +1,7 @@
 """
 Real-time Transport Protocol (RTP) packet parsing and creation.
 """
+
 from __future__ import annotations
 
 import struct
@@ -59,18 +60,18 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
     ER_PAYLOAD = 'RTP packet must have a payload'
 
     HEADER_LENGTH = 12
-    V_MASK = 0xc0
+    V_MASK = 0xC0
     V_SHIFT = 6
     P_MASK = 0x20
     X_MASK = 0x10
-    CC_MASK = 0x0f
+    CC_MASK = 0x0F
     M_MASK = 0x80
-    PT_MASK = 0x7f
-    DYNAMIC_PT = 96   # Dynamic payload type
-    MP2T_PT = 33      # MPEG2 TS payload type
+    PT_MASK = 0x7F
+    DYNAMIC_PT = 96  # Dynamic payload type
+    MP2T_PT = 33  # MPEG2 TS payload type
     MP2T_CLK = 90000  # MPEG2 TS clock rate [Hz]
-    S_MASK = 0x0000ffff
-    TS_MASK = 0xffffffff
+    S_MASK = 0x0000FFFF
+    TS_MASK = 0xFFFFFFFF
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -209,10 +210,9 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
             ((self.version << self.V_SHIFT) & self.V_MASK)
             + (self.P_MASK if self.padding else 0)
             + (self.X_MASK if self.extension else 0)
-            + (cc & self.CC_MASK))
-        header[1] = (
-            (self.M_MASK if self.marker else 0)
-            + (self.payload_type & self.PT_MASK))
+            + (cc & self.CC_MASK)
+        )
+        header[1] = (self.M_MASK if self.marker else 0) + (self.payload_type & self.PT_MASK)
         struct.pack_into(b'!H', header, 2, self.sequence)
         struct.pack_into(b'!I', header, 4, self.timestamp)
         struct.pack_into(b'!I', header, 8, self.ssrc)
@@ -356,7 +356,8 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
         for _ in range(cc):
             self.csrc.append(
                 ((data[offset] * 256 + data[offset + 1]) * 256 + data[offset + 2]) * 256
-                + data[offset + 3])
+                + data[offset + 3],
+            )
             offset += 4
             # FIXME In session.c of VLC they store per-source statistics in a rtp_source_t struct
 
@@ -372,24 +373,24 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-#    public int compareTo(RtpPacket pPacket):
-#        BEFORE = -1
-#        EQUAL   = 0
-#        AFTER   = 1
+    #    public int compareTo(RtpPacket pPacket):
+    #        BEFORE = -1
+    #        EQUAL   = 0
+    #        AFTER   = 1
 
-#        # This optimization is usually worthwhile, and can always be added
-#        if (this == pPacket) return EQUAL
-#        if (this.sequence < pPacket.sequence) return BEFORE
-#        if (this.sequence > pPacket.sequence) return AFTER
-#        return EQUAL
+    #        # This optimization is usually worthwhile, and can always be added
+    #        if (this == pPacket) return EQUAL
+    #        if (this.sequence < pPacket.sequence) return BEFORE
+    #        if (this.sequence > pPacket.sequence) return AFTER
+    #        return EQUAL
 
     @classmethod
     def create(
-            cls,
-            sequence: int,
-            timestamp: int,
-            payload_type: int,
-            payload: bytearray | str
+        cls,
+        sequence: int,
+        timestamp: int,
+        payload_type: int,
+        payload: bytearray | str,
     ) -> RtpPacket:
         """
         Create a valid RTP packet with a given payload.
@@ -436,7 +437,8 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
             and self.sequence == other.sequence
             and self.timestamp == other.timestamp
             and self.payload_type == other.payload_type
-            and self.payload == other.payload)
+            and self.payload == other.payload
+        )
 
     def __str__(self) -> str:
         """

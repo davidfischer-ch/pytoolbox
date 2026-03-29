@@ -1,12 +1,13 @@
 """
 Collection utilities and data structures.
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Any
 import collections
 import math
+from collections.abc import Iterable
+from typing import Any
 
 from . import module
 from .datetime import TimeValue, total_seconds
@@ -22,7 +23,7 @@ class EventsTable:
         sparse_events_table: dict[int, str],
         time_range: int,
         time_speedup: int | float,
-        sleep_factor: float = 1.0
+        sleep_factor: float = 1.0,
     ) -> None:
         self.time_range = time_range
         self.time_speedup = time_speedup
@@ -35,10 +36,10 @@ class EventsTable:
             previous_event = event
 
     def get(
-            self,
-            time: TimeValue,
-            time_speedup: int | float | None = None,
-            default_value: str | None = None
+        self,
+        time: TimeValue,
+        time_speedup: int | float | None = None,
+        default_value: str | None = None,
     ) -> tuple[int, str | None]:
         """Return the event index and value for a given time."""
         # """
@@ -67,7 +68,7 @@ class EventsTable:
         self,
         time: TimeValue,
         time_speedup: int | float | None = None,
-        sleep_factor: float | None = None
+        sleep_factor: float | None = None,
     ) -> int:
         """
         Return required sleep time to wait for next scheduled event.
@@ -181,6 +182,7 @@ def flatten_dict(the_dict: dict, key_template: str = '{0}.{1}') -> dict:
     >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}')
     {'c-b-a': ['d', 'e'], 'f-a': 'g'}
     """
+
     def expand_item(key: str, value: Any) -> list[tuple[str, Any]]:
         if isinstance(value, dict):
             return [
@@ -188,6 +190,7 @@ def flatten_dict(the_dict: dict, key_template: str = '{0}.{1}') -> dict:
                 for k, v in flatten_dict(value, key_template).items()
             ]
         return [(key, value)]
+
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
@@ -215,7 +218,7 @@ def merge_dicts(*dicts: dict) -> dict:
 def swap_dict_of_values(
     the_dict: dict,
     type: type | None = set,  # pylint:disable=redefined-builtin
-    method: Any = set.add
+    method: Any = set.add,
 ) -> dict:
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
@@ -262,7 +265,7 @@ def swap_dict_of_values(
 def to_dict_of_values(
     iterable: Iterable[tuple[Any, Any]],
     type: type = list,  # pylint:disable=redefined-builtin
-    method: Any = list.append
+    method: Any = list.append,
 ) -> collections.defaultdict:
     """
     Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as
@@ -336,7 +339,7 @@ def window(values: list, index: int, delta: int) -> tuple[list, int, int]:
     elif right >= length:
         left, right = left - right + length - 1, length - 1
     left, right = max(left, 0), min(right, length - 1)
-    return values[left:right + 1], left, right
+    return values[left : right + 1], left, right
 
 
 __all__ = _all.diff(globals())

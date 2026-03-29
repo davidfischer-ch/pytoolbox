@@ -1,15 +1,16 @@
 """
 Console input, output, and interactive shell utilities.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, TextIO
 import atexit
 import code
 import os
 import shutil
 import sys
+from pathlib import Path
+from typing import Any, TextIO
 
 __all__ = [
     'confirm',
@@ -18,7 +19,7 @@ __all__ = [
     'progress_bar',
     'shell',
     'set_columns',
-    'toggle_colors'
+    'toggle_colors',
 ]
 
 
@@ -29,7 +30,7 @@ def confirm(
     question: str = 'Confirm',
     *,
     default: bool = False,
-    stream: TextIO = sys.stdout
+    stream: TextIO = sys.stdout,
 ) -> bool:
     """
     Return True if user confirm the action, else False. `default` if user only press ENTER.
@@ -47,7 +48,7 @@ def confirm(
         Really, I am sure that is false ? [y/N]: y
         True
     """
-    question = f"{question} ? [{'Y/n' if default else 'y/N'}]: "
+    question = f'{question} ? [{"Y/n" if default else "y/N"}]: '
     while True:
         stream.write(question)
         stream.flush()
@@ -65,7 +66,7 @@ def choice(
     question: str = '',
     *,
     choices: list[str] | tuple[str, ...],
-    stream: TextIO = sys.stdout
+    stream: TextIO = sys.stdout,
 ) -> str:
     """
     Prompt the user for a choice and return his/her answer.
@@ -124,7 +125,7 @@ def progress_bar(
     done: str = '=',
     todo: str = ' ',
     template: str = '\r[{done}{todo}]',
-    stream: TextIO = sys.stdout
+    stream: TextIO = sys.stdout,
 ) -> None:
     """
     Show a progress bar. Default `template` string starts with a carriage return to update progress
@@ -156,7 +157,7 @@ def shell(
     *,
     history_filename: Path = Path('~/.python_history'),
     history_length: int = 1000,
-    imported: dict[str, Any] | None = None
+    imported: dict[str, Any] | None = None,
 ) -> None:
     """Execute an interactive shell with auto-completion and history (if available)."""
     # Setup auto-completion and file history, credits to @kyouko-taiga!
@@ -167,8 +168,9 @@ def shell(
         pass
     else:
         import rlcompleter
+
         readline.set_completer(rlcompleter.Completer(imported).complete)
-        readline.parse_and_bind("tab:complete")
+        readline.parse_and_bind('tab:complete')
         try:
             readline.read_history_file(history_filename)
             readline.set_history_length(history_length)
@@ -197,7 +199,7 @@ def toggle_colors(
     *,
     colorize: bool,
     disable_vars: list[str] | tuple[str, ...] = ('NO_COLOR', 'ANSI_COLORS_DISABLED'),
-    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR',)
+    enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR',),
 ) -> dict[str, str]:
     """
     Return `env` (defaulting to `os.environ`) updated to enable or disable colors.
@@ -211,7 +213,8 @@ def toggle_colors(
     Then colors are guaranteed!
     """
     env = {
-        k: v for k, v in (env or os.environ).items()
+        k: v
+        for k, v in (env or os.environ).items()
         if k not in disable_vars and k not in enable_vars
     }
     if colorize:

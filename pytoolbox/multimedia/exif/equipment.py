@@ -1,6 +1,7 @@
 """
 Abstract base class for photographic equipment (cameras and lenses).
 """
+
 from __future__ import annotations
 
 import abc
@@ -41,7 +42,7 @@ class Equipement(metaclass=abc.ABCMeta):
     def model(self) -> str | None:
         """Return the model name with the brand prefix stripped."""
         if self.brand and self._model:
-            return re.sub(fr'{self.brand}\s+', '', self._model, 1, re.IGNORECASE)
+            return re.sub(rf'{self.brand}\s+', '', self._model, 1, re.IGNORECASE)
         return self._model
 
     @property

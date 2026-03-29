@@ -1,10 +1,9 @@
 """
 FFmpeg process wrapper for media encoding with progress tracking.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Final
 import errno
 import itertools
 import re
@@ -12,8 +11,11 @@ import select
 import subprocess
 import sys
 import time
+from pathlib import Path
+from typing import Final
 
-from pytoolbox import filesystem, subprocess as py_subprocess
+from pytoolbox import filesystem
+from pytoolbox import subprocess as py_subprocess
 
 from . import encode, ffprobe  # pylint:disable=unused-import
 
@@ -27,6 +29,7 @@ class FFmpeg:
     Encode a set of input files input to a set of output files and yields statistics about the
     encoding.
     """
+
     executable: Path = Path('ffmpeg')
     ffprobe_class: type[ffprobe.FFprobe] = ffprobe.FFprobe
     statistics_class: type[encode.EncodeStatistics] = encode.EncodeStatistics
@@ -37,7 +40,7 @@ class FFmpeg:
         *,
         chunk_read_timeout: float = 0.5,
         encode_poll_delay: float = 0.5,
-        encoding: str = 'utf-8'
+        encoding: str = 'utf-8',
     ) -> None:
         self.executable = executable or self.executable
         self.chunk_read_timeout = chunk_read_timeout
@@ -50,7 +53,8 @@ class FFmpeg:
         return py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
             stderr=subprocess.PIPE,
-            universal_newlines=True)
+            universal_newlines=True,
+        )
 
     def encode(  # pylint:disable=too-many-locals
         self,
@@ -61,14 +65,18 @@ class FFmpeg:
         create_directories: bool = True,
         process_poll: bool = True,
         process_kwargs: dict | None = None,
-        statistics_kwargs: dict | None = None
+        statistics_kwargs: dict | None = None,
     ) -> object:
         """
         Encode a set of input files input to a set of output files and yields statistics about the
         encoding.
         """
-        arguments, inputs, outputs, in_options, out_options = \
-            self._get_arguments(inputs, outputs, in_options, out_options)
+        arguments, inputs, outputs, in_options, out_options = self._get_arguments(
+            inputs,
+            outputs,
+            in_options,
+            out_options,
+        )
 
         # Create outputs directories
         if create_directories:
@@ -80,7 +88,8 @@ class FFmpeg:
             outputs,
             in_options,
             out_options,
-            **(statistics_kwargs or {}))
+            **(statistics_kwargs or {}),
+        )
 
         process = self._get_process(arguments, **(process_kwargs or {}))
         try:  # pylint:disable=too-many-try-statements
@@ -122,7 +131,7 @@ class FFmpeg:
         inputs: object,
         outputs: object,
         in_options: object = None,
-        out_options: object = None
+        out_options: object = None,
     ) -> tuple[list, list, list, list[str], list[str]]:
         """
         Return the arguments for the encoding process.
@@ -168,6 +177,7 @@ class FFmpeg:
             arguments,
             stderr=subprocess.PIPE,
             close_fds=True,
-            **process_kwargs)
+            **process_kwargs,
+        )
         py_subprocess.make_async(process.stderr)
         return process

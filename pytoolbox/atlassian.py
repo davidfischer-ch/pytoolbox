@@ -1,6 +1,7 @@
 """
 Module related to managing projects with Atlassian's products.
 """
+
 from __future__ import annotations
 
 from collections.abc import ValuesView
@@ -19,7 +20,7 @@ class JiraProject:
         project: str | None = None,
         server: str | None = None,
         auth: tuple[str, str] | None = None,
-        feature_type: str | None = None
+        feature_type: str | None = None,
     ) -> None:
         self.project = project
         self.server = server
@@ -42,12 +43,15 @@ class JiraProject:
         issues: dict[str, Any] = {}
         while count != len(issues):
             count = len(issues)
-            issues.update({
-                i.id: i for i in self.jira.search_issues(
-                    f'project={self.project} AND issuetype="{self.feature_type}"',
-                    startAt=count
-                )
-            })
+            issues.update(
+                {
+                    i.id: i
+                    for i in self.jira.search_issues(
+                        f'project={self.project} AND issuetype="{self.feature_type}"',
+                        startAt=count,
+                    )
+                }
+            )
         return issues.values()
 
     @property

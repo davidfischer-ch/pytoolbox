@@ -1,49 +1,70 @@
 """
 Human-readable representations of quantities (file sizes, bitrates, etc.).
 """
+
 from __future__ import annotations
 
-from typing import Final
 import math
 import re
+from typing import Final
 
 from . import module
 
 _all = module.All(globals())
 
 DEFAULT_BITRATE_UNITS: Final[tuple[str, ...]] = (
-    'bit/s', 'kb/s', 'Mb/s', 'Gb/s', 'Tb/s', 'Pb/s', 'Eb/s', 'Zb/s', 'Yb/s'
+    'bit/s',
+    'kb/s',
+    'Mb/s',
+    'Gb/s',
+    'Tb/s',
+    'Pb/s',
+    'Eb/s',
+    'Zb/s',
+    'Yb/s',
 )
 # pylint:disable=consider-using-namedtuple-or-dataclass)
 DEFAULT_FILESIZE_ARGS: Final[dict[str, dict[str, int | list[str] | tuple[str, ...]]]] = {
     'gnu': {'base': 1000, 'units': ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')},
     'nist': {'base': 1024, 'units': ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')},
-    'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')}
+    'si': {'base': 1000, 'units': ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')},
 }
 DEFAULT_FREQUENCY_UNITS: Final[tuple[str, ...]] = (
-    'Hz', 'kHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz', 'YHz'
+    'Hz',
+    'kHz',
+    'MHz',
+    'GHz',
+    'THz',
+    'PHz',
+    'EHz',
+    'ZHz',
+    'YHz',
 )
 DEFAULT_WEIGHT_UNITS: Final[tuple[str, ...]] = ('g', 'Kg', 'T', 'KT', 'MT', 'GT')
 DIGIT_REGEX: Final[re.Pattern] = re.compile(r'(\d+)')
 
 BITRATE_PATTERN: Final[re.Pattern] = re.compile(
-    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+(/[a-zA-Z]+)?)')
+    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+(/[a-zA-Z]+)?)',
+)
 
 FILESIZE_PATTERN: Final[re.Pattern] = re.compile(
-    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+)')
+    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+)',
+)
 
 FREQUENCY_PATTERN: Final[re.Pattern] = re.compile(
-    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+)')
+    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+)',
+)
 
 WEIGHT_PATTERN: Final[re.Pattern] = re.compile(
-    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+)')
+    r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+)',
+)
 
 
 def naturalbitrate(
     bps: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    units: list[str] | tuple[str, ...] = DEFAULT_BITRATE_UNITS
+    units: list[str] | tuple[str, ...] = DEFAULT_BITRATE_UNITS,
 ) -> str:
     """
     Return a human readable representation of a bit rate taking `bps` as the rate in bits/s.
@@ -80,7 +101,7 @@ def naturalfilesize(  # pylint:disable=dangerous-default-value
     system: str = 'nist',
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    args: dict[str, dict[str, int | list[str] | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS
+    args: dict[str, dict[str, int | list[str] | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS,
 ) -> str:
     """
     Return a human readable representation of a *file* size taking `bytes` as the size in bytes.
@@ -124,14 +145,15 @@ def naturalfilesize(  # pylint:disable=dangerous-default-value
         size_bytes,
         fmt=fmt,
         scale=scale,
-        **(args[system] if system else args))
+        **(args[system] if system else args),
+    )
 
 
 def naturalfrequency(
     hertz: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    units: list[str] | tuple[str, ...] = DEFAULT_FREQUENCY_UNITS
+    units: list[str] | tuple[str, ...] = DEFAULT_FREQUENCY_UNITS,
 ) -> str:  # pylint:disable=dangerous-default-value
     """
     Return a human readable representation of a frequency taking `hertz` as the frequency in Hz.
@@ -167,7 +189,7 @@ def naturalweight(
     grams: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
-    units: list[str] | tuple[str, ...] = DEFAULT_WEIGHT_UNITS
+    units: list[str] | tuple[str, ...] = DEFAULT_WEIGHT_UNITS,
 ) -> str:  # pylint:disable=dangerous-default-value
     """
     Return a human readable representation of a weight in `grams`.
@@ -218,7 +240,7 @@ def natural_int_key(text: str) -> list[int | str]:
 def parse_bitrate(
     bitrate: str,
     units: list[str] | tuple[str, ...] = DEFAULT_BITRATE_UNITS,
-    pattern: re.Pattern = BITRATE_PATTERN
+    pattern: re.Pattern = BITRATE_PATTERN,
 ) -> float:
     """
     Parse a human readable representation of a `bitrate` to its numeric value in bits/s.
@@ -249,14 +271,15 @@ def parse_bitrate(
         kind='bitrate',
         base=1000,
         units=units,
-        pattern=pattern)
+        pattern=pattern,
+    )
 
 
 def parse_filesize(  # pylint:disable=dangerous-default-value
     size: str,
     system: str = 'nist',
     args: dict[str, dict[str, int | list[str] | tuple[str, ...]]] = DEFAULT_FILESIZE_ARGS,
-    pattern: re.Pattern = FILESIZE_PATTERN
+    pattern: re.Pattern = FILESIZE_PATTERN,
 ) -> float:
     """
     Parse a human readable representation of a *file* `size` to its numeric value in bytes.
@@ -292,13 +315,14 @@ def parse_filesize(  # pylint:disable=dangerous-default-value
         value=size,
         kind='file size',
         pattern=pattern,
-        **(args[system] if system else args))
+        **(args[system] if system else args),
+    )
 
 
 def parse_frequency(
     frequency: str,
     units: list[str] | tuple[str, ...] = DEFAULT_FREQUENCY_UNITS,
-    pattern: re.Pattern = FREQUENCY_PATTERN
+    pattern: re.Pattern = FREQUENCY_PATTERN,
 ) -> float:
     """
     Parse a human readable representation of a `frequency` to its numeric value in Hertz.
@@ -337,13 +361,14 @@ def parse_frequency(
         kind='frequency',
         base=1000,
         units=units,
-        pattern=pattern)
+        pattern=pattern,
+    )
 
 
 def parse_weight(
     weight: str,
     units: list[str] | tuple[str, ...] = DEFAULT_WEIGHT_UNITS,
-    pattern: re.Pattern = WEIGHT_PATTERN
+    pattern: re.Pattern = WEIGHT_PATTERN,
 ) -> float:
     """
     Parse a human readable representation of a `weight` to its numeric value in grams.
@@ -372,7 +397,8 @@ def parse_weight(
         kind='weight',
         base=1000,
         units=units,
-        pattern=pattern)
+        pattern=pattern,
+    )
 
 
 def pluralize(number: int | float, singular: str, plural: str) -> str:
@@ -398,13 +424,13 @@ def _natural_number(
     base: int,
     units: list[str] | tuple[str, ...],
     fmt: str = '{sign}{value:.3g} {unit}',
-    scale: int | None = None
+    scale: int | None = None,
 ) -> str:
     sign, number = '' if number >= 0 else '-', abs(number)
     if scale is None:
         scale = min(int(math.log(max(1, number), base)), len(units) - 1)
     unit = units[scale]
-    value = number / (base ** scale)
+    value = number / (base**scale)
     return fmt.format(sign=sign, value=value, unit=unit)
 
 
@@ -413,7 +439,7 @@ def _parse_natural_number(
     kind: str,
     base: int,
     units: list[str] | tuple[str, ...],
-    pattern: re.Pattern
+    pattern: re.Pattern,
 ) -> float:
     if match := pattern.match(value.strip()):
         data = match.groupdict()
@@ -423,7 +449,7 @@ def _parse_natural_number(
             index = units.index(unit)
         except ValueError as ex:
             raise ValueError(f'No match found {value!r} {unit!r} in {units}.') from ex
-        return number * base ** index
+        return number * base**index
     raise ValueError(f"The value {value!r} doesn't match {kind} pattern.")
 
 

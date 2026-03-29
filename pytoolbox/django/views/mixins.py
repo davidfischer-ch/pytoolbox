@@ -1,11 +1,12 @@
 """
 Mix-ins for building your own views.
 """
+
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from typing import TYPE_CHECKING
-import os
 
 from django.contrib import messages
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -85,13 +86,13 @@ class InitialMixin:
         return value
 
     def set_initial_from_func(
-            self,
-            initial: dict[str, object],
-            name: str,
-            default: object,
-            func: Callable,
-            msg_value: str,
-            mgs_missing: str
+        self,
+        initial: dict[str, object],
+        name: str,
+        default: object,
+        func: Callable,
+        msg_value: str,
+        mgs_missing: str,
     ) -> object:
         """Set an initial value by applying *func* to the query string parameter."""
         value = self.request.GET.get(name, default)
@@ -108,13 +109,13 @@ class InitialMixin:
         return value
 
     def set_initial_from_model(
-            self,
-            initial: dict[str, object],
-            name: str,
-            default: object,
-            model: type[models.Model],
-            msg_value: str,
-            mgs_missing: str
+        self,
+        initial: dict[str, object],
+        name: str,
+        default: object,
+        model: type[models.Model],
+        msg_value: str,
+        mgs_missing: str,
     ) -> object:
         """Set an initial value by looking up a model instance by primary key."""
         value = self.request.GET.get(name, default)
@@ -161,10 +162,14 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
 
     def get_template_names(self) -> list[str]:
         """Return template candidates based on :attr:`template_directory` and action."""
-        return [self.template_name] if self.template_name else [
-            os.path.join(self.template_directory, self.action + '.html'),
-            os.path.join(self.default_template_directory, self.action + '.html')
-        ]
+        return (
+            [self.template_name]
+            if self.template_name
+            else [
+                os.path.join(self.template_directory, self.action + '.html'),
+                os.path.join(self.default_template_directory, self.action + '.html'),
+            ]
+        )
 
 
 class ValidationErrorsMixin:

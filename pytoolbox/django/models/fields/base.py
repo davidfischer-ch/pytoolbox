@@ -1,26 +1,29 @@
 """
 Extra fields for your models.
 """
+
 from __future__ import annotations
 
 import math
 import os
 
 from django.conf import settings
-from django.db import models
 from django.core import validators as dj_validators
+from django.db import models
 from django.db.models.fields import files
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from pytoolbox import module
 from pytoolbox.django.core import validators
+
 from . import mixins
 
 _all = module.All(globals())
 
 
 # Char & Text
+
 
 class CharField(mixins.OptionsMixin, mixins.NullifyMixin, models.CharField):
     """A CharFiled with OptionsMixin and NullifyMixin applied."""
@@ -42,10 +45,10 @@ class ExtraChoicesField(StripCharField):
     """Allow additional choices beyond those defined in the field's ``choices``."""
 
     def __init__(
-            self,
-            verbose_name: str | None = None,
-            extra_choices: list | None = None,
-            **kwargs: object
+        self,
+        verbose_name: str | None = None,
+        extra_choices: list | None = None,
+        **kwargs: object,
     ) -> None:
         self.extra_choices = extra_choices or []
         super().__init__(verbose_name=verbose_name, **kwargs)
@@ -69,6 +72,7 @@ class ExtraChoicesField(StripCharField):
 
 # Date and time
 
+
 class CreatedAtField(mixins.OptionsMixin, models.DateTimeField):
     """Auto-set datetime field for creation timestamps."""
 
@@ -82,6 +86,7 @@ class UpdatedAtField(mixins.OptionsMixin, models.DateTimeField):
 
 
 # Miscellaneous
+
 
 class CreatedByField(mixins.OptionsMixin, models.ForeignKey):
     """Non-editable foreign key to the user who created the instance."""
@@ -107,9 +112,10 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
             max_digits=int(math.log10(max_value)) + 3,
             validators=[
                 dj_validators.MinValueValidator(0),
-                dj_validators.MaxValueValidator(max_value)
+                dj_validators.MaxValueValidator(max_value),
             ],
-            **kwargs)
+            **kwargs,
+        )
 
     def deconstruct(self) -> tuple[str, str, list, dict]:
         """Reconstruct with ``max_value`` as the sole positional argument."""
@@ -127,6 +133,7 @@ class URLField(StripCharField, models.URLField):
 
 
 # Storage
+
 
 class FieldFile(files.FieldFile):
     """Extended :class:`~django.db.models.fields.files.FieldFile` with basename helpers."""

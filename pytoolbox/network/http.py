@@ -1,12 +1,9 @@
 """
 HTTP download utilities with progress tracking, hashing, and multi-file support.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Iterator
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Final, Protocol, TextIO
 import functools
 import os
 import sys
@@ -14,9 +11,13 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable, Iterable, Iterator
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Final, Protocol, TextIO
 
-from requests.auth import AuthBase
 import requests
+from requests.auth import AuthBase
 
 from pytoolbox import console, crypto, filesystem, module
 from pytoolbox.exceptions import BadHTTPResponseCodeError, CorruptedFileError
@@ -29,6 +30,7 @@ DEFAULT_CHUNK_SIZE: Final[int] = 100 * 1024
 @dataclass(frozen=True, slots=True)
 class Resource:  # pylint:disable=too-many-instance-attributes
     """Describe a downloadable HTTP resource with optional hash verification."""
+
     name: str
     url: str
     path: Path
@@ -49,12 +51,19 @@ class Resource:  # pylint:disable=too-many-instance-attributes
 
 class SingleProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
     """Callback protocol for single-file download progress."""
-    def __call__(self, start_time: float, position: int, length: int, chunk: bytes | None) -> None:
-        ...
+
+    def __call__(
+        self,
+        start_time: float,
+        position: int,
+        length: int,
+        chunk: bytes | None,
+    ) -> None: ...
 
 
 class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
     """Callback protocol for multi-file download progress."""
+
     def __call__(
         self,
         *,
@@ -62,9 +71,8 @@ class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
         current: int,
         total: int,
         stream: TextIO,
-        template: str
-    ) -> None:
-        ...
+        template: str,
+    ) -> None: ...
 
 
 def download(url: str, path: Path) -> None:
@@ -77,6 +85,7 @@ def download(url: str, path: Path) -> None:
 # TODO Unpacking Resource for declaring parameters in a DRY manner
 # I would like to make code DRY, such as unpacking Resource to define function's arguments
 # However its not possible as of today, see https://github.com/python/typing/issues/1495
+
 
 def iter_download_core(  # pylint:disable=too-many-arguments
     url: str,
@@ -91,7 +100,7 @@ def iter_download_core(  # pylint:disable=too-many-arguments
     params: dict | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
     timeout: int | None = None,
-    verify: bool = True
+    verify: bool = True,
 ) -> Iterator[tuple[int, int, bytes]]:
     """Yield ``(position, length, chunk)`` tuples while downloading *url*."""
     response = requests.get(
@@ -105,7 +114,7 @@ def iter_download_core(  # pylint:disable=too-many-arguments
         proxies=proxies,
         stream=bool(chunk_size),
         timeout=timeout,
-        verify=verify
+        verify=verify,
     )
     length = response.headers.get('content-length')
     if response.status_code != code:
@@ -130,7 +139,6 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     force: bool = True,
     hash_algorithm: Callable | str | None = None,
     expected_hash: str | None = None,
-
     allow_redirects: bool = True,
     auth: AuthBase | tuple[str, str] | None = None,
     cert: str | tuple[str, str] | None = None,
@@ -139,7 +147,7 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     params: dict | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
     timeout: int | None = None,
-    verify: bool = True
+    verify: bool = True,
 ) -> Iterator[tuple[int, int, bytes | None, bool, str | None]]:
     """Download *url* to *path*, yielding progress tuples with hash info."""
     position = length = 0
@@ -162,7 +170,7 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
                 params=params,
                 proxies=proxies,
                 timeout=timeout,
-                verify=verify
+                verify=verify,
             ):
                 downloaded = True
                 if hash_algorithm:
@@ -193,11 +201,9 @@ def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
     code: int = 200,
     chunk_size: int | None = DEFAULT_CHUNK_SIZE,
     force: bool = True,
-
     hash_algorithm: Callable | str | None = None,
     expected_hash: str | None = None,
     progress_callback: SingleProgressCallback | None = None,
-
     allow_redirects: bool = True,
     auth: AuthBase | tuple[str, str] | None = None,
     cert: str | tuple[str, str] | None = None,
@@ -206,7 +212,7 @@ def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
     params: dict | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
     timeout: int | None = None,
-    verify: bool = True
+    verify: bool = True,
 ) -> tuple[bool, bool, str | None]:
     """
     Read the content of given `url` and save it as a file `path`, extended version.
@@ -290,7 +296,7 @@ def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
         params=params,
         proxies=proxies,
         timeout=timeout,
-        verify=verify
+        verify=verify,
     ):
         if progress_callback:
             progress_callback(start_time=start_time, position=position, length=length, chunk=chunk)
@@ -305,7 +311,7 @@ def download_ext_multi(
     force: bool = False,
     progress_callback: MultiProgressCallback = console.progress_bar,
     progress_stream: TextIO = sys.stdout,
-    progress_template: str = '\r[{counter} of {total}] [{done}{todo}] {resource.name}'
+    progress_template: str = '\r[{counter} of {total}] [{done}{todo}] {resource.name}',
 ) -> None:
     """
     Download resources, showing a progress bar by default.
@@ -326,7 +332,9 @@ def download_ext_multi(
                 counter=counter,
                 done='{done}',
                 todo='{todo}',
-                total=len(resources)))
+                total=len(resources),
+            ),
+        )
 
         if not resource.path.exists():
             filesystem.makedirs(resource.path, parent=True)
@@ -335,7 +343,7 @@ def download_ext_multi(
                     code=code,
                     chunk_size=chunk_size,
                     force=force,
-                    **asdict(resource)
+                    **asdict(resource),
                 ):
                     callback(current=returned[0], total=returned[1])
             except Exception:

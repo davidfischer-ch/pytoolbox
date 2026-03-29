@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import datetime
+import shutil
 from fractions import Fraction
 from pathlib import Path
 from typing import Final
-import datetime
-import shutil
 
 import pytest
 
@@ -17,8 +17,10 @@ DATA_DIRECTORY: Final[Path] = Path(__file__).resolve().parent / 'data'
 _gexiv2_available = False
 try:
     import gi as _gi
+
     _gi.require_version('GExiv2', '0.10')
     from gi.repository import GExiv2 as _GExiv2  # noqa: F401
+
     _gexiv2_available = True
 except (ImportError, ValueError):
     pass

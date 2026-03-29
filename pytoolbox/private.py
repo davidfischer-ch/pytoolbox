@@ -1,11 +1,12 @@
 """
 Private helpers and optional dependency imports (e.g. :mod:`bson`).
 """
+
 from __future__ import annotations
 
 try:
+    from bson.errors import InvalidId  # pylint:disable=unused-import
     from bson.objectid import ObjectId  # pylint:disable=unused-import
-    from bson.errors import InvalidId   # pylint:disable=unused-import
 except ImportError:
     InvalidId = ObjectId = None  # type: ignore[assignment, misc]
 

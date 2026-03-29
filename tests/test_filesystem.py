@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from unittest import mock
-import sys
 
 from pytest import mark
 
@@ -30,13 +30,16 @@ def test_chown(tmp_path: Path) -> None:
     with mock.patch('os.chown') as chown:
         filesystem.chown(tmp_path, 100, 'root', recursive=True)
 
-    chown.assert_has_calls([
-        mock.call(tmp_path, 100, 0),
-        mock.call(file_b, 100, 0),
-        mock.call(file_a, 100, 0),
-        mock.call(file_c.parent, 100, 0),
-        mock.call(file_c, 100, 0),
-    ], any_order=True)
+    chown.assert_has_calls(
+        [
+            mock.call(tmp_path, 100, 0),
+            mock.call(file_b, 100, 0),
+            mock.call(file_a, 100, 0),
+            mock.call(file_c.parent, 100, 0),
+            mock.call(file_c, 100, 0),
+        ],
+        any_order=True,
+    )
 
 
 def _strict_chown(path: Path, _uid: int, _gid: int) -> None:
@@ -68,13 +71,13 @@ def test_chown_recursive_broken_symlink(tmp_path: Path) -> None:
 
 def test_copy_recursive(tmp_path: Path) -> None:
     src_path = Path(__file__).parent.parent / 'pytoolbox'
-    stats = filesystem.copy_recursive(src_path, tmp_path, ["*/camera.py", "*/ffmpeg.py"])
+    stats = filesystem.copy_recursive(src_path, tmp_path, ['*/camera.py', '*/ffmpeg.py'])
     assert stats['src_size'] >= 6529  # Expect code to not shrink
     camera = 'multimedia/exif/camera.py'
     ffmpeg = 'multimedia/ffmpeg/ffmpeg.py'
-    assert sorted(filesystem.find_recursive(tmp_path, "*")) == [
+    assert sorted(filesystem.find_recursive(tmp_path, '*')) == [
         tmp_path / camera,
-        tmp_path / ffmpeg
+        tmp_path / ffmpeg,
     ]
     assert (tmp_path / camera).read_bytes() == (src_path / camera).read_bytes()
     assert (tmp_path / ffmpeg).read_bytes() == (src_path / ffmpeg).read_bytes()
@@ -83,20 +86,23 @@ def test_copy_recursive(tmp_path: Path) -> None:
 @mark.parametrize('chunk_size', [77, 50 * 1024 * 1024])
 def test_copy_recursive_chunk_size(small_mp4: Path, tmp_path: Path, chunk_size: int) -> None:
     """Ensure chunk_size doesn't influence the copy (corrupting files)."""
-    assert filesystem.copy_recursive(
-        source_path=small_mp4.parent,
-        destination_path=tmp_path,
-        patterns=f"*/{small_mp4.name}",
-        chunk_size=chunk_size
-    )['src_size'] == 383631  # small.mp4 size
-    assert list(filesystem.find_recursive(tmp_path, "*")) == [tmp_path / small_mp4.name]
+    assert (
+        filesystem.copy_recursive(
+            source_path=small_mp4.parent,
+            destination_path=tmp_path,
+            patterns=f'*/{small_mp4.name}',
+            chunk_size=chunk_size,
+        )['src_size']
+        == 383631
+    )  # small.mp4 size
+    assert list(filesystem.find_recursive(tmp_path, '*')) == [tmp_path / small_mp4.name]
     assert (tmp_path / small_mp4.name).read_bytes() == small_mp4.read_bytes()
 
 
 def test_copy_recursive_missing(tmp_path: Path) -> None:
     # pylint:disable=use-implicit-booleaness-not-comparison
     assert filesystem.copy_recursive(tmp_path / 'missing', tmp_path / 'target')['src_size'] == 0
-    assert list(filesystem.find_recursive(tmp_path / 'target', "*")) == []
+    assert list(filesystem.find_recursive(tmp_path / 'target', '*')) == []
 
 
 def test_remove_directory_recursive(tmp_path: Path) -> None:

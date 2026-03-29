@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import platform
+import tarfile
 from pathlib import Path
 from typing import Final
 from unittest import mock
-import platform
-import tarfile
 
 import pytest
 
@@ -21,7 +21,7 @@ FFMPEG_VERSION: Final[str] = '6.1'
 FFMPEG_RELEASE_URL: Final[str] = f'{TEST_S3_URL}/ffmpeg-{FFMPEG_VERSION}-{BITS}-static.tar.xz'
 FFMPEG_RELEASE_EXTENSION: Final[str] = '.tar.xz'
 FFMPEG_RELEASE_CHECKSUM: Final[tuple[str, str]] = {
-    'amd64': ('md5', '8a34e2ab52b72777a8dcd3ff5defbcd8')
+    'amd64': ('md5', '8a34e2ab52b72777a8dcd3ff5defbcd8'),
 }[BITS]
 
 # Credits: http://techslides.com/demos/sample-videos/small.mp4
@@ -45,7 +45,7 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
         archive_extension: str = FFMPEG_RELEASE_EXTENSION,
         directory: Path = TMP_DIRECTORY,
         expected_hash: str = FFMPEG_RELEASE_CHECKSUM[1],
-        hash_algorithm: str = FFMPEG_RELEASE_CHECKSUM[0]
+        hash_algorithm: str = FFMPEG_RELEASE_CHECKSUM[0],
     ) -> Path:
         filesystem.makedirs(directory)
         archive = directory / archive_url.split('/')[-1]  # Get archive filename from URL
@@ -56,7 +56,8 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
             path=archive,
             expected_hash=expected_hash,
             hash_algorithm=hash_algorithm,
-            force=False)
+            force=False,
+        )
         if downloaded:
             print('Downloaded ffmpeg static binary')
         if downloaded or not executable.exists():
@@ -64,7 +65,7 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
                 f.extractall(directory)
             print('Extracted ffmpeg static binary')
         if not executable.exists():
-            raise RuntimeError(f"Executable {executable} not found.")
+            raise RuntimeError(f'Executable {executable} not found.')
         return executable
 
 
@@ -81,7 +82,7 @@ class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
 # TODO Promote it to the library (merge)
 class StaticEncodeStatisticsWithFrameBaseRatio(
     ffmpeg.FrameBasedRatioMixin,
-    StaticEncodeStatistics
+    StaticEncodeStatistics,
 ):
     pass
 
@@ -96,21 +97,25 @@ def pytest_configure(config):  # pylint:disable=unused-argument
     """Configure Django settings before test collection."""
     import django
     from django.conf import settings
+
     if not settings.configured:
         settings.configure(
             DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
             INSTALLED_APPS=[
-            'django.contrib.contenttypes',
-            'django.contrib.auth',
-            'rest_framework'
-        ],
-            TEMPLATES=[{
-                'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                'DIRS': [],
-                'OPTIONS': {'string_if_invalid': ''}
-            }],
+                'django.contrib.contenttypes',
+                'django.contrib.auth',
+                'rest_framework',
+            ],
+            TEMPLATES=[
+                {
+                    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                    'DIRS': [],
+                    'OPTIONS': {'string_if_invalid': ''},
+                }
+            ],
             STATIC_ROOT='/static',
-            DEBUG=True)
+            DEBUG=True,
+        )
         django.setup()
 
 
@@ -119,10 +124,12 @@ def pytoolbox_git(tmp_path: Path) -> Path:
     pytoolbox_path = tmp_path / 'pytoolbox'
     subprocess.cmd(
         ['git', 'clone', 'https://github.com/davidfischer-ch/pytoolbox.git'],
-        cwd=tmp_path)
+        cwd=tmp_path,
+    )
     subprocess.cmd(
         ['git', 'reset', '--hard', '4863c99a97fe358caa24e48b5c477b852b5a6721'],
-        cwd=pytoolbox_path)
+        cwd=pytoolbox_path,
+    )
     return pytoolbox_path
 
 
@@ -134,25 +141,27 @@ def static_ffmpeg(request) -> type[StaticFFmpeg]:  # pylint:disable=unused-argum
 @pytest.fixture(scope='function')
 def statistics(  # pylint:disable=redefined-outer-name
     small_mp4: Path,
-    tmp_path: Path
+    tmp_path: Path,
 ) -> StaticEncodeStatistics:
     return StaticEncodeStatistics(
         [ffmpeg.Media(small_mp4)],
         [ffmpeg.Media(tmp_path / 'output.mp4')],
         [],
-        ['-acodec', 'copy', '-vcodec', 'copy'])
+        ['-acodec', 'copy', '-vcodec', 'copy'],
+    )
 
 
 @pytest.fixture(scope='function')
 def frame_based_statistics(  # pylint:disable=redefined-outer-name,too-few-public-methods
     small_mp4: Path,
-    tmp_path: Path
+    tmp_path: Path,
 ) -> StaticEncodeStatisticsWithFrameBaseRatio:
     return StaticEncodeStatisticsWithFrameBaseRatio(
         [ffmpeg.Media(small_mp4)],
         [ffmpeg.Media(tmp_path / 'output.mp4')],
         [],
-        ['-acodec', 'copy', '-vcodec', 'copy'])
+        ['-acodec', 'copy', '-vcodec', 'copy'],
+    )
 
 
 @pytest.fixture(scope='session')
@@ -164,7 +173,8 @@ def small_mp4(request) -> Path:  # pylint:disable=unused-argument
         SMALL_MP4_FILENAME,
         expected_hash=SMALL_MP4_CHECKSUM[1],
         hash_algorithm=SMALL_MP4_CHECKSUM[0],
-        force=False)
+        force=False,
+    )
     return SMALL_MP4_FILENAME
 
 

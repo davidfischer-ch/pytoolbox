@@ -1,13 +1,14 @@
 """
 EXIF tag reading, type conversion, and cleaning utilities.
 """
+
 from __future__ import annotations
 
+import datetime
+import re
 from collections.abc import Callable
 from fractions import Fraction
 from typing import Literal
-import datetime
-import re
 
 from pytoolbox import decorators, exceptions
 from pytoolbox.datetime import str_to_datetime, str_to_time
@@ -30,7 +31,7 @@ class Tag:
         Fraction: 'exif_tag_rational',
         int: 'tag_long',
         list: 'tag_multiple',
-        str: 'tag_string'
+        str: 'tag_string',
     }
     type_to_python = {
         'Ascii': str,
@@ -49,7 +50,7 @@ class Tag:
         'Undefined': bytes,
         'XmpBag': list,
         'XmpSeq': list,
-        'XmpText': str
+        'XmpText': str,
     }
 
     def __init__(self, metadata: object, key: str) -> None:
@@ -139,7 +140,8 @@ class Tag:
             key=self.key,
             type=self.type.__name__,
             data_type=type(data).__name__,
-            data_repr=repr(data))
+            data_repr=repr(data),
+        )
 
     def get_type_hook(self, *, mode: Literal['get', 'set']) -> Callable | None:
         """Return the GExiv2 accessor method for *mode* (``'get'`` or ``'set'``)."""

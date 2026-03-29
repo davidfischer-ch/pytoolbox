@@ -1,12 +1,13 @@
 """
 String transformation utilities (case conversion, filtering, wrapping).
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from typing import Any, Final
 import os
 import re
+from collections.abc import Callable, Iterable
+from typing import Any, Final
 
 from . import module
 
@@ -64,7 +65,7 @@ def _to_camel(string: str, separator: str) -> str:
 def filterjoin(
     items: Iterable[Any],
     sep: str = ' ',
-    keep: Callable[[Any], bool] = bool
+    keep: Callable[[Any], bool] = bool,
 ) -> str:
     """
     Concatenate `items` with intervening occurrences of `sep`. Gracefully convert items to string
@@ -78,7 +79,7 @@ def to_lines(
     *,
     limit: int = 80,
     start: str = '\t',
-    template: str = '{0} '
+    template: str = '{0} ',
 ) -> str:
     """
     Convert items to string using `template`.

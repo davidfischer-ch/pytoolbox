@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import no_type_check
 from unittest.mock import patch
-import os
 
 import pytest
 from pytest import mark
+
 from pytoolbox import argparse, exceptions, types
 
 
@@ -32,7 +33,7 @@ def test_full_paths() -> None:
     single = argparse.FullPaths(None, 'single')
     single(None, namespace, 'c')
     assert namespace.multi == [Path(e).resolve() for e in ('a', 'b')]  # pylint:disable=no-member
-    assert namespace.single == Path('c').resolve()                     # pylint:disable=no-member
+    assert namespace.single == Path('c').resolve()  # pylint:disable=no-member
 
 
 @no_type_check
@@ -68,30 +69,33 @@ def test_full_paths_nargs_optional_positional() -> None:
     assert args.path == Path('/usr/lib').resolve()
 
 
-@mark.parametrize(('sep', 'arguments', 'expected'), [
-
-    (None, ['some'], None),
-    (None, ['some', '--patterns', ''], []),
-    (None, ['some', '--patterns', 'a'], ['a']),
-    (None, ['some', '--patterns', 'a', 'b', 'c d  '], ['a', 'b', 'c d']),
-    (None, ['some', '--patterns', 'a', '--patterns', ' b  '], ['a', 'b']),
-    (None, ['some', '--patterns', 'a', '--patterns', 'b', 'c d  e'], ['a', 'b', 'c d  e']),
-
-    (' ', ['some'], None),
-    (' ', ['some', '--patterns', ''], []),
-    (' ', ['some', '--patterns', 'a'], ['a']),
-    (' ', ['some', '--patterns', 'a', 'b', 'c d  '], ['a', 'b', 'c', 'd']),
-    (' ', ['some', '--patterns', 'a', '--patterns', ' b  '], ['a', 'b']),
-    (' ', ['some', '--patterns', 'a', '--patterns', 'b', 'c d  e'], ['a', 'b', 'c', 'd', 'e']),
-
-    (',', ['some'], None),
-    (',', ['some', '--patterns', ''], []),
-    (',', ['some', '--patterns', 'a'], ['a']),
-    (',', ['some', '--patterns', 'a', 'b', 'c, d , '], ['a', 'b', 'c', 'd']),
-    (',', ['some', '--patterns', 'a', '--patterns', ' b  ,'], ['a', 'b']),
-    (',', ['some', '--patterns', 'a', '--patterns', 'b', 'c, d,  ,e'], ['a', 'b', 'c', 'd', 'e']),
-
-])
+@mark.parametrize(
+    ('sep', 'arguments', 'expected'),
+    [
+        (None, ['some'], None),
+        (None, ['some', '--patterns', ''], []),
+        (None, ['some', '--patterns', 'a'], ['a']),
+        (None, ['some', '--patterns', 'a', 'b', 'c d  '], ['a', 'b', 'c d']),
+        (None, ['some', '--patterns', 'a', '--patterns', ' b  '], ['a', 'b']),
+        (None, ['some', '--patterns', 'a', '--patterns', 'b', 'c d  e'], ['a', 'b', 'c d  e']),
+        (' ', ['some'], None),
+        (' ', ['some', '--patterns', ''], []),
+        (' ', ['some', '--patterns', 'a'], ['a']),
+        (' ', ['some', '--patterns', 'a', 'b', 'c d  '], ['a', 'b', 'c', 'd']),
+        (' ', ['some', '--patterns', 'a', '--patterns', ' b  '], ['a', 'b']),
+        (' ', ['some', '--patterns', 'a', '--patterns', 'b', 'c d  e'], ['a', 'b', 'c', 'd', 'e']),
+        (',', ['some'], None),
+        (',', ['some', '--patterns', ''], []),
+        (',', ['some', '--patterns', 'a'], ['a']),
+        (',', ['some', '--patterns', 'a', 'b', 'c, d , '], ['a', 'b', 'c', 'd']),
+        (',', ['some', '--patterns', 'a', '--patterns', ' b  ,'], ['a', 'b']),
+        (
+            ',',
+            ['some', '--patterns', 'a', '--patterns', 'b', 'c, d,  ,e'],
+            ['a', 'b', 'c', 'd', 'e'],
+        ),
+    ],
+)
 def test_chain_action(sep, arguments, expected):
 
     def action_some(args):
@@ -131,11 +135,14 @@ def test_full_paths_via_file_arg() -> None:
 # multiple -----------------------------------------------------------------------------------------
 
 
-@mark.parametrize('input_val, expected', [
-    ('hello', 'HELLO'),
-    (['a', 'b'], ['A', 'B']),
-    (('x', 'y'), ['X', 'Y'])
-])
+@mark.parametrize(
+    'input_val, expected',
+    [
+        ('hello', 'HELLO'),
+        (['a', 'b'], ['A', 'B']),
+        (('x', 'y'), ['X', 'Y']),
+    ],
+)
 def test_multiple(input_val, expected) -> None:
     func = argparse.multiple(str.upper)
     assert func(input_val) == expected
@@ -249,11 +256,14 @@ def test_argument_parser_registers_actions() -> None:
 # env_default --------------------------------------------------------------------------------------
 
 
-@mark.parametrize('env, name, expected', [
-    ({'SOME': ''}, 'SOME', {'default': ''}),
-    ({'SOME': 'value'}, 'SOME', {'default': 'value'}),
-    ({'SOME': ''}, 'OTHER', {'required': True})
-])
+@mark.parametrize(
+    'env, name, expected',
+    [
+        ({'SOME': ''}, 'SOME', {'default': ''}),
+        ({'SOME': 'value'}, 'SOME', {'default': 'value'}),
+        ({'SOME': ''}, 'OTHER', {'required': True}),
+    ],
+)
 def test_env_default(env, name, expected):
     with patch.dict(os.environ, env, clear=True):
         assert argparse.env_default(name) == expected

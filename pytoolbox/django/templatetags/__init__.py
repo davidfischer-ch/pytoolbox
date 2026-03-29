@@ -1,4 +1,5 @@
 """Pytoolbox's Template tag and filters."""
+
 from __future__ import annotations
 
 from django import template
@@ -28,7 +29,7 @@ from .exif import (
     exposure_mode,
     orientation,
     sensing_method,
-    white_balance
+    white_balance,
 )
 from .humanize import duration, naturalbitrate, naturalfilesize
 from .miscellaneous import (
@@ -43,7 +44,7 @@ from .miscellaneous import (
     status_label,
     timedelta,
     verbose_name,
-    verbose_name_plural
+    verbose_name_plural,
 )
 
 __all__ = _all.diff(globals())

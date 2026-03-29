@@ -1,15 +1,16 @@
 """
 Mix-ins for building your own test cases.
 """
+
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from typing import TYPE_CHECKING
-import os
 
 from django.contrib.sites.models import Site
 from django.core.management import call_command
-from django.db import connections, DEFAULT_DB_ALIAS
+from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import TransactionTestCase
 from django.test.utils import CaptureQueriesContext
 
@@ -29,12 +30,11 @@ _all = module.All(globals())
 
 
 class _AssertNumQueriesInContext(CaptureQueriesContext):
-
     def __init__(
         self,
         test_case: object,
         num_range: range,
-        connection: BaseDatabaseWrapper
+        connection: BaseDatabaseWrapper,
     ) -> None:
         self.test_case = test_case
         self.range = num_range
@@ -44,7 +44,7 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
         self,
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
-        traceback: object
+        traceback: object,
     ) -> None:
         super().__exit__(exc_type, exc_value, traceback)
         if exc_type is None:
@@ -54,7 +54,8 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
                 self.range,
                 f'{executed} queries executed, {self.range} expected{os.linesep}'
                 f'Captured queries were:{os.linesep}'
-                f"{os.linesep.join(query['sql'] for query in self.captured_queries)}")
+                f'{os.linesep.join(query["sql"] for query in self.captured_queries)}',
+            )
 
 
 class ClearSiteCacheMixin:
@@ -90,7 +91,8 @@ class FixFlushMixin:
                 database=db_name,
                 reset_sequences=False,
                 allow_cascade=True,
-                inhibit_post_migrate=self.available_apps is not None)
+                inhibit_post_migrate=self.available_apps is not None,
+            )
 
 
 class FormWizardMixin:
@@ -107,10 +109,11 @@ class FormWizardMixin:
         step: str,
         data: dict[str, object] | None = None,
         raw_data: dict[str, object] | None = None,
-        **kwargs: object
+        **kwargs: object,
     ) -> HttpResponse:
         """Post data to a specific wizard step."""
         from formtools.wizard.views import normalize_name
+
         name = normalize_name(resolve(reverse(url)).func.__name__)
         step_data = {f'{step}-{k}': v for k, v in data.items()} if data else {}
         step_data[f'{name}-current_step'] = step
@@ -126,7 +129,7 @@ class QueriesMixin:
         num_range: range,
         func: Callable | None = None,
         *args: object,
-        **kwargs: object
+        **kwargs: object,
     ) -> object:
         """Assert that the number of queries is within *num_range*."""
         connection = connections[kwargs.pop('using', DEFAULT_DB_ALIAS)]
@@ -148,7 +151,7 @@ class UrlMixin:
         urlconf: str | None = None,
         args: list | None = None,
         kwargs: dict | None = None,
-        current_app: str | None = None
+        current_app: str | None = None,
     ) -> str:
         """Resolve *value* to a URL string, optionally appending a query string."""
         if isinstance(value, str) and '/' in value:
@@ -175,7 +178,7 @@ class RestAPIMixin(UrlMixin):
         kwargs: dict | None = None,
         current_app: str | None = None,
         msg: Callable[[HttpResponse], object] = lambda r: getattr(r, 'data', r),
-        **call_kwargs: object
+        **call_kwargs: object,
     ) -> HttpResponse:
         url = self.resolve(url, qs, urlconf, args, kwargs, current_app)
         response = getattr(self.client, method)(url, data, **call_kwargs)
@@ -187,7 +190,7 @@ class RestAPIMixin(UrlMixin):
         url: str,
         data: object = None,
         status: int = 204,
-        **kwargs: object
+        **kwargs: object,
     ) -> HttpResponse:
         """Send a DELETE request and assert the response status."""
         return self._call('delete', url, data, status, **kwargs)
@@ -197,7 +200,7 @@ class RestAPIMixin(UrlMixin):
         url: str,
         data: object = None,
         status: int = 200,
-        **kwargs: object
+        **kwargs: object,
     ) -> HttpResponse:
         """Send a GET request and assert the response status."""
         return self._call('get', url, data, status, **kwargs)

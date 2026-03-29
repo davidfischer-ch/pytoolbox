@@ -1,6 +1,7 @@
 """
 Custom Django validators for forms and model fields.
 """
+
 from __future__ import annotations
 
 import copy
@@ -44,7 +45,7 @@ class KeysValidator:
         required_keys: set[str] | None = None,
         optional_keys: set[str] | None = None,
         strict: bool = False,
-        messages: dict[str, str] | None = None
+        messages: dict[str, str] | None = None,
     ) -> None:
         self.required_keys = set(required_keys or [])
         self.optional_keys = set(optional_keys or [])
@@ -63,14 +64,16 @@ class KeysValidator:
                 raise ValidationError(
                     self.messages['missing_keys'],
                     code='missing_keys',
-                    params={'keys': ', '.join(missing_keys)})
+                    params={'keys': ', '.join(missing_keys)},
+                )
         if self.strict:
             extra_keys = keys - self.required_keys - self.optional_keys
             if extra_keys:
                 raise ValidationError(
                     self.messages['extra_keys'],
                     code='extra_keys',
-                    params={'keys': ', '.join(extra_keys)})
+                    params={'keys': ', '.join(extra_keys)},
+                )
 
     def __eq__(self, other: object) -> bool:
         return (

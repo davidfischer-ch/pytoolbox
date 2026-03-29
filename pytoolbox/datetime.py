@@ -1,13 +1,14 @@
 """
 Date, time, and epoch conversion utilities.
 """
+
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal, TypeAlias, overload
-from calendar import timegm
-from time import mktime
 import datetime
 import zoneinfo
+from calendar import timegm
+from time import mktime
+from typing import Annotated, Any, Literal, TypeAlias, overload
 
 from . import module
 
@@ -22,9 +23,8 @@ def datetime_now(
     *,
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
-    tz: Any = datetime.timezone.utc
-) -> datetime.datetime:
-    ...
+    tz: Any = datetime.timezone.utc,
+) -> datetime.datetime: ...
 
 
 @overload
@@ -33,9 +33,8 @@ def datetime_now(
     *,
     append_utc: bool = False,
     offset: datetime.timedelta | None = None,
-    tz: Any = datetime.timezone.utc
-) -> str:
-    ...
+    tz: Any = datetime.timezone.utc,
+) -> str: ...
 
 
 def datetime_now(
@@ -43,7 +42,7 @@ def datetime_now(
     *,
     append_utc: Annotated[bool, "Append ' UTC' to date string"] = False,
     offset: Annotated[datetime.timedelta | None, 'Offset to add to current time'] = None,
-    tz: Annotated[Any, "The timezone (e.g. ``zoneinfo.ZoneInfo('EST')``)"] = datetime.timezone.utc
+    tz: Annotated[Any, "The timezone (e.g. ``zoneinfo.ZoneInfo('EST')``)"] = datetime.timezone.utc,
 ) -> datetime.datetime | str:
     """
     Return the current (timezone aware) date and time as UTC, local (tz=None) or related to a
@@ -89,27 +88,29 @@ def datetime_to_str(
     date_time: datetime.datetime,
     *,
     fmt: str = '%Y-%m-%d %H:%M:%S',
-    append_utc: bool = False
+    append_utc: bool = False,
 ) -> str:
     """Format a :class:`datetime.datetime` as a string."""
     return date_time.strftime(fmt) + (' UTC' if append_utc else '')
 
 
 @overload
-def str_to_datetime(date: str, *, fmt: str = ..., fail: Literal[True] = True) -> datetime.datetime:
-    ...
+def str_to_datetime(
+    date: str, *, fmt: str = ..., fail: Literal[True] = True
+) -> datetime.datetime: ...
 
 
 @overload
-def str_to_datetime(date: str, *, fmt: str = ..., fail: Literal[False]) -> datetime.datetime | None:
-    ...
+def str_to_datetime(
+    date: str, *, fmt: str = ..., fail: Literal[False]
+) -> datetime.datetime | None: ...
 
 
 def str_to_datetime(
     date: str,
     *,
     fmt: str = '%Y-%m-%d %H:%M:%S',
-    fail: bool = True
+    fail: bool = True,
 ) -> datetime.datetime | None:
     """
     Return the `date` string converted into an instance of :class:`datetime.datetime`.
@@ -140,9 +141,8 @@ def multiply_time(
     value: TimeValue,
     factor: float,
     *,
-    as_delta: Literal[False] = False
-) -> datetime.time:
-    ...
+    as_delta: Literal[False] = False,
+) -> datetime.time: ...
 
 
 @overload
@@ -150,16 +150,15 @@ def multiply_time(
     value: TimeValue,
     factor: float,
     *,
-    as_delta: Literal[True]
-) -> datetime.timedelta:
-    ...
+    as_delta: Literal[True],
+) -> datetime.timedelta: ...
 
 
 def multiply_time(
     value: TimeValue,
     factor: float,
     *,
-    as_delta: bool = False
+    as_delta: bool = False,
 ) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`
@@ -192,9 +191,8 @@ def parts_to_time(
     seconds: int,
     microseconds: int,
     *,
-    as_delta: Literal[False] = False
-) -> datetime.time:
-    ...
+    as_delta: Literal[False] = False,
+) -> datetime.time: ...
 
 
 @overload
@@ -204,9 +202,8 @@ def parts_to_time(
     seconds: int | float,
     microseconds: int | float,
     *,
-    as_delta: Literal[True]
-) -> datetime.timedelta:
-    ...
+    as_delta: Literal[True],
+) -> datetime.timedelta: ...
 
 
 def parts_to_time(
@@ -215,7 +212,7 @@ def parts_to_time(
     seconds: int | float,
     microseconds: int | float,
     *,
-    as_delta: bool = False
+    as_delta: bool = False,
 ) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta` out of the parts.
@@ -235,24 +232,23 @@ def parts_to_time(
             hours=hours,
             minutes=minutes,
             seconds=seconds,
-            microseconds=microseconds)
+            microseconds=microseconds,
+        )
     return datetime.time(int(hours), int(minutes), int(seconds), int(microseconds))
 
 
 @overload  # type: ignore[misc]
-def secs_to_time(value: float | int, *, as_delta: Literal[False] = False) -> datetime.time:
-    ...
+def secs_to_time(value: float | int, *, as_delta: Literal[False] = False) -> datetime.time: ...
 
 
 @overload
-def secs_to_time(value: float | int, *, as_delta: Literal[True]) -> datetime.timedelta:
-    ...
+def secs_to_time(value: float | int, *, as_delta: Literal[True]) -> datetime.timedelta: ...
 
 
 def secs_to_time(
     value: float | int,
     *,
-    as_delta: bool = False
+    as_delta: bool = False,
 ) -> datetime.time | datetime.timedelta:
     """
     Return an instance of :class:`datetime.time`/:class:`datetime.timedelta`, taking `value` as the
@@ -281,9 +277,8 @@ def str_to_time(  # type: ignore[misc]
     value: str,
     *,
     defaults_to_zero: Literal[True],
-    as_delta: Literal[False] = False
-) -> datetime.time:
-    ...
+    as_delta: Literal[False] = False,
+) -> datetime.time: ...
 
 
 @overload  # type: ignore[misc]
@@ -291,9 +286,8 @@ def str_to_time(
     value: str,
     *,
     defaults_to_zero: Literal[True],
-    as_delta: Literal[True]
-) -> datetime.timedelta:
-    ...
+    as_delta: Literal[True],
+) -> datetime.timedelta: ...
 
 
 @overload  # type: ignore[misc]
@@ -301,9 +295,8 @@ def str_to_time(
     value: str,
     *,
     defaults_to_zero: Literal[False] = False,
-    as_delta: Literal[False] = False
-) -> datetime.time | None:
-    ...
+    as_delta: Literal[False] = False,
+) -> datetime.time | None: ...
 
 
 @overload  # type: ignore[misc]
@@ -311,16 +304,15 @@ def str_to_time(
     value: str,
     *,
     defaults_to_zero: Literal[False] = False,
-    as_delta: Literal[True]
-) -> datetime.timedelta | None:
-    ...
+    as_delta: Literal[True],
+) -> datetime.timedelta | None: ...
 
 
 def str_to_time(
     value: str,
     *,
     defaults_to_zero: bool = False,
-    as_delta: bool = False
+    as_delta: bool = False,
 ) -> datetime.time | datetime.timedelta | None:
     """
     Return the string of format 'hh:mm:ss' into an instance of time.
@@ -357,7 +349,7 @@ def str_to_time(
 
 def set_default_tz(
     date: datetime.datetime,
-    tzinfo: Any
+    tzinfo: Any,
 ) -> datetime.datetime:
     """
     Attach timezone info to a naive datetime, leaving an aware datetime unchanged.
@@ -393,7 +385,7 @@ def time_ratio(
     numerator: TimeValue,
     denominator: TimeValue,
     *,
-    zero_div_result: float = 1.0
+    zero_div_result: float = 1.0,
 ) -> float:
     """
     Return the ratio between two times.
@@ -457,7 +449,7 @@ def datetime_to_epoch(
     date_time: datetime.datetime | datetime.date,
     *,
     utc: bool = True,
-    factor: int = 1
+    factor: int = 1,
 ) -> int:
     """
     Return the :class:`datetime.datetime`/:class:`datetime.date` converted into an Unix epoch.
@@ -494,7 +486,7 @@ def epoch_to_datetime(
     unix_epoch: int,
     *,
     tz: Any = datetime.timezone.utc,
-    factor: int = 1
+    factor: int = 1,
 ) -> datetime.datetime:
     """
     Return the Unix epoch converted to a :class:`datetime.datetime`.

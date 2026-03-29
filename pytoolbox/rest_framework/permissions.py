@@ -1,6 +1,7 @@
 """
 Extra permission policies for building your own Django REST Framework powered API.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any

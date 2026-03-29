@@ -1,14 +1,11 @@
 """
 Module related to file system and path operations.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
-from pathlib import Path
-from typing import Any, BinaryIO, Literal, Protocol, Self, TypeAlias, TextIO, overload
-import contextlib
 import collections
-import warnings
+import contextlib
 import copy
 import datetime
 import errno
@@ -18,6 +15,10 @@ import shutil
 import tempfile
 import time
 import uuid
+import warnings
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import Any, BinaryIO, Literal, Protocol, Self, TextIO, TypeAlias, overload
 
 from . import module
 from .datetime import datetime_now
@@ -27,14 +28,20 @@ from .regex import from_path_patterns
 _all = module.All(globals())
 
 FindPatterns: TypeAlias = (
-    re.Pattern | str |  # noqa: W504
-    list[re.Pattern] | list[str] | list[re.Pattern | str] |  # noqa: W504
-    tuple[re.Pattern, ...] | tuple[str, ...] | tuple[re.Pattern | str, ...]
+    re.Pattern
+    | str  # noqa: W504
+    | list[re.Pattern]
+    | list[str]
+    | list[re.Pattern | str]  # noqa: W504
+    | tuple[re.Pattern, ...]
+    | tuple[str, ...]
+    | tuple[re.Pattern | str, ...]
 )
 
 
 class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
     """Callback protocol for :func:`copy_recursive` progress reporting."""
+
     def __call__(
         self,
         start_date: datetime.datetime,
@@ -42,15 +49,14 @@ class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
         eta_time: float,
         src_size: int,
         dst_size: int,
-        ratio: float
-    ) -> None:
-        ...
+        ratio: float,
+    ) -> None: ...
 
 
 class TemplateHookFunc(Protocol):  # pylint:disable=too-few-public-methods
     """Callback protocol for :func:`from_template` pre/post hooks."""
-    def __call__(self, content: str, values: dict[str, Any], *, jinja2: bool = False) -> str:
-        ...
+
+    def __call__(self, content: str, values: dict[str, Any], *, jinja2: bool = False) -> str: ...
 
 
 @contextlib.contextmanager
@@ -72,7 +78,7 @@ def chown(
     recursive: bool = False,
     top_down: bool = True,
     on_error: Callable | None = None,
-    follow_symlinks: bool = False
+    follow_symlinks: bool = False,
 ) -> None:
     """
     Change owner/group of a path, can be recursive.
@@ -88,7 +94,7 @@ def chown(
             path,
             topdown=top_down,
             onerror=on_error,
-            followlinks=follow_symlinks
+            followlinks=follow_symlinks,
         ):
             dir_path = Path(dirpath)
             _chown(dir_path, uid, gid)
@@ -116,7 +122,6 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     top_down: bool = True,
     on_error: Callable | None = None,
     follow_symlinks: bool = False,
-
     # Processing arguments
     chunk_size: int = 1024 * 1024,
     progress_callback: CopyProgressCallback | None = None,
@@ -146,7 +151,8 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             regex=regex,
             top_down=top_down,
             on_error=on_error,
-            follow_symlinks=follow_symlinks)
+            follow_symlinks=follow_symlinks,
+        )
         dst_size = 0
 
         # Recursive copy of a directory of files
@@ -156,7 +162,7 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             regex=regex,
             top_down=top_down,
             on_error=on_error,
-            follow_symlinks=follow_symlinks
+            follow_symlinks=follow_symlinks,
         ):
             dst_path = destination_path / src_path.relative_to(source_path)
             makedirs(dst_path, parent=True)
@@ -192,7 +198,8 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
                         eta_time=eta_time,
                         src_size=src_size,
                         dst_size=dst_size,
-                        ratio=ratio)
+                        ratio=ratio,
+                    )
 
                 block_length = len(block)
                 dst_size += block_length
@@ -226,7 +233,7 @@ def find_recursive(
     regex: bool = False,
     top_down: bool = True,
     on_error: Callable | None = None,
-    follow_symlinks: bool = False
+    follow_symlinks: bool = False,
 ) -> Iterator[Path]:
     r"""
     Yield filenames matching any of the patterns.
@@ -264,7 +271,7 @@ def find_recursive(
         directory,
         topdown=top_down,
         onerror=on_error,
-        followlinks=follow_symlinks
+        followlinks=follow_symlinks,
     ):
         dir_path = Path(dirpath)
         for filename in filenames:
@@ -296,7 +303,8 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
         warnings.warn(
             f'file_mime() requires python-magic / libmagic: {ex}',
             ImportWarning,
-            stacklevel=2)
+            stacklevel=2,
+        )
         return None
     try:
         return magic.from_file(str(path), mime=mime)
@@ -332,7 +340,7 @@ def from_template(
     jinja2: bool = False,
     pre_func: TemplateHookFunc | None = None,
     post_func: TemplateHookFunc | None = None,
-    directories: Path | list[Path] = Path('.')
+    directories: Path | list[Path] = Path('.'),
 ) -> str:
     """
     Return a `template` rendered with `values` using string.format or Jinja2 as the template engine.
@@ -383,6 +391,7 @@ def from_template(
         content = pre_func(content, values=values, jinja2=jinja2)
     if jinja2:
         from jinja2 import Environment, FileSystemLoader, StrictUndefined
+
         loader = FileSystemLoader(directories)
         environment = Environment(loader=loader, undefined=StrictUndefined)
         content = environment.from_string(content).render(**values)
@@ -399,7 +408,7 @@ def get_bytes(
     data: Path | bytes | str,
     *,
     encoding: str = 'utf-8',
-    chunk_size: int | None = None
+    chunk_size: int | None = None,
 ) -> Iterator[bytes]:
     """
     Yield the content read from the given `path` or the `data` converted to bytes.
@@ -424,7 +433,7 @@ def get_size(
     regex: bool = False,
     top_down: bool = True,
     on_error: Callable | None = None,
-    follow_symlinks: bool = False
+    follow_symlinks: bool = False,
 ) -> int:
     r"""
     Return the size of a file or directory.
@@ -447,13 +456,17 @@ def get_size(
     """
     if path.is_file():
         return path.stat().st_size
-    return sum(f.stat().st_size for f in find_recursive(
-        directory=path,
-        patterns=patterns,
-        regex=regex,
-        top_down=top_down,
-        on_error=on_error,
-        follow_symlinks=follow_symlinks))
+    return sum(
+        f.stat().st_size
+        for f in find_recursive(
+            directory=path,
+            patterns=patterns,
+            regex=regex,
+            top_down=top_down,
+            on_error=on_error,
+            follow_symlinks=follow_symlinks,
+        )
+    )
 
 
 def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
@@ -635,6 +648,7 @@ def to_user_id(user: int | str | None) -> int:
     """
     if isinstance(user, str):
         import pwd  # pylint:disable=import-outside-toplevel
+
         return pwd.getpwnam(user).pw_uid
     return -1 if user is None else user
 
@@ -654,6 +668,7 @@ def to_group_id(group: int | str | None) -> int:
     """
     if isinstance(group, str):
         import grp  # pylint:disable=import-outside-toplevel
+
         return grp.getgrnam(group).gr_gid
     return -1 if group is None else group
 
@@ -674,12 +689,13 @@ class TempStorage:
     >>> os.path.isdir(directory)
     False
     """
+
     def __init__(self, root: Path | None = None) -> None:
         self.root: Path = root or Path(tempfile.gettempdir())
         self._path_to_key: dict[Path, str | None] = {}
-        self._paths_by_key: (
-            collections.defaultdict[str | None, set[Path]]
-        ) = collections.defaultdict(set)
+        self._paths_by_key: collections.defaultdict[str | None, set[Path]] = (
+            collections.defaultdict(set)
+        )
 
     def __enter__(self) -> Self:
         return self
@@ -688,7 +704,7 @@ class TempStorage:
         self,
         kind: type[BaseException] | None,
         value: BaseException | None,
-        traceback: object
+        traceback: object,
     ) -> None:
         self.remove_all()
 
@@ -698,7 +714,7 @@ class TempStorage:
         *,
         key: str | None = None,
         user: int | str | None = None,
-        group: int | str | None = None
+        group: int | str | None = None,
     ) -> Path:
         """
         Create a temporary directory and return its path.
@@ -729,9 +745,8 @@ class TempStorage:
         key: str | None = ...,
         user: int | str | None = ...,
         group: int | str | None = ...,
-        return_file: Literal[True] = True
-    ) -> BinaryIO:
-        ...
+        return_file: Literal[True] = True,
+    ) -> BinaryIO: ...
 
     @overload
     def create_tmp_file(  # type: ignore[misc]
@@ -743,9 +758,8 @@ class TempStorage:
         key: str | None = ...,
         user: int | str | None = ...,
         group: int | str | None = ...,
-        return_file: Literal[True] = True
-    ) -> TextIO:
-        ...
+        return_file: Literal[True] = True,
+    ) -> TextIO: ...
 
     @overload
     def create_tmp_file(
@@ -757,9 +771,8 @@ class TempStorage:
         key: str | None = ...,
         user: int | str | None = ...,
         group: int | str | None = ...,
-        return_file: bool = ...
-    ) -> Path:
-        ...
+        return_file: bool = ...,
+    ) -> Path: ...
 
     def create_tmp_file(
         self,
@@ -770,7 +783,7 @@ class TempStorage:
         key: str | None = None,
         user: int | str | None = None,
         group: int | str | None = None,
-        return_file: bool = True
+        return_file: bool = True,
     ) -> BinaryIO | TextIO | Path:
         """
         Create a temporary file and return a file object or its path.

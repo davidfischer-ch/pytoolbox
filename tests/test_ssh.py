@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Final
 import os
+from typing import Final
 
 from pytest import raises
 

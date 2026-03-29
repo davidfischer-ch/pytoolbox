@@ -1,6 +1,7 @@
 """
 Re-export all Selenium exceptions and add custom ones.
 """
+
 from __future__ import annotations
 
 from selenium.common import exceptions

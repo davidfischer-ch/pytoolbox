@@ -1,13 +1,14 @@
 """
 Type introspection helpers, dummy/echo objects and a sentinel :data:`Missing` value.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable, Generator, Iterable
-from typing import Any, Self, TypeVar
 import inspect
 import itertools
 import types
+from collections.abc import Callable, Generator, Iterable
+from typing import Any, Self, TypeVar
 
 from . import module
 from .collections import merge_dicts
@@ -41,7 +42,7 @@ def get_arguments_names(function: Callable) -> list[str]:
 
 
 def get_properties(
-    obj: Any
+    obj: Any,
 ) -> Generator[tuple[str, Any], None, None]:  # pylint:disable=unnecessary-default-type-args
     """Yield ``(name, value)`` pairs for all properties of an object."""
     return (
@@ -52,9 +53,8 @@ def get_properties(
 
 def get_slots(obj: Any) -> set[str]:
     """Return a set with the `__slots__` of the `obj` including all parent classes `__slots__`."""
-    return set(itertools.chain.from_iterable(
-        getattr(cls, '__slots__', ())
-        for cls in type(obj).__mro__)
+    return set(
+        itertools.chain.from_iterable(getattr(cls, '__slots__', ()) for cls in type(obj).__mro__),
     )
 
 
@@ -155,10 +155,9 @@ def merge_annotations(cls: GenericType) -> GenericType:
     ...     'o': 'str'
     ... }
     """
-    cls.__annotations__ = merge_dicts(*[
-        getattr(base, '__annotations__', {})
-        for base in reversed(cls.__mro__)
-    ])
+    cls.__annotations__ = merge_dicts(
+        *[getattr(base, '__annotations__', {}) for base in reversed(cls.__mro__)],
+    )
     return cls
 
 
@@ -167,7 +166,7 @@ def merge_bases_attribute(
     attr_name: str,
     init: Any,
     default: Any,
-    merge_func: Callable[[Any, Any], Any] = lambda a, b: a + b
+    merge_func: Callable[[Any, Any], Any] = lambda a, b: a + b,
 ) -> Any:
     """
     Merge all values of attribute defined in all bases classes (using `__mro__`).
@@ -193,6 +192,7 @@ class DummyObject:  # pylint:disable=too-few-public-methods
     >>> obj.bar is None
     True
     """
+
     def __init__(self, **kwargs: Any) -> None:
         self.__dict__.update(kwargs)
 
@@ -238,6 +238,7 @@ class EchoObject:
     >>> type(MyEchoObject('name').x.y.z)
     <class 'pytoolbox.types.MyEchoObject'>
     """
+
     attr_class: type | None = None
 
     def __init__(self, name: str, **attrs) -> None:
@@ -282,6 +283,7 @@ class EchoDict(dict):
     >>> type(context['jet'])
     <class 'set'>
     """
+
     item_class: type = EchoObject
 
     def __init__(self, name: str, **items) -> None:

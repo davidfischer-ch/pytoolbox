@@ -1,13 +1,14 @@
 """
 Signal handling with support for multiple handlers per signal.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable
-from types import FrameType
 import collections
 import inspect
 import signal
+from collections.abc import Callable
+from types import FrameType
 
 from . import exceptions
 
@@ -33,7 +34,7 @@ def register_handler(
     handler: Callable,
     *,
     append: bool = True,
-    reset: bool = False
+    reset: bool = False,
 ) -> None:
     """Register a signal handler, optionally appending to existing ones."""
     old_handler = signal.getsignal(signum)
@@ -59,11 +60,12 @@ def register_callback(
     append: bool = True,
     reset: bool = False,
     args: list | None = None,
-    kwargs: dict | None = None
+    kwargs: dict | None = None,
 ) -> None:
     """Register a callback as a signal handler, wrapping it to ignore ``signum`` and ``frame``."""
     return register_handler(
         signum,
         lambda s, f: callback(*(args or []), **(kwargs or {})),
         append=append,
-        reset=reset)
+        reset=reset,
+    )

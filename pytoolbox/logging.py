@@ -1,12 +1,13 @@
 """
 Logging setup helpers, colorization formatter and logger factory.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Final, Literal, Protocol, TypeAlias, cast
 import logging
 import sys
+from pathlib import Path
+from typing import Final, Literal, Protocol, TypeAlias, cast
 
 from .collections import merge_dicts
 
@@ -28,7 +29,7 @@ __all__ = [
     'get_logger',
     'reset_logger',
     'setup_logging',
-    'ColorizeFormatter'
+    'ColorizeFormatter',
 ]
 
 CRITICAL: Final[int] = logging.CRITICAL
@@ -58,17 +59,17 @@ Color: TypeAlias = Literal[
     'light_blue',
     'light_magenta',
     'light_cyan',
-    'white'
+    'white',
 ]
 
 
 class BasicLoggerFunc(Protocol):  # pylint:disable=too-few-public-methods
     """Protocol for a simple callable accepting a log message string."""
+
     __module__: str
     __name__: str
 
-    def __call__(self, message: str) -> None:
-        ...
+    def __call__(self, message: str) -> None: ...
 
 
 class BasicFuncLogger(logging.Logger):
@@ -79,11 +80,11 @@ class BasicFuncLogger(logging.Logger):
         super().__init__(name=f'{log_func.__module__}.{log_func.__name__}')
 
     def _log(  # type: ignore[override]  # pylint:disable=unused-argument
-            self,
-            level: int,
-            msg: str,
-            *args: object,
-            **kwargs: object
+        self,
+        level: int,
+        msg: str,
+        *args: object,
+        **kwargs: object,
     ) -> None:
         self._log_func(msg)
 
@@ -134,7 +135,7 @@ def setup_logging(
     colorize: bool = False,
     color_by_level: dict[int | str, Color] | None = None,
     fmt: str = '%(asctime)s %(levelname)-8s - %(message)s',
-    datefmt: str = '%d/%m/%Y %H:%M:%S'
+    datefmt: str = '%d/%m/%Y %H:%M:%S',
 ) -> logging.Logger:
     r"""
     Set up logging.
@@ -214,24 +215,26 @@ class ColorizeFormatter(logging.Formatter):
         logging.DEBUG: 'cyan',
         logging.ERROR: 'red',
         logging.INFO: 'white',
-        logging.WARNING: 'yellow'
+        logging.WARNING: 'yellow',
     }
 
     def __init__(
         self,
         fmt: str | None = None,
         datefmt: str | None = None,
-        color_by_level: dict[int | str, Color] | None = None
+        color_by_level: dict[int | str, Color] | None = None,
     ) -> None:
         super().__init__(fmt=fmt, datefmt=datefmt)
         self.color_by_level: dict[int | str, Color] = merge_dicts(
             self.DEFAULT_COLORS,
-            color_by_level or {})
+            color_by_level or {},
+        )
 
     def format(self, record: logging.LogRecord) -> str:
         """Format the record then wrap the message part in ANSI color."""
         text = super().format(record)
         if color := self.color_by_level.get(record.levelno):
             import termcolor
+
             text = termcolor.colored(text, color)
         return text

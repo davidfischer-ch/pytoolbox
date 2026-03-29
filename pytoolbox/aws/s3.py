@@ -1,12 +1,13 @@
 """
 Helpers for interacting with Amazon S3 via :mod:`botocore`.
 """
+
 from __future__ import annotations
 
+import collections.abc
 from collections.abc import Iterator
 from io import BytesIO
-from typing import Any, IO
-import collections.abc
+from typing import IO, Any
 
 from botocore.exceptions import ClientError
 
@@ -18,7 +19,8 @@ def copy_object(s3: Any, bucket_name: str, source_key: str, target_key: str) -> 
     return s3.copy_object(
         CopySource={'Bucket': bucket_name, 'Key': source_key},
         Bucket=bucket_name,
-        Key=target_key)
+        Key=target_key,
+    )
 
 
 def get_bucket_location(s3: Any, bucket_name: str) -> str | None:
@@ -37,7 +39,7 @@ def list_objects(
     prefix: str = '',
     patterns: str = '*',
     *,
-    regex: bool = False
+    regex: bool = False,
 ) -> Iterator[dict]:
     """Yield objects in a bucket whose keys match the given patterns."""
     if prefix and prefix[-1] != '/':
@@ -70,7 +72,7 @@ def read_object(
     path: str,
     file: IO | None = None,
     *,
-    fail: bool = True
+    fail: bool = True,
 ) -> bytes | IO | None:
     """Download an object's content into memory or into an open file."""
     try:
@@ -96,7 +98,7 @@ def remove_objects(
     *,
     callback: collections.abc.Callable[[dict], bool] = lambda obj: True,
     regex: bool = False,
-    simulate: bool = False
+    simulate: bool = False,
 ) -> Iterator[dict]:
     """
     Remove objects matching pattern, by chunks of 1000 to be efficient.

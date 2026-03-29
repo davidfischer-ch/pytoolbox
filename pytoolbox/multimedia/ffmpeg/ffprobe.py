@@ -1,11 +1,9 @@
 """
 FFprobe wrapper for extracting media file information.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Final, Type
-from xml.dom import minidom
 import collections.abc
 import datetime
 import errno
@@ -15,6 +13,9 @@ import math
 import os
 import re
 import subprocess
+from pathlib import Path
+from typing import Final, Type
+from xml.dom import minidom
 
 from pytoolbox import subprocess as py_subprocess
 from pytoolbox.datetime import parts_to_time, secs_to_time
@@ -24,11 +25,13 @@ from . import miscellaneous, utils
 __all__ = ['DURATION_REGEX', 'FFprobe']
 
 DURATION_REGEX: Final[re.Pattern] = re.compile(
-    r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S')
+    r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S',
+)
 
 
 class FFprobe:
     """Probe media files for format, streams, and duration information."""
+
     executable: Path = Path('ffprobe')
     duration_regex: re.Pattern = DURATION_REGEX
     format_class: type | None = None
@@ -44,7 +47,8 @@ class FFprobe:
             itertools.chain([self.executable], arguments),
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
-            universal_newlines=True)
+            universal_newlines=True,
+        )
         process.wait()
         return process.stdout.read()
 
@@ -53,7 +57,7 @@ class FFprobe:
         media: object,
         *,
         as_delta: bool = False,
-        fail: bool = False
+        fail: bool = False,
     ) -> datetime.timedelta | datetime.time | None:
         """
         Return the duration of a media as an instance of time or None in case of error.
@@ -69,7 +73,8 @@ class FFprobe:
                 mpd = minidom.parse(f)
             if mpd.firstChild.nodeName == 'MPD':
                 match = self.duration_regex.search(
-                    mpd.firstChild.getAttribute('mediaPresentationDuration'))
+                    mpd.firstChild.getAttribute('mediaPresentationDuration'),
+                )
                 if match is not None:
                     hours, minutes = int(match.group('hours')), int(match.group('minutes'))
                     microseconds, seconds = math.modf(float(match.group('seconds')))
@@ -84,8 +89,11 @@ class FFprobe:
                 except KeyError:
                     return None
             # ffmpeg may return this so strange value, 00:00:00.04, let it being None
-            if duration and (duration >= datetime.timedelta(seconds=1) if as_delta else
-                             duration >= datetime.time(0, 0, 1)):
+            if duration and (
+                duration >= datetime.timedelta(seconds=1)
+                if as_delta
+                else duration >= datetime.time(0, 0, 1)
+            ):
                 return duration
         return None
 
@@ -103,14 +111,19 @@ class FFprobe:
                 raise NotImplementedError('Read media information from a PIPE not yet implemented.')
 
             return json.loads(
-                subprocess.check_output([
-                    self.executable,
-                    '-v', 'quiet',
-                    '-print_format', 'json',
-                    '-show_format',
-                    '-show_streams',
-                    media.path
-                ]).decode('utf-8'))
+                subprocess.check_output(
+                    [
+                        self.executable,
+                        '-v',
+                        'quiet',
+                        '-print_format',
+                        'json',
+                        '-show_format',
+                        '-show_streams',
+                        media.path,
+                    ]
+                ).decode('utf-8'),
+            )
         except OSError as ex:
             # Executable does not exist
             if fail or ex.errno == errno.ENOENT:
@@ -130,7 +143,7 @@ class FFprobe:
         try:
             cls, the_format = self.format_class, info['format']
             if cls and not isinstance(the_format, cls):  # pylint:disable=all
-                return cls(the_format)                   # pylint:disable=not-callable
+                return cls(the_format)  # pylint:disable=not-callable
             return the_format
         except Exception:  # pylint:disable=broad-except
             if fail:
@@ -142,7 +155,7 @@ class FFprobe:
         media: object,
         *,
         condition: collections.abc.Callable[[dict], bool] = lambda stream: True,
-        fail: bool = False
+        fail: bool = False,
     ) -> list:
         """
         Return a list with the media streams of `media` or [] in case of error.
@@ -160,8 +173,10 @@ class FFprobe:
         for stream in raw_streams:
             stream_class = self.stream_classes[stream['codec_type']]
             streams.append(
-                stream_class(stream) if stream_class and not isinstance(stream, stream_class)
-                else stream)
+                stream_class(stream)
+                if stream_class and not isinstance(stream, stream_class)
+                else stream,
+            )
         return streams
 
     def get_audio_streams(self, media: object, *, fail: bool = False) -> list:
@@ -173,7 +188,8 @@ class FFprobe:
         return self.get_media_streams(
             media,
             condition=lambda s: s['codec_type'] == 'audio',
-            fail=fail)
+            fail=fail,
+        )
 
     def get_subtitle_streams(self, media: object, *, fail: bool = False) -> list:
         """
@@ -184,7 +200,8 @@ class FFprobe:
         return self.get_media_streams(
             media,
             condition=lambda s: s['codec_type'] == 'subtitle',
-            fail=fail)
+            fail=fail,
+        )
 
     def get_video_streams(self, media: object, *, fail: bool = False) -> list:
         """
@@ -195,14 +212,15 @@ class FFprobe:
         return self.get_media_streams(
             media,
             condition=lambda s: s['codec_type'] == 'video',
-            fail=fail)
+            fail=fail,
+        )
 
     def get_video_frame_rate(
         self,
         media: object,
         *,
         index: int = 0,
-        fail: bool = False
+        fail: bool = False,
     ) -> float | None:
         """
         Return the frame rate of the video stream at `index` in `media` or None in case of error.
@@ -225,7 +243,7 @@ class FFprobe:
         media: object,
         *,
         index: int = 0,
-        fail: bool = False
+        fail: bool = False,
     ) -> list[int] | None:
         """
         Return [width, height] of the video stream at `index` in `media` or None in case of error.

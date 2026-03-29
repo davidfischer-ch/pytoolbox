@@ -35,6 +35,7 @@ dj_signals.post_migrate.connect(create_site, sender=config)
 dj_signals.pre_save.connect(
 strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -55,7 +56,7 @@ __all__ = [
     'clean_files_delete_handler',
     'create_site',
     'setup_postgresql_hstore_extension',
-    'strip_strings_and_validate_model'
+    'strip_strings_and_validate_model',
 ]
 
 logger = logging.get_logger(__name__)
@@ -93,15 +94,18 @@ def create_site(sender: object, **kwargs: object) -> None:
         `here <https://groups.google.com/forum/#!topic/django-developers/X-ef0C0V8Rk>`_
     """
     from django.contrib.sites import models as site_app
+
     site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}
     site = site_app.Site.objects.update_or_create(pk=settings.SITE_ID, defaults=site_fields)[0]
     logger.info(
-        f'Updated settings of Site "{site.name}" with ID {site.pk} and domain {site.domain}')
+        f'Updated settings of Site "{site.name}" with ID {site.pk} and domain {site.domain}',
+    )
 
 
 def setup_postgresql_hstore_extension(sender: object, connection: object, **kwargs: object) -> None:
     """Create the PostgreSQL ``hstore`` extension and register it globally."""
     from psycopg2.extras import register_hstore
+
     cursor = connection.connection.cursor()
     cursor.execute('CREATE EXTENSION IF NOT EXISTS hstore')
     register_hstore(connection.connection, globally=True)
@@ -111,7 +115,7 @@ def strip_strings_and_validate_model(
     sender: object,
     instance: models.Model,
     raw: bool,
-    **kwargs: object
+    **kwargs: object,
 ) -> None:
     """Strip the string fields of the instance and run the instance's full_clean()."""
     if not raw:

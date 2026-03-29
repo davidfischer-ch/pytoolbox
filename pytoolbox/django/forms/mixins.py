@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own forms.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -8,6 +9,7 @@ from typing import TYPE_CHECKING
 from django.forms import fields
 
 from pytoolbox import module
+
 from . import utils, widgets
 
 if TYPE_CHECKING:
@@ -55,7 +57,7 @@ class HelpTextToPlaceholderMixin:
         fields.IntegerField,
         fields.RegexField,
         fields.SlugField,
-        fields.TimeField
+        fields.TimeField,
     )
     #: Remove the help text after having copied it to the placeholder.
     placeholder_remove_help_text = True
@@ -67,9 +69,9 @@ class HelpTextToPlaceholderMixin:
                 self.set_placeholder(name, field)
 
     def set_placeholder(  # pylint:disable=unused-argument
-            self,
-            name: str,
-            field: fields.Field
+        self,
+        name: str,
+        field: fields.Field,
     ) -> None:
         """Copy the field's help text into the widget placeholder attribute."""
         field.widget.attrs['placeholder'] = field.help_text

@@ -1,12 +1,13 @@
 """
 Regular expression utilities: embedding, partial matching and path patterns.
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
-from typing import Any, Final, Literal, overload
 import fnmatch
 import re
+from collections.abc import Iterable, Iterator
+from typing import Any, Final, Literal, overload
 
 from . import exceptions
 from .itertools import chain
@@ -16,13 +17,18 @@ __all__ = [
     'UUID_REGEX',
     'embed_in_regex',
     'findall_partial',
-    'from_path_patterns'
+    'from_path_patterns',
 ]
 
 TIME_REGEX_PARTS: Final[list[str]] = [
-    '[0-2]', '[0-9]', ':',
-    '[0-5]', '[0-9]', ':',
-    '[0-5]', '[0-9]'
+    '[0-2]',
+    '[0-9]',
+    ':',
+    '[0-5]',
+    '[0-9]',
+    ':',
+    '[0-5]',
+    '[0-9]',
 ]
 
 UUID_REGEX: Final[str] = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -34,9 +40,8 @@ def embed_in_regex(
     regex_parts: list[str] | tuple[str, ...],
     index: int,
     *,
-    as_string: Literal[True] = True
-) -> tuple[int, str]:
-    ...
+    as_string: Literal[True] = True,
+) -> tuple[int, str]: ...
 
 
 @overload
@@ -45,9 +50,8 @@ def embed_in_regex(
     regex_parts: list[str] | tuple[str, ...],
     index: int,
     *,
-    as_string: Literal[False]
-) -> tuple[int, list[str]]:
-    ...
+    as_string: Literal[False],
+) -> tuple[int, list[str]]: ...
 
 
 def embed_in_regex(
@@ -55,7 +59,7 @@ def embed_in_regex(
     regex_parts: list[str] | tuple[str, ...],
     index: int,
     *,
-    as_string: bool = True
+    as_string: bool = True,
 ) -> tuple[int, str] | tuple[int, list[str]]:
     """
     Embed a literal string into a list of regex parts at the given index.
@@ -70,7 +74,7 @@ def embed_in_regex(
     (1, ['[a-z]', 'L'])
     """
     regex: list[str] = list(regex_parts)
-    regex[index:index + len(string)] = string
+    regex[index : index + len(string)] = string
     if as_string:
         return index, ''.join(regex)
     return index, regex
@@ -78,7 +82,7 @@ def embed_in_regex(
 
 def findall_partial(
     string: str,
-    regex_parts: list[str] | tuple[str, ...]
+    regex_parts: list[str] | tuple[str, ...],
 ) -> Iterator[tuple[str, list[str] | tuple[str, ...], int]]:
     """
     Yield positions where a string partially matches a sequence of regex parts.
@@ -95,7 +99,7 @@ def findall_partial(
     [(3, '[0-2][0-9]:59:1[0-9]')]
     """
     for index in range(0, len(regex_parts) - len(string) + 1):
-        regex = regex_parts[index:index + len(string)]
+        regex = regex_parts[index : index + len(string)]
         if re.search(''.join(regex), string):
             yield string, regex_parts, index
 
@@ -103,7 +107,7 @@ def findall_partial(
 def from_path_patterns(
     patterns: re.Pattern | str | Iterable[re.Pattern] | Iterable[str] | Iterable[re.Pattern | str],
     *,
-    regex: bool = False
+    regex: bool = False,
 ) -> list[re.Pattern]:
     r"""
     Return patterns compiled to regular expressions, if necessary.
@@ -135,9 +139,10 @@ def from_path_patterns(
 
 def group_replace(
     string: str,
-    match: re.Match, *,
+    match: re.Match,
+    *,
     offset: int = 0,
-    mapping: Iterable[tuple[str, str | None]]
+    mapping: Iterable[tuple[str, str | None]],
 ) -> str:
     """
     Replace matched groups in `string` by content from given `mapping` (group name -> replacement).
@@ -156,7 +161,7 @@ def group_replace(
                     raise IndexError()
             except IndexError as ex:
                 raise exceptions.RegexMatchGroupNotFoundError(group=group) from ex
-            string = string[:start + offset] + value + string[match.end(group) + offset:]
+            string = string[: start + offset] + value + string[match.end(group) + offset :]
     return string
 
 
@@ -178,6 +183,7 @@ class Match:
     >>> repr(Match(r'foo.+'))
     'foo.+'
     """
+
     def __init__(self, pattern: str, flags: int = 0) -> None:
         self._regex = re.compile(pattern, flags)
 

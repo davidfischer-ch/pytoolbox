@@ -1,6 +1,7 @@
 """
 SMPTE 2022-1 FEC stream receiver with media packet recovery.
 """
+
 from __future__ import annotations
 
 import collections
@@ -125,14 +126,17 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
     ER_MISSING_COUNT = 'They are {0} missing media packet, expected one (1)'
     ER_FEC_DIRECTION = "Invalid FEC direction '{0}'"
     ER_COL_MISMATCH = 'Column FEC packet n°{0}, expected n°{1}'
-    ER_COL_OVERWRITE = \
+    ER_COL_OVERWRITE = (
         'Another column FEC packet is already registered to protect media packet n°{0}'
+    )
     ER_ROW_MISMATCH = 'Row FEC packet n°{0}, expected n°{1}'
     ER_ROW_OVERWRITE = 'Another row FEC packet is already registered to protect media packet n°{0}'
-    ER_GET_COL_CASCADE = \
+    ER_GET_COL_CASCADE = (
         'Column FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
-    ER_GET_ROW_CASCADE = \
+    )
+    ER_GET_ROW_CASCADE = (
         'Row FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
+    )
     ER_NULL_COL_CASCADE = 'Column FEC cascade : Unable to find linked entry in crosses buffer'
     ER_NULL_ROW_CASCADE = 'Row FEC cascade : Unable to find linked entry in crosses buffer'
     ER_STARTUP = 'Current position still not initialized (startup state)'
@@ -168,9 +172,9 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
             raise ValueError('output is None')
         # Media packets storage, medias[media seq] = media pkt
         self.medias: dict[int, RtpPacket] = {}
-        self.startup = True    # Indicate that actual position must be initialized
+        self.startup = True  # Indicate that actual position must be initialized
         self.flushing = False  # Indicate that a flush operation is actually running
-        self.position = 0      # Actual position (sequence number) in the medias buffer
+        self.position = 0  # Actual position (sequence number) in the medias buffer
         # Link media packets to fec packets able to recover it, crosses[mediaseq] = {colseq, rowseq}
         self.crosses: dict[int, dict[str, int | None]] = {}
         # Fec packets + related information storage, col[sequence] = { fec pkt + info }
@@ -181,25 +185,26 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         # Output
         self.output = output  # Registered output
         # Settings
-        self.delay_value = 100           # RTP buffer delay value
+        self.delay_value = 100  # RTP buffer delay value
         self.delay_units = self.PACKETS  # RTP buffer delay units
         # Statistics about media (buffers and packets)
-        self.media_received = 0          # Received media packets counter
-        self.media_recovered = 0         # Recovered media packets counter
+        self.media_received = 0  # Received media packets counter
+        self.media_recovered = 0  # Recovered media packets counter
         self.media_aborted_recovery = 0  # Aborted media packet recovery counter
-        self.media_overwritten = 0       # Overwritten media packets counter
-        self.media_missing = 0           # Missing media packets counter
-        self.max_media = 0               # Largest amount of stored elements in the medias buffer
+        self.media_overwritten = 0  # Overwritten media packets counter
+        self.media_missing = 0  # Missing media packets counter
+        self.max_media = 0  # Largest amount of stored elements in the medias buffer
         # Statistics about fec (buffers and packets)
         self.col_received = 0  # Received column fec packets counter
         self.row_received = 0  # Received row fec packets counter
-        self.col_dropped = 0   # Dropped column fec packets counter
-        self.row_dropped = 0   # Dropped row fec packets counter
-        self.max_cross = 0     # Largest amount of stored elements in the crosses buffer
-        self.max_col = 0       # Largest amount of stored elements in the columns buffer
-        self.max_row = 0       # Largest amount of stored elements in the rows buffer
-        self.lostogram: collections.defaultdict[int, int] = \
-            collections.defaultdict(int)  # Statistics about lost medias
+        self.col_dropped = 0  # Dropped column fec packets counter
+        self.row_dropped = 0  # Dropped row fec packets counter
+        self.max_cross = 0  # Largest amount of stored elements in the crosses buffer
+        self.max_col = 0  # Largest amount of stored elements in the columns buffer
+        self.max_row = 0  # Largest amount of stored elements in the rows buffer
+        self.lostogram: collections.defaultdict[int, int] = collections.defaultdict(
+            int
+        )  # Statistics about lost medias
         self.lostogram_counter = 0  # Incremented while there are lost media packets
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Properties >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -253,7 +258,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
 
     def put_fec(  # pylint:disable=too-many-branches,too-many-statements
         self,
-        fec: FecPacket
+        fec: FecPacket,
     ) -> None:
         """
         Put an incoming FEC packet and apply the recovery algorithm.
@@ -322,7 +327,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         drop = not self.validity_window(
             fec.snbase,
             self.position,
-            (self.position + 10 * self.delay_value) & RtpPacket.S_MASK
+            (self.position + 10 * self.delay_value) & RtpPacket.S_MASK,
         )
 
         if fec.direction == FecPacket.COL:
@@ -381,7 +386,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         self,
         media_sequence: int,
         cross: dict[str, int | None],
-        fec: FecPacket | None
+        fec: FecPacket | None,
     ) -> None:
         """
         Recover a missing media packet helped by a FEC packet, this method is also called to
@@ -394,7 +399,6 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
 
         # Recover the missing media packet and remove any useless linked fec packet
         if fec is not None:
-
             if len(fec.missing) != 1:
                 raise NotImplementedError(self.ER_MISSING_COUNT.format(len(fec.missing)))
 
@@ -410,7 +414,8 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
                 media_sequence,
                 fec.timestamp_recovery,
                 fec.payload_type_recovery,
-                fec.payload_recovery)
+                fec.payload_recovery,
+            )
             payload_size = fec.length_recovery
 
             # > recovered payload ^= all media packets linked to the fec packet
@@ -467,7 +472,8 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
                             f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
                             f'{self.ER_NULL_COL_CASCADE}{os.linesep}'
                             f'media sequence : {cascade_media_sequence}{os.linesep}'
-                            f'{fec_col}{os.linesep}')
+                            f'{fec_col}{os.linesep}',
+                        )
                 else:
                     raise NotImplementedError(self.ER_GET_COL_CASCADE.format(os.linesep, fec_col))
 
@@ -482,7 +488,8 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
                             f'{self.ER_NULL_ROW_CASCADE}{os.linesep}'
                             f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
                             f'media sequence : {cascade_media_sequence}{os.linesep}'
-                            f'{fec_row}{os.linesep}')
+                            f'{fec_row}{os.linesep}',
+                        )
                 else:
                     raise NotImplementedError(self.ER_GET_ROW_CASCADE.format(os.linesep, fec_row))
 
@@ -550,23 +557,42 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         delay_msg = f'{delay_format % self.current_delay} {self.DELAY_NAMES[self.delay_units]}'
 
         return (  # pylint:disable=consider-using-f-string
-            "Name  Received Buffered Maximum Dropped{0}"
-            "Media %8d%9d%8d{0}"
-            "Col   %8d%9d%8d%8d{0}"
-            "Row   %8d%9d%8d%8d{0}"
-            "Cross         %9d%8d{0}"
-            "FEC statistics, media packets :{0}"
-            "Recovered Aborted Overwritten Missing{0}"
-            "%9d%8d%12d%8d{0}"
-            "Current position (media sequence) : %s{0}"
-            "Current delay (can be set) : %s{0}"
-            "FEC matrix size (LxD) : %sx%s = %s packets".format(os.linesep) %
-            (self.media_received, len(self.medias), self.max_media,
-             self.col_received, len(self.cols), self.max_col, self.col_dropped,
-             self.row_received, len(self.rows), self.max_row, self.row_dropped,
-             len(self.crosses), self.max_cross, self.media_recovered,
-             self.media_aborted_recovery, self.media_overwritten, self.media_missing,
-             self.position, delay_msg, self.matrixL, self.matrixD, self.matrixL * self.matrixD))
+            'Name  Received Buffered Maximum Dropped{0}'
+            'Media %8d%9d%8d{0}'
+            'Col   %8d%9d%8d%8d{0}'
+            'Row   %8d%9d%8d%8d{0}'
+            'Cross         %9d%8d{0}'
+            'FEC statistics, media packets :{0}'
+            'Recovered Aborted Overwritten Missing{0}'
+            '%9d%8d%12d%8d{0}'
+            'Current position (media sequence) : %s{0}'
+            'Current delay (can be set) : %s{0}'
+            'FEC matrix size (LxD) : %sx%s = %s packets'.format(os.linesep)
+            % (
+                self.media_received,
+                len(self.medias),
+                self.max_media,
+                self.col_received,
+                len(self.cols),
+                self.max_col,
+                self.col_dropped,
+                self.row_received,
+                len(self.rows),
+                self.max_row,
+                self.row_dropped,
+                len(self.crosses),
+                self.max_cross,
+                self.media_recovered,
+                self.media_aborted_recovery,
+                self.media_overwritten,
+                self.media_missing,
+                self.position,
+                delay_msg,
+                self.matrixL,
+                self.matrixD,
+                self.matrixL * self.matrixD,
+            )
+        )
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Static >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

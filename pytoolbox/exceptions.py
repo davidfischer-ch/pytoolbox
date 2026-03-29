@@ -1,14 +1,15 @@
 """
 Custom exception classes and assertion helpers.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable
-from pathlib import Path
-from typing import Annotated, Any
 import inspect
 import io
 import traceback
+from collections.abc import Callable
+from pathlib import Path
+from typing import Annotated, Any
 
 from . import module
 
@@ -19,6 +20,7 @@ _all = module.All(globals())
 
 class MessageMixin(Exception):  # noqa: N818
     """Mixin providing a formattable :attr:`message` and attribute-based repr."""
+
     attrs: Annotated[tuple[str, ...], 'Attributes to expose to the __repr__'] = tuple()
     message: str
 
@@ -35,7 +37,7 @@ class MessageMixin(Exception):  # noqa: N818
     def __repr__(self) -> str:
         args = [] if self.message == type(self).message else [f'{repr(self.message)}']
         args.extend(f'{a}={repr(getattr(self, a))}' for a in self.attrs)
-        return f"{type(self).__name__}({', '.join(args)})"
+        return f'{type(self).__name__}({", ".join(args)})'
 
     def __str__(self) -> str:
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
@@ -44,6 +46,7 @@ class MessageMixin(Exception):  # noqa: N818
 
 class BadHTTPResponseCodeError(MessageMixin, Exception):
     """Raised when an HTTP response code does not match the expected code."""
+
     attrs: tuple[str, ...] = ('url', 'r_code', 'code')
     message: str = 'Download request {url} code {r_code} expected {code}.'
     url: str
@@ -53,6 +56,7 @@ class BadHTTPResponseCodeError(MessageMixin, Exception):
 
 class CalledProcessError(MessageMixin, Exception):
     """Raised when a subprocess exits with a non-zero return code."""
+
     attrs: tuple[str, ...] = ('cmd_short', 'returncode')
     message: str = 'Process {cmd_short} failed with return code {returncode}'
     cmd: list[str]
@@ -71,6 +75,7 @@ class CalledProcessError(MessageMixin, Exception):
 
 class CorruptedFileError(MessageMixin, Exception):
     """Raised when a file's checksum does not match the expected hash."""
+
     attrs: tuple[str, ...] = ('path', 'file_hash', 'expected_hash')
     message: str = 'File {path} is corrupted checksum {file_hash} expected {expected_hash}.'
     path: Path
@@ -80,6 +85,7 @@ class CorruptedFileError(MessageMixin, Exception):
 
 class DuplicateGitTagError(MessageMixin, Exception):
     """Raised when attempting to create a Git tag that already exists."""
+
     attrs: tuple[str, ...] = ('tag',)
     message: str = 'Tag {tag} already exist.'
     tag: str
@@ -91,12 +97,14 @@ class ForbiddenError(Exception):
 
 class GitReferenceError(MessageMixin, Exception):
     """Raised when the current Git reference cannot be detected."""
+
     attrs: tuple[str, ...] = tuple()
     message: str = 'Unable to detect current Git reference.'
 
 
 class InvalidBrandError(MessageMixin, Exception):
     """Raised when a brand identifier is not in the allowed set."""
+
     attrs: tuple[str, ...] = ('brand', 'brands')
     message: str = 'Brand {brand} not in {brands}.'
     brand: str
@@ -105,6 +113,7 @@ class InvalidBrandError(MessageMixin, Exception):
 
 class InvalidIPSocketError(MessageMixin, Exception):
     """Raised when a string is not a valid IP socket address."""
+
     attrs: tuple[str, ...] = ('socket',)
     message: str = '{socket} is not a valid IP socket.'
     socket: str
@@ -112,6 +121,7 @@ class InvalidIPSocketError(MessageMixin, Exception):
 
 class MultipleSignalHandlersError(MessageMixin, Exception):
     """Raised when a signal already has registered handlers."""
+
     attrs: tuple[str, ...] = ('signum', 'handlers')
     message: str = 'Signal {signum} already handled by {handlers}.'
     signum: str
@@ -120,6 +130,7 @@ class MultipleSignalHandlersError(MessageMixin, Exception):
 
 class RegexMatchGroupNotFoundError(MessageMixin, Exception):
     """Raised when a named group is not found in a regex match."""
+
     attrs: tuple[str, ...] = ('group',)
     message: str = 'Group "{group}" not found in the regex match.'
     group: str
@@ -127,16 +138,19 @@ class RegexMatchGroupNotFoundError(MessageMixin, Exception):
 
 class SSHAgentConnectionError(MessageMixin, Exception):
     """Raised when communication with the SSH agent fails."""
+
     message: str = 'Unable to communicate with the ssh agent.'
 
 
 class SSHAgentLoadingKeyError(MessageMixin, Exception):
     """Raised when the SSH agent cannot load a key."""
+
     message: str = 'Unable to load key.'
 
 
 class SSHAgentParsingError(MessageMixin, Exception):
     """Raised when ``ssh-agent`` output cannot be parsed."""
+
     attrs: tuple[str, ...] = ('output',)
     message: str = 'Unable to parse ssh-agent output "{output}".'
     output: str
@@ -148,6 +162,7 @@ class UndefinedPathError(Exception):
 
 class WrongExifTagDataTypeError(MessageMixin, ValueError):
     """Raised when an EXIF tag has an unexpected data type."""
+
     attrs: tuple[str, ...] = ('key', 'type', 'data_repr', 'data_type')
     message: str = 'Wrong tag data {data_repr} of type {data_type} for key {key}, expected {type}.'
     key: str
@@ -161,7 +176,7 @@ def assert_raises_item(
     something: Any,  # That has __getitem__
     index: Any,
     value: Any | None = None,
-    delete: bool = False
+    delete: bool = False,
 ) -> None:
     """
     Assert that accessing, setting, or deleting an item raises an exception.
@@ -211,8 +226,8 @@ def assert_raises_item(
     except Exception as ex:  # pylint:disable=broad-except
         if not isinstance(ex, exception_cls):
             raise ValueError(
-                f'Exception {type(ex).__name__} is not '
-                f'an instance of {exception_cls.__name__}.') from ex
+                f'Exception {type(ex).__name__} is not an instance of {exception_cls.__name__}.',
+            ) from ex
         return
     raise AssertionError(f'Exception {exception_cls.__name__} not raised.')
 

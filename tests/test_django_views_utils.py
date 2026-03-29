@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from django.http import Http404
 import pytest
+from django.http import Http404
 
 from pytoolbox.django.views import utils
 

@@ -4,6 +4,7 @@ Mix-ins for building your own
 `metadata <https://github.com/encode/django-rest-framework/blob/master/rest_framework/metadata.py>`_
 .
 """
+
 from __future__ import annotations
 
 from collections import OrderedDict
@@ -25,7 +26,6 @@ class ExcludeRelatedChoicesMixin:
             field_class = type(field)
 
             class HaveNoChoicesProxy(field_class):
-
                 @property
                 def choices(self) -> None:
                     raise AttributeError

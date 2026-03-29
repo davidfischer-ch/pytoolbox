@@ -2,12 +2,12 @@
 Module containing extensions to validate data with
 `voluptuous <https://github.com/alecthomas/voluptuous>`_.
 """
+
 from __future__ import annotations
 
-
-from collections.abc import Callable
 import functools
 import re
+from collections.abc import Callable
 
 import voluptuous
 
@@ -18,6 +18,7 @@ _all = module.All(globals())
 
 # Errors
 
+
 class PasswordInvalid(voluptuous.Invalid):
     """Incorrect password."""
 
@@ -27,6 +28,7 @@ class VersionInvalid(voluptuous.Invalid):
 
 
 # Validators
+
 
 @voluptuous.message('Incorrect e-mail address')
 def Email(value: str) -> str:  # noqa: N802
@@ -65,6 +67,7 @@ def Password(length: int = 16, msg: str | None = None) -> Callable:  # noqa: N80
         value = str(value)
         if len(value) < length:
             raise PasswordInvalid(msg or 'Incorrect password')
+
     return f
 
 
@@ -92,6 +95,7 @@ def Version(digits: int = 4, msg: str | None = None) -> Callable:  # noqa: N802
         if re.match(pattern % (digits - 2), value):  # pylint:disable=consider-using-f-string
             return value
         raise VersionInvalid(msg or 'Incorrect version number')
+
     return f
 
 

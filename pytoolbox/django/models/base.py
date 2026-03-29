@@ -1,6 +1,7 @@
 """
 Abstract models for building your own models.
 """
+
 from __future__ import annotations
 
 from django.db import models
@@ -15,6 +16,7 @@ class Timestamped(models.Model):
 
     class Meta:
         """Default ordering by creation and update timestamps."""
+
         abstract = True
         get_latest_by = 'created_at'
         ordering = ('created_at', 'updated_at')

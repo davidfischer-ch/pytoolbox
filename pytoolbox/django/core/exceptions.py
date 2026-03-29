@@ -1,11 +1,12 @@
 """
 Django core exception classes and validation error utilities.
 """
+
 from __future__ import annotations
 
+import itertools
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
-import itertools
 
 from django.db import DatabaseError
 from django.utils.translation import gettext_lazy as _
@@ -51,7 +52,7 @@ def has_code(validation_error: ValidationError, code: str) -> bool:
 
 
 def iter_validation_errors(
-    validation_error: ValidationError
+    validation_error: ValidationError,
 ) -> Iterator[tuple[str | None, ValidationError]]:
     """
     Iterate over all validation errors as ``(field, error)`` tuples.
@@ -78,8 +79,10 @@ def iter_validation_errors(
 class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
     """Raised when row update preconditions fail due to a concurrent change."""
 
-    message = _('Row update request preconditions failed: '
-                'A concurrent request changed the row in database.')
+    message = _(
+        'Row update request preconditions failed: '
+        'A concurrent request changed the row in database.',
+    )
 
 
 class InvalidStateError(exceptions.MessageMixin, Exception):

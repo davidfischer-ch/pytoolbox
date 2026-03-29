@@ -1,26 +1,28 @@
 """
 Subprocess execution with retries, timeouts, logging and screen management.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from pathlib import Path
-from typing import IO, Literal, TypeAlias, TypedDict, overload
 import errno
 import multiprocessing
 import os
 import random
 import re
-import setuptools.archive_util
 import shlex
 import shutil
 import subprocess
 import threading
 import time
+from collections.abc import Callable, Iterable
+from pathlib import Path
+from typing import IO, Literal, TypeAlias, TypedDict, overload
+
+import setuptools.archive_util
 
 from . import exceptions, filesystem, module
 from .decorators import deprecated
-from .logging import get_logger, LoggerType
+from .logging import LoggerType, get_logger
 
 _all = module.All(globals())
 
@@ -29,10 +31,10 @@ try:
     from psutil import NoSuchProcess, Popen
 except ImportError:
     from subprocess import Popen
+
     NoSuchProcess = None
 
 from shlex import quote  # noqa: E402  pylint:disable=wrong-import-position
-
 
 # Better to warn user than letting converting to string Any!
 # None will be stripped automatically
@@ -42,6 +44,7 @@ CallArgsType: TypeAlias = str | Iterable[CallArgType]
 
 class CallResult(TypedDict):
     """Result dictionary returned by :func:`cmd`."""
+
     process: Popen | None
     returncode: int
     stdout: bytes | None
@@ -51,6 +54,7 @@ class CallResult(TypedDict):
 
 class CallResultFull(TypedDict):
     """Result returned by :func:`cmd` when ``communicate`` is True and ``cli_output`` is False."""
+
     process: Popen | None
     returncode: int
     stdout: bytes
@@ -89,8 +93,10 @@ def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid
             os.setgid(grp.getgrnam(group).gr_gid if isinstance(group, str) else group)
             os.setuid(pwd.getpwnam(user).pw_uid if isinstance(user, str) else user)
     except ImportError:
+
         def set_ids() -> None:
             return
+
     return set_ids
 
 
@@ -147,10 +153,10 @@ def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
 
 # thanks http://stackoverflow.com/questions/1191374$
 def _communicate_with_timeout(  # pylint:disable=redefined-builtin
-        *,
-        data: dict,
-        process: Popen,
-        input: str | None
+    *,
+    data: dict,
+    process: Popen,
+    input: str | None,
 ) -> None:
     data['stdout'], data['stderr'] = process.communicate(input=input)
 
@@ -171,7 +177,7 @@ def cmd(  # pylint:disable=too-many-arguments
     delay_min: float = ...,
     delay_max: float = ...,
     success_codes: Iterable[int] = ...,
-    **kwargs: object
+    **kwargs: object,
 ) -> CallResult: ...
 
 
@@ -191,7 +197,7 @@ def cmd(  # pylint:disable=too-many-arguments
     delay_min: float = ...,
     delay_max: float = ...,
     success_codes: Iterable[int] = ...,
-    **kwargs: object
+    **kwargs: object,
 ) -> CallResult: ...
 
 
@@ -211,7 +217,7 @@ def cmd(  # pylint:disable=too-many-arguments
     delay_min: float = ...,
     delay_max: float = ...,
     success_codes: Iterable[int] = ...,
-    **kwargs: object
+    **kwargs: object,
 ) -> CallResultFull: ...
 
 
@@ -230,7 +236,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     delay_min: float = 5,
     delay_max: float = 10,
     success_codes: Iterable[int] = (0,),
-    **kwargs: object
+    **kwargs: object,
 ) -> CallResult | CallResultFull:
     """
     Call the `command` and return a dictionary with process, stdout, stderr, and the returncode.
@@ -265,12 +271,16 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
         process_cmd = ['sudo', '-u', user, *process_cmd]
 
     # log the execution
-    log.debug(''.join([
-        'Execute ',
-        '' if input is None else f'echo {repr(input)} | ',
-        to_args_string(process_cmd),
-        '' if cli_input is None else f' < {repr(cli_input)}'
-    ]))
+    log.debug(
+        ''.join(
+            [
+                'Execute ',
+                '' if input is None else f'echo {repr(input)} | ',
+                to_args_string(process_cmd),
+                '' if cli_input is None else f' < {repr(cli_input)}',
+            ]
+        ),
+    )
 
     for trial in range(tries):  # noqa
         # create the sub-process
@@ -280,7 +290,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
                 stdin=subprocess.PIPE,
                 stdout=None if cli_output else subprocess.PIPE,
                 stderr=None if cli_output else subprocess.PIPE,
-                **kwargs)
+                **kwargs,
+            )
         except OSError as ex:
             # Unable to execute the program (e.g. does not exist)
             log.exception(ex)
@@ -291,7 +302,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
                 'returncode': 2,
                 'stdout': None,
                 'stderr': None,
-                'exception': ex
+                'exception': ex,
             }
 
         # Write to stdin (answer to questions, ...)
@@ -304,7 +315,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
             data: dict = {}
             thread = threading.Thread(
                 target=_communicate_with_timeout,
-                kwargs={'data': data, 'input': input, 'process': process})
+                kwargs={'data': data, 'input': input, 'process': process},
+            )
             thread.start()
             thread.join(timeout=timeout)
             if thread.is_alive():
@@ -327,7 +339,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
             'returncode': process.returncode,
             'stdout': stdout,
             'stderr': stderr,
-            'exception': None
+            'exception': None,
         }
 
         if process.returncode in success_codes:
@@ -336,10 +348,14 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
         # failed attempt, may retry
         do_retry = trial < tries - 1
         delay = random.uniform(delay_min, delay_max)
-        log.warning(' '.join([
-            f'Attempt {trial + 1} out of {tries}:',
-            f'Will retry in {delay} seconds' if do_retry else 'Failed'
-        ]))
+        log.warning(
+            ' '.join(
+                [
+                    f'Attempt {trial + 1} out of {tries}:',
+                    f'Will retry in {delay} seconds' if do_retry else 'Failed',
+                ]
+            ),
+        )
 
         # raise if this is the last try
         if fail and not do_retry:
@@ -347,7 +363,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
                 cmd=process_cmd,
                 returncode=process.returncode,
                 stdout=stdout,
-                stderr=stderr)
+                stderr=stderr,
+            )
 
         if do_retry:
             time.sleep(delay)
@@ -367,7 +384,7 @@ def make(
     install: bool = True,
     remove_temporary: bool = True,
     make_options: str = f'-j{multiprocessing.cpu_count()}',
-    **kwargs
+    **kwargs,
 ) -> dict[str, CallResult]:
     """Build and optionally install a piece of software from source."""
     results = {}
@@ -409,7 +426,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     size_only: bool = False,
     extra: str | None = None,
     extra_args: Iterable[CallArgType] | None = None,
-    **kwargs
+    **kwargs,
 ) -> CallResult:
     """Execute the famous rsync remote (or local) synchronization tool."""
     source_string = str(source)
@@ -427,7 +444,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
         '--progress' if progress else None,
         '-r' if recursive else None,
         '--dry-run' if simulate else None,
-        '--size-only' if size_only else None
+        '--size-only' if size_only else None,
     ]
 
     if rsync_path is not None:
@@ -453,7 +470,8 @@ def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: object)
         cmd(  # type: ignore[call-overload]
             ['screen', '-S', instance_name, '-X', 'quit'],
             fail=fail,
-            **kwargs)
+            **kwargs,
+        )
 
 
 def screen_launch(name: str, command: CallArgsType, **kwargs) -> CallResult:
@@ -477,6 +495,7 @@ __all__ = _all.diff(globals())
 def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
     """Forward all arguments to :func:`pytoolbox.git.clone_or_pull` (deprecated)."""
     from pytoolbox.git import clone_or_pull  # pylint:disable=import-outside-toplevel
+
     return clone_or_pull(*args, **kwargs)
 
 
@@ -484,4 +503,5 @@ def git_clone_or_pull(*args, **kwargs) -> None:  # pragma: no cover
 def ssh(*args, **kwargs) -> CallResultFull:  # pragma: no cover
     """Forward all arguments to :func:`pytoolbox.ssh.ssh` (deprecated)."""
     from pytoolbox.ssh import ssh as _ssh
+
     return _ssh(*args, **kwargs)

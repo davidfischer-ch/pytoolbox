@@ -5,15 +5,15 @@ import pytest
 import voluptuous
 
 from pytoolbox.voluptuous import (
+    SHA256,
     Email,
     EmailSet,
     GitCommitHash,
     Password,
     PasswordInvalid,
     Percent,
-    SHA256,
     Version,
-    VersionInvalid
+    VersionInvalid,
 )
 
 # @voluptuous.message decorated validators must be called once to get

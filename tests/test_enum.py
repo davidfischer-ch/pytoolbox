@@ -63,7 +63,7 @@ def test_sorting() -> None:
     assert sorted(items) == [
         Priority.LOW,
         Priority.MEDIUM,
-        Priority.HIGH
+        Priority.HIGH,
     ]
 
 
@@ -108,6 +108,7 @@ def test_cross_enum_comparison() -> None:
     Comparing members of different OrderedEnum subclasses
     returns NotImplemented.
     """
+
     class Other(enum.OrderedEnum):
         A = 1
 

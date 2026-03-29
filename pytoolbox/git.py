@@ -1,16 +1,17 @@
 """
 Git helpers for cloning, tagging, blaming and SSH key management.
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
-from pathlib import Path
-from typing import Literal, TypeAlias
 import contextlib
 import os
 import shlex
 import stat
 import tempfile
+from collections.abc import Iterable, Iterator
+from pathlib import Path
+from typing import Literal, TypeAlias
 
 from . import exceptions, humanize, logging, subprocess
 from .subprocess import CallArgType
@@ -24,7 +25,7 @@ __all__ = [
     'create_tag',
     'get_ref',
     'get_tags',
-    'scoped_ssh_key'
+    'scoped_ssh_key',
 ]
 
 RefKind: TypeAlias = Literal['branch', 'commit']
@@ -34,7 +35,8 @@ def blame(file_path: Path) -> list[str]:
     """Return the ``git blame`` output lines for a file."""
     lines = subprocess.cmd(
         ['git', 'blame', file_path],
-        cwd=file_path.parent)['stdout'].decode('utf-8')
+        cwd=file_path.parent,
+    )['stdout'].decode('utf-8')
     return [line for line in lines.split(os.linesep) if line]
 
 
@@ -44,7 +46,7 @@ def clone_or_pull(
     *,
     bare: bool = False,
     clone_depth: int | None = None,
-    reset: bool = True
+    reset: bool = True,
 ) -> None:
     """Clone a Git repository or pull if it already exists."""
     if directory.exists():
@@ -79,7 +81,7 @@ def get_ref(
     directory: Path | None = None,
     *,
     ci_vars: bool = True,
-    kind: RefKind = 'branch'
+    kind: RefKind = 'branch',
 ) -> str:
     """
     Return the Git reference looking first at CI context, then using Git CLI.
@@ -95,7 +97,7 @@ def get_ref(
         extra = {'branch': ['--abbrev-ref'], 'commit': []}[kind]
         result = subprocess.cmd(['git', 'rev-parse', *extra, 'HEAD'], cwd=directory, fail=False)
         ref = result['stdout'].decode('utf-8').strip()
-        log.debug(f'Detected Git ref from directory \'{directory}\' of kind {kind} is {ref}')
+        log.debug(f"Detected Git ref from directory '{directory}' of kind {kind} is {ref}")
     if not ref:
         raise exceptions.GitReferenceError()
     return ref
@@ -127,7 +129,8 @@ def scoped_ssh_key(
             subprocess.cmd(
                 ['git', 'config', 'core.sshCommand', ssh_cmd],
                 cwd=directory,
-                env=os.environ)
+                env=os.environ,
+            )
         except exceptions.CalledProcessError:  # pylint:disable=try-except-raise
             raise  # Required to keep the else clause (yield only on success)
         else:
@@ -137,4 +140,5 @@ def scoped_ssh_key(
             subprocess.cmd(
                 ['git', 'config', '--unset', 'core.sshCommand'],
                 cwd=directory,
-                env=os.environ)
+                env=os.environ,
+            )

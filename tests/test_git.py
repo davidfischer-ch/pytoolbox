@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import os
+import tempfile
 from pathlib import Path
 from typing import Final
 from unittest.mock import patch
-import os
-import tempfile
 
 import pytest
 from pytest import raises
@@ -19,7 +19,7 @@ EXPECTED_PYTOOLBOX_TAGS: Final[list[str]] = [
     '6.5.7-beta',
     '6.6.1-beta',
     '7.0.0-beta',
-    '7.1.8-beta'
+    '7.1.8-beta',
 ]
 
 
@@ -74,7 +74,7 @@ def test_get_ref_from_gitlab_ci(pytoolbox_git: Path) -> None:
 
 def test_get_tags(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
     tags = git.get_tags(pytoolbox_git)
-    assert tags[:len(EXPECTED_PYTOOLBOX_TAGS)] == EXPECTED_PYTOOLBOX_TAGS
+    assert tags[: len(EXPECTED_PYTOOLBOX_TAGS)] == EXPECTED_PYTOOLBOX_TAGS
     assert '' not in tags  # Known potential bug
 
 
@@ -94,12 +94,16 @@ def test_scoped_ssh_key() -> None:
             subprocess.cmd(['git', 'push', 'somewhere'])
 
         assert [args for args, kwargs in cmd.call_args_list] == [
-            ([
-                'git', 'config', 'core.sshCommand',
-                f'ssh -F /dev/null -i {name} -o IdentitiesOnly=yes '
-            ], ),
-            (['git', 'push', 'somewhere'], ),
-            (['git', 'config', '--unset', 'core.sshCommand'], )
+            (
+                [
+                    'git',
+                    'config',
+                    'core.sshCommand',
+                    f'ssh -F /dev/null -i {name} -o IdentitiesOnly=yes ',
+                ],
+            ),
+            (['git', 'push', 'somewhere'],),
+            (['git', 'config', '--unset', 'core.sshCommand'],),
         ]
 
 
@@ -109,19 +113,23 @@ def test_scoped_ssh_key_with_options() -> None:
         with git.scoped_ssh_key(
             Path('.'),
             'key-data',
-            options=['StrictHostKeyChecking=no']
+            options=['StrictHostKeyChecking=no'],
         ) as name:
             subprocess.cmd(['git', 'push', 'somewhere'])
             assert Path(name).read_text(encoding='utf-8') == 'key-data\n'
 
         assert not Path(name).exists()
         assert [args for args, kwargs in cmd.call_args_list] == [
-            ([
-                'git', 'config', 'core.sshCommand',
-                f'ssh -F /dev/null -i {name} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no'
-            ], ),
-            (['git', 'push', 'somewhere'], ),
-            (['git', 'config', '--unset', 'core.sshCommand'], )
+            (
+                [
+                    'git',
+                    'config',
+                    'core.sshCommand',
+                    f'ssh -F /dev/null -i {name} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no',
+                ],
+            ),
+            (['git', 'push', 'somewhere'],),
+            (['git', 'config', '--unset', 'core.sshCommand'],),
         ]
 
 
@@ -132,7 +140,7 @@ def test_scoped_ssh_key_options_with_spaces() -> None:
         with git.scoped_ssh_key(
             Path('.'),
             'key-data',
-            options=['ProxyCommand ssh -W %h:%p jump-host']
+            options=['ProxyCommand ssh -W %h:%p jump-host'],
         ):
             config_call_args = cmd.call_args_list[0][0][0]
             ssh_cmd = config_call_args[3]
@@ -145,7 +153,8 @@ def _make_called_process_error(msg='failed'):  # pylint:disable=unused-argument
         cmd=['git', 'test'],
         returncode=1,
         stdout=b'',
-        stderr=b'')
+        stderr=b'',
+    )
 
 
 def test_scoped_ssh_key_config_fails() -> None:
@@ -190,7 +199,8 @@ def test_clone_or_pull_existing_no_reset(tmp_path: Path) -> None:
         git.clone_or_pull(
             repo_dir,
             'https://example.com/repo.git',
-            reset=False)
+            reset=False,
+        )
     calls = [args[0][0] for args in cmd.call_args_list]
     assert len(calls) == 1
     assert calls[0] == ['git', 'pull']
@@ -204,7 +214,8 @@ def test_clone_or_pull_new_directory(tmp_path: Path) -> None:
         git.clone_or_pull(
             repo_dir,
             'https://example.com/repo.git',
-            clone_depth=1)
+            clone_depth=1,
+        )
     call_args = cmd.call_args_list[0][0][0]
     assert call_args[:2] == ['git', 'clone']
     assert '--depth' in call_args
@@ -219,7 +230,8 @@ def test_clone_or_pull_new_bare(tmp_path: Path) -> None:
         git.clone_or_pull(
             repo_dir,
             'https://example.com/repo.git',
-            bare=True)
+            bare=True,
+        )
     call_args = cmd.call_args_list[0][0][0]
     assert '--bare' in call_args
 
@@ -228,7 +240,7 @@ def test_create_tag_unknown_error(tmp_path: Path) -> None:
     """create_tag re-raises CalledProcessError when tag is not a duplicate."""
     with (
         patch('pytoolbox.subprocess.cmd') as cmd,
-        patch('pytoolbox.git.get_tags', return_value=[])
+        patch('pytoolbox.git.get_tags', return_value=[]),
     ):
         cmd.side_effect = _make_called_process_error()
         with pytest.raises(exceptions.CalledProcessError):

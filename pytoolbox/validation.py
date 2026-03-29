@@ -1,18 +1,19 @@
 """
 Validators for common data types (emails, IPs, URIs, UUIDs, etc.).
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Any, get_type_hints
-from urllib.parse import urlparse
 import errno
-import inspect
 import http.client
+import inspect
 import os
 import re
 import socket
 import uuid
+from collections.abc import Iterable
+from typing import Any, get_type_hints
+from urllib.parse import urlparse
 
 from . import module
 from .network.ip import ip_address
@@ -47,6 +48,7 @@ class CleanAttributesMixin:  # pylint:disable=too-few-public-methods
         ...
     AssertionError
     """
+
     def __setattr__(self, name: str, value: Any) -> None:
         if cleanup_method := getattr(self, 'clean_' + name, None):
             value = cleanup_method(value)
@@ -87,6 +89,7 @@ class StrongTypedMixin:  # pylint:disable=too-few-public-methods
         ...
     ValueError: Attribute locale must be set to an instance of str | list
     """
+
     def __setattr__(self, name: str, value: Any) -> None:
         if the_type := get_type_hints(type(self).__init__).get(name):
             default = inspect.signature(type(self).__init__).parameters[name].default
@@ -216,7 +219,7 @@ def valid_uri(
     port_mandatory: bool = False,
     default_port: int = 80,
     excepted_errnos: Iterable[int] = (errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH),
-    timeout: int | None = None
+    timeout: int | None = None,
 ) -> bool:
     """
     Validate an URI.
@@ -264,8 +267,9 @@ def valid_uri(
         except socket.error as ex:
             # Resource does not exist
             if (
-                isinstance(ex, socket.timeout) or
-                ex.errno is not None and ex.errno in excepted_errnos
+                isinstance(ex, socket.timeout)
+                or ex.errno is not None
+                and ex.errno in excepted_errnos
             ):
                 return False
             raise  # Re-raise exception if a different error occurred
@@ -319,7 +323,7 @@ def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool
 
 def validate_list(
     the_list: list[Any],
-    regexes: list[re.Pattern | str] | tuple[re.Pattern | str, ...]
+    regexes: list[re.Pattern | str] | tuple[re.Pattern | str, ...],
 ) -> None:
     """
     Validate every element of `the_list` with corresponding regular expression picked-in from
@@ -327,15 +331,16 @@ def validate_list(
     """
     if len(the_list) != len(regexes):
         raise IndexError(
-            f'{len(the_list)} elements to validate with '
-            f'{len(regexes)} regular expressions')
+            f'{len(the_list)} elements to validate with {len(regexes)} regular expressions',
+        )
 
     for counter, (regex, value) in enumerate(zip(regexes, the_list), 1):
         if not re.match(regex, str(value)):
             raise ValueError(
                 f'N°{counter} is invalid:{os.linesep}'
                 f'\telement: {value}{os.linesep}'
-                f'\tregex:   {regex}')
+                f'\tregex:   {regex}',
+            )
 
 
 __all__ = _all.diff(globals())

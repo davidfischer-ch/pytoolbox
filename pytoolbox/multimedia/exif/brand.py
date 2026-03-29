@@ -1,6 +1,7 @@
 """
 Camera and device brand identification from EXIF metadata.
 """
+
 from __future__ import annotations
 
 from pytoolbox import collections, exceptions
@@ -11,48 +12,53 @@ __all__ = ['Brand']
 class Brand:
     """Normalize and validate camera/device brand names from EXIF data."""
 
-    brands = frozenset([
-        'Apple',
-        'Asus',
-        'Canon',
-        'Fujifilm',
-        'HP',
-        'HTC',
-        'Huawei',
-        'GoPro',
-        'Hewlett-Packard',
-        'Kodak',
-        'LGE',
-        'Nikon',
-        'Olympus',
-        'Pentax',
-        'Samsung',
-        'Sigma',
-        'Sony',
-        'Sony Ericsson',
-        'Tamron'
-    ])
+    brands = frozenset(
+        [
+            'Apple',
+            'Asus',
+            'Canon',
+            'Fujifilm',
+            'HP',
+            'HTC',
+            'Huawei',
+            'GoPro',
+            'Hewlett-Packard',
+            'Kodak',
+            'LGE',
+            'Nikon',
+            'Olympus',
+            'Pentax',
+            'Samsung',
+            'Sigma',
+            'Sony',
+            'Sony Ericsson',
+            'Tamron',
+        ]
+    )
 
-    clean_map = collections.merge_dicts({b.lower(): b for b in brands}, {
-        # maps the group of Exif.Group.Label
-        'canoncs': 'Canon',
-        'canoncf': 'Canon',
-        'HUAWEI': 'Huawei',
-        'lg electronics': 'LGE',
-        'nikon3': 'Nikon',
-        'nikonld2': 'Nikon',
-        'nikonld3': 'Nikon',
-        'olympus2': 'Olympus',
-        'sony1': 'Sony',
-        # maps the value of Exif.Image.Make
-        'eastman kodak company': 'Kodak',
-        'nikon corporation': 'Nikon',
-        'olympus imaging corp.': 'Olympus',
-        'olympus optical co.,ltd': 'Olympus',
-        'samsung techwin': 'Samsung',
-        'semc': 'Sony Ericsson',
-        'tamron': 'Tamron'
-    })
+    clean_map = collections.merge_dicts(
+        {b.lower(): b for b in brands},
+        {
+            # maps the group of Exif.Group.Label
+            'canoncs': 'Canon',
+            'canoncf': 'Canon',
+            'HUAWEI': 'Huawei',
+            'lg electronics': 'LGE',
+            'nikon3': 'Nikon',
+            'nikonld2': 'Nikon',
+            'nikonld3': 'Nikon',
+            'olympus2': 'Olympus',
+            'sony1': 'Sony',
+            # maps the value of Exif.Image.Make
+            'eastman kodak company': 'Kodak',
+            'nikon corporation': 'Nikon',
+            'olympus imaging corp.': 'Olympus',
+            'olympus optical co.,ltd': 'Olympus',
+            'samsung techwin': 'Samsung',
+            'semc': 'Sony Ericsson',
+            'tamron': 'Tamron',
+        },
+    )
 
     def __new__(cls, brand: str) -> str | None:
         return cls.clean(brand)

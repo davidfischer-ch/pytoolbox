@@ -1,9 +1,9 @@
 """
 Serialization to/from JSON, pickle, YAML and nested dictionaries.
 """
+
 from __future__ import annotations
 
-from typing import Any, TypeAlias
 import errno
 import inspect
 import io
@@ -11,6 +11,7 @@ import json
 import os
 import pickle
 import shutil
+from typing import Any, TypeAlias
 
 import ruamel.yaml
 
@@ -32,7 +33,7 @@ def to_file(
     binary: bool = False,
     safe: bool = False,
     backup: bool = False,
-    makedirs: bool = False
+    makedirs: bool = False,
 ) -> str | None:
     """
     Write some data to a file, can be safe (tmp file -> rename), may create a backup before any
@@ -108,6 +109,7 @@ def to_file(
 
 class PickleableObject:
     """An :class:`object` serializable/deserializable by :mod:`pickle`."""
+
     @classmethod
     def read(
         cls,
@@ -115,7 +117,7 @@ class PickleableObject:
         *,
         store_path: bool = False,
         create_if_error: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> PickleableObject:
         """Return a deserialized instance of a pickleable object loaded from a file."""
         try:
@@ -137,7 +139,7 @@ class PickleableObject:
         store_path: bool = False,
         safe: bool = False,
         backup: bool = False,
-        makedirs: bool = False
+        makedirs: bool = False,
     ) -> None:
         """Serialize `self` to a file, excluding the attribute `_pickle_path`."""
         pickle_path = getattr(self, '_pickle_path', None)
@@ -153,7 +155,8 @@ class PickleableObject:
                 binary=True,
                 safe=safe,
                 backup=backup,
-                makedirs=makedirs)
+                makedirs=makedirs,
+            )
         finally:
             if store_path:
                 self._pickle_path = path  # pylint:disable=attribute-defined-outside-init
@@ -224,7 +227,8 @@ def object_to_json(obj: Any, include_properties: bool, **kwargs: Any) -> str:
     return json.dumps(
         obj,
         cls=(SmartJSONEncoderV2 if include_properties else SmartJSONEncoderV1),
-        **kwargs)
+        **kwargs,
+    )
 
 
 def json_to_object(cls: type, json_string: str, inspect_constructor: bool) -> Any:
@@ -335,13 +339,14 @@ class JsoneableObject:
     True
     >>> asserts.dict_equal(media_back.author.__dict__, media.author.__dict__)
     """
+
     @classmethod
     def read(
         cls,
         path: str,
         *,
         store_path: bool = False,
-        inspect_constructor: bool = True
+        inspect_constructor: bool = True,
     ) -> JsoneableObject:
         """Return a deserialized instance of a jsoneable object loaded from a file."""
         with open(path, encoding='utf-8') as f:
@@ -358,7 +363,7 @@ class JsoneableObject:
         safe: bool = False,
         backup: bool = False,
         makedirs: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Serialize `self` to a file, excluding the attribute `_json_path`."""
         if path is None and hasattr(self, '_json_path'):
@@ -371,7 +376,8 @@ class JsoneableObject:
                     binary=False,
                     safe=safe,
                     backup=backup,
-                    makedirs=makedirs)
+                    makedirs=makedirs,
+                )
             finally:
                 self._json_path = path  # pylint:disable=attribute-defined-outside-init
         elif path is not None:
@@ -381,7 +387,8 @@ class JsoneableObject:
                 binary=False,
                 safe=safe,
                 backup=backup,
-                makedirs=makedirs)
+                makedirs=makedirs,
+            )
         else:
             raise ValueError('A path must be specified')
 
@@ -404,7 +411,7 @@ def object_to_dict(
     *,
     depth: int = 0,
     callback: Any = lambda o, s, d: (o, s),
-    iterable_callback: Any = lambda o, s, d: list
+    iterable_callback: Any = lambda o, s, d: list,
 ) -> Any:
     """
     Convert an :class:`object` to nested python lists and dictionaries to follow given schema.
@@ -552,7 +559,8 @@ def object_to_dict(
                 schema,
                 depth=depth,
                 callback=callback,
-                iterable_callback=iterable_callback)
+                iterable_callback=iterable_callback,
+            )
             for i in obj
         )
     return _object_to_dict_item(
@@ -560,7 +568,8 @@ def object_to_dict(
         schema,
         depth=depth,
         callback=callback,
-        iterable_callback=iterable_callback)
+        iterable_callback=iterable_callback,
+    )
 
 
 def _object_to_dict_item(
@@ -569,7 +578,7 @@ def _object_to_dict_item(
     *,
     depth: int = 0,
     callback: Any = lambda o, s, d: (o, s),
-    iterable_callback: Any = lambda o, s, d: list
+    iterable_callback: Any = lambda o, s, d: list,
 ) -> dict | None:
     if obj is None:
         return None
@@ -578,7 +587,6 @@ def _object_to_dict_item(
     obj, schema = callback(obj, schema, depth)
 
     for key, value in list(schema.items()):
-
         # Direct access to object
         if isinstance(value, str):
             obj_dict[key] = getattr(obj, value)
@@ -592,7 +600,8 @@ def _object_to_dict_item(
                 schema[key],
                 depth=depth + 1,
                 callback=callback,
-                iterable_callback=iterable_callback)
+                iterable_callback=iterable_callback,
+            )
         else:
             raise NotImplementedError(f'Key {repr(key)} with value {repr(value)}')
 
@@ -666,7 +675,7 @@ def get_yaml(
     mapping: int = 2,
     sequence: int = 4,
     offset: int = 2,
-    line_length: int = 120
+    line_length: int = 120,
 ) -> ruamel.yaml.YAML:
     """
     Build and return an instance of :class:`ruamel.yaml.YAML`.
@@ -674,11 +683,11 @@ def get_yaml(
     See: https://yaml.readthedocs.io/en/latest/api.html
     """
     yaml = ruamel.yaml.YAML()
-    yaml.allow_unicode = True    # type:ignore
-    yaml.explicit_start = True   # type:ignore
-    yaml.explicit_end = True     # type:ignore
+    yaml.allow_unicode = True  # type:ignore
+    yaml.explicit_start = True  # type:ignore
+    yaml.explicit_end = True  # type:ignore
     yaml.preserve_quotes = True  # type:ignore
-    yaml.width = line_length     # type:ignore
+    yaml.width = line_length  # type:ignore
     yaml.indent(mapping=mapping, sequence=sequence, offset=offset)
     return yaml
 

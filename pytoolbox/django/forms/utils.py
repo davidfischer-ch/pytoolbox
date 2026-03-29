@@ -1,6 +1,7 @@
 """
 Some utilities related to the forms.
 """
+
 from __future__ import annotations
 
 from copy import copy
@@ -24,7 +25,7 @@ def conditional_required(
     required_dict: dict[str, bool | None],
     data: dict[str, object] | None = None,
     *,
-    cleanup: bool = False
+    cleanup: bool = False,
 ) -> dict[str, object]:
     """
     Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'.
@@ -43,7 +44,7 @@ def get_instance(
     form: forms.Form,
     field_name: str,
     request: HttpRequest,
-    msg: str | None = None
+    msg: str | None = None,
 ) -> models.Model | None:
     """
     Return the instance if the `form` is valid, or try to get it from database.
@@ -98,7 +99,8 @@ def update_widget_attributes(widget: forms.Widget, updates: dict[str, object]) -
                 class_set.discard(cls)
             else:
                 raise ValueError(
-                    'updates must be a valid string with "<op>class <op>..." with op in [+-^].')
+                    'updates must be a valid string with "<op>class <op>..." with op in [+-^].',
+                )
         widget.attrs['class'] = ' '.join(sorted(class_set))
         del updates['class']
     widget.attrs.update(updates)
@@ -109,7 +111,7 @@ def validate_start_end(
     data: dict[str, object] | None = None,
     *,
     start_name: str = 'start_date',
-    end_name: str = 'end_date'
+    end_name: str = 'end_date',
 ) -> None:
     """
     Check that the field containing the value of the start field (time, ...) is not bigger (>) than
@@ -118,9 +120,11 @@ def validate_start_end(
     data = data or form.cleaned_data
     start, end = data[start_name], data[end_name]
     if start and end and start > end:
-        form._errors[end_name] = ErrorList([
-            f"The {start_name.replace('_', ' ')} cannot be before the {end_name.replace('_', ' ')}."
-        ])
+        start_label = start_name.replace('_', ' ')
+        end_label = end_name.replace('_', ' ')
+        form._errors[end_name] = ErrorList(
+            [f'The {start_label} cannot be before the {end_label}.']
+        )
 
 
 __all__ = _all.diff(globals())

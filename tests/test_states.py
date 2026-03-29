@@ -4,7 +4,6 @@ from pytoolbox import states
 
 
 class MediaState(states.StateEnum):
-
     NEW = 'NEW'
     QUEUED_ANALYZE = 'QUEUED_ANALYZE'
     ANALYZING = 'ANALYZING'
@@ -25,14 +24,13 @@ class MediaState(states.StateEnum):
         REPAIRING: frozenset([REJECTED, READY, DELETED]),
         REJECTED: frozenset([]),
         READY: frozenset([DELETED]),
-        DELETED: frozenset([])
+        DELETED: frozenset([]),
     }
 
     OTHER = 10
 
 
 class PlayerState(states.StateEnum):
-
     NEW = 'NEW'
     STOPPED = 'STOPPED'
     PLAYING = 'PLAYING'
@@ -47,7 +45,7 @@ class PlayerState(states.StateEnum):
         NEW: frozenset([NEW, STOPPED]),
         STOPPED: frozenset([PLAYING, DELETED]),
         PLAYING: frozenset([STOPPED, DELETED]),
-        DELETED: frozenset([])
+        DELETED: frozenset([]),
     }
 
 
@@ -64,29 +62,33 @@ def test_state_enum_get() -> None:
 
 def test_state_enum_get_transit_from() -> None:
     assert MediaState.get_transit_from(MediaState.NEW) == frozenset([MediaState.NEW])
-    assert MediaState.get_transit_from(MediaState.ANALYZING) == frozenset([
-        MediaState.QUEUED_ANALYZE
-    ])
+    assert MediaState.get_transit_from(MediaState.ANALYZING) == frozenset(
+        [
+            MediaState.QUEUED_ANALYZE,
+        ]
+    )
     assert MediaState.get_transit_from(MediaState.DELETED, auto_inverse=True) == (
         frozenset([MediaState.NEW, MediaState.REJECTED, MediaState.DELETED]),
-        False
+        False,
     )
     assert MediaState.get_transit_from(MediaState.REPAIRING, auto_inverse=True) == (
         frozenset([MediaState.ANALYZING]),
-        True
+        True,
     )
 
 
 def test_state_enum_all_states() -> None:
-    assert MediaState.ALL_STATES == frozenset([
-        MediaState.NEW,
-        MediaState.QUEUED_ANALYZE,
-        MediaState.ANALYZING,
-        MediaState.REPAIRING,
-        MediaState.REJECTED,
-        MediaState.READY,
-        MediaState.DELETED
-    ])
+    assert MediaState.ALL_STATES == frozenset(
+        [
+            MediaState.NEW,
+            MediaState.QUEUED_ANALYZE,
+            MediaState.ANALYZING,
+            MediaState.REPAIRING,
+            MediaState.REJECTED,
+            MediaState.READY,
+            MediaState.DELETED,
+        ]
+    )
 
 
 def test_state_enum_final_states() -> None:
@@ -105,26 +107,28 @@ def test_merged_state_get_transit_from() -> None:
     assert MergeState.get_transit_from(MergeState.PLAYING) == frozenset([MergeState.STOPPED])
     assert MergeState.get_transit_from(MergeState.DELETED, auto_inverse=True) == (
         frozenset([MergeState.NEW, MergeState.REJECTED, MergeState.DELETED]),
-        False
+        False,
     )
     assert MergeState.get_transit_from(MergeState.STOPPED, auto_inverse=True) == (
         frozenset([MergeState.NEW, MergeState.PLAYING]),
-        True
+        True,
     )
 
 
 def test_merged_state_all_states() -> None:
-    assert MergeState.ALL_STATES == frozenset([
-        MergeState.NEW,
-        MergeState.QUEUED_ANALYZE,
-        MergeState.ANALYZING,
-        MergeState.REPAIRING,
-        MergeState.REJECTED,
-        MergeState.READY,
-        MergeState.DELETED,
-        MergeState.STOPPED,
-        MergeState.PLAYING
-    ])
+    assert MergeState.ALL_STATES == frozenset(
+        [
+            MergeState.NEW,
+            MergeState.QUEUED_ANALYZE,
+            MergeState.ANALYZING,
+            MergeState.REPAIRING,
+            MergeState.REJECTED,
+            MergeState.READY,
+            MergeState.DELETED,
+            MergeState.STOPPED,
+            MergeState.PLAYING,
+        ]
+    )
 
 
 def test_merged_state_final_states() -> None:

@@ -1,16 +1,17 @@
 """
 Cryptographic hashing and password generation utilities.
 """
+
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from pathlib import Path
-from typing import Literal, overload
 import collections
 import hashlib
 import os
 import random
 import string
+from collections.abc import Callable, Iterable
+from pathlib import Path
+from typing import Literal, overload
 
 from . import filesystem
 
@@ -30,7 +31,7 @@ def checksum(
     *,
     encoding: str = 'utf-8',
     algorithm: Callable | str = hashlib.sha256,
-    chunk_size: int | None = None
+    chunk_size: int | None = None,
 ) -> str:
     r"""
     Return the result of hashing `data` by given hash `algorithm`.
@@ -58,13 +59,13 @@ def checksum(
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding=encoding, chunk_size=chunk_size):
-        hasher.update(data)    # type: ignore[attr-defined]
+        hasher.update(data)  # type: ignore[attr-defined]
     return hasher.hexdigest()  # type: ignore[attr-defined]
 
 
 def get_password_generator(
     characters: str = string.ascii_letters + string.digits,
-    length: int = 16
+    length: int = 16,
 ) -> collections.defaultdict[str, str]:
     """
     Return a dead simple password generator in the form of a dictionary with
@@ -85,7 +86,8 @@ def get_password_generator(
     False
     """
     return collections.defaultdict(
-        lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)))
+        lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)),
+    )
 
 
 # TODO implement githash class with interface: hg.python.org/cpython/file/3.4/Lib/hashlib.py
@@ -94,7 +96,7 @@ def githash(
     path_or_data: Path | str,
     *,
     encoding: str = 'utf-8',
-    chunk_size: int | None = None
+    chunk_size: int | None = None,
 ) -> str:
     r"""
     Return the blob of some data.
@@ -127,15 +129,17 @@ def githash(
         for data_bytes in filesystem.get_bytes(
             path_or_data,
             encoding=encoding,
-            chunk_size=chunk_size
+            chunk_size=chunk_size,
         ):
             hasher.update(data_bytes)
     else:
-        data_bytes = next(filesystem.get_bytes(
-            path_or_data,
-            encoding=encoding,
-            chunk_size=None
-        ))
+        data_bytes = next(
+            filesystem.get_bytes(
+                path_or_data,
+                encoding=encoding,
+                chunk_size=None,
+            ),
+        )
         hasher.update((f'blob {len(data_bytes)}\0').encode('utf-8'))
         hasher.update(data_bytes)
     return hasher.hexdigest()
@@ -146,9 +150,8 @@ def guess_algorithm(
     checksum_value: str,
     algorithms: Iterable[Callable | str] | None = None,
     *,
-    unique: Literal[False] = False
-) -> Callable | None:
-    ...
+    unique: Literal[False] = False,
+) -> Callable | None: ...
 
 
 @overload
@@ -156,16 +159,15 @@ def guess_algorithm(
     checksum_value: str,
     algorithms: Iterable[Callable | str] | None = None,
     *,
-    unique: Literal[True]
-) -> set[Callable]:
-    ...
+    unique: Literal[True],
+) -> set[Callable]: ...
 
 
 def guess_algorithm(
     checksum_value: str,
     algorithms: Iterable[Callable | str] | None = None,
     *,
-    unique: bool = False
+    unique: bool = False,
 ) -> set[Callable] | Callable | None:
     """
     Guess the algorithms that have produced the checksum_value, based on its size.
@@ -199,7 +201,8 @@ def guess_algorithm(
             algorithms = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
         except AttributeError as ex:
             raise NotImplementedError(
-                "Your version of hashlib doesn't implement algorithms_available") from ex
+                "Your version of hashlib doesn't implement algorithms_available",
+            ) from ex
     digest_size_to_algorithms = collections.defaultdict(set)
     for algorithm in algorithms:
         digest_size_to_algorithms[algorithm.digest_size].add(algorithm)

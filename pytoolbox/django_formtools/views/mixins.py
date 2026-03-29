@@ -2,6 +2,7 @@
 Mix-ins for building your own `Django Form Tools <https://github.com/django/django-formtools>`_
 powered views.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -21,9 +22,11 @@ class CrispyFormsMixin:
     def get_context_data(self, form: Form, **kwargs: Any) -> dict[str, Any]:
         """Add the management form to the form for working with crispy forms."""
         from crispy_forms import layout
+
         context = super().get_context_data(form=form, **kwargs)
         context['wizard']['form'].helper.layout.append(
-            layout.HTML(context['wizard']['management_form']))
+            layout.HTML(context['wizard']['management_form']),
+        )
         context['form'] = context['wizard']['form']
         return context
 
@@ -77,8 +80,9 @@ class SerializeStepInstanceMixin:
 
     def serialize_step_instance(self, form: Form, step: str | None = None) -> None:
         """Serialize the form's saved instance for the given step."""
-        self.serialized_instances[step or self.steps.current] = \
+        self.serialized_instances[step or self.steps.current] = (
             self.serialized_instance_form_class.serialize(form.save())
+        )
 
     # WizardView "Standard Methods"
 

@@ -2,8 +2,8 @@
 """
 Mixin for Selenium-based live test cases.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from . import client  # pylint:disable=unused-import
 
@@ -32,11 +32,11 @@ class LiveTestCaseMixin:
     # Asserts
 
     def assertElementEqual(  # noqa: N802
-            self,
-            name: str,
-            value: str,
-            *,
-            enabled: bool = True
+        self,
+        name: str,
+        value: str,
+        *,
+        enabled: bool = True,
     ) -> None:
         """Check the properties of an element. Works with both WebElement and Select."""
         if enabled:
@@ -51,19 +51,19 @@ class LiveTestCaseMixin:
             self.assertElementValue(name, value)
 
     def assertElementIsDisabled(  # noqa: N802
-            self,
-            name: str,
-            *args,
-            **kwargs
+        self,
+        name: str,
+        *args,
+        **kwargs,
     ) -> None:
         """Assert the named element is disabled."""
         self.assertFalse(self.client.find_name(name).is_enabled(), *args, **kwargs)
 
     def assertElementIsEnabled(  # noqa: N802
-            self,
-            name: str,
-            *args,
-            **kwargs
+        self,
+        name: str,
+        *args,
+        **kwargs,
     ) -> None:
         """Assert the named element is enabled."""
         self.assertTrue(self.client.find_name(name).is_enabled(), *args, **kwargs)
@@ -73,11 +73,11 @@ class LiveTestCaseMixin:
         self.assertIsNotNone(self.client.find_name(name).get_attribute('readonly'))
 
     def assertElementValue(  # noqa: N802
-            self,
-            name: str,
-            value: str,
-            *args,
-            **kwargs
+        self,
+        name: str,
+        value: str,
+        *args,
+        **kwargs,
     ) -> None:
         """Assert the named element's value equals the expected value."""
         element = self.client.find_name(name)
@@ -86,16 +86,20 @@ class LiveTestCaseMixin:
             operator(element.get_attribute('value')),
             element.clean_value(value),
             *args,
-            **kwargs)
+            **kwargs,
+        )
 
     def assertSelectOptions(  # noqa: N802
-            self,
-            name: str,
-            texts: str | list[str],
-            *args,
-            **kwargs
+        self,
+        name: str,
+        texts: str | list[str],
+        *args,
+        **kwargs,
     ) -> None:
         """Assert the selected options of a ``<select>`` match the given texts."""
         self.assertListEqual(
             sorted(o.text for o in self.client.find_name(name).all_selected_options),
-            sorted([texts] if isinstance(texts, str) else texts), *args, **kwargs)
+            sorted([texts] if isinstance(texts, str) else texts),
+            *args,
+            **kwargs,
+        )

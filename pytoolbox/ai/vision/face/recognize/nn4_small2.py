@@ -4,32 +4,33 @@
 """
 OpenFace NN4.Small2.v1 Keras model for face recognition.
 """
+
 from __future__ import annotations
 
 from typing import Final
 
+import tensorflow as tf
 from keras import backend as K  # noqa: N812
 from keras.layers import (  # pylint:disable=import-error
     Activation,
     AveragePooling2D,
     BatchNormalization,
-    concatenate,
     Conv2D,
     Dense,
     Flatten,
     Input,
     Lambda,
     MaxPooling2D,
-    ZeroPadding2D
+    ZeroPadding2D,
+    concatenate,
 )
 from keras.models import Model  # pylint:disable=import-error
-import tensorflow as tf
 
 from pytoolbox.ai.vision import utils
 
 DEFAULT_WEIGHTS: Final[str] = (
-    'https://s3-eu-west-1.amazonaws.com/pytoolbox/ai/vision/face/recognize/'
-    'nn4.small2.v1.h5')
+    'https://s3-eu-west-1.amazonaws.com/pytoolbox/ai/vision/face/recognize/nn4.small2.v1.h5'
+)
 
 E = 0.00001  # Epsilon
 
@@ -43,7 +44,7 @@ def conv2d_bn(
     cv2_out: int | None = None,
     cv2_filter: tuple[int, int] = (3, 3),
     cv2_strides: tuple[int, int] = (1, 1),
-    padding: tuple[int, int] | None = None
+    padding: tuple[int, int] | None = None,
 ) -> tf.Tensor:
     """Apply one or two Conv2D + BatchNormalization + ReLU blocks."""
     num = '' if cv2_out is None else '1'
@@ -118,12 +119,15 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
     inception_3a_1x1 = Norm(axis=3, epsilon=E, name='inception_3a_1x1_bn')(inception_3a_1x1)
     inception_3a_1x1 = Activation('relu')(inception_3a_1x1)
 
-    inception_3a = concatenate([
-        inception_3a_3x3,
-        inception_3a_5x5,
-        inception_3a_pool,
-        inception_3a_1x1
-    ], axis=3)
+    inception_3a = concatenate(
+        [
+            inception_3a_3x3,
+            inception_3a_5x5,
+            inception_3a_pool,
+            inception_3a_1x1,
+        ],
+        axis=3,
+    )
 
     # Inception 3b
 
@@ -153,12 +157,15 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
     inception_3b_1x1 = Norm(axis=3, epsilon=E, name='inception_3b_1x1_bn')(inception_3b_1x1)
     inception_3b_1x1 = Activation('relu')(inception_3b_1x1)
 
-    inception_3b = concatenate([
-        inception_3b_3x3,
-        inception_3b_5x5,
-        inception_3b_pool,
-        inception_3b_1x1
-    ], axis=3)
+    inception_3b = concatenate(
+        [
+            inception_3b_3x3,
+            inception_3b_5x5,
+            inception_3b_pool,
+            inception_3b_1x1,
+        ],
+        axis=3,
+    )
 
     # Inception 3c
 
@@ -170,7 +177,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=256,
         cv2_filter=(3, 3),
         cv2_strides=(2, 2),
-        padding=(1, 1))
+        padding=(1, 1),
+    )
 
     inception_3c_5x5 = conv2d_bn(
         inception_3b,
@@ -180,16 +188,20 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=64,
         cv2_filter=(5, 5),
         cv2_strides=(2, 2),
-        padding=(2, 2))
+        padding=(2, 2),
+    )
 
     inception_3c_pool = MaxPooling2D(pool_size=3, strides=2)(inception_3b)
     inception_3c_pool = ZeroPadding2D(padding=((0, 1), (0, 1)))(inception_3c_pool)
 
-    inception_3c = concatenate([
-        inception_3c_3x3,
-        inception_3c_5x5,
-        inception_3c_pool
-    ], axis=3)
+    inception_3c = concatenate(
+        [
+            inception_3c_3x3,
+            inception_3c_5x5,
+            inception_3c_pool,
+        ],
+        axis=3,
+    )
 
     # Inception 4a
 
@@ -201,7 +213,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=192,
         cv2_filter=(3, 3),
         cv2_strides=(1, 1),
-        padding=(1, 1))
+        padding=(1, 1),
+    )
 
     inception_4a_5x5 = conv2d_bn(
         inception_3c,
@@ -211,7 +224,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=64,
         cv2_filter=(5, 5),
         cv2_strides=(1, 1),
-        padding=(2, 2))
+        padding=(2, 2),
+    )
 
     inception_4a_pool = AveragePooling2D(pool_size=(3, 3), strides=(3, 3))(inception_3c)
 
@@ -220,20 +234,25 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         layer='inception_4a_pool',
         cv1_out=128,
         cv1_filter=(1, 1),
-        padding=(2, 2))
+        padding=(2, 2),
+    )
 
     inception_4a_1x1 = conv2d_bn(
         inception_3c,
         layer='inception_4a_1x1',
         cv1_out=256,
-        cv1_filter=(1, 1))
+        cv1_filter=(1, 1),
+    )
 
-    inception_4a = concatenate([
-        inception_4a_3x3,
-        inception_4a_5x5,
-        inception_4a_pool,
-        inception_4a_1x1
-    ], axis=3)
+    inception_4a = concatenate(
+        [
+            inception_4a_3x3,
+            inception_4a_5x5,
+            inception_4a_pool,
+            inception_4a_1x1,
+        ],
+        axis=3,
+    )
 
     # Inception 4e
 
@@ -245,7 +264,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=256,
         cv2_filter=(3, 3),
         cv2_strides=(2, 2),
-        padding=(1, 1))
+        padding=(1, 1),
+    )
 
     inception_4e_5x5 = conv2d_bn(
         inception_4a,
@@ -255,16 +275,20 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=128,
         cv2_filter=(5, 5),
         cv2_strides=(2, 2),
-        padding=(2, 2))
+        padding=(2, 2),
+    )
 
     inception_4e_pool = MaxPooling2D(pool_size=3, strides=2)(inception_4a)
     inception_4e_pool = ZeroPadding2D(padding=((0, 1), (0, 1)))(inception_4e_pool)
 
-    inception_4e = concatenate([
-        inception_4e_3x3,
-        inception_4e_5x5,
-        inception_4e_pool
-    ], axis=3)
+    inception_4e = concatenate(
+        [
+            inception_4e_3x3,
+            inception_4e_5x5,
+            inception_4e_pool,
+        ],
+        axis=3,
+    )
 
     # Inception 5a
 
@@ -276,7 +300,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=384,
         cv2_filter=(3, 3),
         cv2_strides=(1, 1),
-        padding=(1, 1))
+        padding=(1, 1),
+    )
 
     inception_5a_pool = AveragePooling2D(pool_size=(3, 3), strides=(3, 3))(inception_4e)
 
@@ -285,19 +310,24 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         layer='inception_5a_pool',
         cv1_out=96,
         cv1_filter=(1, 1),
-        padding=(1, 1))
+        padding=(1, 1),
+    )
 
     inception_5a_1x1 = conv2d_bn(
         inception_4e,
         layer='inception_5a_1x1',
         cv1_out=256,
-        cv1_filter=(1, 1))
+        cv1_filter=(1, 1),
+    )
 
-    inception_5a = concatenate([
-        inception_5a_3x3,
-        inception_5a_pool,
-        inception_5a_1x1
-    ], axis=3)
+    inception_5a = concatenate(
+        [
+            inception_5a_3x3,
+            inception_5a_pool,
+            inception_5a_1x1,
+        ],
+        axis=3,
+    )
 
     # Inception 5b
 
@@ -309,7 +339,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         cv2_out=384,
         cv2_filter=(3, 3),
         cv2_strides=(1, 1),
-        padding=(1, 1))
+        padding=(1, 1),
+    )
 
     inception_5b_pool = MaxPooling2D(pool_size=3, strides=2)(inception_5a)
 
@@ -317,7 +348,8 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         inception_5b_pool,
         layer='inception_5b_pool',
         cv1_out=96,
-        cv1_filter=(1, 1))
+        cv1_filter=(1, 1),
+    )
 
     inception_5b_pool = ZeroPadding2D(padding=(1, 1))(inception_5b_pool)
 
@@ -325,13 +357,17 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
         inception_5a,
         layer='inception_5b_1x1',
         cv1_out=256,
-        cv1_filter=(1, 1))
+        cv1_filter=(1, 1),
+    )
 
-    inception_5b = concatenate([
-        inception_5b_3x3,
-        inception_5b_pool,
-        inception_5b_1x1
-    ], axis=3)
+    inception_5b = concatenate(
+        [
+            inception_5b_3x3,
+            inception_5b_pool,
+            inception_5b_1x1,
+        ],
+        axis=3,
+    )
 
     # Outputs
 
@@ -340,7 +376,7 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
 
     outputs = Lambda(
         lambda x: K.l2_normalize(x, axis=1),  # pylint:disable=no-member
-        name='norm_layer'
+        name='norm_layer',
     )(dense_layer)
 
     return Model(inputs=[inputs], outputs=outputs)

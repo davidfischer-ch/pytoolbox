@@ -1,11 +1,12 @@
 """
 FFmpeg-related parsing utilities for bit rates, sizes, and frame rates.
 """
+
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Final
-import re
 
 __all__ = [
     'BIT_RATE_REGEX',
@@ -18,7 +19,7 @@ __all__ = [
     'is_pipe',
     'to_bit_rate',
     'to_frame_rate',
-    'to_size'
+    'to_size',
 ]
 
 BIT_RATE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
@@ -26,7 +27,7 @@ BIT_RATE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
     'b': 1,
     'k': 1000,
     'm': 1000**2,
-    'g': 1000**3
+    'g': 1000**3,
 }
 PIPE_REGEX: Final[re.Pattern] = re.compile(r'^-$|^pipe:\d+$')
 SIZE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
@@ -34,7 +35,7 @@ SIZE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
     'b': 1,
     'k': 1024,
     'm': 1024**2,
-    'g': 1024**3
+    'g': 1024**3,
 }
 
 WIDTH: Final[int] = 0

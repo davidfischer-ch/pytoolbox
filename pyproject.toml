@@ -146,6 +146,7 @@ addopts = """
     --ignore=pytoolbox/rest_framework
     --pylint
     --ruff
+    --ruff-format
 """
 doctest_optionflags = ['ELLIPSIS', 'NORMALIZE_WHITESPACE']
 
@@ -265,8 +266,11 @@ runtime-typing = false
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.format]
+quote-style = 'single'
+
 [tool.ruff.lint]
-select = ['D', 'E', 'F', 'N', 'UP004', 'W']
+select = ['D', 'E', 'F', 'I', 'N', 'UP004', 'W']
 ignore = [
     'D100',  # missing docstring in public module
     'D101',  # missing docstring in public class

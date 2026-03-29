@@ -8,6 +8,7 @@ from pytoolbox import datetime as dt_module
 def test_datetime_to_epoch_utc_false() -> None:
     """datetime_to_epoch(utc=False) must return the local epoch, not the UTC one."""
     from time import mktime
+
     date = datetime.datetime(2010, 6, 10)
     expected = int(mktime(date.timetuple()))
     result = dt_module.datetime_to_epoch(date, utc=False)

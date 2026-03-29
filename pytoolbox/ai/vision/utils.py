@@ -1,6 +1,7 @@
 """
 Helper functions for loading and normalizing images.
 """
+
 from __future__ import annotations
 
 import os

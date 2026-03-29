@@ -3,29 +3,30 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, models
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
-import pytest
-
 from pytoolbox.django.core import exceptions
 from pytoolbox.django.models import mixins
-
 
 # ---------------------------------------------------------------------------
 # FasterValidateOnSaveMixin
 # ---------------------------------------------------------------------------
 
+
 def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
     """Relation fields are excluded from validation, regular fields are not."""
+
     class TestModel(mixins.FasterValidateOnSaveMixin, models.Model):
         name = models.CharField(max_length=100)
         other = models.ForeignKey(
             'auth.User',
             on_delete=models.CASCADE,
-            null=True)
+            null=True,
+        )
 
         class Meta:
             app_label = 'test'
@@ -40,8 +41,10 @@ def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
 # PublicMetaMixin
 # ---------------------------------------------------------------------------
 
+
 def test_public_meta_mixin() -> None:
     """meta() classmethod exposes the private _meta for use in templates."""
+
     class TestModel(mixins.PublicMetaMixin, models.Model):
         class Meta:
             app_label = 'test'
@@ -53,8 +56,10 @@ def test_public_meta_mixin() -> None:
 # ValidateOnSaveMixin
 # ---------------------------------------------------------------------------
 
+
 def test_validate_on_save_mixin_calls_full_clean() -> None:
     """save() calls full_clean() when validate_on_save is True (default)."""
+
     class Base:
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
@@ -69,6 +74,7 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
 
 def test_validate_on_save_mixin_skips_when_disabled() -> None:
     """save() skips full_clean() when validate_on_save is set to False."""
+
     class Base:
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
@@ -84,6 +90,7 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
 
 def test_validate_on_save_mixin_skips_via_kwarg() -> None:
     """save(validate=False) bypasses full_clean() even if default is True."""
+
     class Base:
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
@@ -99,6 +106,7 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
 # ---------------------------------------------------------------------------
 # AlwaysUpdateFieldsMixin
 # ---------------------------------------------------------------------------
+
 
 def test_always_update_fields_mixin() -> None:
     """always_update_fields are injected into update_fields when saving."""
@@ -153,6 +161,7 @@ def test_always_update_fields_mixin_force_update() -> None:
 # AutoForceInsertMixin
 # ---------------------------------------------------------------------------
 
+
 def test_auto_force_insert_mixin() -> None:
     """force_insert is set from _state.adding when not explicitly provided."""
     saved_kwargs = {}
@@ -194,6 +203,7 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
 # CallFieldsPreSaveMixin
 # ---------------------------------------------------------------------------
 
+
 def test_call_fields_pre_save_mixin() -> None:
     """pre_save is called on all non-pk fields, pk field is skipped."""
     field1 = MagicMock(primary_key=False)
@@ -219,6 +229,7 @@ def test_call_fields_pre_save_mixin() -> None:
 # ReloadMixin
 # ---------------------------------------------------------------------------
 
+
 def test_reload_mixin() -> None:
     """reload() fetches a fresh instance from the default manager by pk."""
     mock_instance = MagicMock()
@@ -237,6 +248,7 @@ def test_reload_mixin() -> None:
 # ---------------------------------------------------------------------------
 # AutoRemovePKFromUpdateFieldsMixin
 # ---------------------------------------------------------------------------
+
 
 def _make_auto_remove_pk_obj(pk_value=1):
     """Create a test object for AutoRemovePKFromUpdateFieldsMixin."""
@@ -272,7 +284,8 @@ def test_auto_remove_pk_changed_pk_clears_args() -> None:
     obj.save(
         update_fields={'id', 'name'},
         force_insert=True,
-        force_update=False)
+        force_update=False,
+    )
     assert 'force_insert' not in saved_kwargs
     assert 'force_update' not in saved_kwargs
     assert 'update_fields' not in saved_kwargs
@@ -298,6 +311,7 @@ def test_auto_remove_pk_no_update_fields() -> None:
 # ---------------------------------------------------------------------------
 # AutoUpdateFieldsMixin
 # ---------------------------------------------------------------------------
+
 
 def _make_auto_update_obj(adding=False):
     """Create a test object for AutoUpdateFieldsMixin."""
@@ -363,11 +377,13 @@ def test_auto_update_fields_force_insert_skips() -> None:
 # BetterUniquenessErrorsMixin
 # ---------------------------------------------------------------------------
 
+
 def _make_uniqueness_obj(
     unique_from_integrity_error=True,
-    unique_together_hide_fields=()
+    unique_together_hide_fields=(),
 ):
     """Create a test object for BetterUniquenessErrorsMixin."""
+
     class Base:
         def save(self, *args, **kwargs):
             pass
@@ -384,10 +400,12 @@ def _make_uniqueness_obj(
 
 def test_uniqueness_save_converts_integrity_error() -> None:
     """IntegrityError with duplicate key is converted to ValidationError."""
+
     class Base:
         def save(self, *args, **kwargs):
             raise IntegrityError(
-                'duplicate key value violates unique (name)')
+                'duplicate key value violates unique (name)',
+            )
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
         pass
@@ -406,6 +424,7 @@ def test_uniqueness_save_converts_integrity_error() -> None:
 
 def test_uniqueness_save_reraises_non_matching_integrity() -> None:
     """IntegrityError without duplicate key pattern is re-raised as-is."""
+
     class Base:
         def save(self, *args, **kwargs):
             raise IntegrityError('some other error')
@@ -423,6 +442,7 @@ def test_uniqueness_save_reraises_non_matching_integrity() -> None:
 
 def test_uniqueness_save_disabled() -> None:
     """When unique_from_integrity_error is False, IntegrityError is raised."""
+
     class Base:
         def save(self, *args, **kwargs):
             raise IntegrityError('duplicate key value (name, org)')
@@ -440,6 +460,7 @@ def test_uniqueness_save_disabled() -> None:
 
 def test_uniqueness_hidden_fields_calls_handler() -> None:
     """When all fields are hidden, _handle_hidden_duplicate_key_error is called."""
+
     class Base:
         def save(self, *args, **kwargs):
             raise IntegrityError('duplicate key value (org)')
@@ -520,6 +541,7 @@ def test_perform_unique_checks_single_field_error_passthrough() -> None:
 # SaveInstanceFilesMixin
 # ---------------------------------------------------------------------------
 
+
 def test_save_instance_files_new_instance() -> None:
     """File fields are cleared, instance saved, then files re-set and saved."""
     save_calls = []
@@ -568,6 +590,7 @@ def test_save_instance_files_existing_instance() -> None:
 # UpdatePreconditionsMixin
 # ---------------------------------------------------------------------------
 
+
 def _make_preconditions_obj():
     """Create a test object for UpdatePreconditionsMixin."""
     saved_kwargs = {}
@@ -591,7 +614,8 @@ def test_pop_preconditions_extracts_kwargs() -> None:
     _args, kwargs, has = obj.pop_preconditions(
         pre_excludes={'status': 'deleted'},
         pre_filters={'active': True},
-        other='value')
+        other='value',
+    )
     assert has is True
     assert kwargs == {'other': 'value'}
     assert obj._preconditions == ({'status': 'deleted'}, {'active': True})
@@ -613,7 +637,13 @@ def test_apply_preconditions_filters_queryset() -> None:
     base_qs.exclude.return_value = filtered_qs
 
     obj.apply_preconditions(
-        base_qs, 'default', 1, [], None, False)
+        base_qs,
+        'default',
+        1,
+        [],
+        None,
+        False,
+    )
     base_qs.exclude.assert_called_once_with(status='deleted')
     filtered_qs.filter.assert_called_once_with(active=True)
     assert not hasattr(obj, '_preconditions')
@@ -624,12 +654,19 @@ def test_apply_preconditions_no_preconditions() -> None:
     obj, _ = _make_preconditions_obj()
     base_qs = MagicMock()
     result = obj.apply_preconditions(
-        base_qs, 'default', 1, [], None, False)
+        base_qs,
+        'default',
+        1,
+        [],
+        None,
+        False,
+    )
     assert result[0] is base_qs
 
 
 def test_update_preconditions_save_catches_database_error() -> None:
     """Save raises precondition error when DB error contains 'did not affect'."""
+
     class Base:
         def save(self, *args, **kwargs):
             raise DatabaseError('did not affect any rows')
@@ -644,6 +681,7 @@ def test_update_preconditions_save_catches_database_error() -> None:
 
 def test_update_preconditions_save_reraises_unrelated() -> None:
     """Save re-raises DatabaseError that does not match 'did not affect'."""
+
     class Base:
         def save(self, *args, **kwargs):
             raise DatabaseError('connection lost')
@@ -658,6 +696,7 @@ def test_update_preconditions_save_reraises_unrelated() -> None:
 
 def test_do_update_precondition_failure() -> None:
     """_do_update raises precondition error when row exists but update fails."""
+
     class Base:
         def _do_update(self, base_qs, using, pk, values, uf, fu):
             return False
@@ -680,8 +719,10 @@ def test_do_update_precondition_failure() -> None:
 # StateTransitionEventsMixin
 # ---------------------------------------------------------------------------
 
+
 def test_state_transition_events_init() -> None:
     """__init__ stores current state as previous_state."""
+
     class Base:
         def __init__(self):
             self.state = 'PENDING'
@@ -695,6 +736,7 @@ def test_state_transition_events_init() -> None:
 
 def test_state_transition_events_fires_signal() -> None:
     """save() fires post_state_transition signal when state is updated."""
+
     class Base:
         def __init__(self):
             self.state = 'PENDING'
@@ -710,7 +752,7 @@ def test_state_transition_events_fires_signal() -> None:
 
     with patch.object(
         mixins.signals.post_state_transition,
-        'send'
+        'send',
     ) as mock_send:
         obj.save(update_fields=['state'])
         mock_send.assert_called_once()
@@ -721,6 +763,7 @@ def test_state_transition_events_fires_signal() -> None:
 
 def test_state_transition_events_updates_previous() -> None:
     """After save with state update, previous_state is updated."""
+
     class Base:
         def __init__(self):
             self.state = 'PENDING'
@@ -736,7 +779,7 @@ def test_state_transition_events_updates_previous() -> None:
 
     with patch.object(
         mixins.signals.post_state_transition,
-        'send'
+        'send',
     ):
         obj.save(update_fields=['state'])
     assert obj.previous_state == 'RUNNING'
@@ -744,6 +787,7 @@ def test_state_transition_events_updates_previous() -> None:
 
 def test_state_transition_events_no_signal_without_state() -> None:
     """save() does not fire signal when state is not in update_fields."""
+
     class Base:
         def __init__(self):
             self.state = 'PENDING'
@@ -757,7 +801,7 @@ def test_state_transition_events_no_signal_without_state() -> None:
     obj = TestObj()
     with patch.object(
         mixins.signals.post_state_transition,
-        'send'
+        'send',
     ) as mock_send:
         obj.save(update_fields=['name'])
         mock_send.assert_not_called()
@@ -767,24 +811,23 @@ def test_state_transition_events_no_signal_without_state() -> None:
 # StateTransitionPreconditionMixin
 # ---------------------------------------------------------------------------
 
+
 def _make_state_machine(current_state='PENDING'):
     """Create a state-machine test object."""
+
     class States:
         TRANSITIONS = {
             'PENDING': {'RUNNING', 'CANCELLED'},
             'RUNNING': {'COMPLETED', 'FAILED'},
             'COMPLETED': set(),
             'CANCELLED': set(),
-            'FAILED': set()
+            'FAILED': set(),
         }
 
         @staticmethod
         def get_transit_from(state, auto_inverse=False):
             # Return states that can transition TO the given state
-            sources = {
-                s for s, targets in States.TRANSITIONS.items()
-                if state in targets
-            }
+            sources = {s for s, targets in States.TRANSITIONS.items() if state in targets}
             return sources, True  # valid=True means use filter
 
     class Base:
@@ -851,12 +894,12 @@ def test_state_transition_pop_preconditions_adds_state_filter() -> None:
     """pop_preconditions auto-adds state filter when state is being saved."""
     obj = _make_state_machine(current_state='RUNNING')
     _args, _kwargs, has = obj.pop_preconditions(
-        update_fields=['state'])
+        update_fields=['state'],
+    )
     assert has is True
     pre_excludes, pre_filters = obj._preconditions
     # Should have a state filter from get_transit_from
-    has_state = any(
-        k.startswith('state') for k in {**pre_excludes, **pre_filters})
+    has_state = any(k.startswith('state') for k in {**pre_excludes, **pre_filters})
     assert has_state
 
 
@@ -864,8 +907,10 @@ def test_state_transition_pop_preconditions_adds_state_filter() -> None:
 # RelatedModelMixin
 # ---------------------------------------------------------------------------
 
+
 def test_related_model_mixin_delegates() -> None:
     """get_related_manager and get_related_model delegate to utils."""
+
     class TestObj(mixins.RelatedModelMixin):
         _meta = MagicMock()
 

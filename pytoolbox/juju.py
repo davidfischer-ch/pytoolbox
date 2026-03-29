@@ -2,9 +2,9 @@
 """
 Helpers for managing Juju environments, services, units, and charms.
 """
+
 from __future__ import annotations
 
-from typing import Any, Final
 import json
 import os
 import random
@@ -13,6 +13,7 @@ import subprocess as _subprocess
 import sys
 import time
 import uuid
+from typing import Any, Final
 
 from . import (  # pylint:disable=reimported
     argparse,
@@ -20,8 +21,8 @@ from . import (  # pylint:disable=reimported
     exceptions,
     filesystem,
     module,
+    serialization,
     subprocess,
-    serialization
 )
 from .argparse import FullPaths, is_dir
 
@@ -33,7 +34,8 @@ CONFIG_FILENAME: Final[str] = 'config.yaml'
 METADATA_FILENAME: Final[str] = 'metadata.yaml'
 
 DEFAULT_ENVIRONMENTS_FILE: Final[str] = os.path.abspath(
-    os.path.expanduser('~/.juju/environments.yaml'))
+    os.path.expanduser('~/.juju/environments.yaml'),
+)
 DEFAULT_OS_ENV: Final[dict[str, str]] = {
     'APT_LISTCHANGES_FRONTEND': 'none',
     'CHARM_DIR': '/var/lib/juju/units/oscied-storage-0/charm',
@@ -43,21 +45,28 @@ DEFAULT_OS_ENV: Final[dict[str, str]] = {
     'JUJU_CLIENT_ID': 'constant',
     'JUJU_ENV_UUID': '878ca8f623174911960f6fbed84f7bdd',
     'JUJU_PYTHONPATH': ':/usr/lib/python2.7/dist-packages:/usr/lib/python2.7'
-                       ':/usr/lib/python2.7/plat-x86_64-linux-gnu'
-                       ':/usr/lib/python2.7/lib-tk'
-                       ':/usr/lib/python2.7/lib-old'
-                       ':/usr/lib/python2.7/lib-dynload'
-                       ':/usr/local/lib/python2.7/dist-packages'
-                       ':/usr/lib/pymodules/python2.7',
+    ':/usr/lib/python2.7/plat-x86_64-linux-gnu'
+    ':/usr/lib/python2.7/lib-tk'
+    ':/usr/lib/python2.7/lib-old'
+    ':/usr/lib/python2.7/lib-dynload'
+    ':/usr/local/lib/python2.7/dist-packages'
+    ':/usr/lib/pymodules/python2.7',
     '_': '/usr/bin/python',
     'JUJU_UNIT_NAME': 'oscied-storage/0',
     'PATH': '/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin',
     'PWD': '/var/lib/juju/units/oscied-storage-0/charm',
-    'SHLVL': '1'
+    'SHLVL': '1',
 }
 
-ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR, UNKNOWN = \
-    ('pending', 'installed', 'started', 'stopped', 'not-started', 'error', 'unknown')
+ALL_STATES = PENDING, INSTALLED, STARTED, STOPPED, NOT_STARTED, ERROR, UNKNOWN = (
+    'pending',
+    'installed',
+    'started',
+    'stopped',
+    'not-started',
+    'error',
+    'unknown',
+)
 
 UNKNOWN_STATES: Final[tuple[str, ...]] = (UNKNOWN,)
 PENDING_STATES: Final[tuple[str, ...]] = (PENDING, INSTALLED)
@@ -80,7 +89,7 @@ def juju_do(
     options: list | None = None,
     fail: bool = True,
     log: Any = None,
-    **kwargs
+    **kwargs,
 ) -> Any:
     r"""
     Execute a command `command` into environment `environment`.
@@ -102,8 +111,9 @@ def juju_do(
     arguments = ['sudo', 'juju', command] if command in SUPER_COMMANDS else ['juju', command]
 
     if isinstance(environment, str) and environment != 'default':
-        arguments += \
+        arguments += (
             [environment] if command in ENVIRONMENT_COMMANDS else ['--environment', environment]
+        )
 
     if isinstance(options, list):
         arguments += [str(o) for o in options]
@@ -119,7 +129,7 @@ def juju_do(
     result = subprocess.cmd(arguments, fail=False, log=log, env=env, **kwargs)
 
     if result['returncode'] != 0 and fail:
-        raise RuntimeError(f"Subprocess failed {' '.join(arguments)} : {result['stderr']}.")
+        raise RuntimeError(f'Subprocess failed {" ".join(arguments)} : {result["stderr"]}.')
 
     return yaml.load(result['stdout'])
 
@@ -134,7 +144,6 @@ def load_unit_config(config: str | dict, log: Any = None) -> dict:
     * A dictionary containing already loaded options names as keys and options values as values.
     """
     if isinstance(config, str):
-
         if hasattr(log, '__call__'):
             log(f'Load config from file {config}')
 
@@ -174,7 +183,7 @@ def add_environment(
     secret_key: str,
     control_bucket: str,
     default_series: str,
-    environments: str | None = None
+    environments: str | None = None,
 ) -> Any:
     """Register and bootstrap a new Juju environment."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
@@ -196,7 +205,7 @@ def add_environment(
             'default-series': default_series,
             'ssl-hostname-verification': True,
             'juju-origin': 'ppa',
-            'admin-secret': uuid.uuid4().hex
+            'admin-secret': uuid.uuid4().hex,
         }
     else:
         raise NotImplementedError(f'Registration of {kind} type of environment.')
@@ -221,7 +230,7 @@ def get_environment(
     environment: str,
     environments: str | None = None,
     get_status: bool = False,
-    status_timeout: int | None = None
+    status_timeout: int | None = None,
 ) -> dict:
     """Return the configuration dictionary of a named environment."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
@@ -242,7 +251,7 @@ def get_environment(
 def get_environments(
     environments: str | None = None,
     get_status: bool = False,
-    status_timeout: int | None = None
+    status_timeout: int | None = None,
 ) -> tuple[dict, str]:
     """Return all environments and the default environment name."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
@@ -253,8 +262,9 @@ def get_environments(
         information = environment[1]
         if get_status:
             try:
-                information['status'] = \
-                    Environment(name=environment[0]).status(timeout=status_timeout)
+                information['status'] = Environment(name=environment[0]).status(
+                    timeout=status_timeout
+                )
             except RuntimeError:
                 information['status'] = UNKNOWN
         environments[environment[0]] = information
@@ -372,7 +382,7 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
         metadata: str | dict | None,
         default_config: str | dict | None,
         default_os_env: dict[str, str],
-        force_disable_juju: bool = False
+        force_disable_juju: bool = False,
     ) -> None:
         self.config = CharmConfig()
         self.local_config = None
@@ -471,7 +481,7 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
         self,
         attribute: str | None = None,
         unit: str | None = None,
-        relation_id: str | None = None
+        relation_id: str | None = None,
     ) -> str:
         """Return a relation attribute via ``relation-get``."""
         if self.juju_ok:
@@ -629,7 +639,7 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
 
         try:  # Call the function hooks_...
             self.hook(f'Execute {type(self).__name__} hook {hook_name}')
-            getattr(self, f"hook_{hook_name.replace('-', '_')}")()
+            getattr(self, f'hook_{hook_name.replace("-", "_")}')()
             self.save_local_config()
         except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as ex:
             self.log('Exception caught:')
@@ -649,7 +659,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         config: str = CONFIG_FILENAME,
         release: str | None = None,
         auto: bool = False,
-        min_timeout: int = 15
+        min_timeout: int = 15,
     ) -> None:
         self.name = name
         self.charms_path = os.path.abspath(charms_path)
@@ -679,7 +689,8 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         if timeout is not None and timeout < self.min_timeout:
             raise ValueError(
                 f'A time-out of {timeout} for status is dangerous, '
-                f'please increase it to {self.min_timeout}+ or set it to None')
+                f'please increase it to {self.min_timeout}+ or set it to None',
+            )
         status_dict = juju_do('status', self.name, timeout=timeout, fail=fail)
         if fail and not status_dict:
             raise RuntimeError(f'Unable to retrieve status of environment {self.name}.')
@@ -712,7 +723,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         error_states: tuple[str, ...] = ERROR_STATES,
         timeout: int = 600,
         status_timeout: int = 15,
-        polling_delay: int = 30
+        polling_delay: int = 30,
     ) -> Any:  # pylint:disable=too-many-branches,too-many-locals
         """
         Bootstrap an environment, (optional) terminate all machines and other associated resources
@@ -720,8 +731,10 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         """
         if cleanup:
             print(f'Cleanup and bootstrap environment {self.name}')
-            print('[WARNING] This will terminate all units deployed into environment '
-                  f'{self.name} by juju !')
+            print(
+                '[WARNING] This will terminate all units deployed into environment '
+                f'{self.name} by juju !',
+            )
         else:
             print(f'Bootstrap environment {self.name}')
 
@@ -772,7 +785,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         force: bool = True,
         remove_default: bool = False,
         remove: bool = False,
-        timeout: int = 15
+        timeout: int = 15,
     ) -> Any:
         """Destroy the environment and optionally remove it from configuration."""
         # TODO simpler algorithm
@@ -814,7 +827,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         service: str,
         default: Any = None,
         fail: bool = True,
-        timeout: int = 15
+        timeout: int = 15,
     ) -> Any:
         """Return the status dictionary of a service."""
         if not (status_dict := self.status(fail=fail, timeout=timeout)):
@@ -824,7 +837,8 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         except KeyError as ex:
             if fail:
                 raise RuntimeError(
-                    f'Service {service} not found in environment {self.name}.') from ex
+                    f'Service {service} not found in environment {self.name}.',
+                ) from ex
         return default
 
     def expose_service(self, service: str, fail: bool = True) -> Any:
@@ -857,7 +871,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         terminate: bool = False,
         to: str | None = None,
         units_number_to_keep: list[int] | None = None,
-        timeout: int | None = None
+        timeout: int | None = None,
     ) -> dict:
         """
         Ensure `num_units` units of `service` into `environment` by adding new or destroying useless
@@ -960,27 +974,25 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         print(f'Deploy {charm} as {service or charm} (ensure {num_units} instance{s})')
 
         if self.auto and required or console.confirm('do it now', default=False):
-
             assert num_units is None or num_units >= 0
             units_dict = self.get_units(service, default=None, fail=False, timeout=timeout)
             units_count = None if units_dict is None else len(units_dict)
 
             if num_units is None and units_count is not None:
-
                 results['destroy_service'] = self.destroy_service(service)
 
             elif units_count is None:
-
                 if num_units:  # avoid to deploy units if asked number of units is 0 or None
                     results['deploy_units'] = self.deploy_units(
-                        charm, service,
+                        charm,
+                        service,
                         num_units=num_units,
                         to=to,
                         config=self.config,
                         constraints=constraints,
                         local=local,
                         release=release,
-                        repository=repository
+                        repository=repository,
                     )
 
             elif units_count < num_units:
@@ -989,13 +1001,15 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
                     results['add_units'] = self.add_units(
                         service or charm,
                         num_units=num_units,
-                        to=to)
+                        to=to,
+                    )
 
             elif units_count > num_units:
                 num_units = units_count - num_units
                 destroyed = {}
-                units_number_to_keep = \
+                units_number_to_keep = (
                     [int(n) for n in units_number_to_keep] if units_number_to_keep else []
+                )
 
                 # TODO implement status comparison for sorting ??
                 for status in (ERROR, NOT_STARTED, PENDING, INSTALLED, STARTED):
@@ -1033,7 +1047,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         terminate: bool,
         delay_terminate: int = 5,
         fail: bool = True,
-        timeout: int | None = None
+        timeout: int | None = None,
     ) -> Any:
         """Destroy a unit and optionally terminate its machine."""
         name = f'{service}/{number}'
@@ -1053,7 +1067,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         number: int,
         default: Any = None,
         fail: bool = True,
-        timeout: int | None = None
+        timeout: int | None = None,
     ) -> Any:
         """Return the status dictionary of a specific unit."""
         # TODO maybe none if missing or something else
@@ -1065,7 +1079,8 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
             except KeyError as ex:
                 if fail:
                     raise RuntimeError(
-                        f'No unit with name {name} on environment {self.name}.') from ex
+                        f'No unit with name {name} on environment {self.name}.',
+                    ) from ex
         return default
 
     def get_unit_public_address(self, service: str, number: int) -> str:
@@ -1091,7 +1106,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         error_states: tuple[str, ...] = ERROR_STATES,
         timeout: int = 180,
         polling_timeout: int = 15,
-        polling_delay: int = 30
+        polling_delay: int = 30,
     ) -> str:
         """Poll until a unit reaches a started or error state."""
         start_time = time.time()
@@ -1114,7 +1129,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         self,
         service: str,
         num_units: int = 1,
-        to: str | None = None
+        to: str | None = None,
     ) -> Any:
         """Add units to an existing service."""
         options = ['--num-units', num_units]
@@ -1133,7 +1148,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         constraints: str | None = None,
         local: bool = False,
         release: str | None = None,
-        repository: str | None = None
+        repository: str | None = None,
     ) -> Any:
         """Deploy a charm as a new service."""
         service = service or charm
@@ -1160,7 +1175,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         service: str,
         default: Any = None,
         fail: bool = True,
-        timeout: int | None = None
+        timeout: int | None = None,
     ) -> dict | Any:
         """Return a dict mapping unit numbers to their status."""
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
@@ -1174,7 +1189,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         service: str,
         default: Any = None,
         fail: bool = True,
-        timeout: int | None = None
+        timeout: int | None = None,
     ) -> int | Any:
         """Return the number of units of a service."""
         service_dict = self.get_service(service, default=None, fail=fail, timeout=timeout)
@@ -1206,7 +1221,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         service1: str,
         service2: str,
         relation1: str | None = None,
-        relation2: str | None = None
+        relation2: str | None = None,
     ) -> Any:
         """Add a relation between 2 services. Knowing that the relation may already exists."""
         print(f'Add relation between {service1} and {service2}')
@@ -1229,7 +1244,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         service1: str,
         service2: str,
         relation1: str | None = None,
-        relation2: str | None = None
+        relation2: str | None = None,
     ) -> Any:
         """Remove a relation between 2 services. Knowing that the relation may not exists."""
         print(f'Remove relation between {service1} and {service2}')
@@ -1255,7 +1270,7 @@ class DeploymentScenario:
         environments: list[Environment],
         args: list[str] | None = None,
         namespace: Any = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         parser = self.get_parser(**kwargs)
         self.args = parser.parse_args(args=args, namespace=namespace)
@@ -1271,11 +1286,12 @@ class DeploymentScenario:
         epilog: str = '',
         charms_path: str = 'charms',
         release: str = 'raring',
-        auto: bool = False
+        auto: bool = False,
     ) -> argparse.ArgumentParser:  # pylint:disable=invalid-name
         """Return an :class:`~pytoolbox.argparse.ArgumentParser` for scenarios."""
         HELP_A = (  # noqa: N806
-            'Toggle automatic confirmation of the actions, WARNING: Use it with care.')
+            'Toggle automatic confirmation of the actions, WARNING: Use it with care.'
+        )
         HELP_M = 'Directory (repository) of any local charm.'  # noqa: N806
         HELP_R = 'Ubuntu serie to deploy by JuJu.'  # noqa: N806
         parser = argparse.ArgumentParser(epilog=epilog)
@@ -1304,7 +1320,7 @@ class SimulatedUnit:
         self,
         start_latency_range: tuple[int, int],
         stop_latency_range: tuple[int, int],
-        state: str = PENDING
+        state: str = PENDING,
     ) -> None:
         self.counter = self.next_state = None
         self.state = state
@@ -1336,7 +1352,7 @@ class SimulatedUnits:
     def __init__(
         self,
         start_latency_range: tuple[int, int],
-        stop_latency_range: tuple[int, int]
+        stop_latency_range: tuple[int, int],
     ) -> None:
         self.start_latency_range = start_latency_range
         self.stop_latency_range = stop_latency_range  # TODO not yet used by this simulator ...
@@ -1346,7 +1362,7 @@ class SimulatedUnits:
     def ensure_num_units(
         self,
         num_units: int | None = 1,
-        units_number_to_keep: list[int] | None = None
+        units_number_to_keep: list[int] | None = None,
     ) -> str | dict | None:
         """Ensure `num_units` units by adding new units or destroying useless units first !"""
         assert num_units is None or num_units >= 0

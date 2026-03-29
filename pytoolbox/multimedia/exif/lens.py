@@ -1,6 +1,7 @@
 """
 Lens equipment representation extracted from EXIF metadata.
 """
+
 from __future__ import annotations
 
 from pytoolbox import decorators

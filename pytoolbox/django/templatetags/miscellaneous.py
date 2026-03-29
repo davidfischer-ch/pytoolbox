@@ -1,12 +1,13 @@
 """Miscellaneous template filters and tags."""
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Final
 import collections.abc
 import datetime
 import os
 import re
+from pathlib import Path
+from typing import Any, Final
 
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -41,6 +42,7 @@ from . import register, string_if_invalid
 try:
     from django.template.defaulttags import include_is_allowed as _include_is_allowed
 except ImportError:
+
     def _include_is_allowed(filepath: str) -> bool:
         """
         Return whether including `filepath` is allowed (removed since Django 1.10).
@@ -48,6 +50,7 @@ except ImportError:
         See commit 04ee4059d71dbc6aa029907e251360eaf00e11bb#diff-45fa5fdd90e8a31a18a1e55ec2f94fa3
         """
         return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
+
 
 NUMERIC_TEST: Final[re.Pattern[str]] = re.compile(r'^\d+$')
 LABEL_TO_CLASS: Final[dict[str, str]] = {
@@ -58,7 +61,7 @@ LABEL_TO_CLASS: Final[dict[str, str]] = {
     'PROGRESS': 'label-info',
     'RETRY': 'label-warning',
     'REVOKED': 'label-inverse',
-    'SUCCESS': 'label-success'
+    'SUCCESS': 'label-success',
 }
 LABEL_TO_CLASS.update(getattr(settings, 'LABEL_TO_CLASS', {}))
 
@@ -125,15 +128,15 @@ def rst_title(value: Any, level: Any) -> str:
     value, level = str(value), str(level)
     length = len(value)
     if level in {'1', 'document'}:
-        return f"{'=' * length}{os.linesep}{value}{os.linesep}{'=' * length}{os.linesep}"
+        return f'{"=" * length}{os.linesep}{value}{os.linesep}{"=" * length}{os.linesep}'
     if level in {'2', 'subtitle'}:
-        return f"{'-' * length}{os.linesep}{value}{os.linesep}{'-' * length}{os.linesep}"
+        return f'{"-" * length}{os.linesep}{value}{os.linesep}{"-" * length}{os.linesep}'
     if level in {'3', 'chapter'}:
-        return f"{value}{os.linesep}{'=' * length}{os.linesep}"
+        return f'{value}{os.linesep}{"=" * length}{os.linesep}'
     if level in {'4', 'section'}:
-        return f"{value}{os.linesep}{'-' * length}{os.linesep}"
+        return f'{value}{os.linesep}{"-" * length}{os.linesep}'
     if level in {'5', 'subsection'}:
-        return f"{value}{os.linesep}{'~' * length}{os.linesep}"
+        return f'{value}{os.linesep}{"~" * length}{os.linesep}'
     return string_if_invalid
 
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock, patch
-import shutil
 
 import pytest
+
 from pytoolbox import logging, regex, subprocess
 from pytoolbox.validation import validate_list
 
@@ -13,6 +14,7 @@ from pytoolbox.validation import validate_list
 def test_quote_is_from_shlex() -> None:
     """The quote function should come from shlex, not the removed pipes module."""
     import shlex
+
     assert subprocess.quote is shlex.quote
 
 
@@ -65,7 +67,7 @@ def test_cmd_logging(caplog, capsys):
     assert echo_record.msg == "Execute echo 'toto tata'"
     assert env_record.name == 'pytoolbox.subprocess.cmd.env'
     assert env_record.levelname == 'DEBUG'
-    assert env_record.msg == "Execute /usr/bin/env python"
+    assert env_record.msg == 'Execute /usr/bin/env python'
 
 
 def test_cmd_log_to_func() -> None:
@@ -78,12 +80,12 @@ def test_cmd_log_to_func() -> None:
     assert result['stdout'] == b''
     assert result['stderr'] in {
         b'cat: missing_file: No such file or directory\n',
-        b'cat: missing_file: Aucun fichier ou dossier de ce nom\n'
+        b'cat: missing_file: Aucun fichier ou dossier de ce nom\n',
     }
     assert log.call_args_list == [
         mock.call("Execute echo 'it seem to work'"),
         mock.call('Execute cat missing_file'),
-        mock.call('Attempt 1 out of 1: Failed')
+        mock.call('Attempt 1 out of 1: Failed'),
     ]
 
 
@@ -107,10 +109,13 @@ def test_cmd_retry_missing_binary_no_retry() -> None:
     log.__name__ = 'Mock'
     with pytest.raises(OSError):
         subprocess.cmd('hfuejnvwqkdivengz', log=log, tries=5)
-    validate_list(log.call_args_list, [
-        r"call\('Execute hfuejnvwqkdivengz'\)",
-        r'call\(FileNotFoundError.*\)'
-    ])
+    validate_list(
+        log.call_args_list,
+        [
+            r"call\('Execute hfuejnvwqkdivengz'\)",
+            r'call\(FileNotFoundError.*\)',
+        ],
+    )
 
 
 def test_cmd_retry_no_success() -> None:
@@ -122,15 +127,19 @@ def test_cmd_retry_no_success() -> None:
         fail=False,
         tries=5,
         delay_min=0.0,
-        delay_max=0.95)
-    validate_list(log.call_args_list, [
-        r"call\('Execute ls hfuejnvwqkdivengz'\)",
-        r"call\('Attempt 1 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\('Attempt 2 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\('Attempt 3 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\('Attempt 4 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
-        r"call\('Attempt 5 out of 5: Failed'\)"
-    ])
+        delay_max=0.95,
+    )
+    validate_list(
+        log.call_args_list,
+        [
+            r"call\('Execute ls hfuejnvwqkdivengz'\)",
+            r"call\('Attempt 1 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\('Attempt 2 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\('Attempt 3 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\('Attempt 4 out of 5: Will retry in 0\.[0-9]+ seconds'\)",
+            r"call\('Attempt 5 out of 5: Failed'\)",
+        ],
+    )
 
 
 @pytest.mark.skipif(shutil.which('screen') is None, reason='screen not installed')
@@ -147,7 +156,7 @@ def test_screen() -> None:
         assert subprocess.screen_list(name='my_1st_screen') == [regex.Match(r'\d+\.my_1st_screen')]
         assert subprocess.screen_list(name='my_2nd_screen') == [
             regex.Match(r'\d+\.my_2nd_screen'),
-            regex.Match(r'\d+\.my_2nd_screen')
+            regex.Match(r'\d+\.my_2nd_screen'),
         ]
     finally:
         # Cleanup
@@ -156,18 +165,22 @@ def test_screen() -> None:
         subprocess.screen_kill(name='my_1st_screen', log=log)
         subprocess.screen_kill(name='my_2nd_screen', log=log)
         if log.call_args_list:
-            validate_list(log.call_args_list, [
-                r"call\('Execute screen -ls my_1st_screen'\)",
-                r"call\('Execute screen -S \d+\.my_1st_screen -X quit'\)",
-                r"call\('Execute screen -ls my_2nd_screen'\)",
-                r"call\('Execute screen -S \d+\.my_2nd_screen -X quit'\)",
-                r"call\('Execute screen -S \d+\.my_2nd_screen -X quit'\)"
-            ])
+            validate_list(
+                log.call_args_list,
+                [
+                    r"call\('Execute screen -ls my_1st_screen'\)",
+                    r"call\('Execute screen -S \d+\.my_1st_screen -X quit'\)",
+                    r"call\('Execute screen -ls my_2nd_screen'\)",
+                    r"call\('Execute screen -S \d+\.my_2nd_screen -X quit'\)",
+                    r"call\('Execute screen -S \d+\.my_2nd_screen -X quit'\)",
+                ],
+            )
 
 
 def test_kill_ignores_esrch() -> None:
     """kill() silences OSError with errno ESRCH (no such process)."""
     import errno as errno_mod
+
     proc = mock.MagicMock()
     proc.kill.side_effect = OSError(errno_mod.ESRCH, 'No such process')
     subprocess.kill(proc)  # should not raise
@@ -176,6 +189,7 @@ def test_kill_ignores_esrch() -> None:
 def test_kill_reraises_other_oserror() -> None:
     """kill() re-raises OSError when errno is not ESRCH."""
     import errno as errno_mod
+
     proc = mock.MagicMock()
     proc.kill.side_effect = OSError(errno_mod.EPERM, 'Not permitted')
     with pytest.raises(OSError, match='Not permitted'):
@@ -206,7 +220,7 @@ def test_su_with_integer_ids() -> None:
     """
     with (
         mock.patch('os.setgid') as mock_setgid,
-        mock.patch('os.setuid') as mock_setuid
+        mock.patch('os.setuid') as mock_setuid,
     ):
         fn = subprocess.su(1000, 1000)
         fn()
@@ -224,7 +238,7 @@ def test_su_with_string_names() -> None:
         mock.patch('os.setgid') as mock_setgid,
         mock.patch('os.setuid') as mock_setuid,
         mock.patch('pwd.getpwnam', return_value=fake_pw),
-        mock.patch('grp.getgrnam', return_value=fake_gr)
+        mock.patch('grp.getgrnam', return_value=fake_gr),
     ):
         fn = subprocess.su('root', 'root')
         fn()
@@ -258,6 +272,7 @@ def test_read_async_returns_data() -> None:
 def test_read_async_eagain_returns_empty() -> None:
     """read_async() returns empty string on EAGAIN IOError."""
     import errno as errno_mod
+
     fd = mock.MagicMock()
     fd.read.side_effect = IOError(errno_mod.EAGAIN, 'try again')
     assert subprocess.read_async(fd) == ''
@@ -266,6 +281,7 @@ def test_read_async_eagain_returns_empty() -> None:
 def test_read_async_reraises_other_ioerror() -> None:
     """read_async() re-raises IOError when errno is not EAGAIN."""
     import errno as errno_mod
+
     fd = mock.MagicMock()
     fd.read.side_effect = IOError(errno_mod.EBADF, 'bad fd')
     with pytest.raises(IOError):
@@ -278,7 +294,8 @@ def test_cmd_with_user_prepends_sudo(caplog) -> None:
     result = subprocess.cmd(
         ['whoami'],
         user='nobody',
-        fail=False)
+        fail=False,
+    )
     # The command should have been wrapped with sudo
     assert result['process'] is not None or result['returncode'] == 2
 
@@ -287,7 +304,8 @@ def test_cmd_with_input() -> None:
     """cmd() sends data to stdin when input kwarg is provided."""
     result = subprocess.cmd(
         ['cat'],
-        input=b'hello world')
+        input=b'hello world',
+    )
     assert result['stdout'] == b'hello world'
 
 
@@ -296,7 +314,8 @@ def test_cmd_communicate_false() -> None:
     result = subprocess.cmd(
         ['sleep', '0.1'],
         communicate=False,
-        fail=False)
+        fail=False,
+    )
     assert result['stdout'] is None
     assert result['stderr'] is None
     assert result['process'] is not None
@@ -307,7 +326,8 @@ def test_cmd_cli_input() -> None:
     """cmd() writes cli_input to stdin before communicate."""
     result = subprocess.cmd(
         ['cat'],
-        cli_input=b'typed input')
+        cli_input=b'typed input',
+    )
     assert result['process'] is not None
 
 
@@ -317,6 +337,7 @@ def test_cmd_fail_raises_called_process_error() -> None:
     and process returns non-zero.
     """
     from pytoolbox import exceptions
+
     with pytest.raises(exceptions.CalledProcessError):
         subprocess.cmd('cat missing_file_xyz_123')
 
@@ -326,7 +347,8 @@ def test_cmd_custom_success_codes() -> None:
     result = subprocess.cmd(
         'cat missing_file_xyz_123',
         fail=False,
-        success_codes=(0, 1))
+        success_codes=(0, 1),
+    )
     assert result['returncode'] == 1
 
 
@@ -335,7 +357,8 @@ def test_cmd_timeout_kills_process() -> None:
     result = subprocess.cmd(
         ['sleep', '30'],
         timeout=0.1,
-        fail=False)
+        fail=False,
+    )
     assert result['process'] is not None
     # Process was terminated, so returncode is non-zero
     assert result['returncode'] != 0
@@ -354,7 +377,8 @@ def test_raw_cmd_shell_mode() -> None:
     proc = subprocess.raw_cmd(
         ['echo', 'hello'],
         shell=True,
-        stdout=__import__('subprocess').PIPE)
+        stdout=__import__('subprocess').PIPE,
+    )
     stdout, _ = proc.communicate()
     assert b'hello' in stdout
 
@@ -364,22 +388,23 @@ def test_make_without_cmake() -> None:
     with (
         patch.object(
             subprocess.setuptools.archive_util,
-            'unpack_archive'
+            'unpack_archive',
         ),
         patch.object(subprocess.filesystem, 'chdir'),
         patch.object(subprocess, 'cmd') as mock_cmd,
-        patch.object(subprocess.shutil, 'rmtree')
+        patch.object(subprocess.shutil, 'rmtree'),
     ):
         mock_cmd.return_value = {
             'process': MagicMock(),
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         results = subprocess.make(
             Path('/tmp/archive.tar.gz'),
-            Path('/tmp/build'))
+            Path('/tmp/build'),
+        )
         assert 'configure' in results
         assert 'make' in results
         assert 'make install' in results
@@ -393,25 +418,26 @@ def test_make_with_cmake() -> None:
     with (
         patch.object(
             subprocess.setuptools.archive_util,
-            'unpack_archive'
+            'unpack_archive',
         ),
         patch.object(subprocess.filesystem, 'chdir'),
         patch.object(subprocess.filesystem, 'makedirs'),
         patch.object(subprocess.os, 'chdir'),
         patch.object(subprocess, 'cmd') as mock_cmd,
-        patch.object(subprocess.shutil, 'rmtree')
+        patch.object(subprocess.shutil, 'rmtree'),
     ):
         mock_cmd.return_value = {
             'process': MagicMock(),
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         results = subprocess.make(
             Path('/tmp/archive.tar.gz'),
             Path('/tmp/build'),
-            with_cmake=True)
+            with_cmake=True,
+        )
         assert 'cmake' in results
         assert 'configure' not in results
 
@@ -421,23 +447,24 @@ def test_make_no_install() -> None:
     with (
         patch.object(
             subprocess.setuptools.archive_util,
-            'unpack_archive'
+            'unpack_archive',
         ),
         patch.object(subprocess.filesystem, 'chdir'),
         patch.object(subprocess, 'cmd') as mock_cmd,
-        patch.object(subprocess.shutil, 'rmtree')
+        patch.object(subprocess.shutil, 'rmtree'),
     ):
         mock_cmd.return_value = {
             'process': MagicMock(),
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         results = subprocess.make(
             Path('/tmp/archive.tar.gz'),
             Path('/tmp/build'),
-            install=False)
+            install=False,
+        )
         assert 'make install' not in results
 
 
@@ -446,23 +473,24 @@ def test_make_keep_temporary() -> None:
     with (
         patch.object(
             subprocess.setuptools.archive_util,
-            'unpack_archive'
+            'unpack_archive',
         ),
         patch.object(subprocess.filesystem, 'chdir'),
         patch.object(subprocess, 'cmd') as mock_cmd,
-        patch.object(subprocess.shutil, 'rmtree') as mock_rm
+        patch.object(subprocess.shutil, 'rmtree') as mock_rm,
     ):
         mock_cmd.return_value = {
             'process': MagicMock(),
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         subprocess.make(
             Path('/tmp/archive.tar.gz'),
             Path('/tmp/build'),
-            remove_temporary=False)
+            remove_temporary=False,
+        )
         mock_rm.assert_not_called()
 
 
@@ -480,7 +508,7 @@ def test_rsync_basic() -> None:
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         subprocess.rsync(src, dst)
         call_args = mock_cmd.call_args[0][0]
@@ -502,7 +530,7 @@ def test_rsync_with_options() -> None:
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         subprocess.rsync(
             src,
@@ -517,7 +545,8 @@ def test_rsync_with_options() -> None:
             includes=['*.py'],
             rsync_path=Path('/usr/bin/rsync'),
             extra='ssh -p 22',
-            extra_args=['--verbose'])
+            extra_args=['--verbose'],
+        )
         call_args = mock_cmd.call_args[0][0]
         assert '--delete' in call_args
         assert '--progress' in call_args
@@ -539,13 +568,14 @@ def test_rsync_dir_appends_separator() -> None:
     dst.is_dir.return_value = True
     dst.__str__ = lambda s: '/tmp/dst'
     import os as os_mod
+
     with patch.object(subprocess, 'cmd') as mock_cmd:
         mock_cmd.return_value = {
             'process': MagicMock(),
             'returncode': 0,
             'stdout': b'',
             'stderr': b'',
-            'exception': None
+            'exception': None,
         }
         subprocess.rsync(src, dst)
         call_args = mock_cmd.call_args[0][0]

@@ -7,6 +7,7 @@ from pytoolbox.django_formtools.views import mixins
 
 def test_datatable_view_ajax_detection() -> None:
     """AJAX requests (X-Requested-With header) are delegated to the table view."""
+
     class FakeView(mixins.DataTableViewCompositionMixin):
         table_view_classes = {'step1': MagicMock}
         steps = MagicMock(current='step1')
@@ -33,6 +34,7 @@ def test_datatable_view_ajax_detection() -> None:
 
 def test_datatable_view_get_table_view_returns_none_for_unknown_step() -> None:
     """Returns None when no table view is registered for the current step."""
+
     class FakeView(mixins.DataTableViewCompositionMixin):
         table_view_classes = {'step1': MagicMock}
         steps = MagicMock(current='unknown_step')
@@ -61,6 +63,7 @@ def test_datatable_view_get_table_view_returns_instance() -> None:
 
 def test_datatable_view_get_context_data_with_table() -> None:
     """Context is updated with the table view's context when a table view exists."""
+
     class Base:
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
             return {'key': 'value'}
@@ -79,6 +82,7 @@ def test_datatable_view_get_context_data_with_table() -> None:
 
 def test_datatable_view_get_context_data_without_table() -> None:
     """Context is unchanged when no table view exists for the current step."""
+
     class Base:
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
             return {'key': 'value'}
@@ -94,6 +98,7 @@ def test_datatable_view_get_context_data_without_table() -> None:
 
 def test_serialize_step_instance_mixin_serialized_instances() -> None:
     """serialized_instances lazily creates and caches the storage dict."""
+
     class FakeView(mixins.SerializeStepInstanceMixin):
         steps = MagicMock(current='step1')
 
@@ -110,6 +115,7 @@ def test_serialize_step_instance_mixin_serialized_instances() -> None:
 
 def test_serialize_step_instance_mixin_get_form_kwargs() -> None:
     """Serialized instance data is merged into form kwargs for the matching step."""
+
     class Base:
         def get_form_kwargs(self, step):  # pylint:disable=unused-argument
             return {'initial': {}}
@@ -120,7 +126,7 @@ def test_serialize_step_instance_mixin_get_form_kwargs() -> None:
         def __init__(self):
             self.storage = MagicMock()
             self.storage.extra_data = {
-                'serialized-instances': {'step1': {'data': 'serialized'}}
+                'serialized-instances': {'step1': {'data': 'serialized'}},
             }
 
     view = FakeView()
@@ -131,6 +137,7 @@ def test_serialize_step_instance_mixin_get_form_kwargs() -> None:
 
 def test_serialize_step_instance_mixin_get_form_kwargs_no_serialized() -> None:
     """Form kwargs are unchanged when no serialized instance exists for the step."""
+
     class Base:
         def get_form_kwargs(self, step):  # pylint:disable=unused-argument
             return {'initial': {}}
@@ -161,7 +168,7 @@ def test_serialize_step_instance_mixin_get_form() -> None:
         def __init__(self):
             self.storage = MagicMock()
             self.storage.extra_data = {
-                'serialized-instances': {'step1': {'pk': 1}}
+                'serialized-instances': {'step1': {'pk': 1}},
             }
             self.form_list = {}
 

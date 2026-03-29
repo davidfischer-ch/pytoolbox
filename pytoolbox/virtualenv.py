@@ -1,10 +1,11 @@
 """
 Python virtual environment relocation utilities.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
 import itertools
+from pathlib import Path
 
 from .filesystem import find_recursive
 from .subprocess import rsync
@@ -16,7 +17,7 @@ def relocate(
     source_directory: Path,
     destination_directory: Path,
     *,
-    encoding: str = 'utf-8'
+    encoding: str = 'utf-8',
 ) -> None:
     """
     Copy and relocate a Python virtual environment.
@@ -28,11 +29,13 @@ def relocate(
     b_source_directory = str(source_directory).encode(encoding)
     b_destination_directory = str(destination_directory).encode(encoding)
 
-    for path in itertools.chain.from_iterable([
-        find_recursive(destination_directory, ['*.egg-link', '*.pth', '*.pyc', 'RECORD']),
-        find_recursive(destination_directory / 'bin', '*'),
-        find_recursive(destination_directory / 'src', '*.so')
-    ]):
+    for path in itertools.chain.from_iterable(
+        [
+            find_recursive(destination_directory, ['*.egg-link', '*.pth', '*.pyc', 'RECORD']),
+            find_recursive(destination_directory / 'bin', '*'),
+            find_recursive(destination_directory / 'src', '*.so'),
+        ]
+    ):
         with path.open('r+b') as f:
             content = f.read().replace(b_source_directory, b_destination_directory)
             f.seek(0)

@@ -1,10 +1,11 @@
 """
 Mix-ins for building your own query-sets.
 """
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import functools
+from typing import TYPE_CHECKING
 
 from django.db import transaction
 
@@ -23,18 +24,18 @@ class AtomicGetUpdateOrCreateMixin:
     savepoint = False
 
     def get_or_create(
-            self,
-            defaults: dict[str, object] | None = None,
-            **kwargs: object
+        self,
+        defaults: dict[str, object] | None = None,
+        **kwargs: object,
     ) -> tuple[models.Model, bool]:
         """Wrap ``get_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_or_create(defaults=defaults, **kwargs)
 
     def update_or_create(
-            self,
-            defaults: dict[str, object] | None = None,
-            **kwargs: object
+        self,
+        defaults: dict[str, object] | None = None,
+        **kwargs: object,
     ) -> tuple[models.Model, bool]:
         """Wrap ``update_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
@@ -60,6 +61,7 @@ class CreateModelMethodMixin:
         if hasattr(self.model, 'create'):
             return self.model.create(*args, **kwargs)
         return super().create(*args, **kwargs)
+
     create.alters_data = True
 
 

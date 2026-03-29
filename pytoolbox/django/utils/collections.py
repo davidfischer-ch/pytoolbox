@@ -1,6 +1,7 @@
 """
 Collection utilities for Django models and forms.
 """
+
 from __future__ import annotations
 
 from pytoolbox.django.core.constants import DEFFERED_REGEX
@@ -65,7 +66,7 @@ class FieldsToValuesLookupDict:
             meta = getattr(cls, '_meta', None) or getattr(cls, 'Meta', None)
             if meta and hasattr(meta, 'model'):
                 # cleanup model name when some fields are deferred (Media vs Media_Deffered_...)
-                keys.insert(1, f"{DEFFERED_REGEX.sub('', meta.model.__name__)}.{field_name}")
+                keys.insert(1, f'{DEFFERED_REGEX.sub("", meta.model.__name__)}.{field_name}')
         for lookup_key in keys:
             value = self.translations.get(lookup_key)
             if value:

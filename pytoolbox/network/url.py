@@ -1,6 +1,7 @@
 """
 URL manipulation utilities.
 """
+
 from __future__ import annotations
 
 from urllib.parse import urlsplit, urlunsplit
@@ -23,6 +24,7 @@ def with_subdomain(url: str, subdomain: str | None = None) -> str:
     >>> assert sub('https://app.website.com#d?page=1', 'help'), 'https://help.website.com#d?page=1'
     """
     import tldextract
+
     components = list(urlsplit(url))
     extracted = tldextract.extract(components[1])
     components[1] = string.filterjoin((subdomain, extracted.domain, extracted.suffix), '.')

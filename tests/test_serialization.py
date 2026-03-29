@@ -4,12 +4,12 @@ import math
 import os
 
 import pytest
+
 from pytoolbox import filesystem
 from pytoolbox.serialization import PickleableObject
 
 
 class MyPoint(PickleableObject):
-
     def __init__(self, name=None, x=0, y=0):
         self.name = name
         self.x = x
@@ -49,12 +49,13 @@ def test_pickleable_object() -> None:
         create_if_error=True,
         name='Default point',
         x=3,
-        y=-6)
+        y=-6,
+    )
     assert point_3.__dict__ == {
         'x': 3,
         'y': -6,
         '_pickle_path': 'test3.pkl',
-        'name': 'Default point'
+        'name': 'Default point',
     }
 
     os.remove('test3.pkl')

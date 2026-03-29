@@ -1,17 +1,18 @@
 """
 SSH agent management and remote command execution.
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterator
-from pathlib import Path
-from typing import Final
 import contextlib
 import os
 import re
 import signal
 import stat
 import tempfile
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Final
 
 from . import exceptions, logging, subprocess
 from .subprocess import CallArgType, CallResultFull
@@ -24,7 +25,7 @@ __all__ = [
     'scoped_agent',
     'start_agent',
     'stop_agent',
-    'ssh'
+    'ssh',
 ]
 
 log = logging.get_logger(__name__)
@@ -32,7 +33,8 @@ log = logging.get_logger(__name__)
 AGENT_START_REGEX: Final[re.Pattern] = re.compile(
     r'SSH_AUTH_SOCK=(?P<SSH_AUTH_SOCK>[^;]+).*'
     r'SSH_AGENT_PID=(?P<SSH_AGENT_PID>\d+)',
-    re.MULTILINE | re.DOTALL)
+    re.MULTILINE | re.DOTALL,
+)
 
 
 def add_fingerprint(path: Path, host: str) -> None:
@@ -117,7 +119,7 @@ def ssh(
     host: str,
     identity_file: Path | None = None,
     remote_cmd: str | None = None,
-    **kwargs
+    **kwargs,
 ) -> CallResultFull:
     """Execute an SSH command on a remote host."""
     command: list[CallArgType] = ['ssh']

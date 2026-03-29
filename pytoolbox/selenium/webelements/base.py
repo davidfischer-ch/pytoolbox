@@ -1,6 +1,7 @@
 """
 Base :class:`WebElement` with automatic component specialization.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -33,11 +34,13 @@ class WebElement(common.FindMixin, webelement.WebElement):
         if component := self.get_attribute('data-component'):
             try:
                 self.__class__ = next(  # pylint: disable=invalid-class-object
-                    c for c in type(self).__subclasses__() if c.component == component)
+                    c for c in type(self).__subclasses__() if c.component == component
+                )
             except StopIteration:
                 self._specialize_default(component)
 
     @staticmethod
     def _specialize_default(component: str) -> None:
         raise exceptions.NoSuchSpecializedElementException(
-            f'Unable to find a class implementing the component {component}.')
+            f'Unable to find a class implementing the component {component}.',
+        )

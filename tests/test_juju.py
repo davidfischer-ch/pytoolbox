@@ -3,8 +3,9 @@ from __future__ import annotations
 from unittest import mock
 
 import pytest
+
 from pytoolbox import juju
-from pytoolbox.juju import PENDING, STARTED, ERROR
+from pytoolbox.juju import ERROR, PENDING, STARTED
 
 ADD_UNIT = ['juju', 'add-unit', '--environment', 'maas']
 DEPLOY = ['juju', 'deploy', '--environment', 'maas']
@@ -37,13 +38,15 @@ def test_environment_ensure_num_units() -> None:
         env.get_units = mock.Mock(return_value={0: {}, 1: {}, 2: {}, 3: {}})
         assert env.ensure_num_units(None, 'lamp', num_units=5) == {'add_units': None}
 
-        env.get_units = mock.Mock(return_value={
-            0: {'agent-state': STARTED},
-            1: {'agent-state': PENDING},
-            2: {'agent-state': ERROR},
-            3: {},
-            4: {'agent-state': ERROR}
-        })
+        env.get_units = mock.Mock(
+            return_value={
+                0: {'agent-state': STARTED},
+                1: {'agent-state': PENDING},
+                2: {'agent-state': ERROR},
+                3: {},
+                4: {'agent-state': ERROR},
+            },
+        )
         env.get_unit = mock.Mock(return_value={})
         env.ensure_num_units('mysql', 'my_mysql', num_units=1, units_number_to_keep=[1])
         env.get_units = mock.Mock(return_value={0: {}, 1: {}, 2: {}, 3: {}, 4: {}})
@@ -54,14 +57,18 @@ def test_environment_ensure_num_units() -> None:
 
         kwargs = {'fail': False, 'log': None}
         assert len(cmd.call_args_list) == 9
-        cmd.assert_has_calls([
-            mock.call([*DEPLOY, N, '2', *CFG, R, '.', 'local:raring/mysql', 'my_mysql'], **kwargs),
-            mock.call([*DEPLOY, N, '4', *CFG, R, '.', 'local:raring/lamp', 'lamp'], **kwargs),
-            mock.call([*ADD_UNIT, N, '3', 'my_mysql'], **kwargs),
-            mock.call([*ADD_UNIT, N, '1', 'lamp'], **kwargs),
-            mock.call([*DESTROY_UNIT, 'my_mysql/2'], **kwargs),
-            mock.call([*DESTROY_UNIT, 'my_mysql/3'], **kwargs),
-            mock.call([*DESTROY_UNIT, 'my_mysql/4'], **kwargs),
-            mock.call([*DESTROY_UNIT, 'my_mysql/0'], **kwargs),
-            mock.call([*DESTROY_SERVICE, 'my_mysql'], **kwargs)
-        ])
+        cmd.assert_has_calls(
+            [
+                mock.call(
+                    [*DEPLOY, N, '2', *CFG, R, '.', 'local:raring/mysql', 'my_mysql'], **kwargs
+                ),
+                mock.call([*DEPLOY, N, '4', *CFG, R, '.', 'local:raring/lamp', 'lamp'], **kwargs),
+                mock.call([*ADD_UNIT, N, '3', 'my_mysql'], **kwargs),
+                mock.call([*ADD_UNIT, N, '1', 'lamp'], **kwargs),
+                mock.call([*DESTROY_UNIT, 'my_mysql/2'], **kwargs),
+                mock.call([*DESTROY_UNIT, 'my_mysql/3'], **kwargs),
+                mock.call([*DESTROY_UNIT, 'my_mysql/4'], **kwargs),
+                mock.call([*DESTROY_UNIT, 'my_mysql/0'], **kwargs),
+                mock.call([*DESTROY_SERVICE, 'my_mysql'], **kwargs),
+            ]
+        )

@@ -10,7 +10,7 @@ _all = module.All(globals())
 
 from pytoolbox import types, validation as _validation  # noqa pylint:disable=wrong-import-position
 
-public_variable = 0    # pylint:disable=invalid-name
+public_variable = 0  # pylint:disable=invalid-name
 _private_variable = 0  # pylint:disable=invalid-name
 
 
@@ -28,4 +28,5 @@ class _PrivateClass(_validation.CleanAttributesMixin):
 
 asserts.equal(
     set(_all.diff(globals())),
-    {'public_variable', 'public_function', 'PublicClass', 'types'})
+    {'public_variable', 'public_function', 'PublicClass', 'types'},
+)

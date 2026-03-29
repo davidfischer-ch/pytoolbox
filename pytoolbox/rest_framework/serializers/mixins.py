@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own Django REST Framework powered API serializers.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn

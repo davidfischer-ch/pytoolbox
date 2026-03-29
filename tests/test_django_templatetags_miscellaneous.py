@@ -31,7 +31,7 @@ def test_inline_reads_allowed_file() -> None:
     filepath = '/static/test.js'
     with (
         patch('pytoolbox.django.templatetags.miscellaneous._include_is_allowed', return_value=True),
-        patch('pathlib.Path.read_text', return_value='content')
+        patch('pathlib.Path.read_text', return_value='content'),
     ):
         assert templatetags.inline(filepath) == 'content'
 
@@ -92,6 +92,7 @@ def test_timedelta_filter() -> None:
 
 def test_verbose_name() -> None:
     """Returns the model's singular verbose name."""
+
     class MyModel(models.Model):
         class Meta:
             app_label = 'test'
@@ -103,6 +104,7 @@ def test_verbose_name() -> None:
 
 def test_verbose_name_plural() -> None:
     """Documents current behavior: uses verbose_name instead of verbose_name_plural (bug)."""
+
     class MyModel(models.Model):
         class Meta:
             app_label = 'test'

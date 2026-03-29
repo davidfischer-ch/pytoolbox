@@ -16,6 +16,7 @@ def test_missing() -> None:
 
 def test_get_properties() -> None:
     """Only properties are yielded, not regular methods."""
+
     class MyObj:
         @property
         def name(self):
@@ -35,6 +36,7 @@ def test_get_properties() -> None:
 
 def test_merge_bases_attribute() -> None:
     """Attribute values are accumulated through the MRO using merge_func."""
+
     class Base:
         items = [1, 2]
 
@@ -52,6 +54,7 @@ def test_merge_bases_attribute() -> None:
 
 def test_merge_bases_attribute_with_default() -> None:
     """Classes missing the attribute use the default value."""
+
     class A:
         pass
 

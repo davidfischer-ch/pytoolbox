@@ -1,6 +1,7 @@
 """
 Decorators for enhancing your models.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -36,19 +37,26 @@ def with_urls(base_url: str, *interface_actions: str, **kwargs: object) -> Calla
                 continue
 
             if action == 'create':
+
                 @staticmethod
                 def method() -> str:
                     return reverse(base_url + 'create')
             else:
+
                 def get_url(action: str, singleton: bool) -> Callable[..., str]:
                     if singleton:
+
                         def _get_url() -> str:
                             return reverse(base_url + action)
+
                         return staticmethod(_get_url)
                     else:
+
                         def _get_url(self) -> str:
                             return reverse(base_url + action, args=[str(self.pk)])
+
                     return _get_url
+
                 method = get_url(action, singleton)
 
             method.__name__ = method_name
@@ -59,4 +67,5 @@ def with_urls(base_url: str, *interface_actions: str, **kwargs: object) -> Calla
             model.get_absolute_url = model.get_detail_url
 
         return model
+
     return _with_urls

@@ -1,10 +1,11 @@
 """
 Photo-level EXIF metadata (exposure, ISO, white balance).
 """
+
 from __future__ import annotations
 
-from fractions import Fraction
 import datetime
+from fractions import Fraction
 
 from pytoolbox.enum import OrderedEnum
 
@@ -15,6 +16,7 @@ __all__ = ['ExposureMode', 'Photo', 'SensingMethod', 'WhiteBalance']
 
 class ExposureMode(OrderedEnum):
     """EXIF exposure mode values (tag Exif.Photo.ExposureMode)."""
+
     AUTO = 0
     MANUAL = 1
     BRACKET = 2
@@ -22,6 +24,7 @@ class ExposureMode(OrderedEnum):
 
 class SensingMethod(OrderedEnum):
     """EXIF sensing method values (tag Exif.Photo.SensingMethod)."""
+
     NOT_DEFINED = 0
     UNDEFINED = 1
     ONE_CHIP_COLOR_AREA = 2
@@ -34,6 +37,7 @@ class SensingMethod(OrderedEnum):
 
 class WhiteBalance(OrderedEnum):
     """EXIF white balance values (tag Exif.Photo.WhiteBalance)."""
+
     AUTO = 0
     MANUAL = 1
 

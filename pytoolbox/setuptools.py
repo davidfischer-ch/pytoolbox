@@ -1,10 +1,12 @@
 """
 Setuptools command extensions.
 """
+
 from __future__ import annotations
 
-import setuptools
 import sys
+
+import setuptools
 
 
 class Disabled(setuptools.Command):  # pylint:disable=duplicate-code

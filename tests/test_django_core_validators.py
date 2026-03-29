@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from django.core.exceptions import ImproperlyConfigured, ValidationError
 import pytest
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 
 from pytoolbox.django.core import validators
 
@@ -20,7 +20,8 @@ def test_keys_validator_strict() -> None:
     validator = validators.KeysValidator(
         required_keys=['name'],
         optional_keys=['age'],
-        strict=True)
+        strict=True,
+    )
     validator({'name': 'Alice'})
     validator({'name': 'Alice', 'age': 30})
     with pytest.raises(ValidationError) as exc_info:

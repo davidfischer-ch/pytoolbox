@@ -61,6 +61,7 @@ def test_try_get_field_success() -> None:
 
 def test_try_get_field_related_does_not_exist() -> None:
     """Returns None when RelatedObjectDoesNotExist is raised."""
+
     class RelatedObjectDoesNotExist(Exception):  # noqa: N818
         pass
 
@@ -68,7 +69,9 @@ def test_try_get_field_related_does_not_exist() -> None:
     instance.__class__.__name__ = 'MyModel'
     type(instance).profile = property(
         lambda self: (_ for _ in ()).throw(
-            RelatedObjectDoesNotExist('no profile')))
+            RelatedObjectDoesNotExist('no profile'),
+        ),
+    )
     # Simulate by using a side_effect on getattr
     instance_obj = MagicMock()
 
@@ -89,11 +92,13 @@ def test_try_get_field_related_does_not_exist() -> None:
 
 def test_try_get_field_other_exception_reraises() -> None:
     """Non-RelatedObjectDoesNotExist exceptions are re-raised."""
+
     class Holder:
         @property
         def profile(self):
             raise ValueError('bad value')
 
     import pytest
+
     with pytest.raises(ValueError, match='bad value'):
         utils.try_get_field(Holder(), 'profile')

@@ -1,6 +1,7 @@
 """
 Selenium live test client for interacting with a running server.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -38,12 +39,12 @@ class LiveClient(common.FindMixin):
         self._css_prefix = value
 
     def find_css(
-            self,
-            css_selector: str,
-            *,
-            prefix: bool = True,
-            force_list: bool = False,
-            fail: bool = True
+        self,
+        css_selector: str,
+        *,
+        prefix: bool = True,
+        force_list: bool = False,
+        fail: bool = True,
     ) -> Any:
         """Shortcut to find elements by CSS. Returns either a list or singleton."""
         if prefix and self.css_prefix:
@@ -82,18 +83,20 @@ class LiveClient(common.FindMixin):
         return self.find_css('form button.btn-primary[type="submit"]').click()
 
     def wait_for_css(
-            self,
-            css_selector: str = '',
-            *,
-            inverse: bool = False,
-            prefix: bool = True,
-            timeout: int = 5,
-            fail: bool = True
+        self,
+        css_selector: str = '',
+        *,
+        inverse: bool = False,
+        prefix: bool = True,
+        timeout: int = 5,
+        fail: bool = True,
     ) -> bool | None:
         """Wait until a CSS selector matches (or stops matching if *inverse*)."""
         try:
+
             def wait_func(driver: Any) -> bool:  # pylint:disable=unused-argument
                 return bool(self.find_css(css_selector, prefix=prefix, fail=False)) ^ inverse
+
             return ui.WebDriverWait(self.web_driver, timeout).until(wait_func)
         except exceptions.TimeoutException:  # pylint:disable=no-member
             if fail:
@@ -101,13 +104,13 @@ class LiveClient(common.FindMixin):
         return None
 
     def wait_for_id(
-            self,
-            element_id: str,
-            *,
-            inverse: bool = False,
-            prefix: bool = True,
-            timeout: int = 5,
-            fail: bool = True
+        self,
+        element_id: str,
+        *,
+        inverse: bool = False,
+        prefix: bool = True,
+        timeout: int = 5,
+        fail: bool = True,
     ) -> bool | None:
         """Wait until an element with the given ID is present."""
         return self.wait_for_css(
@@ -115,16 +118,17 @@ class LiveClient(common.FindMixin):
             inverse=inverse,
             prefix=prefix,
             timeout=timeout,
-            fail=fail)
+            fail=fail,
+        )
 
     def wait_for_name(
-            self,
-            element_name: str,
-            *,
-            inverse: bool = False,
-            prefix: bool = True,
-            timeout: int = 5,
-            fail: bool = True
+        self,
+        element_name: str,
+        *,
+        inverse: bool = False,
+        prefix: bool = True,
+        timeout: int = 5,
+        fail: bool = True,
     ) -> bool | None:
         """Wait until an element with the given name attribute is present."""
         return self.wait_for_css(
@@ -132,4 +136,5 @@ class LiveClient(common.FindMixin):
             inverse=inverse,
             prefix=prefix,
             timeout=timeout,
-            fail=fail)
+            fail=fail,
+        )

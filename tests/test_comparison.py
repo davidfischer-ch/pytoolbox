@@ -10,7 +10,6 @@ from pytoolbox import comparison, console
 
 
 class Point2D(comparison.SlotsEqualityMixin):
-
     __slots__ = ('x', 'y', 'name')
 
     def __init__(self, x, y, name):
@@ -24,7 +23,6 @@ class Point2Dv2(Point2D):
 
 
 class Point3D(comparison.SlotsEqualityMixin):
-
     __slots__ = ('x', 'y', 'z', 'name')
 
     def __init__(self, x, y, z, name):
@@ -66,12 +64,16 @@ def test_equality_different_class() -> None:
 
 def test_unified_diff() -> None:
     """Produces a standard unified diff between two strings without ANSI colors."""
-    assert comparison.unified_diff(
-        'Some T',
-        'Other T',
-        fromfile='a.py',
-        tofile='b.py',
-        colorize=False) == ("""
+    assert (
+        comparison.unified_diff(
+            'Some T',
+            'Other T',
+            fromfile='a.py',
+            tofile='b.py',
+            colorize=False,
+        )
+        == (
+            """
 --- a.py
 
 +++ b.py
@@ -80,20 +82,27 @@ def test_unified_diff() -> None:
 
 -Some T
 +Other T
-""").strip()
+"""
+        ).strip()
+    )
 
 
 def test_unified_diff_colorize() -> None:
     """Colorized diff wraps removed lines in red and added lines in green ANSI codes."""
     import termcolor
+
     with patch.dict(os.environ, console.toggle_colors(colorize=True), clear=True):
         termcolor.can_colorize.cache_clear()
-        assert comparison.unified_diff(
-            'Some T',
-            'Other T',
-            fromfile='a.py',
-            tofile='b.py',
-            colorize=True) == ("""
+        assert (
+            comparison.unified_diff(
+                'Some T',
+                'Other T',
+                fromfile='a.py',
+                tofile='b.py',
+                colorize=True,
+            )
+            == (
+                """
 \x1b[31m--- a.py
 \x1b[0m
 \x1b[32m+++ b.py
@@ -102,72 +111,69 @@ def test_unified_diff_colorize() -> None:
 
 \x1b[31m-Some T\x1b[0m
 \x1b[32m+Other T\x1b[0m
-""").strip()
-
+"""
+            ).strip()
+        )
 
 
 # Versions -----------------------------------------------------------------------------------------
 
 
-@mark.parametrize(('version_a', 'version_b', 'operation', 'expected'), [
-    ('master', 'master', '<', False),
-    ('master', 'master', '<=', True),
-    ('master', 'master', '==', True),
-    ('master', 'master', '!=', False),
-    ('master', 'master', '>=', True),
-    ('master', 'master', '>', False),
-
-    ('master', 'main', '<', None),
-    ('master', 'main', '<=', None),
-    ('master', 'main', '==', False),
-    ('master', 'main', '!=', True),
-    ('master', 'main', '>=', None),
-    ('master', 'main', '>', None),
-
-    ('v4.10', 'v4.10', '<', False),
-    ('v4.10', 'v4.10', '<=', True),
-    ('v4.10', 'v4.10', '==', True),
-    ('v4.10', 'v4.10', '!=', False),
-    ('v4.10', 'v4.10', '>=', True),
-    ('v4.10', 'v4.10', '>', False),
-
-    ('v4.10', 'v4.11', '<', True),
-    ('v4.10', 'v4.11', '<=', True),
-    ('v4.10', 'v4.11', '==', False),
-    ('v4.10', 'v4.11', '!=', True),
-    ('v4.10', 'v4.11', '>=', False),
-    ('v4.10', 'v4.11', '>', False),
-
-    ('v4.10', 'v4.10.1', '<', True),
-    ('v4.10', 'v4.10.1', '<=', True),
-    ('v4.10', 'v4.10.1', '==', False),
-    ('v4.10', 'v4.10.1', '!=', True),
-    ('v4.10', 'v4.10.1', '>=', False),
-    ('v4.10', 'v4.10.1', '>', False),
-
-    ('v4.10', 'master', '<', None),
-    ('v4.10', 'master', '<=', None),
-    ('v4.10', 'master', '==', None),
-    ('v4.10', 'master', '!=', None),
-    ('v4.10', 'master', '>=', None),
-    ('v4.10', 'master', '>', None),
-
-    # Comparison to a commit is not possible
-    ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '<', None),
-    ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '<=', None),
-    ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '==', None),
-    ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '!=', None),
-    ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '>=', None),
-    ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
-
-    # Caution
-    ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '<', None),
-    ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '<=', None),
-    ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '==', False),
-    ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '!=', True),
-    ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>=', None),
-    ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
-])
+@mark.parametrize(
+    ('version_a', 'version_b', 'operation', 'expected'),
+    [
+        ('master', 'master', '<', False),
+        ('master', 'master', '<=', True),
+        ('master', 'master', '==', True),
+        ('master', 'master', '!=', False),
+        ('master', 'master', '>=', True),
+        ('master', 'master', '>', False),
+        ('master', 'main', '<', None),
+        ('master', 'main', '<=', None),
+        ('master', 'main', '==', False),
+        ('master', 'main', '!=', True),
+        ('master', 'main', '>=', None),
+        ('master', 'main', '>', None),
+        ('v4.10', 'v4.10', '<', False),
+        ('v4.10', 'v4.10', '<=', True),
+        ('v4.10', 'v4.10', '==', True),
+        ('v4.10', 'v4.10', '!=', False),
+        ('v4.10', 'v4.10', '>=', True),
+        ('v4.10', 'v4.10', '>', False),
+        ('v4.10', 'v4.11', '<', True),
+        ('v4.10', 'v4.11', '<=', True),
+        ('v4.10', 'v4.11', '==', False),
+        ('v4.10', 'v4.11', '!=', True),
+        ('v4.10', 'v4.11', '>=', False),
+        ('v4.10', 'v4.11', '>', False),
+        ('v4.10', 'v4.10.1', '<', True),
+        ('v4.10', 'v4.10.1', '<=', True),
+        ('v4.10', 'v4.10.1', '==', False),
+        ('v4.10', 'v4.10.1', '!=', True),
+        ('v4.10', 'v4.10.1', '>=', False),
+        ('v4.10', 'v4.10.1', '>', False),
+        ('v4.10', 'master', '<', None),
+        ('v4.10', 'master', '<=', None),
+        ('v4.10', 'master', '==', None),
+        ('v4.10', 'master', '!=', None),
+        ('v4.10', 'master', '>=', None),
+        ('v4.10', 'master', '>', None),
+        # Comparison to a commit is not possible
+        ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '<', None),
+        ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '<=', None),
+        ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '==', None),
+        ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '!=', None),
+        ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '>=', None),
+        ('3.1', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
+        # Caution
+        ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '<', None),
+        ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '<=', None),
+        ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '==', False),
+        ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '!=', True),
+        ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>=', None),
+        ('master', 'db37a6c036b348439fee5a58cef57287948e32fb', '>', None),
+    ],
+)
 def test_compare_versions(version_a, version_b, operation, expected) -> None:
     """Compares semver, branch names, and commit hashes with the given operator."""
     assert comparison.compare_versions(version_a, version_b, operation) == expected

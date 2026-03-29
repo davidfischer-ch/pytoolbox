@@ -33,6 +33,7 @@ def test_run_once() -> None:
 
 def test_deprecated_emits_warning() -> None:
     """Calling a deprecated function emits a DeprecationWarning with name and guidelines."""
+
     @decorators.deprecated('Use new_func instead')
     def old_func(x):
         return x + 1
@@ -49,6 +50,7 @@ def test_deprecated_emits_warning() -> None:
 
 def test_deprecated_without_guidelines() -> None:
     """Calling a deprecated function without guidelines omits the colon-separated suffix."""
+
     @decorators.deprecated()
     def old_func():
         return 42
@@ -62,6 +64,7 @@ def test_deprecated_without_guidelines() -> None:
 
 def test_root_required_raises_when_not_root() -> None:
     """Non-root user is blocked with RuntimeError."""
+
     @decorators.root_required()
     def privileged():
         return 'done'
@@ -73,6 +76,7 @@ def test_root_required_raises_when_not_root() -> None:
 
 def test_root_required_allows_root() -> None:
     """Root user (euid=0) can execute the decorated function."""
+
     @decorators.root_required()
     def privileged():
         return 'done'
@@ -83,6 +87,7 @@ def test_root_required_allows_root() -> None:
 
 def test_root_required_custom_message() -> None:
     """Custom error message is used when non-root user is blocked."""
+
     @decorators.root_required(error_message='Need sudo')
     def privileged():
         return 'done'
@@ -94,6 +99,7 @@ def test_root_required_custom_message() -> None:
 
 def test_hybridmethod_class_level_access() -> None:
     """Hybridmethod called on the class receives the class."""
+
     class MyClass:
         value = 'class_val'
 
@@ -106,6 +112,7 @@ def test_hybridmethod_class_level_access() -> None:
 
 def test_hybridmethod_instance_level_access() -> None:
     """Hybridmethod called on an instance receives the instance."""
+
     class MyClass:
         value = 'class_val'
 
@@ -121,6 +128,7 @@ def test_hybridmethod_instance_level_access() -> None:
 
 def test_hybridmethod_has_func_and_self() -> None:
     """The bound hybrid callable exposes __func__ and __self__."""
+
     class MyClass:
         @decorators.hybridmethod
         def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
@@ -133,6 +141,7 @@ def test_hybridmethod_has_func_and_self() -> None:
 
 def test_hybridmethod_instance_self() -> None:
     """__self__ on an instance-bound hybrid is the instance."""
+
     class MyClass:
         @decorators.hybridmethod
         def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
@@ -145,6 +154,7 @@ def test_hybridmethod_instance_self() -> None:
 
 def test_hybridmethod_with_args() -> None:
     """Hybridmethod passes extra positional and keyword args."""
+
     class MyClass:
         @decorators.hybridmethod
         def add(receiver, a, b=0):  # pylint:disable=no-self-argument  # noqa: N805
@@ -155,6 +165,7 @@ def test_hybridmethod_with_args() -> None:
 
 def test_confirm_it_proceeds() -> None:
     """When user confirms, the decorated function executes."""
+
     @decorators.confirm_it('Are you sure?')
     def do_thing():
         return 'done'
@@ -162,13 +173,14 @@ def test_confirm_it_proceeds() -> None:
     with patch.object(
         decorators.console,
         'confirm',
-        return_value=True
+        return_value=True,
     ):
         assert do_thing() == 'done'
 
 
 def test_confirm_it_aborts(capsys) -> None:
     """When user declines, abort message is printed."""
+
     @decorators.confirm_it('Are you sure?', abort_message='Nope')
     def do_thing():
         return 'done'
@@ -176,7 +188,7 @@ def test_confirm_it_aborts(capsys) -> None:
     with patch.object(
         decorators.console,
         'confirm',
-        return_value=False
+        return_value=False,
     ):
         result = do_thing()
         assert result is None
@@ -185,6 +197,7 @@ def test_confirm_it_aborts(capsys) -> None:
 
 def test_confirm_it_default_abort_message(capsys) -> None:
     """Default abort message is printed when user declines."""
+
     @decorators.confirm_it('Sure?')
     def do_thing():
         return 'done'
@@ -192,7 +205,7 @@ def test_confirm_it_default_abort_message(capsys) -> None:
     with patch.object(
         decorators.console,
         'confirm',
-        return_value=False
+        return_value=False,
     ):
         do_thing()
         assert 'Operation aborted' in capsys.readouterr().out
@@ -200,15 +213,16 @@ def test_confirm_it_default_abort_message(capsys) -> None:
 
 def test_disable_iptables_stop_and_start() -> None:
     """When iptables stop succeeds, it is re-started after."""
+
     @decorators.disable_iptables
     def do_thing():
         return 'result'
 
     with (
         patch(
-            'pytoolbox.subprocess.cmd'
+            'pytoolbox.subprocess.cmd',
         ) as mock_cmd,
-        patch('builtins.print')
+        patch('builtins.print'),
     ):
         result = do_thing()
         assert result == 'result'
@@ -217,6 +231,7 @@ def test_disable_iptables_stop_and_start() -> None:
 
 def test_disable_iptables_not_available() -> None:
     """When iptables stop fails, start is not called."""
+
     @decorators.disable_iptables
     def do_thing():
         return 'result'
@@ -224,9 +239,9 @@ def test_disable_iptables_not_available() -> None:
     with (
         patch(
             'pytoolbox.subprocess.cmd',
-            side_effect=RuntimeError('no iptables')
+            side_effect=RuntimeError('no iptables'),
         ) as mock_cmd,
-        patch('builtins.print')
+        patch('builtins.print'),
     ):
         result = do_thing()
         assert result == 'result'
@@ -254,6 +269,7 @@ def test_cached_property_caches_on_instance() -> None:
 
 def test_cached_property_class_access_returns_descriptor() -> None:
     """Accessing via the class returns the descriptor itself."""
+
     class MyClass:
         @decorators.cached_property
         def prop(self):

@@ -1,12 +1,13 @@
 """
 Helpers for the :mod:`PIL` (Pillow) image library.
 """
+
 # pylint:disable=invalid-name
 from __future__ import annotations
 
-from typing import Final
 import collections.abc
 import functools
+from typing import Final
 
 from pytoolbox import module
 
@@ -24,7 +25,7 @@ TRANSPOSE_SEQUENCES: Final[dict[int | None, list[int]]] = {
     5: [Image.FLIP_LEFT_RIGHT, Image.ROTATE_90],
     6: [Image.ROTATE_270],
     7: [Image.FLIP_TOP_BOTTOM, Image.ROTATE_90],
-    8: [Image.ROTATE_90]
+    8: [Image.ROTATE_90],
 }
 
 
@@ -32,7 +33,7 @@ def get_orientation(
     image: Image.Image,
     orientation_tag: int = 0x0112,
     no_exif_default: int | None = None,
-    no_key_default: int | None = None
+    no_key_default: int | None = None,
 ) -> int | None:
     """Return the EXIF orientation value of *image*."""
     exif = getattr(image, '_getexif', lambda: None)()
@@ -45,8 +46,10 @@ def get_orientation(
 def apply_orientation(  # pylint:disable=dangerous-default-value
     image: Image.Image,
     get_orientation: collections.abc.Callable[  # pylint:disable=redefined-outer-name
-        ..., int | None] = get_orientation,
-    sequences: dict[int | None, list] = TRANSPOSE_SEQUENCES
+        ...,
+        int | None,
+    ] = get_orientation,
+    sequences: dict[int | None, list] = TRANSPOSE_SEQUENCES,
 ) -> Image.Image:
     """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
     orientation = get_orientation(image)
@@ -68,7 +71,7 @@ def remove_metadata(
     image: Image.Image,
     keys: tuple[str, ...] = ('exif',),
     *,
-    inplace: bool = False
+    inplace: bool = False,
 ) -> Image.Image:
     """Remove metadata *keys* from *image* info dict."""
     image = image if inplace else image.copy()
@@ -80,7 +83,7 @@ def remove_metadata(
 
 def remove_transparency(
     image: Image.Image,
-    background: tuple[int, int, int] = (255, 255, 255)
+    background: tuple[int, int, int] = (255, 255, 255),
 ) -> Image.Image:
     """
     Return a RGB image with an alpha mask applied to picture + background.

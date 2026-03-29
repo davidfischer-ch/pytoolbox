@@ -1,12 +1,13 @@
 """
 Encoding progress tracking and statistics for FFmpeg.
 """
+
 from __future__ import annotations
 
-from typing import Final
 import datetime
 import re
 import time
+from typing import Final
 
 from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
 
@@ -21,12 +22,13 @@ ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
     r'q=\s*(?P<qscale>\S+)\s+\S*.*'
     r'size=\s*(?P<size>\S+)\s+'
     r'time=\s*(?P<time>\S+)\s+'
-    r'bitrate=\s*(?P<bit_rate>\S+)'
+    r'bitrate=\s*(?P<bit_rate>\S+)',
 )
 
 
 class EncodeState:  # pylint:disable=too-few-public-methods
     """Enumeration of encoding process states."""
+
     NEW = 'NEW'
     STARTED = 'STARTED'
     PROCESSING = 'PROCESSING'
@@ -52,7 +54,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         in_options: list[str],
         out_options: list[str],
         in_base_index: int = 0,
-        out_base_index: int = 0
+        out_base_index: int = 0,
     ) -> None:
         self.inputs = inputs
         self.outputs = outputs
@@ -78,8 +80,11 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         # Retrieve input media duration and size, handle sub-clipping
         duration = self.ffprobe_class().get_media_duration(self.input, as_delta=True)
         duration = duration or self.default_in_duration
-        self.input.duration, self.input.size = \
-            self._get_subclip_duration_and_size(duration, self.input.size, self.out_options)
+        self.input.duration, self.input.size = self._get_subclip_duration_and_size(
+            duration,
+            self.input.size,
+            self.out_options,
+        )
         self.output.duration = None
 
     @property
@@ -139,7 +144,9 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         self.elapsed_time = datetime.timedelta(seconds=time.time() - self.start_time)
         self.frame_rate = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
         self.output.duration = self.ffprobe_class().get_media_duration(
-            self.output.path, as_delta=True)
+            self.output.path,
+            as_delta=True,
+        )
         self.output.size = None
         self._update_ratio()
         return self
@@ -161,7 +168,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         cls,
         duration: datetime.timedelta,
         size: int,
-        out_options: list[str]
+        out_options: list[str],
     ) -> tuple[datetime.timedelta, int]:
         """Adjust duration and size if we only encode a sub-clip."""
         try:

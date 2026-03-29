@@ -1,4 +1,5 @@
 """Utilities for building Django HTTP responses."""
+
 from __future__ import annotations
 
 import urllib.parse

@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own Django REST Framework powered API views.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -65,18 +66,17 @@ class RedirectToLoginMixin:
     redirected_classes = (renderers.BrowsableAPIRenderer,)
 
     def finalize_response(
-            self,
-            request: Request,
-            response: Response,
-            *args: Any,
-            **kwargs: Any
+        self,
+        request: Request,
+        response: Response,
+        *args: Any,
+        **kwargs: Any,
     ) -> Response:
         """Redirect to login if the user is unauthenticated and using a browser."""
         response = super().finalize_response(request, response, *args, **kwargs)
         logged = request.user.is_authenticated
-        if (
-            not (logged if isinstance(logged, bool) else logged())
-            and isinstance(response.accepted_renderer, self.redirected_classes)
+        if not (logged if isinstance(logged, bool) else logged()) and isinstance(
+            response.accepted_renderer, self.redirected_classes
         ):
             response = redirect_to_login(request.path)
             response.data = {}

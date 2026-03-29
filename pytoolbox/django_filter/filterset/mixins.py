@@ -2,6 +2,7 @@
 Mix-ins for building your own `Django Filter <https://github.com/alex/django-filter>`_
 powered filters.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -26,5 +27,6 @@ class RaiseOnUnhandledFieldClassMixin:
         if not value:
             raise NotImplementedError(
                 f"Unable to find a suitable filter for field '{name}' of class {type(f)} "
-                f"with lookup type '{lookup_type}'")
+                f"with lookup type '{lookup_type}'",
+            )
         return value

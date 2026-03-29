@@ -1,13 +1,14 @@
 """
 Data classes for FFmpeg/FFprobe media, codec, format, and stream info.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
 
 from pytoolbox import comparison, filesystem, validation
-from pytoolbox.subprocess import to_args_list, CallArgsType
+from pytoolbox.subprocess import CallArgsType, to_args_list
 from pytoolbox.types import get_slots
 
 from . import utils
@@ -20,15 +21,16 @@ __all__ = [
     'AudioStream',
     'SubtitleStream',
     'VideoStream',
-    'Media'
+    'Media',
 ]
 
 
 class BaseInfo(  # pylint:disable=too-few-public-methods
     validation.CleanAttributesMixin,
-    comparison.SlotsEqualityMixin
+    comparison.SlotsEqualityMixin,
 ):
     """Base class for FFprobe info objects populated from a JSON dict."""
+
     defaults: dict[str, Any] = {}
     attr_name_template: str = '{name}'
 
@@ -45,6 +47,7 @@ class BaseInfo(  # pylint:disable=too-few-public-methods
 
 class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
     """Represent a media codec extracted from FFprobe output."""
+
     long_name: str
     name: str
     tag: str
@@ -72,6 +75,7 @@ class Codec(BaseInfo):  # pylint:disable=too-few-public-methods
 
 class Format(BaseInfo):
     """Represent a media container format extracted from FFprobe output."""
+
     bit_rate: int | None
     duration: float | None
     filename: str
@@ -95,7 +99,7 @@ class Format(BaseInfo):
         'probe_score',
         'size',
         'start_time',
-        'tags'
+        'tags',
     )
 
     @staticmethod
@@ -136,6 +140,7 @@ class Format(BaseInfo):
 
 class Stream(BaseInfo):
     """Represent a media stream extracted from FFprobe output."""
+
     avg_frame_rate: float | None
     bit_per_raw_sample: int | None
     bit_rate: int | None
@@ -162,7 +167,7 @@ class Stream(BaseInfo):
         'profile',
         'r_frame_rate',
         'time_base',
-        'tags'
+        'tags',
     )
 
     codec_class: type[Codec] = Codec
@@ -212,6 +217,7 @@ class Stream(BaseInfo):
 
 class AudioStream(Stream):
     """Represent an audio stream with sample rate and channel info."""
+
     bits_per_sample: int | None
     channel_layout: str | None
     channels: int | None
@@ -227,7 +233,7 @@ class AudioStream(Stream):
         'sample_fmt',
         'sample_rate',
         'start_pts',
-        'start_time'
+        'start_time',
     )
 
     @staticmethod
@@ -294,7 +300,7 @@ class VideoStream(Stream):
         'pix_fmt',
         'profile',
         'sample_aspect_ratio',
-        'width'
+        'width',
     )
 
     @staticmethod
@@ -332,7 +338,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     def __init__(
         self,
         path: Path | str,
-        options: CallArgsType | None = None
+        options: CallArgsType | None = None,
     ) -> None:
         self._is_pipe: bool = utils.is_pipe(path)
         self._path: Path | str = path if self._is_pipe else Path(path)
