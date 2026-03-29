@@ -2,7 +2,7 @@
 Toolbox for Python scripts.
 """
 
-__version__ = '14.10.0'
+__version__ = '14.10.1'
 
 import logging as _logging
 
