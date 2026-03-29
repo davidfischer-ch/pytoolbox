@@ -122,9 +122,7 @@ def validate_start_end(
     if start and end and start > end:
         start_label = start_name.replace('_', ' ')
         end_label = end_name.replace('_', ' ')
-        form._errors[end_name] = ErrorList(
-            [f'The {start_label} cannot be before the {end_label}.']
-        )
+        form._errors[end_name] = ErrorList([f'The {start_label} cannot be before the {end_label}.'])
 
 
 __all__ = _all.diff(globals())

@@ -26,7 +26,7 @@ __all__ = [
     'get_password_generator',
     'githash',
     'guess_algorithm',
-    'sign_rsa_approval_token'
+    'sign_rsa_approval_token',
 ]
 
 
@@ -248,10 +248,14 @@ def generate_rsa_key_pair(bits: int = 2048) -> tuple[str, str]:
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption(),
     ).decode()
-    public_pem = private_key.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    ).decode()
+    public_pem = (
+        private_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode()
+    )
     return private_pem, public_pem
 
 
