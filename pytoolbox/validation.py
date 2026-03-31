@@ -264,12 +264,12 @@ def valid_uri(
         try:
             conn.request('HEAD', url.path)
             return conn.getresponse().status != 404
-        except socket.error as ex:
+        except socket.error as exc:
             # Resource does not exist
             if (
-                isinstance(ex, socket.timeout)
-                or ex.errno is not None
-                and ex.errno in excepted_errnos
+                isinstance(exc, socket.timeout)
+                or exc.errno is not None
+                and exc.errno in excepted_errnos
             ):
                 return False
             raise  # Re-raise exception if a different error occurred

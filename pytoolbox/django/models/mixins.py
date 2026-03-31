@@ -188,9 +188,9 @@ class BetterUniquenessErrorsMixin:
         """Convert uniqueness :class:`~django.db.utils.IntegrityError` to validation errors."""
         try:
             super().save(*args, **kwargs)
-        except IntegrityError as ex:
+        except IntegrityError as exc:
             if self.unique_from_integrity_error:
-                match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', ex.args[0])
+                match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', exc.args[0])
                 if match:
                     fields = {
                         f.strip().replace('_id', '') for f in match.groupdict()['fields'].split(',')
@@ -200,12 +200,12 @@ class BetterUniquenessErrorsMixin:
                         if fields:
                             error = self.unique_error_message(type(self), fields)
                             raise ValidationError({fields[0]: error}) if len(fields) == 1 else error
-                        self._handle_hidden_duplicate_key_error(ex)
+                        self._handle_hidden_duplicate_key_error(exc)
                         return  # handler didn't raise; treat as handled
             raise
 
-    def _handle_hidden_duplicate_key_error(self, ex: IntegrityError) -> None:
-        raise ex
+    def _handle_hidden_duplicate_key_error(self, exc: IntegrityError) -> None:
+        raise exc
 
     def _perform_unique_checks(self, unique_checks: list) -> dict[str, list]:
         errors_by_field = super()._perform_unique_checks(unique_checks)
@@ -335,8 +335,8 @@ class UpdatePreconditionsMixin:
             if has_preconditions:
                 raise self.precondition_error_class()
             raise
-        except DatabaseError as ex:
-            if has_preconditions and 'did not affect' in str(ex):
+        except DatabaseError as exc:
+            if has_preconditions and 'did not affect' in str(exc):
                 raise self.precondition_error_class()
             raise
 

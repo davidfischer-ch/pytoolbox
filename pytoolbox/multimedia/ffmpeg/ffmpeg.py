@@ -103,10 +103,10 @@ class FFmpeg:
                 if self.encode_poll_delay:
                     time.sleep(self.encode_poll_delay)
             yield statistics.end(returncode)
-        except Exception as ex:
+        except Exception as exc:
             traceback = sys.exc_info()[2]
             py_subprocess.kill(process)
-            raise ex.with_traceback(traceback) if hasattr(ex, 'with_traceback') else ex
+            raise exc.with_traceback(traceback) if hasattr(exc, 'with_traceback') else exc
 
     @staticmethod
     def get_frames_md5_checksum(filename: Path) -> str | None:
@@ -165,8 +165,8 @@ class FFmpeg:
             if chunk is None or isinstance(chunk, str):
                 return chunk
             return chunk.decode(self.encoding)
-        except IOError as ex:
-            if ex.errno != errno.EAGAIN:
+        except IOError as exc:
+            if exc.errno != errno.EAGAIN:
                 raise
         return None
 

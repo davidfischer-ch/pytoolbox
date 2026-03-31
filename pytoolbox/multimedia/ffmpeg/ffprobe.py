@@ -124,9 +124,9 @@ class FFprobe:
                     ]
                 ).decode('utf-8'),
             )
-        except OSError as ex:
+        except OSError as exc:
             # Executable does not exist
-            if fail or ex.errno == errno.ENOENT:
+            if fail or exc.errno == errno.ENOENT:
                 raise
         except Exception:  # pylint:disable=broad-except
             if fail:

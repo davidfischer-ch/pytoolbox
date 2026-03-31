@@ -234,8 +234,8 @@ class DlibFaceDetector:
         """
         try:
             return self.detector(image, 1)
-        except Exception as ex:  # pylint:disable=broad-except
-            print(f'Warning: {ex}')
+        except Exception as exc:  # pylint:disable=broad-except
+            print(f'Warning: {exc}')
             # In rare cases, exceptions are thrown.
             return []
 

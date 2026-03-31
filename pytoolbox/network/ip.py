@@ -37,6 +37,6 @@ def IPSocket(socket: str) -> dict[str, str | int]:  # noqa: N802
         # address = address.translate(None, '[]')
         ip_address(address)  # Seem not IPv6 ready
         port_int = int(port)
-    except Exception as ex:
-        raise exceptions.InvalidIPSocketError(socket=socket) from ex
+    except Exception as exc:
+        raise exceptions.InvalidIPSocketError(socket=socket) from exc
     return {'ip': address, 'port': port_int}

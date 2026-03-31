@@ -68,8 +68,8 @@ class Tag:
         if type_hook := self.get_type_hook(mode='get'):
             try:
                 return self.clean(type_hook(self.key))
-            except UnicodeDecodeError as ex:
-                return ex
+            except UnicodeDecodeError as exc:
+                return exc
         return self.data_bytes
 
     @property
@@ -112,9 +112,9 @@ class Tag:
         tag_type = self.metadata.exiv2.try_get_tag_type(self.key)
         try:
             return self.type_to_python[tag_type]
-        except KeyError as ex:
+        except KeyError as exc:
             if tag_type:
-                raise KeyError(f'Unknow tag type {tag_type}') from ex
+                raise KeyError(f'Unknow tag type {tag_type}') from exc
         return bytes
 
     def clean(self, data: object) -> object:

@@ -53,10 +53,10 @@ def add_key(content: str) -> None:
         key_file.flush()
         try:
             output: bytes = subprocess.cmd(['ssh-add', key_file.name], env=os.environ)['stderr']
-        except exceptions.CalledProcessError as ex:
-            if b'Could not open' in (ex.stderr or b''):
+        except exceptions.CalledProcessError as exc:
+            if b'Could not open' in (exc.stderr or b''):
                 raise exceptions.SSHAgentConnectionError()
-            if b'Error loading key' in (ex.stderr or b''):
+            if b'Error loading key' in (exc.stderr or b''):
                 raise exceptions.SSHAgentLoadingKeyError()
             raise
         log.debug(output.decode('utf-8'))

@@ -182,8 +182,8 @@ class ValidationErrorsMixin:
         """Catch :class:`~django.core.exceptions.ValidationError` and re-display the form."""
         try:
             return super().form_valid(form)
-        except ValidationError as ex:
-            for field, error in exceptions.iter_validation_errors(ex):
+        except ValidationError as exc:
+            for field, error in exceptions.iter_validation_errors(exc):
                 if field:
                     form.add_error(field, error)
                 else:

@@ -217,12 +217,12 @@ def add_environment(
 
     try:
         return juju_do('bootstrap', environment)
-    except RuntimeError as ex:
-        if 'configuration error' in str(ex):
+    except RuntimeError as exc:
+        if 'configuration error' in str(exc):
             del environments_dict['environments'][environment]
             with open(environments, 'w', encoding='utf-8') as f:
                 yaml.dump(environments_dict, f)
-            raise ValueError(f'Cannot add environment {environment} ({ex}).') from ex
+            raise ValueError(f'Cannot add environment {environment} ({exc}).') from exc
         raise
 
 
@@ -239,8 +239,8 @@ def get_environment(
     environment = environments_dict['default'] if environment == 'default' else environment
     try:
         environment_dict = environments_dict['environments'][environment]
-    except KeyError as ex:
-        raise ValueError(f'No environment with name {environment}.') from ex
+    except KeyError as exc:
+        raise ValueError(f'No environment with name {environment}.') from exc
 
     if get_status:
         environment_dict['status'] = Environment(name=environment).status(timeout=status_timeout)
@@ -396,8 +396,8 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
             self.name = os.environ['JUJU_UNIT_NAME']
             self.private_address = socket.getfqdn(self.unit_get('private-address'))
             self.public_address = socket.getfqdn(self.unit_get('public-address'))
-        except (exceptions.CalledProcessError, OSError) as ex:
-            reason = ex
+        except (exceptions.CalledProcessError, OSError) as exc:
+            reason = exc
             self.juju_ok = False
             if default_config is not None:
                 self.load_config(default_config)
@@ -444,8 +444,8 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
             peers = self.relation_list(rel_ids[0])
             self.debug(f'us={self.name} peers={peers}')
             return len(peers) == 0 or self.name <= min(peers)
-        except Exception as ex:  # pylint:disable=broad-except
-            self.remark(f'Bug during leader detection: {repr(ex)}')
+        except Exception as exc:  # pylint:disable=broad-except
+            self.remark(f'Bug during leader detection: {repr(exc)}')
             return True
 
     # Maps calls to charm helpers functions and replace them if called in standalone ---------------
@@ -641,9 +641,9 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
             self.hook(f'Execute {type(self).__name__} hook {hook_name}')
             getattr(self, f'hook_{hook_name.replace("-", "_")}')()
             self.save_local_config()
-        except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as ex:
+        except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as exc:
             self.log('Exception caught:')
-            self.log(ex.output)
+            self.log(exc.output)
             raise
         finally:
             self.hook(f'Exiting {type(self).__name__} hook {hook_name}')
@@ -747,9 +747,9 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
             self.sync_tools(all_tools=True)
         try:
             result = juju_do('bootstrap', self.name)
-        except RuntimeError as ex:
+        except RuntimeError as exc:
             result = None
-            if 'already' not in str(ex):
+            if 'already' not in str(exc):
                 raise
 
         if not wait_started:
@@ -834,11 +834,11 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
             return default
         try:
             return status_dict['services'][service]  # pylint: disable=unsubscriptable-object
-        except KeyError as ex:
+        except KeyError as exc:
             if fail:
                 raise RuntimeError(
                     f'Service {service} not found in environment {self.name}.',
-                ) from ex
+                ) from exc
         return default
 
     def expose_service(self, service: str, fail: bool = True) -> Any:
@@ -1076,11 +1076,11 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         if service_dict is not None:
             try:
                 return service_dict['units'][name]
-            except KeyError as ex:
+            except KeyError as exc:
                 if fail:
                     raise RuntimeError(
                         f'No unit with name {name} on environment {self.name}.',
-                    ) from ex
+                    ) from exc
         return default
 
     def get_unit_public_address(self, service: str, number: int) -> str:
@@ -1233,9 +1233,9 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         result = None
         try:
             result = juju_do('add-relation', self.name, options=[member1, member2])
-        except RuntimeError as ex:
+        except RuntimeError as exc:
             # TODO get status of service before adding relation may be cleaner.
-            if 'already exists' not in str(ex):
+            if 'already exists' not in str(exc):
                 raise
         return result
 
@@ -1255,9 +1255,9 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         member2 = service2 if relation2 is None else f'{service2}:{relation2}'
         try:
             result = juju_do('remove-relation', self.name, options=[member1, member2])
-        except RuntimeError as ex:
+        except RuntimeError as exc:
             # TODO get status of service before removing relation may be cleaner.
-            if 'exists' not in str(ex):
+            if 'exists' not in str(exc):
                 raise
         return result
 

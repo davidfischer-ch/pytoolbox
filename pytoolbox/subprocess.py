@@ -66,11 +66,11 @@ def kill(process: Popen) -> None:
     """Kill a process, ignoring errors if it has already exited."""
     try:
         process.kill()
-    except OSError as ex:
-        if ex.errno != errno.ESRCH:
+    except OSError as exc:
+        if exc.errno != errno.ESRCH:
             raise
-    except Exception as ex:  # pylint:disable=broad-except
-        if not NoSuchProcess or not isinstance(ex, NoSuchProcess):
+    except Exception as exc:  # pylint:disable=broad-except
+        if not NoSuchProcess or not isinstance(exc, NoSuchProcess):
             raise
 
 
@@ -112,8 +112,8 @@ def read_async(fd: IO) -> str:  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
-    except IOError as ex:
-        if ex.errno == errno.EAGAIN:
+    except IOError as exc:
+        if exc.errno == errno.EAGAIN:
             return ''
         raise
 
@@ -292,9 +292,9 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
                 stderr=None if cli_output else subprocess.PIPE,
                 **kwargs,
             )
-        except OSError as ex:
+        except OSError as exc:
             # Unable to execute the program (e.g. does not exist)
-            log.exception(ex)
+            log.exception(exc)
             if fail:
                 raise
             return {
@@ -302,7 +302,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
                 'returncode': 2,
                 'stdout': None,
                 'stderr': None,
-                'exception': ex,
+                'exception': exc,
             }
 
         # Write to stdin (answer to questions, ...)
@@ -323,10 +323,10 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
                 try:
                     process.terminate()
                     thread.join()
-                except OSError as ex:
+                except OSError as exc:
                     # Manage race condition with process that may terminate just after the call to
                     # thread.is_alive() !
-                    if ex.errno != errno.ESRCH:
+                    if exc.errno != errno.ESRCH:
                         raise
             stdout, stderr = data['stdout'], data['stderr']
         else:

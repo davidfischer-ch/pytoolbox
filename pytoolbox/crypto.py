@@ -212,10 +212,10 @@ def guess_algorithm(
     else:
         try:
             resolved = [hashlib.new(a) for a in hashlib.algorithms_available if a.lower() == a]
-        except AttributeError as ex:
+        except AttributeError as exc:
             raise NotImplementedError(
                 "Your version of hashlib doesn't implement algorithms_available",
-            ) from ex
+            ) from exc
     digest_size_to_algorithms: collections.defaultdict[float, set[hashlib._Hash]] = (
         collections.defaultdict(set)
     )

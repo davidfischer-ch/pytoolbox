@@ -159,8 +159,8 @@ def group_replace(
             try:
                 if (start := match.start(group)) < 0:
                     raise IndexError()
-            except IndexError as ex:
-                raise exceptions.RegexMatchGroupNotFoundError(group=group) from ex
+            except IndexError as exc:
+                raise exceptions.RegexMatchGroupNotFoundError(group=group) from exc
             string = string[: start + offset] + value + string[match.end(group) + offset :]
     return string
 

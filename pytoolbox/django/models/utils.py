@@ -57,8 +57,8 @@ def try_get_field(instance: models.Model, field_name: str) -> object:
     """Return a field value or ``None`` if the related object does not exist."""
     try:
         return getattr(instance, field_name)
-    except Exception as ex:
-        if type(ex).__name__ != 'RelatedObjectDoesNotExist':
+    except Exception as exc:
+        if type(exc).__name__ != 'RelatedObjectDoesNotExist':
             raise
         return None
 

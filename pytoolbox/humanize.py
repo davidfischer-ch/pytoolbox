@@ -447,8 +447,8 @@ def _parse_natural_number(
         unit = data['unit']
         try:
             index = units.index(unit)
-        except ValueError as ex:
-            raise ValueError(f'No match found {value!r} {unit!r} in {units}.') from ex
+        except ValueError as exc:
+            raise ValueError(f'No match found {value!r} {unit!r} in {units}.') from exc
         return number * base**index
     raise ValueError(f"The value {value!r} doesn't match {kind} pattern.")
 

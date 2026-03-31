@@ -60,8 +60,8 @@ def load_object_meta(s3: Any, bucket_name: str, path: str, *, fail: bool = True)
     """Return the HEAD metadata of an object, or ``None`` if not found."""
     try:
         return s3.head_object(Bucket=bucket_name, Key=path)
-    except ClientError as ex:
-        if 'Not Found' in str(ex) and not fail:
+    except ClientError as exc:
+        if 'Not Found' in str(exc) and not fail:
             return None
         raise
 
@@ -84,8 +84,8 @@ def read_object(
             s3.download_fileobj(bucket_name, path, file)
             file.seek(0)
             return file
-    except ClientError as ex:
-        if 'Not Found' in str(ex) and not fail:
+    except ClientError as exc:
+        if 'Not Found' in str(exc) and not fail:
             return None
         raise
 

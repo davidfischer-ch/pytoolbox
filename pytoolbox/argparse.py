@@ -137,8 +137,8 @@ class Range:  # pylint:disable=too-few-public-methods
     def __call__(self, value: Any) -> Any:
         try:
             value = self.type(value)
-        except Exception as ex:
-            raise argparse.ArgumentTypeError(f'Must be of type {self.type.__name__}') from ex
+        except Exception as exc:
+            raise argparse.ArgumentTypeError(f'Must be of type {self.type.__name__}') from exc
         if not (self.min <= value <= self.max):  # pylint:disable=superfluous-parens
             raise argparse.ArgumentTypeError(f'Must be in range [{self.min}, {self.max}]')
         return value
@@ -249,17 +249,17 @@ class ActionArgumentParser(ArgumentParser):
         parsed_args = self.parse_args(args)  # type: ignore[arg-type]
         try:
             parsed_args.func(parsed_args)
-        except Exception as ex:  # pylint:disable=broad-exception-caught
-            self.handle_exception(ex)
+        except Exception as exc:  # pylint:disable=broad-exception-caught
+            self.handle_exception(exc)
             raise  # If not handled by the exception handler
 
-    def handle_exception(self, ex: Exception) -> None:
+    def handle_exception(self, exc: Exception) -> None:
         """Handle known exceptions by logging and exiting."""
-        if isinstance(ex, exceptions.CalledProcessError):
-            log.error(repr(ex))
+        if isinstance(exc, exceptions.CalledProcessError):
+            log.error(repr(exc))
             sys.exit(1)
-        if isinstance(ex, exceptions.MessageMixin):
-            log.error(ex)
+        if isinstance(exc, exceptions.MessageMixin):
+            log.error(exc)
             sys.exit(1)
 
 

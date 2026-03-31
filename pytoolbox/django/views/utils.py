@@ -21,5 +21,5 @@ def get_model_or_404(name: str, *models: type[db_models.Model]) -> type[db_model
     """
     try:
         return next(m for m in models if m._meta.model_name == name)
-    except StopIteration as ex:
-        raise Http404() from ex
+    except StopIteration as exc:
+        raise Http404() from exc

@@ -198,7 +198,7 @@ load-plugins = [
 ]
 
 [tool.pylint.basic]
-good-names          = ['_', 'df', 'ex', 'f', 'i', 'j', 'k', 'Run', 's3', 'tz', 'x', 'y', 'z']
+good-names          = ['_', 'df', 'f', 'i', 'j', 'k', 'Run', 's3', 'tz', 'x', 'y', 'z']
 bad-names           = ['bar', 'baz', 'foo', 'tata', 'toto', 'tutu']
 function-rgx        = '([a-z_][a-z0-9_]{2,40}$|test_[a-z_][a-z0-9_]{2,60}$)'
 variable-rgx        = '[a-z_][a-z0-9_]{2,30}$'

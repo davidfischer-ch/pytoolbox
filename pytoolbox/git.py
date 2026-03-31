@@ -70,10 +70,10 @@ def create_tag(directory: Path, name: str) -> None:
     """
     try:
         subprocess.cmd(['git', 'tag', name], cwd=directory)
-    except exceptions.CalledProcessError as ex:
+    except exceptions.CalledProcessError as exc:
         if name in get_tags(directory):
             # Parsing output is not robust since it can be in French, English, ...
-            raise exceptions.DuplicateGitTagError(tag=name) from ex
+            raise exceptions.DuplicateGitTagError(tag=name) from exc
         raise
 
 

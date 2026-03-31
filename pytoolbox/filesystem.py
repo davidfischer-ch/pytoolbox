@@ -299,9 +299,9 @@ def file_mime(path: Path, *, mime: bool = True) -> str | None:
     """
     try:
         import magic
-    except ImportError as ex:
+    except ImportError as exc:
         warnings.warn(
-            f'file_mime() requires python-magic / libmagic: {ex}',
+            f'file_mime() requires python-magic / libmagic: {exc}',
             ImportWarning,
             stacklevel=2,
         )
@@ -506,9 +506,9 @@ def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
     try:
         os.makedirs(path, mode=mode)
         return True
-    except OSError as ex:
+    except OSError as exc:
         # Directory exists
-        if ex.errno == errno.EEXIST and path.is_dir():
+        if exc.errno == errno.EEXIST and path.is_dir():
             return False
         raise  # Re-raise exception if a different error occurred
 
@@ -551,19 +551,19 @@ def remove(path: Path | str, *, recursive: bool = False) -> bool:
         try:
             os.remove(path)
             return True
-        except Exception as ex:
+        except Exception as exc:
             # Is a directory and recursion is allowed
             if recursive and (
-                isinstance(ex, OSError)
-                and ex.errno == errno.EISDIR  # pylint:disable=no-member
-                or isinstance(ex, PermissionError)
+                isinstance(exc, OSError)
+                and exc.errno == errno.EISDIR  # pylint:disable=no-member
+                or isinstance(exc, PermissionError)
             ):
                 shutil.rmtree(path)
                 return True
             raise  # Re-raise exception if a different error occurred
-    except OSError as ex:
+    except OSError as exc:
         # File does not exist
-        if ex.errno == errno.ENOENT:
+        if exc.errno == errno.ENOENT:
             return False
         raise  # Re-raise exception if a different error occurred
 
