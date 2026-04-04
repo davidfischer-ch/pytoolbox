@@ -2,6 +2,22 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.10.2 (2026-04-04)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.1...14.10.2
+
+### Minor compatibility breaks
+
+* Drop Django < 6 support — `django` optional dependency now requires `django>=6`; not bumped to
+  v14.11.0 because the `save()` signature changes are required by Django 6 itself
+
+### Fix and enhancements
+
+* Module `django.models.mixins`: Update all `save()` overrides to keyword-only signatures for Django 6 compatibility; add `@override` decorators
+* Module `django.models.mixins`: Fix `UpdatePreconditionsMixin._do_update` for Django 6.0+ `returning_fields` parameter
+* Add `typing_extensions` as dependency for Python < 3.12 (provides `override`)
+* Move pylint disables from global config to file level; add missing docstrings; rename `ex` → `exc` throughout
+
 ## v14.10.1 (2026-03-29)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.0...14.10.1
