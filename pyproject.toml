@@ -65,7 +65,7 @@ dependencies = [
 [project.optional-dependencies]
 atlassian = ['jira']
 aws = ['boto3']
-django = ['django']
+django = ['django>=6']
 django_filter = ['django-filter']
 django_formtools = ['django-formtools']
 flask = ['flask']
