@@ -85,7 +85,7 @@ python-dateutil==2.9.0.post0
 python-magic==0.4.27
 -e git+https://github.com/davidfischer-ch/pytoolbox.git@5464e4ef41ca971cf506c51c8d74f99cbf03fd22#egg=pytoolbox
 pytz==2026.1.post1
-requests==2.32.5
+requests==2.33.0
 requests-file==3.0.1
 requests-oauthlib==2.0.0
 requests-toolbelt==1.0.0
