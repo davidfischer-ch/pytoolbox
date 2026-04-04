@@ -138,7 +138,7 @@ def test_always_update_fields_mixin_no_update_fields() -> None:
 
     obj = TestObj()
     obj.save()
-    assert 'update_fields' not in saved_kwargs
+    assert saved_kwargs['update_fields'] is None
 
 
 def test_always_update_fields_mixin_force_update() -> None:
@@ -286,9 +286,9 @@ def test_auto_remove_pk_changed_pk_clears_args() -> None:
         force_insert=True,
         force_update=False,
     )
-    assert 'force_insert' not in saved_kwargs
-    assert 'force_update' not in saved_kwargs
-    assert 'update_fields' not in saved_kwargs
+    assert saved_kwargs['force_insert'] is False
+    assert saved_kwargs['force_update'] is False
+    assert saved_kwargs['update_fields'] is None
 
 
 def test_auto_remove_pk_updates_previous_pk_after_save() -> None:
@@ -304,8 +304,8 @@ def test_auto_remove_pk_no_update_fields() -> None:
     """Without update_fields the mixin does nothing special."""
     obj, saved_kwargs = _make_auto_remove_pk_obj(pk_value=1)
     obj.save()
-    # update_fields not in kwargs so the branch is skipped
-    assert 'update_fields' not in saved_kwargs
+    # update_fields=None so the branch is skipped
+    assert saved_kwargs['update_fields'] is None
 
 
 # ---------------------------------------------------------------------------
@@ -355,7 +355,7 @@ def test_auto_update_fields_skips_adding() -> None:
     obj, saved_kwargs = _make_auto_update_obj(adding=True)
     obj.name = 'new value'
     obj.save()
-    assert 'update_fields' not in saved_kwargs
+    assert saved_kwargs['update_fields'] is None
 
 
 def test_auto_update_fields_default_force_update() -> None:
@@ -370,7 +370,7 @@ def test_auto_update_fields_force_insert_skips() -> None:
     obj, saved_kwargs = _make_auto_update_obj(adding=False)
     obj.name = 'changed'
     obj.save(force_insert=True)
-    assert 'update_fields' not in saved_kwargs
+    assert saved_kwargs['update_fields'] is None
 
 
 # ---------------------------------------------------------------------------

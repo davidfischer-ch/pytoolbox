@@ -36,8 +36,7 @@ else:
     from typing_extensions import override
 
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError
-from django.db import models as dj_models
+from django.db import DatabaseError, models
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 from django.utils.functional import cached_property
@@ -50,7 +49,7 @@ from pytoolbox.django.core import exceptions
 from . import utils
 
 try:
-    _ModelNotUpdated: type[Exception] = dj_models.Model.NotUpdated
+    _ModelNotUpdated: type[Exception] = models.Model.NotUpdated
 except AttributeError:
 
     class _ModelNotUpdated(Exception):  # type: ignore[no-redef]
@@ -58,7 +57,6 @@ except AttributeError:
 
 
 if TYPE_CHECKING:
-    from django.db import models
     from django.db.models import QuerySet
     from django.db.models import options as meta_module
 
@@ -71,24 +69,48 @@ class AlwaysUpdateFieldsMixin:
     ``self.save()``. Makes the usage of ``self.save(update_fields=...)`` cleaner.
     """
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Add ``always_update_fields`` to ``update_fields`` before saving."""
-        update_fields = kwargs.get('update_fields')
-        if kwargs.get('force_update') or update_fields:
+        if force_update or update_fields:
             update_fields = set(update_fields or [])
             update_fields.update(self.always_update_fields)
-            kwargs['update_fields'] = update_fields
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class AutoForceInsertMixin:
     """Automatically set ``force_insert`` based on the instance's adding state."""
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool | None = None,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Set ``force_insert`` from ``_state.adding`` when not explicitly given."""
-        if kwargs.get('force_insert') is None:
-            kwargs['force_insert'] = self._state.adding
-        super().save(*args, **kwargs)
+        if force_insert is None:
+            force_insert = self._state.adding
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class AutoRemovePKFromUpdateFieldsMixin:
@@ -107,17 +129,30 @@ class AutoRemovePKFromUpdateFieldsMixin:
         super().__init__(*args, **kwargs)
         self.previous_pk = self.pk
 
-    def save(self, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Remove unchanged primary key from ``update_fields`` to avoid Django errors."""
-        update_fields = kwargs.get('update_fields')
         if update_fields and self._meta.pk.attname in update_fields:
             if self.pk == self.previous_pk:
-                kwargs['update_fields'] = {f for f in update_fields if f != self._meta.pk.attname}
+                update_fields = {f for f in update_fields if f != self._meta.pk.attname}
             else:
                 # This is probably the model duplication pattern
-                for argument in 'force_insert', 'force_update', 'update_fields':
-                    kwargs.pop(argument, None)
-        super().save(**kwargs)
+                force_insert = False
+                force_update = False
+                update_fields = None
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
         self.previous_pk = self.pk
 
 
@@ -155,14 +190,27 @@ class AutoUpdateFieldsMixin:
             self._setted_fields.add(name)
         return super().__setattr__(name, value)
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool | None = None,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Populate ``update_fields`` from tracked field assignments."""
-        if not self._state.adding and not kwargs.get('force_insert'):
-            if kwargs.get('force_update') is None:
-                kwargs['force_update'] = self.default_force_update
-            if kwargs.get('update_fields') is None:
-                kwargs['update_fields'] = set(self._setted_fields)
-        super().save(*args, **kwargs)
+        if not self._state.adding and not force_insert:
+            if force_update is None:
+                force_update = self.default_force_update
+            if update_fields is None:
+                update_fields = set(self._setted_fields)
+        super().save(
+            force_insert=force_insert,
+            force_update=bool(force_update),
+            using=using,
+            update_fields=update_fields,
+        )
         self._setted_fields = set()
 
 
@@ -190,10 +238,23 @@ class BetterUniquenessErrorsMixin:
     unique_from_integrity_error = True
     unique_together_hide_fields = ()
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Convert uniqueness :class:`~django.db.utils.IntegrityError` to validation errors."""
         try:
-            super().save(*args, **kwargs)
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
         except IntegrityError as exc:
             if self.unique_from_integrity_error:
                 match = re.search(r'duplicate key[^\)]+\((?P<fields>[^\)]+)\)', exc.args[0])
@@ -213,6 +274,7 @@ class BetterUniquenessErrorsMixin:
     def _handle_hidden_duplicate_key_error(self, exc: IntegrityError) -> None:
         raise exc
 
+    @override
     def _perform_unique_checks(self, unique_checks: list) -> dict[str, list]:
         errors_by_field = super()._perform_unique_checks(unique_checks)
         hidden_fields = set(self.unique_together_hide_fields)
@@ -241,12 +303,25 @@ class CallFieldsPreSaveMixin:
     For more information see: https://code.djangoproject.com/ticket/25363
     """
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Call each non-PK field's :meth:`pre_save` before saving."""
         non_pk_fields = (f for f in self._meta.local_concrete_fields if not f.primary_key)
         for field in non_pk_fields:
             field.pre_save(self, self._state.adding)
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class PublicMetaMixin:
@@ -288,7 +363,15 @@ class SaveInstanceFilesMixin:
     fields this ensure that the upload_path method will get a valid instance id / private key.
     """
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Save the instance before file fields so ``upload_to`` gets a valid PK."""
         saved_fields = {}
         if self.pk is None:
@@ -296,11 +379,21 @@ class SaveInstanceFilesMixin:
                 if isinstance(field, FileField):
                     saved_fields[field.name] = getattr(self, field.name)
                     setattr(self, field.name, None)
-            super().save(*args, **kwargs)
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
             for name, value in saved_fields.items():
                 setattr(self, name, value)
-            kwargs['force_insert'] = False  # Do not force because we already saved the instance
-        super().save(*args, **kwargs)
+            force_insert = False  # Do not force because we already saved the instance
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class UpdatePreconditionsMixin:
@@ -332,11 +425,25 @@ class UpdatePreconditionsMixin:
         self._preconditions = kwargs.pop('pre_excludes', {}), kwargs.pop('pre_filters', {})
         return args, kwargs, any(self._preconditions)
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+        **extra_kwargs: object,
+    ) -> None:
         """Save with precondition guards, raising on failed preconditions."""
-        args, kwargs, has_preconditions = self.pop_preconditions(*args, **kwargs)
+        _, _, has_preconditions = self.pop_preconditions(**extra_kwargs)
         try:
-            super().save(*args, **kwargs)
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
         except _ModelNotUpdated:
             if has_preconditions:
                 raise self.precondition_error_class()
@@ -381,11 +488,24 @@ class StateTransitionEventsMixin:
             kwargs=kwargs,
         )
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+    ) -> None:
         """Save and fire post-state-transition signal if state was updated."""
-        super().save(*args, **kwargs)
-        if 'state' in kwargs.get('update_fields', ['state']):
-            self.on_post_state_transition(args, kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
+        if 'state' in (update_fields or ['state']):
+            self.on_post_state_transition((), {'update_fields': update_fields})
             self.previous_state = self.state
 
 
@@ -445,11 +565,26 @@ class ValidateOnSaveMixin:
     validate_on_save_kwargs = {}
     """Keyword arguments forwarded to :meth:`full_clean`."""
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    @override
+    def save(
+        self,
+        *,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: object = None,
+        **extra_kwargs: object,
+    ) -> None:
         """Call :meth:`full_clean` before saving if ``validate_on_save`` is set."""
-        if kwargs.pop('validate', self.validate_on_save):
+        validate = extra_kwargs.pop('validate', None)
+        if validate if validate is not None else self.validate_on_save:
             self.full_clean(**self.validate_on_save_kwargs)
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
