@@ -1,3 +1,5 @@
+"""Tests for the collections module."""
+
 from __future__ import annotations
 
 from pytoolbox.collections import EventsTable, pygal_deque

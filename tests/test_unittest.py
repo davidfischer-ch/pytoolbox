@@ -1,3 +1,5 @@
+"""Tests for the unittest module."""
+
 from __future__ import annotations
 
 import unittest
@@ -14,7 +16,7 @@ from pytoolbox.unittest import (
 
 
 def test_asserts() -> None:
-    """asserts helper provides fluent assertion methods."""
+    """Asserts helper provides fluent assertion methods."""
     asserts.true(True)
     asserts.false(False)
     with asserts.raises(AssertionError):
@@ -63,9 +65,14 @@ def test_skip_if_missing_skipped() -> None:
 
 
 class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
+    """Test mixin class."""
+
     def test_fast_class_skip(self) -> None:
+        """Test fast class skip functionality."""
 
         class TestCaseWithTags(FilterByTagsMixin):
+            """Test case with tags."""
+
             tags = {'c'}
             fast_class_skip_enabled = True
 
@@ -83,11 +90,11 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
 
             @with_tags('m')
             def test_1(self):
-                pass
+                """Test method 1."""
 
             @with_tags(required='r')
             def test_2(self):
-                pass
+                """Test method 2."""
 
         def test(counter, skip, extra_tags=None, only_tags=None, skip_tags=None) -> None:
             skipped = False
@@ -132,11 +139,15 @@ class TestFilterByTagsMixin(FilterByTagsMixin, unittest.TestCase):
 
     @with_tags(required='should-not-run')
     def test_with_tags_decorator(self) -> None:
+        """Test with tags decorator."""
         raise RuntimeError('This test should never run.')
 
 
 class TestMissingAndSnakeCaseMixins(MissingMixin, SnakeCaseMixin, unittest.TestCase):
+    """Test mixin class."""
+
     def test_core(self) -> None:
+        """Test core functionality."""
         self.equal(10, 10)
         with self.raises(AssertionError):
             self.equal(10, 2)
@@ -147,5 +158,6 @@ class TestMissingAndSnakeCaseMixins(MissingMixin, SnakeCaseMixin, unittest.TestC
         self.false(False)
 
     def test_missing(self) -> None:
+        """Test missing functionality."""
         self.is_missing(Missing)
         self.is_not_missing(None)

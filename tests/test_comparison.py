@@ -1,3 +1,5 @@
+"""Tests for the comparison module."""
+
 # pylint:disable=too-few-public-methods
 from __future__ import annotations
 
@@ -22,8 +24,6 @@ class Point2D(comparison.SlotsEqualityMixin):
 
 class Point2Dv2(Point2D):
     """Subclass of Point2D for testing inheritance equality."""
-
-    pass
 
 
 class Point3D(comparison.SlotsEqualityMixin):

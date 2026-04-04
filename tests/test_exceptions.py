@@ -1,3 +1,5 @@
+"""Tests for the exceptions module."""
+
 from __future__ import annotations
 
 import pytest
@@ -68,7 +70,7 @@ def test_called_process_error_repr_and_str() -> None:
     )
 
     assert repr(exc) == (
-        "CalledProcessError(cmd_short=['find', '-maxdepth=2', '-type=f', '-gid=0', '(…)', "
+        "CalledProcessError(cmd_short=['find', '-maxdepth=2', '-type=f', '-gid=0', '(…)'], "
         'returncode=1)'
     )
     assert str(exc) == (

@@ -1,3 +1,5 @@
+"""Tests for the django.core.exceptions module."""
+
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError

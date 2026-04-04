@@ -1,3 +1,6 @@
+"""Tests for the rest_framework.views.mixins module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -124,12 +127,11 @@ def test_redirect_to_login_mixin_authenticated() -> None:
         """Base class providing finalize_response."""
 
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
+            """Finalize response implementation."""
             return response
 
     class FakeView(mixins.RedirectToLoginMixin, Base):
         """Fake view combining RedirectToLoginMixin with base."""
-
-        pass
 
     view = FakeView()
     request = MagicMock()
@@ -148,12 +150,11 @@ def test_redirect_to_login_mixin_unauthenticated_non_browsable() -> None:
         """Base class providing finalize_response."""
 
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
+            """Finalize response implementation."""
             return response
 
     class FakeView(mixins.RedirectToLoginMixin, Base):
         """Fake view combining RedirectToLoginMixin with base."""
-
-        pass
 
     view = FakeView()
     request = MagicMock()
@@ -175,12 +176,11 @@ def test_redirect_to_login_mixin_unauthenticated_browsable() -> None:
         """Base class providing finalize_response."""
 
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
+            """Finalize response implementation."""
             return response
 
     class FakeView(mixins.RedirectToLoginMixin, Base):
         """Fake view combining RedirectToLoginMixin with base."""
-
-        pass
 
     view = FakeView()
     request = MagicMock()

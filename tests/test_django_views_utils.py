@@ -1,3 +1,6 @@
+"""Tests for the django.views.utils module."""
+
+# pylint:disable=protected-access
 from __future__ import annotations
 
 from unittest.mock import MagicMock

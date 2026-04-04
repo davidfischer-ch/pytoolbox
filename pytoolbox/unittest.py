@@ -104,7 +104,7 @@ class AwareTearDownMixin:
 
     def awareTearDown(self, result: unittest.TestResult) -> None:  # noqa: N802
         """Handle post-test cleanup with access to the test *result*."""
-        pass  # de bleu, c'est fantastique !  # pylint:disable=unnecessary-pass
+        # de bleu, c'est fantastique !
 
     def run(self, result: unittest.TestResult | None = None) -> unittest.TestResult:
         """Execute the test and call :meth:`awareTearDown` with the result."""

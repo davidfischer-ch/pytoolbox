@@ -1,3 +1,6 @@
+"""Tests for the django.templatetags.miscellaneous module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 import datetime
@@ -94,7 +97,11 @@ def test_verbose_name() -> None:
     """Returns the model's singular verbose name."""
 
     class MyModel(models.Model):
+        """Test model class."""
+
         class Meta:
+            """Test class."""
+
             app_label = 'test'
             verbose_name = 'my model'
 
@@ -106,7 +113,11 @@ def test_verbose_name_plural() -> None:
     """Documents current behavior: uses verbose_name instead of verbose_name_plural (bug)."""
 
     class MyModel(models.Model):
+        """Test model class."""
+
         class Meta:
+            """Meta class."""
+
             app_label = 'test'
             verbose_name = 'my model'
             verbose_name_plural = 'my models'

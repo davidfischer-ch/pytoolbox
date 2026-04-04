@@ -1,3 +1,6 @@
+"""Tests for the types module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 import copy
@@ -32,7 +35,6 @@ def test_get_properties() -> None:
 
         def method(self):
             """Regular method (not a property)."""
-            pass
 
     obj = MyObj()
     props = dict(types.get_properties(obj))
@@ -68,8 +70,6 @@ def test_merge_bases_attribute_with_default() -> None:
 
     class A:
         """Class without tags attribute."""
-
-        pass
 
     class B(A):
         """Class with tags attribute."""

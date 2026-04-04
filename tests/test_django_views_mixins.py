@@ -1,4 +1,6 @@
-# pylint:disable=unused-argument
+"""Tests for the django.views.mixins module."""
+
+# pylint:disable=protected-access,unused-argument,too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -29,8 +31,6 @@ def test_add_request_to_form_kwargs() -> None:
             class MyForm(forms_mixins.RequestMixin):
                 """Form class that is a RequestMixin."""
 
-                pass
-
             return MyForm
 
     class View(mixins.AddRequestToFormKwargsMixin, Base):
@@ -49,8 +49,6 @@ def test_add_request_not_added_for_plain_form() -> None:
 
     class PlainForm:
         """Form class that does not use RequestMixin."""
-
-        pass
 
     class Base:
         """Base class providing get_form_kwargs and get_form_class."""
@@ -181,8 +179,6 @@ def test_set_initial_from_func_success() -> None:
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_func success case."""
 
-        pass
-
     view = View()
     view.request = MagicMock()
     view.request.GET = {'count': '42'}
@@ -205,8 +201,6 @@ def test_set_initial_from_func_value_error() -> None:
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_func ValueError handling."""
 
-        pass
-
     view = View()
     view.request = MagicMock()
     view.request.GET = {'count': 'abc'}
@@ -227,8 +221,6 @@ def test_set_initial_from_func_key_error() -> None:
 
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_func KeyError handling."""
-
-        pass
 
     def bad_func(val):
         raise KeyError('no such key')
@@ -253,8 +245,6 @@ def test_set_initial_from_func_default() -> None:
 
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_func default value."""
-
-        pass
 
     sentinel = object()
     view = View()
@@ -282,8 +272,6 @@ def test_set_initial_from_model_success() -> None:
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_model success case."""
 
-        pass
-
     view = View()
     view.request = MagicMock()
     view.request.GET = {'author': '5'}
@@ -310,8 +298,6 @@ def test_set_initial_from_model_value_error() -> None:
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_model ValueError handling."""
 
-        pass
-
     view = View()
     view.request = MagicMock()
     view.request.GET = {'author': 'bad'}
@@ -335,8 +321,6 @@ def test_set_initial_from_model_does_not_exist() -> None:
 
     class View(mixins.InitialMixin):
         """View for testing set_initial_from_model DoesNotExist handling."""
-
-        pass
 
     view = View()
     view.request = MagicMock()
@@ -511,8 +495,6 @@ def test_validation_errors_mixin_catches_field_error() -> None:
     class View(mixins.ValidationErrorsMixin, Base):
         """View combining ValidationErrorsMixin with base."""
 
-        pass
-
     view = View()
     form = MagicMock()
     result = view.form_valid(form)
@@ -537,8 +519,6 @@ def test_validation_errors_mixin_catches_non_field_error() -> None:
     class View(mixins.ValidationErrorsMixin, Base):
         """View combining ValidationErrorsMixin with base."""
 
-        pass
-
     view = View()
     form = MagicMock()
     result = view.form_valid(form)
@@ -559,8 +539,6 @@ def test_validation_errors_mixin_success() -> None:
 
     class View(mixins.ValidationErrorsMixin, Base):
         """View combining ValidationErrorsMixin with base."""
-
-        pass
 
     view = View()
     form = MagicMock()

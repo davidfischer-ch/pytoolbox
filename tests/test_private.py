@@ -1,3 +1,5 @@
+"""Tests for the private module."""
+
 from __future__ import annotations
 
 import pytest

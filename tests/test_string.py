@@ -1,3 +1,5 @@
+"""Tests for the string module."""
+
 from __future__ import annotations
 
 from pytoolbox import string

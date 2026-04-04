@@ -1,3 +1,5 @@
+"""Tests for the juju module."""
+
 from __future__ import annotations
 
 from unittest import mock

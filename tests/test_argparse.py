@@ -1,3 +1,5 @@
+"""Tests for the argparse module."""
+
 from __future__ import annotations
 
 import os

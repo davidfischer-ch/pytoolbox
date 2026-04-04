@@ -22,7 +22,7 @@ class BootstrapSliderMixin(common.FindMixin):
 
     def clear(self) -> None:
         """Clear the slider value (not yet implemented)."""
-        pass  # TODO something to do?  # pylint:disable=unnecessary-pass
+        # TODO something to do?
 
     def send_keys(self, *value: str | int) -> None:
         """Move the slider handle to the target value using arrow keys."""

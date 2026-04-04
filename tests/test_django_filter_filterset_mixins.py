@@ -1,3 +1,6 @@
+"""Tests for the django_filter.filterset.mixins module."""
+# pylint:disable=too-few-public-methods
+
 from __future__ import annotations
 
 import pytest
@@ -19,8 +22,6 @@ def test_raise_on_unhandled_field_class_with_value() -> None:
     class FakeFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, Base):
         """FilterSet combining the mixin with the base implementation."""
 
-        pass
-
     assert FakeFilterSet.filter_for_field('field', 'name') == 'some_filter'
 
 
@@ -37,8 +38,6 @@ def test_raise_on_unhandled_field_class_without_value() -> None:
 
     class FakeFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, Base):
         """FilterSet that will raise an error due to unhandled field."""
-
-        pass
 
     with pytest.raises(NotImplementedError, match='Unable to find a suitable filter'):
         FakeFilterSet.filter_for_field('field', 'name')
@@ -57,8 +56,6 @@ def test_raise_on_unhandled_field_class_with_lookup_type() -> None:
 
     class FakeFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, Base):
         """FilterSet for testing lookup_type inclusion in error."""
-
-        pass
 
     with pytest.raises(NotImplementedError, match='icontains'):
         FakeFilterSet.filter_for_field('field', 'name', lookup_type='icontains')

@@ -1,4 +1,6 @@
-# pylint:disable=no-value-for-parameter,unnecessary-dunder-call
+"""Tests for the decorators module."""
+
+# pylint:disable=no-value-for-parameter,unnecessary-dunder-call,too-few-public-methods
 from __future__ import annotations
 
 import os
@@ -103,11 +105,13 @@ def test_hybridmethod_class_level_access() -> None:
     """Hybridmethod called on the class receives the class."""
 
     class MyClass:
-        """Test class."""
+        """Test class for hybridmethod."""
+
         value = 'class_val'
 
         @decorators.hybridmethod
         def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            """Get value from receiver."""
             return receiver.value
 
     assert MyClass.get_value() == 'class_val'
@@ -117,7 +121,8 @@ def test_hybridmethod_instance_level_access() -> None:
     """Hybridmethod called on an instance receives the instance."""
 
     class MyClass:
-        """Test class."""
+        """Test class for hybridmethod."""
+
         value = 'class_val'
 
         def __init__(self):
@@ -125,6 +130,7 @@ def test_hybridmethod_instance_level_access() -> None:
 
         @decorators.hybridmethod
         def get_value(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            """Get value from receiver."""
             return receiver.value
 
     assert MyClass().get_value() == 'instance_val'
@@ -134,8 +140,11 @@ def test_hybridmethod_has_func_and_self() -> None:
     """The bound hybrid callable exposes __func__ and __self__."""
 
     class MyClass:
+        """Test class for hybridmethod."""
+
         @decorators.hybridmethod
         def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            """Return constant value."""
             return 42
 
     bound = MyClass.__dict__['method'].__get__(None, MyClass)
@@ -147,8 +156,11 @@ def test_hybridmethod_instance_self() -> None:
     """__self__ on an instance-bound hybrid is the instance."""
 
     class MyClass:
+        """Test class for hybridmethod."""
+
         @decorators.hybridmethod
         def method(receiver):  # pylint:disable=no-self-argument  # noqa: N805
+            """Return constant value."""
             return 42
 
     obj = MyClass()
@@ -160,8 +172,11 @@ def test_hybridmethod_with_args() -> None:
     """Hybridmethod passes extra positional and keyword args."""
 
     class MyClass:
+        """Test class for hybridmethod."""
+
         @decorators.hybridmethod
         def add(receiver, a, b=0):  # pylint:disable=no-self-argument  # noqa: N805
+            """Add two values."""
             return a + b
 
     assert MyClass.add(3, b=7) == 10
@@ -258,8 +273,11 @@ def test_cached_property_caches_on_instance() -> None:
     call_count = 0
 
     class MyClass:
+        """Test class."""
+
         @decorators.cached_property
         def expensive(self):
+            """Test method."""
             nonlocal call_count
             call_count += 1
             return 42
@@ -275,8 +293,11 @@ def test_cached_property_class_access_returns_descriptor() -> None:
     """Accessing via the class returns the descriptor itself."""
 
     class MyClass:
+        """Test class."""
+
         @decorators.cached_property
         def prop(self):
+            """Test method."""
             return 99
 
     assert isinstance(MyClass.prop, decorators.cached_property)

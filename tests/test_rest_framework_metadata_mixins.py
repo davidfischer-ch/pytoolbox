@@ -1,3 +1,6 @@
+"""Tests for the rest_framework.metadata.mixins module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -14,12 +17,11 @@ def test_exclude_related_choices_non_related_field() -> None:
         """Base class providing get_field_info."""
 
         def get_field_info(self, field):  # pylint:disable=unused-argument
+            """Get field info implementation."""
             return {'type': 'string'}
 
     class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
         """Fake metadata class combining mixin with base."""
-
-        pass
 
     metadata = FakeMetadata()
     field = serializers.CharField()
@@ -41,8 +43,6 @@ def test_exclude_related_choices_related_field() -> None:
     class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
         """Fake metadata class combining mixin with base."""
 
-        pass
-
     metadata = FakeMetadata()
     field = serializers.PrimaryKeyRelatedField(queryset=MagicMock())
     result = metadata.get_field_info(field)
@@ -63,8 +63,6 @@ def test_exclude_related_choices_restores_class_on_error() -> None:
 
     class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
         """Fake metadata class combining mixin with base."""
-
-        pass
 
     metadata = FakeMetadata()
     field = serializers.PrimaryKeyRelatedField(queryset=MagicMock())

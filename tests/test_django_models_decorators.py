@@ -1,4 +1,6 @@
-# pylint:disable=no-member
+"""Tests for the django.models.decorators module."""
+
+# pylint:disable=no-member,too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -25,6 +27,7 @@ def test_with_urls_creates_detail_url() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 42
 
     with patch(
@@ -43,6 +46,7 @@ def test_with_urls_sets_absolute_url() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 1
 
     with patch(
@@ -58,6 +62,7 @@ def test_with_urls_create_action() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 1
 
     with patch(
@@ -75,6 +80,7 @@ def test_with_urls_singleton() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 1
 
     with patch(
@@ -97,6 +103,7 @@ def test_with_urls_skips_existing_method() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 1
 
         def get_detail_url(self):
@@ -116,6 +123,7 @@ def test_with_urls_interface_actions() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 1
 
     with patch(
@@ -135,6 +143,7 @@ def test_with_urls_no_absolute_url_without_detail() -> None:
 
     class MyModel:
         """Test class."""
+
         pk = 1
 
     with patch(

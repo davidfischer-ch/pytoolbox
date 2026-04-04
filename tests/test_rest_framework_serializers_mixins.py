@@ -1,3 +1,6 @@
+"""Tests for the rest_framework.serializers.mixins module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -19,8 +22,6 @@ def test_read_only_mixin_sets_read_only() -> None:
     class FakeSerializer(mixins.ReadOnlyMixin, Base):
         """Fake serializer combining ReadOnlyMixin with base."""
 
-        pass
-
     serializer = FakeSerializer()
     assert serializer.read_only is True
 
@@ -36,8 +37,6 @@ def test_read_only_mixin_create_raises() -> None:
 
     class FakeSerializer(mixins.ReadOnlyMixin, Base):
         """Fake serializer combining ReadOnlyMixin with base."""
-
-        pass
 
     serializer = FakeSerializer()
     with pytest.raises(AttributeError, match='Read-only'):
@@ -56,8 +55,6 @@ def test_read_only_mixin_update_raises() -> None:
     class FakeSerializer(mixins.ReadOnlyMixin, Base):
         """Fake serializer combining ReadOnlyMixin with base."""
 
-        pass
-
     serializer = FakeSerializer()
     with pytest.raises(AttributeError, match='Read-only'):
         serializer.update(None, {})
@@ -75,8 +72,6 @@ def test_nested_write_mixin_returns_tuple() -> None:
 
     class FakeSerializer(mixins.NestedWriteMixin, Base):
         """Fake serializer combining NestedWriteMixin with base."""
-
-        pass
 
     serializer = FakeSerializer()
     result = serializer.to_internal_value('test')
@@ -98,8 +93,6 @@ def test_from_private_key_mixin_dict_delegates_to_super() -> None:
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
         """Fake serializer combining FromPrivateKeyMixin with base."""
 
-        pass
-
     serializer = FakeSerializer()
     assert serializer.to_internal_value({'name': 'test'}) == {'name': 'test'}
 
@@ -116,8 +109,6 @@ def test_from_private_key_mixin_empty_delegates_to_super() -> None:
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
         """Fake serializer combining FromPrivateKeyMixin with base."""
-
-        pass
 
     serializer = FakeSerializer()
     assert serializer.to_internal_value({}) == {}
@@ -156,14 +147,13 @@ def test_from_private_key_mixin_create_returns_instance() -> None:
     class FakeModel:
         """Fake model class for testing."""
 
-        pass
-
     instance = FakeModel()
 
     class Base:
         """Base class providing create method."""
 
         def create(self, validated_data):  # pylint:disable=unused-argument
+            """Create method implementation."""
             return 'created'
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
@@ -185,6 +175,7 @@ def test_from_private_key_mixin_create_delegates_for_dict() -> None:
         """Base class providing create method."""
 
         def create(self, validated_data):  # pylint:disable=unused-argument
+            """Create method implementation."""
             return 'created'
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):

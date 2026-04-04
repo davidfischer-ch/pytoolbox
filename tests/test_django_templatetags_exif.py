@@ -1,3 +1,5 @@
+"""Tests for the django.templatetags.exif module."""
+
 from __future__ import annotations
 
 from pytoolbox.django import templatetags

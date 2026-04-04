@@ -1,3 +1,5 @@
+"""Tests for the enum module."""
+
 # pylint:disable=unnecessary-dunder-call
 from __future__ import annotations
 

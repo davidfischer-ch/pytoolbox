@@ -1,4 +1,6 @@
-# pylint:disable=no-member
+"""Tests for the django.forms.utils module."""
+
+# pylint:disable=no-member,protected-access
 from __future__ import annotations
 
 import datetime

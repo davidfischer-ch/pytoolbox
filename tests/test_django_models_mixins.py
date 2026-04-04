@@ -1,4 +1,6 @@
-# pylint:disable=unused-argument
+"""Tests for the django.models.mixins module."""
+
+# pylint:disable=protected-access,unused-argument,too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -70,10 +72,13 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
-            pass
+            """Save method implementation."""
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
+        """Test object with ValidateOnSaveMixin."""
+
         full_clean = MagicMock()
 
     obj = TestObj()
@@ -89,7 +94,6 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
 
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             """Save method implementation."""
-            pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
         """Test object with ValidateOnSaveMixin disabled."""
@@ -110,7 +114,6 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
 
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             """Save method implementation."""
-            pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
         """Test object with ValidateOnSaveMixin."""
@@ -202,10 +205,14 @@ def test_auto_force_insert_mixin() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoForceInsertMixin, Base):
+        """Test object with AutoForceInsertMixin."""
+
         _state = MagicMock(adding=True)
 
     obj = TestObj()
@@ -224,10 +231,14 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoForceInsertMixin, Base):
+        """Test object with AutoForceInsertMixin."""
+
         _state = MagicMock(adding=True)
 
     obj = TestObj()
@@ -248,10 +259,13 @@ def test_call_fields_pre_save_mixin() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
-            pass
+            """Save method implementation."""
 
     class TestObj(mixins.CallFieldsPreSaveMixin, Base):
+        """Test object with CallFieldsPreSaveMixin."""
+
         _meta = MagicMock(local_concrete_fields=[field1, field2, field3])
         _state = MagicMock(adding=False)
 
@@ -272,6 +286,8 @@ def test_reload_mixin() -> None:
     mock_instance = MagicMock()
 
     class TestObj(mixins.ReloadMixin):
+        """Test object with ReloadMixin."""
+
         pk = 42
         _meta = MagicMock()
 
@@ -293,6 +309,7 @@ def _make_auto_remove_pk_obj(pk_value=1):
 
     class Base:
         """Test class."""
+
         def __init__(self):
             self.pk = pk_value
             self._meta = MagicMock()
@@ -303,7 +320,7 @@ def _make_auto_remove_pk_obj(pk_value=1):
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoRemovePKFromUpdateFieldsMixin, Base):
-        pass
+        """Test object with AutoRemovePKFromUpdateFieldsMixin."""
 
     return TestObj(), saved_kwargs
 
@@ -358,6 +375,7 @@ def _make_auto_update_obj(adding=False):
 
     class Base:
         """Test class."""
+
         def __init__(self):
             self._state = MagicMock(adding=adding)
             self._meta = MagicMock()
@@ -366,10 +384,11 @@ def _make_auto_update_obj(adding=False):
             self._meta.fields = [field_name, field_status]
 
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoUpdateFieldsMixin, Base):
-        pass
+        """Test object with AutoUpdateFieldsMixin."""
 
     return TestObj(), saved_kwargs
 
@@ -426,12 +445,12 @@ def _make_uniqueness_obj(
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
-            pass
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj.unique_from_integrity_error = unique_from_integrity_error
@@ -445,6 +464,7 @@ def test_uniqueness_save_converts_integrity_error() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise IntegrityError(
@@ -452,7 +472,7 @@ def test_uniqueness_save_converts_integrity_error() -> None:
             )
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj._meta = MagicMock()
@@ -471,12 +491,13 @@ def test_uniqueness_save_reraises_non_matching_integrity() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise IntegrityError('some other error')
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj.unique_from_integrity_error = True
@@ -491,12 +512,13 @@ def test_uniqueness_save_disabled() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise IntegrityError('duplicate key value (name, org)')
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj.unique_from_integrity_error = False
@@ -511,12 +533,13 @@ def test_uniqueness_hidden_fields_calls_handler() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise IntegrityError('duplicate key value (org)')
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj._meta = MagicMock()
@@ -535,11 +558,12 @@ def test_perform_unique_checks_hides_fields() -> None:
 
     class Base:
         """Test class."""
+
         def _perform_unique_checks(self, unique_checks):  # pylint:disable=unused-argument
             return {'__all__': [error]}
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj.unique_together_hide_fields = ('org',)
@@ -558,11 +582,12 @@ def test_perform_unique_checks_no_hidden() -> None:
 
     class Base:
         """Test class."""
+
         def _perform_unique_checks(self, unique_checks):
             return {'name': [error]}
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj.unique_together_hide_fields = ()
@@ -577,11 +602,12 @@ def test_perform_unique_checks_single_field_error_passthrough() -> None:
 
     class Base:
         """Test class."""
+
         def _perform_unique_checks(self, unique_checks):
             return {'name': [error]}
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        pass
+        """Test object with BetterUniquenessErrorsMixin."""
 
     obj = TestObj()
     obj.unique_together_hide_fields = ('org',)
@@ -601,6 +627,7 @@ def test_save_instance_files_new_instance() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             save_calls.append(dict(kwargs))
@@ -609,6 +636,8 @@ def test_save_instance_files_new_instance() -> None:
     file_field.name = 'document'
 
     class TestObj(mixins.SaveInstanceFilesMixin, Base):
+        """Test object with SaveInstanceFilesMixin."""
+
         pk = None
         _meta = MagicMock(fields=[file_field])
         document = 'my_file.pdf'
@@ -626,6 +655,7 @@ def test_save_instance_files_existing_instance() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             save_calls.append(dict(kwargs))
@@ -634,6 +664,8 @@ def test_save_instance_files_existing_instance() -> None:
     file_field.name = 'document'
 
     class TestObj(mixins.SaveInstanceFilesMixin, Base):
+        """Test object with SaveInstanceFilesMixin."""
+
         pk = 42
         _meta = MagicMock(fields=[file_field])
         document = 'my_file.pdf'
@@ -654,6 +686,7 @@ def _make_preconditions_obj():
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             saved_kwargs.update(kwargs)
@@ -662,7 +695,7 @@ def _make_preconditions_obj():
             return True
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        pass
+        """Test object with UpdatePreconditionsMixin."""
 
     return TestObj(), saved_kwargs
 
@@ -728,12 +761,13 @@ def test_update_preconditions_save_catches_database_error() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise DatabaseError('did not affect any rows')
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        pass
+        """Test object with UpdatePreconditionsMixin."""
 
     obj = TestObj()
     with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
@@ -745,12 +779,13 @@ def test_update_preconditions_save_reraises_unrelated() -> None:
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise DatabaseError('connection lost')
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        pass
+        """Test object with UpdatePreconditionsMixin."""
 
     obj = TestObj()
     with pytest.raises(DatabaseError, match='connection lost'):
@@ -762,11 +797,12 @@ def test_do_update_precondition_failure() -> None:
 
     class Base:
         """Test class."""
+
         def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
             return False
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        pass
+        """Test object with UpdatePreconditionsMixin."""
 
     obj = TestObj()
     obj._preconditions = ({}, {'active': True})
@@ -785,12 +821,13 @@ def test_do_update_forwards_returning_fields() -> None:
 
     class Base:
         """Test class."""
+
         def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
             received['returning_fields'] = returning_fields
             return True
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        pass
+        """Test object with UpdatePreconditionsMixin."""
 
     sentinel = object()
     obj = TestObj()
@@ -808,11 +845,12 @@ def test_state_transition_events_init() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self):
             self.state = 'PENDING'
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
-        pass
+        """Test object with StateTransitionEventsMixin."""
 
     obj = TestObj()
     assert obj.previous_state == 'PENDING'
@@ -823,15 +861,15 @@ def test_state_transition_events_fires_signal() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self):
             self.state = 'PENDING'
 
         def save(self, *args, **kwargs):
             """Test method."""
-            pass
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
-        pass
+        """Test object with StateTransitionEventsMixin."""
 
     obj = TestObj()
     obj.state = 'RUNNING'
@@ -852,15 +890,15 @@ def test_state_transition_events_updates_previous() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self):
             self.state = 'PENDING'
 
         def save(self, *args, **kwargs):
             """Test method."""
-            pass
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
-        pass
+        """Test object with StateTransitionEventsMixin."""
 
     obj = TestObj()
     obj.state = 'RUNNING'
@@ -878,15 +916,15 @@ def test_state_transition_events_no_signal_without_state() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self):
             self.state = 'PENDING'
 
         def save(self, *args, **kwargs):
             """Test method."""
-            pass
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
-        pass
+        """Test object with StateTransitionEventsMixin."""
 
     obj = TestObj()
     with patch.object(
@@ -906,6 +944,8 @@ def _make_state_machine(current_state='PENDING'):
     """Create a state-machine test object."""
 
     class States:
+        """Test states class."""
+
         TRANSITIONS = {
             'PENDING': {'RUNNING', 'CANCELLED'},
             'RUNNING': {'COMPLETED', 'FAILED'},
@@ -916,21 +956,22 @@ def _make_state_machine(current_state='PENDING'):
 
         @staticmethod
         def get_transit_from(state, auto_inverse=False):
+            """Get transit from states."""
             # Return states that can transition TO the given state
             sources = {s for s, targets in States.TRANSITIONS.items() if state in targets}
             return sources, True  # valid=True means use filter
 
     class Base:
         """Test class."""
+
         def save(self, *args, **kwargs):
             """Test method."""
-            pass
 
         def _do_update(self, base_qs, using, pk, values, uf, fu):
             return True
 
     class TestObj(mixins.StateTransitionPreconditionMixin, Base):
-        pass
+        """Test object with StateTransitionPreconditionMixin."""
 
     obj = TestObj()
     obj.state = current_state
@@ -1004,6 +1045,8 @@ def test_related_model_mixin_delegates() -> None:
     """get_related_manager and get_related_model delegate to utils."""
 
     class TestObj(mixins.RelatedModelMixin):
+        """Test object with RelatedModelMixin."""
+
         _meta = MagicMock()
 
     mock_model = MagicMock()

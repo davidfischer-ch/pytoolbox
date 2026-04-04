@@ -1,3 +1,5 @@
+"""Tests for the rest_framework.permissions module."""
+
 from __future__ import annotations
 
 import sys

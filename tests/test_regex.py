@@ -1,3 +1,5 @@
+"""Tests for the regex module."""
+
 from __future__ import annotations
 
 import re
@@ -73,6 +75,7 @@ def test_group_replace_wrong_group() -> None:
 
 def test_match_equality():
     """Match object compares equal to strings matching the pattern."""
+    # pylint:disable=misplaced-comparison-constant
     assert regex.Match(r'some-s[a-z]+') == 'some-string'
     assert 'some-string' == regex.Match(r'some-s[a-z]+')
     assert 'some-string' != regex.Match(r'other-s[a-z]+')

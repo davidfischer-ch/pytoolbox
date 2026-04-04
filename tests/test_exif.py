@@ -1,3 +1,5 @@
+"""Tests for the multimedia.exif module."""
+
 from __future__ import annotations
 
 import datetime

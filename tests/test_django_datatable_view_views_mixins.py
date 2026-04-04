@@ -1,3 +1,6 @@
+"""Tests for the django_datatable_view.views.mixins module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -9,6 +12,8 @@ def test_multi_tables_get_datatable_name_from_arg() -> None:
     """Explicit name argument takes priority over request parameters."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test view with MultiTablesMixin."""
+
         request = MagicMock()
 
     view = FakeView()
@@ -19,6 +24,8 @@ def test_multi_tables_get_datatable_name_from_request() -> None:
     """Falls back to the datatable-name GET parameter when no argument is given."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test class."""
+
         request = MagicMock()
 
     view = FakeView()
@@ -30,6 +37,8 @@ def test_multi_tables_get_datatable_name_default() -> None:
     """Returns 'default' when neither argument nor request parameter is present."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test view with MultiTablesMixin."""
+
         request = MagicMock()
 
     view = FakeView()
@@ -41,6 +50,8 @@ def test_multi_tables_get_ajax_url() -> None:
     """Builds an AJAX URL with the datatable-name query parameter appended."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test view with MultiTablesMixin."""
+
         request = MagicMock()
 
     view = FakeView()
@@ -54,6 +65,8 @@ def test_multi_tables_get_ajax_url_default() -> None:
     """Uses 'default' as the datatable name when none is specified."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test view with MultiTablesMixin."""
+
         request = MagicMock()
 
     view = FakeView()
@@ -67,20 +80,24 @@ def test_multi_tables_get_queryset_valid_name() -> None:
     """Dispatches to the table-specific get_<name>_queryset method."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test view with MultiTablesMixin."""
+
         multi_datatables = (('default', 'Default'), ('other', 'Other'))
         request = MagicMock()
 
         def get_default_queryset(self, qs):  # pylint:disable=unused-argument
+            """Get default queryset implementation."""
             return 'default_filtered'
 
     class Base:
         """Test class."""
+
         def get_queryset(self):
             """Test method."""
             return 'base_qs'
 
     class TestView(FakeView, Base):
-        pass
+        """Test view combining FakeView and Base."""
 
     view = TestView()
     view.request.GET = {}
@@ -91,11 +108,14 @@ def test_multi_tables_get_queryset_bad_name_returns_none() -> None:
     """Returns an empty queryset for unregistered datatable names."""
 
     class FakeView(mixins.MultiTablesMixin):
+        """Test view with MultiTablesMixin."""
+
         multi_datatables = (('default', 'Default'),)
         request = MagicMock()
 
     class Base:
         """Test class."""
+
         def get_queryset(self):
             """Test method."""
             qs = MagicMock()
@@ -103,7 +123,7 @@ def test_multi_tables_get_queryset_bad_name_returns_none() -> None:
             return qs
 
     class TestView(FakeView, Base):
-        pass
+        """Test view combining FakeView and Base."""
 
     view = TestView()
     view.request.GET = {'datatable-name': 'nonexistent'}
@@ -115,10 +135,14 @@ def test_multi_tables_get_context_data() -> None:
 
     class Base:
         """Test class."""
+
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
+            """Get context data implementation."""
             return {'datatable': 'default_table', 'extra': 'data'}
 
     class FakeView(mixins.MultiTablesMixin, Base):
+        """Test class."""
+
         multi_datatables = (('default', 'Default Table'),)
         request = MagicMock()
 

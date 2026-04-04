@@ -1,3 +1,5 @@
+"""Tests for the django.forms.widgets module."""
+
 from __future__ import annotations
 
 from pytoolbox.django.forms import widgets

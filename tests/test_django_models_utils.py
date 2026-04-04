@@ -1,3 +1,6 @@
+"""Tests for the django.models.utils module."""
+
+# pylint:disable=protected-access,too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -63,7 +66,7 @@ def test_try_get_field_related_does_not_exist() -> None:
     """Returns None when RelatedObjectDoesNotExist is raised."""
 
     class RelatedObjectDoesNotExist(Exception):  # noqa: N818
-        pass
+        """Test exception for RelatedObjectDoesNotExist."""
 
     instance = MagicMock()
     instance.__class__.__name__ = 'MyModel'
@@ -82,9 +85,11 @@ def test_try_get_field_related_does_not_exist() -> None:
 
     # Direct test with a real class
     class Holder:
+        """Test class."""
+
         @property
         def profile(self):
-            """Test method."""
+            """Test property."""
             raise RelatedObjectDoesNotExist('missing')
 
     result = utils.try_get_field(Holder(), 'profile')
@@ -95,9 +100,11 @@ def test_try_get_field_other_exception_reraises() -> None:
     """Non-RelatedObjectDoesNotExist exceptions are re-raised."""
 
     class Holder:
+        """Test class."""
+
         @property
         def profile(self):
-            """Test method."""
+            """Test property."""
             raise ValueError('bad value')
 
     import pytest

@@ -1,3 +1,5 @@
+"""Tests for the multimedia.ffmpeg module."""
+
 # pylint:disable=protected-access,use-implicit-booleaness-not-comparison,too-few-public-methods
 from __future__ import annotations
 
@@ -314,12 +316,14 @@ def test_ffmpeg_kill_process_handle_missing(
     """FFmpeg handles exceptions during process cleanup gracefully."""
 
     class SomeError(Exception):
-        pass
+        """Test class."""
 
     class RaiseEncodeStatistics(static_ffmpeg.statistics_class):  # type: ignore[name-defined]
+        """Test statistics class."""
+
         @staticmethod
         def end(returncode):
-            """Test method."""
+            """End method that raises SomeError."""
             raise SomeError('This is the error.')
 
     encoder = static_ffmpeg()

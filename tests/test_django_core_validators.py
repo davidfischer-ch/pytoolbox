@@ -1,3 +1,5 @@
+"""Tests for the django.core.validators module."""
+
 from __future__ import annotations
 
 import pytest

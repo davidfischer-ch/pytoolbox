@@ -1,3 +1,5 @@
+"""Tests for the humanize module."""
+
 from __future__ import annotations
 
 from pytoolbox import humanize

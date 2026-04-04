@@ -1,3 +1,5 @@
+"""Pytest configuration and fixtures for pytoolbox tests."""
+
 from __future__ import annotations
 
 import platform
@@ -76,8 +78,6 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
 class StaticFFprobe(DownloadStaticFFmpegMixin, ffmpeg.FFprobe):
     """FFprobe using downloaded static binary."""
 
-    pass
-
 
 # TODO Promote it to the library (merge)
 class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
@@ -92,8 +92,6 @@ class StaticEncodeStatisticsWithFrameBaseRatio(
     StaticEncodeStatistics,
 ):
     """Encode statistics with frame-based ratio using static FFprobe."""
-
-    pass
 
 
 # TODO Promote it to the library (merge)

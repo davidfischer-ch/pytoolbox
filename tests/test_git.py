@@ -1,3 +1,5 @@
+"""Tests for the git module."""
+
 from __future__ import annotations
 
 import os

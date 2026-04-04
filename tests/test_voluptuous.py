@@ -1,3 +1,5 @@
+"""Tests for the voluptuous module."""
+
 # pylint:disable=not-callable,no-value-for-parameter
 from __future__ import annotations
 

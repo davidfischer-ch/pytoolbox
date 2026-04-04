@@ -1,3 +1,5 @@
+"""Tests for the subprocess module."""
+
 # pylint:disable=use-implicit-booleaness-not-comparison
 from __future__ import annotations
 

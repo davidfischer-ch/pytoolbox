@@ -1,3 +1,6 @@
+"""Tests for the django_formtools.views.mixins module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -9,7 +12,10 @@ def test_datatable_view_ajax_detection() -> None:
     """AJAX requests (X-Requested-With header) are delegated to the table view."""
 
     class FakeView(mixins.DataTableViewCompositionMixin):
+        """Test view class."""
+
         table_view_classes = {'step1': MagicMock}
+        """Test class."""
         steps = MagicMock(current='step1')
 
         def __init__(self):
@@ -36,6 +42,8 @@ def test_datatable_view_get_table_view_returns_none_for_unknown_step() -> None:
     """Returns None when no table view is registered for the current step."""
 
     class FakeView(mixins.DataTableViewCompositionMixin):
+        """Test class."""
+
         table_view_classes = {'step1': MagicMock}
         steps = MagicMock(current='unknown_step')
 
@@ -48,6 +56,8 @@ def test_datatable_view_get_table_view_returns_instance() -> None:
     mock_class = MagicMock()
 
     class FakeView(mixins.DataTableViewCompositionMixin):
+        """Test class."""
+
         table_view_classes = {'step1': mock_class}
         steps = MagicMock(current='step1')
 
@@ -66,10 +76,14 @@ def test_datatable_view_get_context_data_with_table() -> None:
 
     class Base:
         """Test class."""
+
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
+            """Get context data implementation."""
             return {'key': 'value'}
 
     class FakeView(mixins.DataTableViewCompositionMixin, Base):
+        """Test view class."""
+
         table_view_classes = {'step1': MagicMock}
         steps = MagicMock(current='step1')
 
@@ -86,10 +100,14 @@ def test_datatable_view_get_context_data_without_table() -> None:
 
     class Base:
         """Test class."""
+
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
+            """Get context data implementation."""
             return {'key': 'value'}
 
     class FakeView(mixins.DataTableViewCompositionMixin, Base):
+        """Test view class."""
+
         table_view_classes = {}
         steps = MagicMock(current='step1')
 
@@ -102,6 +120,8 @@ def test_serialize_step_instance_mixin_serialized_instances() -> None:
     """serialized_instances lazily creates and caches the storage dict."""
 
     class FakeView(mixins.SerializeStepInstanceMixin):
+        """Test view class."""
+
         steps = MagicMock(current='step1')
 
         def __init__(self):
@@ -120,10 +140,14 @@ def test_serialize_step_instance_mixin_get_form_kwargs() -> None:
 
     class Base:
         """Test class."""
+
         def get_form_kwargs(self, step):  # pylint:disable=unused-argument
+            """Get form kwargs implementation."""
             return {'initial': {}}
 
     class FakeView(mixins.SerializeStepInstanceMixin, Base):
+        """Test view class."""
+
         steps = MagicMock(current='step1')
 
         def __init__(self):
@@ -143,10 +167,14 @@ def test_serialize_step_instance_mixin_get_form_kwargs_no_serialized() -> None:
 
     class Base:
         """Test class."""
+
         def get_form_kwargs(self, step):  # pylint:disable=unused-argument
+            """Get form kwargs implementation."""
             return {'initial': {}}
 
     class FakeView(mixins.SerializeStepInstanceMixin, Base):
+        """Test view class."""
+
         steps = MagicMock(current='step1')
 
         def __init__(self):
@@ -164,10 +192,14 @@ def test_serialize_step_instance_mixin_get_form() -> None:
 
     class Base:
         """Test class."""
+
         def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
+            """Get form implementation."""
             return sentinel_form
 
     class FakeView(mixins.SerializeStepInstanceMixin, Base):
+        """Test view class."""
+
         steps = MagicMock(current='step1')
 
         def __init__(self):
@@ -189,10 +221,14 @@ def test_serialize_step_instance_mixin_get_form_no_serialized() -> None:
 
     class Base:
         """Test class."""
+
         def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
+            """Get form implementation."""
             return sentinel_form
 
     class FakeView(mixins.SerializeStepInstanceMixin, Base):
+        """Test view class."""
+
         steps = MagicMock(current='step2')
 
         def __init__(self):

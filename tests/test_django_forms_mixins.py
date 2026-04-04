@@ -1,3 +1,6 @@
+"""Tests for the django.forms.mixins module."""
+
+# pylint:disable=protected-access,too-few-public-methods
 from __future__ import annotations
 
 from collections import OrderedDict
@@ -12,6 +15,8 @@ def test_enctype_mixin() -> None:
     """Returns multipart/form-data for multipart forms, url-encoded otherwise."""
 
     class FakeForm(mixins.EnctypeMixin):
+        """Test form with EnctypeMixin."""
+
         def is_multipart(self):
             """Test method."""
             return False
@@ -19,6 +24,8 @@ def test_enctype_mixin() -> None:
     assert FakeForm().enctype == 'application/x-www-form-urlencoded'
 
     class FakeMultipartForm(mixins.EnctypeMixin):
+        """Test multipart form with EnctypeMixin."""
+
         def is_multipart(self):
             """Test method."""
             return True
@@ -32,11 +39,14 @@ def test_map_errors_mixin() -> None:
 
     class Base:
         """Test class."""
+
         def add_error(self, field, error):
             """Test method."""
             added_errors[field] = error
 
     class FakeForm(mixins.MapErrorsMixin, Base):
+        """Test form with MapErrorsMixin."""
+
         errors_map = {'old_field': 'new_field'}
 
     form = FakeForm()
@@ -58,6 +68,7 @@ def test_staff_only_fields_mixin_removes_for_non_staff() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -68,6 +79,8 @@ def test_staff_only_fields_mixin_removes_for_non_staff() -> None:
             )
 
     class FakeForm(mixins.StaffOnlyFieldsMixin, Base):
+        """Test form with StaffOnlyFieldsMixin."""
+
         staff_only_fields = ('secret',)
 
     request = MagicMock()
@@ -83,6 +96,7 @@ def test_staff_only_fields_mixin_keeps_for_staff() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -92,6 +106,8 @@ def test_staff_only_fields_mixin_keeps_for_staff() -> None:
             )
 
     class FakeForm(mixins.StaffOnlyFieldsMixin, Base):
+        """Test form with StaffOnlyFieldsMixin."""
+
         staff_only_fields = ('secret',)
 
     request = MagicMock()
@@ -106,15 +122,17 @@ def test_created_by_mixin_sets_user() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.instance = MagicMock()
             self.instance.created_by_id = None
 
         def save(self, commit=True):  # pylint:disable=unused-argument
+            """Save method implementation."""
             return self.instance
 
     class FakeForm(mixins.CreatedByMixin, Base):
-        pass
+        """Test form with CreatedByMixin."""
 
     request = MagicMock()
     form = FakeForm(request=request)
@@ -127,15 +145,17 @@ def test_created_by_mixin_skips_existing() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.instance = MagicMock()
             self.instance.created_by_id = 42
 
         def save(self, commit=True):  # pylint:disable=unused-argument
+            """Save method implementation."""
             return self.instance
 
     class FakeForm(mixins.CreatedByMixin, Base):
-        pass
+        """Test form with CreatedByMixin."""
 
     request = MagicMock()
     form = FakeForm(request=request)
@@ -148,11 +168,13 @@ def test_model_based_form_cleanup_mixin_delegates() -> None:
 
     class Base:
         """Test class."""
+
         def clean(self):
             """Test method."""
-            pass
 
     class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
+        """Test form with ModelBasedFormCleanupMixin."""
+
         class _meta:  # noqa: N801
             model = MagicMock()
 
@@ -170,11 +192,13 @@ def test_model_based_form_cleanup_mixin_fallback() -> None:
 
     class Base:
         """Test class."""
+
         def clean(self):
             """Test method."""
-            pass
 
     class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
+        """Test form with ModelBasedFormCleanupMixin."""
+
         class _meta:  # noqa: N801
             model = object()  # No clean_form method
 
@@ -190,6 +214,7 @@ def test_help_text_to_placeholder_mixin() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -198,7 +223,7 @@ def test_help_text_to_placeholder_mixin() -> None:
             )
 
     class FakeForm(mixins.HelpTextToPlaceholderMixin, Base):
-        pass
+        """Test form with HelpTextToPlaceholderMixin."""
 
     form = FakeForm()
     assert form.fields['name'].widget.attrs['placeholder'] == 'Enter name'
@@ -210,6 +235,7 @@ def test_convert_email_to_text_mixin() -> None:
 
     class Base:
         """Test class."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -219,7 +245,7 @@ def test_convert_email_to_text_mixin() -> None:
             )
 
     class FakeForm(mixins.ConvertEmailToTextMixin, Base):
-        pass
+        """Test form with ConvertEmailToTextMixin."""
 
     form = FakeForm()
     assert form.fields['email'].widget.input_type == 'text'

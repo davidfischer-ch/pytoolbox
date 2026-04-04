@@ -1,3 +1,6 @@
+"""Tests for the django.utils.collections module."""
+
+# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 import pytest
@@ -6,17 +9,19 @@ from pytoolbox.django.utils import collections
 
 
 class File:
-    pass
+    """Test file class."""
 
 
 class Media:
-    pass
+    """Test media class."""
 
 
 class MediaForm:
+    """Test media form class."""
+
     class Meta:
-            """Meta class."""
-        """Test class."""
+        """Meta class."""
+
         model = Media
 
 

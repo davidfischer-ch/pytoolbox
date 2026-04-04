@@ -1,3 +1,5 @@
+"""Tests for the django.templatetags.humanize module."""
+
 from __future__ import annotations
 
 import datetime

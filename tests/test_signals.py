@@ -1,3 +1,5 @@
+"""Tests for the signals module."""
+
 from __future__ import annotations
 
 import os
@@ -18,15 +20,15 @@ class TestSignals(unittest.TestCase):
         self.list.append(number)
 
     def raise_handler(self, signum, frame) -> None:
-        """Handler that raises AssertionError."""
+        """Raise AssertionError when called."""
         raise AssertionError
 
     def set_flag_handler(self, signum, frame) -> None:  # pylint:disable=unused-argument
-        """Handler that sets flag to True."""
+        """Set flag to True when called."""
         self.flag = True
 
     def set_flag_callback(self, *args, **kwargs) -> None:
-        """Callback that validates args and sets flag."""
+        """Validate args and set flag to True."""
         assert args == (None,)
         assert not kwargs
         self.flag = True
