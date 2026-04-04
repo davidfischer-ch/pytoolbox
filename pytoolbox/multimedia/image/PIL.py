@@ -13,7 +13,7 @@ from pytoolbox import module
 
 _all = module.All(globals())
 
-from PIL import Image  # noqa pylint:disable=wrong-import-position
+from PIL import Image  # noqa pylint:disable=wrong-import-order,wrong-import-position
 
 TRANSPOSE_SEQUENCES: Final[dict[int | None, list[int]]] = {
     # pylint:disable=no-member
