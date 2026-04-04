@@ -1,6 +1,7 @@
 """
 Some utilities related to the view layer.
 """
+# pylint: disable=protected-access
 
 from __future__ import annotations
 

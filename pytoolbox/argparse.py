@@ -15,6 +15,7 @@ Traceback (most recent call last):
     ...
 SystemExit: 2
 """
+# pylint: disable=protected-access
 
 from __future__ import annotations
 
@@ -34,7 +35,7 @@ log = logging.get_logger(__name__)
 
 _all = module.All(globals())
 
-from argparse import (  # noqa:E402,F401 pylint:disable=unused-import,wrong-import-position
+from argparse import (  # noqa:E402,F401 pylint:disable=unused-import,wrong-import-order,wrong-import-position
     ArgumentTypeError,
     Namespace,
 )

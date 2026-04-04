@@ -1,6 +1,7 @@
 """
 Custom Django validators for forms and model fields.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 

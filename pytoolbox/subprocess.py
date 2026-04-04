@@ -34,7 +34,7 @@ except ImportError:
 
     NoSuchProcess = None
 
-from shlex import quote  # noqa: E402  pylint:disable=wrong-import-position
+from shlex import quote  # noqa: E402  pylint:disable=wrong-import-order,wrong-import-position
 
 # Better to warn user than letting converting to string Any!
 # None will be stripped automatically

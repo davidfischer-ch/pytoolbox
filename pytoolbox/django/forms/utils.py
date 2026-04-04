@@ -1,6 +1,7 @@
 """
 Some utilities related to the forms.
 """
+# pylint: disable=protected-access
 
 from __future__ import annotations
 

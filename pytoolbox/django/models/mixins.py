@@ -21,6 +21,7 @@ Order for these does not matter:
 - ReloadMixin
 - SaveInstanceFilesMixin
 """
+# pylint: disable=protected-access,too-few-public-methods
 
 from __future__ import annotations
 

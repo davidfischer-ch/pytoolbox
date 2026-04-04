@@ -4,6 +4,7 @@ Mix-ins for building your own
 `metadata <https://github.com/encode/django-rest-framework/blob/master/rest_framework/metadata.py>`_
 .
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 
@@ -26,8 +27,11 @@ class ExcludeRelatedChoicesMixin:
             field_class = type(field)
 
             class HaveNoChoicesProxy(field_class):
+                """Proxy that hides the choices property from related fields."""
+
                 @property
                 def choices(self) -> None:
+                    """Raise AttributeError to hide choices from metadata."""
                     raise AttributeError
 
             try:

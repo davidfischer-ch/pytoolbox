@@ -2,6 +2,7 @@
 Module containing extensions to validate data with
 `voluptuous <https://github.com/alecthomas/voluptuous>`_.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 

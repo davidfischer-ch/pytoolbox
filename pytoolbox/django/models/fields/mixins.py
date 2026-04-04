@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own models fields.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 

@@ -2,6 +2,7 @@
 Mix-ins for building your own `Django Form Tools <https://github.com/django/django-formtools>`_
 powered views.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 

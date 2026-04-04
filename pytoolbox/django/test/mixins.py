@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own test cases.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 
@@ -66,6 +67,7 @@ class ClearSiteCacheMixin:
         Site.objects.clear_cache()
 
     def setUp(self) -> None:
+        """Clear the site cache before each test."""
         self.clear_site_cache()
         super().setUp()
 

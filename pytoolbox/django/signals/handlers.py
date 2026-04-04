@@ -35,6 +35,7 @@ dj_signals.post_migrate.connect(create_site, sender=config)
 dj_signals.pre_save.connect(
 strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 """
+# pylint: disable=protected-access
 
 from __future__ import annotations
 

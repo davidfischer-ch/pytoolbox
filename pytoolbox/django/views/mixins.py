@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own views.
 """
+# pylint: disable=protected-access,too-few-public-methods
 
 from __future__ import annotations
 

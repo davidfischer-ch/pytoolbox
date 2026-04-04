@@ -1,6 +1,7 @@
 """
 Mix-ins for building your own test runners.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 

@@ -212,13 +212,13 @@ module-rgx          = '(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$'
 method-rgx          = '[a-z_][a-z0-9_]{2,}$'
 
 [tool.pylint.design]
-max-args              = 9
-max-locals            = 19
-max-returns           = 11
-max-branches          = 20
-max-attributes        = 11
-max-statements        = 50
-max-try-statements    = 7
+max-args           = 9
+max-locals         = 19
+max-returns        = 11
+max-branches       = 20
+max-attributes     = 11
+max-statements     = 50
+max-try-statements = 7
 max-positional-arguments = 12
 
 [tool.pylint.format]
@@ -237,13 +237,7 @@ disable = [
     'cyclic-import',
     'fixme',
     'import-outside-toplevel',
-    'invalid-name',
-    'missing-class-docstring',
-    'missing-function-docstring',
-    'missing-module-docstring',
-    'protected-access',
-    'too-few-public-methods',
-    'wrong-import-order'
+    'invalid-name'
 ]
 
 [tool.pylint.refactoring]

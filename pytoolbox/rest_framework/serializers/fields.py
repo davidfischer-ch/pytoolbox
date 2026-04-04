@@ -3,6 +3,7 @@ Extra `fields <http://www.django-rest-framework.org/api-guide/fields/>`_ for bui
 `Django REST Framework <https://github.com/tomchristie/django-rest-framework>`_ powered API
 `serializers <http://www.django-rest-framework.org/tutorial/1-serialization/>`_.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 

@@ -1,4 +1,5 @@
 """Miscellaneous template filters and tags."""
+# pylint: disable=protected-access,too-few-public-methods
 
 from __future__ import annotations
 

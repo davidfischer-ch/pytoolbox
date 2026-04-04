@@ -1,6 +1,7 @@
 """
 Extended :class:`~selenium.webdriver.support.select.Select` with element attribute delegation.
 """
+# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 
