@@ -238,7 +238,6 @@ disable = [
     'fixme',
     'import-outside-toplevel',
     'invalid-name',
-    'logging-fstring-interpolation',
     'missing-class-docstring',
     'missing-function-docstring',
     'missing-module-docstring',

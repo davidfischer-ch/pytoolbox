@@ -413,7 +413,7 @@ class TimingMixin:
     def tearDown(self) -> None:  # pylint:disable=invalid-name
         super().tearDown()
         if self.timing_logger:
-            self.timing_logger.info(f'{self.id()}: {time.time() - self.start_time:.3f}')
+            self.timing_logger.info('%s: %.3f', self.id(), time.time() - self.start_time)
 
 
 class Asserts(InMixin, MissingMixin, SnakeCaseMixin, unittest.TestCase):

@@ -39,7 +39,7 @@ AGENT_START_REGEX: Final[re.Pattern] = re.compile(
 
 def add_fingerprint(path: Path, host: str) -> None:
     """Scan an host's SSH fingerprint and add it to the list of known hosts."""
-    log.info(f'Adding SSH fingerprint of host {host}')
+    log.info('Adding SSH fingerprint of host %s', host)
     keys: bytes = subprocess.cmd(['ssh-keyscan', '-H', host])['stdout']
     with path.open('ab') as key_file:
         key_file.write(keys)

@@ -92,12 +92,12 @@ def get_ref(
     * The git branch reference to point to the branch when running locally (via git CLI)
     """
     if ci_vars and (ref := os.getenv('CI_COMMIT_REF_NAME')):
-        log.debug(f'Detected Git ref from GitLab CI context is {ref}')
+        log.debug('Detected Git ref from GitLab CI context is %s', ref)
     else:
         extra = {'branch': ['--abbrev-ref'], 'commit': []}[kind]
         result = subprocess.cmd(['git', 'rev-parse', *extra, 'HEAD'], cwd=directory, fail=False)
         ref = result['stdout'].decode('utf-8').strip()
-        log.debug(f"Detected Git ref from directory '{directory}' of kind {kind} is {ref}")
+        log.debug('Detected Git ref from directory %r of kind %s is %s', directory, kind, ref)
     if not ref:
         raise exceptions.GitReferenceError()
     return ref
@@ -123,7 +123,7 @@ def scoped_ssh_key(
         key_file.write(content + os.linesep)
         key_file.flush()
         try:
-            log.debug(f'Set identity "...{content[100:120]}..."')
+            log.debug('Set identity "...%s..."', content[100:120])
             options_str = ' '.join(f'-o {shlex.quote(o)}' for o in options) if options else ''
             ssh_cmd = f'ssh -F {os.devnull} -i {key_file.name} -o IdentitiesOnly=yes {options_str}'
             subprocess.cmd(
@@ -136,7 +136,7 @@ def scoped_ssh_key(
         else:
             yield key_file.name
         finally:
-            log.debug(f'Unset identity "...{content[100:120]}..."')
+            log.debug('Unset identity "...%s..."', content[100:120])
             subprocess.cmd(
                 ['git', 'config', '--unset', 'core.sshCommand'],
                 cwd=directory,

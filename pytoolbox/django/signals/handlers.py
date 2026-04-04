@@ -98,7 +98,10 @@ def create_site(sender: object, **kwargs: object) -> None:
     site_fields = {'domain': settings.SITE_DOMAIN, 'name': settings.SITE_NAME}
     site = site_app.Site.objects.update_or_create(pk=settings.SITE_ID, defaults=site_fields)[0]
     logger.info(
-        f'Updated settings of Site "{site.name}" with ID {site.pk} and domain {site.domain}',
+        'Updated settings of Site "%s" with ID %s and domain %s',
+        site.name,
+        site.pk,
+        site.domain,
     )
 
 
@@ -119,7 +122,7 @@ def strip_strings_and_validate_model(
 ) -> None:
     """Strip the string fields of the instance and run the instance's full_clean()."""
     if not raw:
-        logger.debug(f'Validate model {instance} on save() with kwargs={kwargs}')
+        logger.debug('Validate model %s on save() with kwargs=%s', instance, kwargs)
         for field in instance._meta.fields:
             if isinstance(field, (fields.CharField, fields.TextField)):
                 field_value = getattr(instance, field.name)
