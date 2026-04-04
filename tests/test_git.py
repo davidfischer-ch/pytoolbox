@@ -24,6 +24,7 @@ EXPECTED_PYTOOLBOX_TAGS: Final[list[str]] = [
 
 
 def test_blame(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+    """blame() returns git blame output with commit, author, date, and line."""
     f = 'David Fischer'
     assert git.blame(pytoolbox_git / 'AUTHORS.md') == [
         f'f6fcb1e7 AUTHORS.md ({f} 2023-06-08 00:03:14 +0200  1) # Main Developers',
@@ -41,11 +42,13 @@ def test_blame(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-n
 
 
 def test_clone_or_pull(pytoolbox_git: Path) -> None:
+    """clone_or_pull() clones or updates a git repository."""
     print(pytoolbox_git)
     pytest.skip('Not implemented.')
 
 
 def test_create_tag(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+    """create_tag() creates a new git tag and raises for duplicates."""
     with raises(exceptions.DuplicateGitTagError):
         git.create_tag(pytoolbox_git, '14.7.0')
     git.create_tag(pytoolbox_git, 'z1.0')
@@ -55,6 +58,7 @@ def test_create_tag(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-ou
 
 
 def test_get_ref(pytoolbox_git: Path) -> None:
+    """get_ref() returns the current branch name or commit hash."""
     get_ref = git.get_ref
     with patch.dict(os.environ, {}, clear=True):
         assert get_ref(pytoolbox_git, kind='branch') == 'main'
@@ -64,6 +68,7 @@ def test_get_ref(pytoolbox_git: Path) -> None:
 
 
 def test_get_ref_from_gitlab_ci(pytoolbox_git: Path) -> None:
+    """get_ref() returns CI variable when running in GitLab CI."""
     get_ref = git.get_ref
     with patch.dict(os.environ, {'CI_COMMIT_REF_NAME': 'toto'}, clear=True):
         assert get_ref(pytoolbox_git, kind='branch') == 'toto'
@@ -73,12 +78,14 @@ def test_get_ref_from_gitlab_ci(pytoolbox_git: Path) -> None:
 
 
 def test_get_tags(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+    """get_tags() returns list of git tags in reverse chronological order."""
     tags = git.get_tags(pytoolbox_git)
     assert tags[: len(EXPECTED_PYTOOLBOX_TAGS)] == EXPECTED_PYTOOLBOX_TAGS
     assert '' not in tags  # Known potential bug
 
 
 def test_get_tags_with_ref(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+    """get_tags() with ref parameter returns tags reachable from that ref."""
     tags = git.get_tags
     assert tags(pytoolbox_git, ref='4863c99a97fe358caa24e48b5c477b852b5a6721') == ['14.7.0']
     assert tags(pytoolbox_git, ref='0b87f1b5cf21e18205e334652167c1055d0b4c13') == []
@@ -88,6 +95,7 @@ def test_get_tags_with_ref(pytoolbox_git: Path) -> None:  # pylint:disable=redef
 
 
 def test_scoped_ssh_key() -> None:
+    """scoped_ssh_key() temporarily configures git to use an SSH key."""
     with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
         with git.scoped_ssh_key('.', 'key-data') as name:
@@ -108,6 +116,7 @@ def test_scoped_ssh_key() -> None:
 
 
 def test_scoped_ssh_key_with_options() -> None:
+    """scoped_ssh_key() passes additional SSH options to git."""
     with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
         with git.scoped_ssh_key(

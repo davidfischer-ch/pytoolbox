@@ -12,11 +12,13 @@ from pytoolbox import decorators
 
 @decorators.run_once
 def increment(counter: int) -> int:
+    """Increment the counter by one."""
     return counter + 1
 
 
 @decorators.run_once
 def decrement(counter: int) -> int:
+    """Decrement the counter by one."""
     return counter - 1
 
 
@@ -101,6 +103,7 @@ def test_hybridmethod_class_level_access() -> None:
     """Hybridmethod called on the class receives the class."""
 
     class MyClass:
+        """Test class."""
         value = 'class_val'
 
         @decorators.hybridmethod
@@ -114,6 +117,7 @@ def test_hybridmethod_instance_level_access() -> None:
     """Hybridmethod called on an instance receives the instance."""
 
     class MyClass:
+        """Test class."""
         value = 'class_val'
 
         def __init__(self):

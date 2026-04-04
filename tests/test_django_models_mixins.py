@@ -21,6 +21,8 @@ def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
     """Relation fields are excluded from validation, regular fields are not."""
 
     class TestModel(mixins.FasterValidateOnSaveMixin, models.Model):
+        """Test model with ForeignKey for testing FasterValidateOnSaveMixin."""
+
         name = models.CharField(max_length=100)
         other = models.ForeignKey(
             'auth.User',
@@ -29,6 +31,8 @@ def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
         )
 
         class Meta:
+            """Meta class for test model."""
+
             app_label = 'test'
 
     instance = TestModel.__new__(TestModel)
@@ -46,7 +50,11 @@ def test_public_meta_mixin() -> None:
     """meta() classmethod exposes the private _meta for use in templates."""
 
     class TestModel(mixins.PublicMetaMixin, models.Model):
+        """Test model for testing PublicMetaMixin."""
+
         class Meta:
+            """Meta class for test model."""
+
             app_label = 'test'
 
     assert TestModel.meta() is TestModel._meta  # pylint:disable=no-member
@@ -61,6 +69,7 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
     """save() calls full_clean() when validate_on_save is True (default)."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
@@ -76,10 +85,15 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
     """save() skips full_clean() when validate_on_save is set to False."""
 
     class Base:
+        """Base class with save method."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
+        """Test object with ValidateOnSaveMixin disabled."""
+
         validate_on_save = False
         full_clean = MagicMock()
 
@@ -92,10 +106,15 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
     """save(validate=False) bypasses full_clean() even if default is True."""
 
     class Base:
+        """Base class with save method."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             pass
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
+        """Test object with ValidateOnSaveMixin."""
+
         full_clean = MagicMock()
 
     obj = TestObj()
@@ -113,10 +132,15 @@ def test_always_update_fields_mixin() -> None:
     saved_kwargs = {}
 
     class Base:
+        """Base class with save method."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
+        """Test object with AlwaysUpdateFieldsMixin."""
+
         always_update_fields = ('modified_at',)
 
     obj = TestObj()
@@ -130,10 +154,15 @@ def test_always_update_fields_mixin_no_update_fields() -> None:
     saved_kwargs = {}
 
     class Base:
+        """Base class with save method."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
+        """Test object with AlwaysUpdateFieldsMixin."""
+
         always_update_fields = ('modified_at',)
 
     obj = TestObj()
@@ -146,10 +175,15 @@ def test_always_update_fields_mixin_force_update() -> None:
     saved_kwargs = {}
 
     class Base:
+        """Base class with save method."""
+
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
+        """Test object with AlwaysUpdateFieldsMixin."""
+
         always_update_fields = ('modified_at',)
 
     obj = TestObj()
@@ -167,6 +201,7 @@ def test_auto_force_insert_mixin() -> None:
     saved_kwargs = {}
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             saved_kwargs.update(kwargs)
 
@@ -188,6 +223,7 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
     saved_kwargs = {}
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             saved_kwargs.update(kwargs)
 
@@ -211,6 +247,7 @@ def test_call_fields_pre_save_mixin() -> None:
     field3 = MagicMock(primary_key=False)
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
@@ -255,12 +292,14 @@ def _make_auto_remove_pk_obj(pk_value=1):
     saved_kwargs = {}
 
     class Base:
+        """Test class."""
         def __init__(self):
             self.pk = pk_value
             self._meta = MagicMock()
             self._meta.pk.attname = 'id'
 
         def save(self, **kwargs):
+            """Test method."""
             saved_kwargs.update(kwargs)
 
     class TestObj(mixins.AutoRemovePKFromUpdateFieldsMixin, Base):
@@ -318,6 +357,7 @@ def _make_auto_update_obj(adding=False):
     saved_kwargs = {}
 
     class Base:
+        """Test class."""
         def __init__(self):
             self._state = MagicMock(adding=adding)
             self._meta = MagicMock()
@@ -385,7 +425,9 @@ def _make_uniqueness_obj(
     """Create a test object for BetterUniquenessErrorsMixin."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             pass
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
@@ -402,7 +444,9 @@ def test_uniqueness_save_converts_integrity_error() -> None:
     """IntegrityError with duplicate key is converted to ValidationError."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             raise IntegrityError(
                 'duplicate key value violates unique (name)',
             )
@@ -426,7 +470,9 @@ def test_uniqueness_save_reraises_non_matching_integrity() -> None:
     """IntegrityError without duplicate key pattern is re-raised as-is."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             raise IntegrityError('some other error')
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
@@ -444,7 +490,9 @@ def test_uniqueness_save_disabled() -> None:
     """When unique_from_integrity_error is False, IntegrityError is raised."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             raise IntegrityError('duplicate key value (name, org)')
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
@@ -462,7 +510,9 @@ def test_uniqueness_hidden_fields_calls_handler() -> None:
     """When all fields are hidden, _handle_hidden_duplicate_key_error is called."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             raise IntegrityError('duplicate key value (org)')
 
     class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
@@ -484,6 +534,7 @@ def test_perform_unique_checks_hides_fields() -> None:
     error.params = {'unique_check': ['org', 'name']}
 
     class Base:
+        """Test class."""
         def _perform_unique_checks(self, unique_checks):  # pylint:disable=unused-argument
             return {'__all__': [error]}
 
@@ -506,6 +557,7 @@ def test_perform_unique_checks_no_hidden() -> None:
     error.params = {'unique_check': ['name']}
 
     class Base:
+        """Test class."""
         def _perform_unique_checks(self, unique_checks):
             return {'name': [error]}
 
@@ -524,6 +576,7 @@ def test_perform_unique_checks_single_field_error_passthrough() -> None:
     error.params = {'unique_check': ['name']}
 
     class Base:
+        """Test class."""
         def _perform_unique_checks(self, unique_checks):
             return {'name': [error]}
 
@@ -547,7 +600,9 @@ def test_save_instance_files_new_instance() -> None:
     save_calls = []
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             save_calls.append(dict(kwargs))
 
     file_field = MagicMock(spec=FileField)
@@ -570,7 +625,9 @@ def test_save_instance_files_existing_instance() -> None:
     save_calls = []
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             save_calls.append(dict(kwargs))
 
     file_field = MagicMock(spec=FileField)
@@ -596,7 +653,9 @@ def _make_preconditions_obj():
     saved_kwargs = {}
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             saved_kwargs.update(kwargs)
 
         def _do_update(self, base_qs, using, pk_val, values, uf, fu, returning_fields):
@@ -668,7 +727,9 @@ def test_update_preconditions_save_catches_database_error() -> None:
     """Save raises precondition error when DB error contains 'did not affect'."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             raise DatabaseError('did not affect any rows')
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
@@ -683,7 +744,9 @@ def test_update_preconditions_save_reraises_unrelated() -> None:
     """Save re-raises DatabaseError that does not match 'did not affect'."""
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             raise DatabaseError('connection lost')
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
@@ -698,6 +761,7 @@ def test_do_update_precondition_failure() -> None:
     """_do_update raises precondition error when row exists but update fails."""
 
     class Base:
+        """Test class."""
         def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
             return False
 
@@ -720,6 +784,7 @@ def test_do_update_forwards_returning_fields() -> None:
     received = {}
 
     class Base:
+        """Test class."""
         def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
             received['returning_fields'] = returning_fields
             return True
@@ -742,6 +807,7 @@ def test_state_transition_events_init() -> None:
     """__init__ stores current state as previous_state."""
 
     class Base:
+        """Test class."""
         def __init__(self):
             self.state = 'PENDING'
 
@@ -756,10 +822,12 @@ def test_state_transition_events_fires_signal() -> None:
     """save() fires post_state_transition signal when state is updated."""
 
     class Base:
+        """Test class."""
         def __init__(self):
             self.state = 'PENDING'
 
         def save(self, *args, **kwargs):
+            """Test method."""
             pass
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
@@ -783,10 +851,12 @@ def test_state_transition_events_updates_previous() -> None:
     """After save with state update, previous_state is updated."""
 
     class Base:
+        """Test class."""
         def __init__(self):
             self.state = 'PENDING'
 
         def save(self, *args, **kwargs):
+            """Test method."""
             pass
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
@@ -807,10 +877,12 @@ def test_state_transition_events_no_signal_without_state() -> None:
     """save() does not fire signal when state is not in update_fields."""
 
     class Base:
+        """Test class."""
         def __init__(self):
             self.state = 'PENDING'
 
         def save(self, *args, **kwargs):
+            """Test method."""
             pass
 
     class TestObj(mixins.StateTransitionEventsMixin, Base):
@@ -849,7 +921,9 @@ def _make_state_machine(current_state='PENDING'):
             return sources, True  # valid=True means use filter
 
     class Base:
+        """Test class."""
         def save(self, *args, **kwargs):
+            """Test method."""
             pass
 
         def _do_update(self, base_qs, using, pk, values, uf, fu):

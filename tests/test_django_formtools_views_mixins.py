@@ -65,6 +65,7 @@ def test_datatable_view_get_context_data_with_table() -> None:
     """Context is updated with the table view's context when a table view exists."""
 
     class Base:
+        """Test class."""
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
             return {'key': 'value'}
 
@@ -84,6 +85,7 @@ def test_datatable_view_get_context_data_without_table() -> None:
     """Context is unchanged when no table view exists for the current step."""
 
     class Base:
+        """Test class."""
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
             return {'key': 'value'}
 
@@ -117,6 +119,7 @@ def test_serialize_step_instance_mixin_get_form_kwargs() -> None:
     """Serialized instance data is merged into form kwargs for the matching step."""
 
     class Base:
+        """Test class."""
         def get_form_kwargs(self, step):  # pylint:disable=unused-argument
             return {'initial': {}}
 
@@ -139,6 +142,7 @@ def test_serialize_step_instance_mixin_get_form_kwargs_no_serialized() -> None:
     """Form kwargs are unchanged when no serialized instance exists for the step."""
 
     class Base:
+        """Test class."""
         def get_form_kwargs(self, step):  # pylint:disable=unused-argument
             return {'initial': {}}
 
@@ -159,6 +163,7 @@ def test_serialize_step_instance_mixin_get_form() -> None:
     sentinel_form = MagicMock()
 
     class Base:
+        """Test class."""
         def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
             return sentinel_form
 
@@ -183,6 +188,7 @@ def test_serialize_step_instance_mixin_get_form_no_serialized() -> None:
     sentinel_form = MagicMock()
 
     class Base:
+        """Test class."""
         def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
             return sentinel_form
 

@@ -9,6 +9,8 @@ def test_action_to_queryset_mixin_matched() -> None:
     """Returns the action-specific queryset when the action matches."""
 
     class FakeView(mixins.ActionToQuerysetMixin):
+        """Fake view with action-specific querysets."""
+
         queryset = 'default_qs'
         querysets = {'list': 'list_qs', 'create': 'create_qs'}
         action = 'list'
@@ -21,6 +23,8 @@ def test_action_to_queryset_mixin_fallback() -> None:
     """Falls back to the default queryset for unmapped actions."""
 
     class FakeView(mixins.ActionToQuerysetMixin):
+        """Fake view with action-specific querysets."""
+
         queryset = 'default_qs'
         querysets = {'list': 'list_qs'}
         action = 'retrieve'
@@ -33,6 +37,8 @@ def test_action_to_serializer_mixin_matched() -> None:
     """Returns the action-specific serializer class when the action matches."""
 
     class FakeView(mixins.ActionToSerializerMixin):
+        """Fake view with action-specific serializers."""
+
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'list': 'ListSerializer'}
         action = 'list'
@@ -45,6 +51,8 @@ def test_action_to_serializer_mixin_fallback() -> None:
     """Falls back to the default serializer class for unmapped actions."""
 
     class FakeView(mixins.ActionToSerializerMixin):
+        """Fake view with action-specific serializers."""
+
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'list': 'ListSerializer'}
         action = 'create'
@@ -57,6 +65,8 @@ def test_method_to_queryset_mixin_matched() -> None:
     """Returns the method-specific queryset when the HTTP method matches."""
 
     class FakeView(mixins.MethodToQuerysetMixin):
+        """Fake view with method-specific querysets."""
+
         queryset = 'default_qs'
         querysets = {'GET': 'get_qs', 'POST': 'post_qs'}
         request = MagicMock(method='GET')
@@ -69,6 +79,8 @@ def test_method_to_queryset_mixin_fallback() -> None:
     """Falls back to the default queryset for unmapped HTTP methods."""
 
     class FakeView(mixins.MethodToQuerysetMixin):
+        """Fake view with method-specific querysets."""
+
         queryset = 'default_qs'
         querysets = {'GET': 'get_qs'}
         request = MagicMock(method='DELETE')
@@ -81,6 +93,8 @@ def test_method_to_serializer_mixin_matched() -> None:
     """Returns the method-specific serializer class when the HTTP method matches."""
 
     class FakeView(mixins.MethodToSerializerMixin):
+        """Fake view with method-specific serializers."""
+
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'POST': 'PostSerializer'}
         request = MagicMock(method='POST')
@@ -93,6 +107,8 @@ def test_method_to_serializer_mixin_fallback() -> None:
     """Falls back to the default serializer class for unmapped HTTP methods."""
 
     class FakeView(mixins.MethodToSerializerMixin):
+        """Fake view with method-specific serializers."""
+
         serializer_class = 'DefaultSerializer'
         serializers_classes = {'POST': 'PostSerializer'}
         request = MagicMock(method='GET')
@@ -105,10 +121,14 @@ def test_redirect_to_login_mixin_authenticated() -> None:
     """Authenticated users get the original response, no redirect."""
 
     class Base:
+        """Base class providing finalize_response."""
+
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
             return response
 
     class FakeView(mixins.RedirectToLoginMixin, Base):
+        """Fake view combining RedirectToLoginMixin with base."""
+
         pass
 
     view = FakeView()
@@ -125,10 +145,14 @@ def test_redirect_to_login_mixin_unauthenticated_non_browsable() -> None:
     """Unauthenticated users with non-browsable renderers get no redirect."""
 
     class Base:
+        """Base class providing finalize_response."""
+
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
             return response
 
     class FakeView(mixins.RedirectToLoginMixin, Base):
+        """Fake view combining RedirectToLoginMixin with base."""
+
         pass
 
     view = FakeView()
@@ -148,10 +172,14 @@ def test_redirect_to_login_mixin_unauthenticated_browsable() -> None:
     from rest_framework import renderers
 
     class Base:
+        """Base class providing finalize_response."""
+
         def finalize_response(self, request, response, *args, **kwargs):  # pylint:disable=unused-argument
             return response
 
     class FakeView(mixins.RedirectToLoginMixin, Base):
+        """Fake view combining RedirectToLoginMixin with base."""
+
         pass
 
     view = FakeView()

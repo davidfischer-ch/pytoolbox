@@ -10,6 +10,8 @@ from pytoolbox import comparison, console
 
 
 class Point2D(comparison.SlotsEqualityMixin):
+    """2D point class for testing SlotsEqualityMixin."""
+
     __slots__ = ('x', 'y', 'name')
 
     def __init__(self, x, y, name):
@@ -19,10 +21,14 @@ class Point2D(comparison.SlotsEqualityMixin):
 
 
 class Point2Dv2(Point2D):
+    """Subclass of Point2D for testing inheritance equality."""
+
     pass
 
 
 class Point3D(comparison.SlotsEqualityMixin):
+    """3D point class for testing equality with different slot sets."""
+
     __slots__ = ('x', 'y', 'z', 'name')
 
     def __init__(self, x, y, z, name):

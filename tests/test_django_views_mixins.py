@@ -17,16 +17,25 @@ def test_add_request_to_form_kwargs() -> None:
     """Request is added to form kwargs when form is a RequestMixin."""
 
     class Base:
+        """Base class providing get_form_kwargs and get_form_class."""
+
         def get_form_kwargs(self, *args, **kwargs):
+            """Return form kwargs dictionary."""
             return {'initial': {}}
 
         def get_form_class(self):
+            """Return a form class that is a RequestMixin."""
+
             class MyForm(forms_mixins.RequestMixin):
+                """Form class that is a RequestMixin."""
+
                 pass
 
             return MyForm
 
     class View(mixins.AddRequestToFormKwargsMixin, Base):
+        """View combining the mixin with the base."""
+
         request = MagicMock()
 
     view = View()
@@ -39,16 +48,24 @@ def test_add_request_not_added_for_plain_form() -> None:
     """Request is not added when form is not a RequestMixin subclass."""
 
     class PlainForm:
+        """Form class that does not use RequestMixin."""
+
         pass
 
     class Base:
+        """Base class providing get_form_kwargs and get_form_class."""
+
         def get_form_kwargs(self, *args, **kwargs):
+            """Return form kwargs dictionary."""
             return {'initial': {}}
 
         def get_form_class(self):
+            """Return PlainForm which is not a RequestMixin."""
             return PlainForm
 
     class View(mixins.AddRequestToFormKwargsMixin, Base):
+        """View combining the mixin with the base."""
+
         request = MagicMock()
 
     view = View()
@@ -65,6 +82,8 @@ def test_base_model_multiple_context_name_explicit() -> None:
     """Explicit context_object_name is returned as-is."""
 
     class View(mixins.BaseModelMultipleMixin):
+        """View with explicit context_object_name."""
+
         context_object_name = 'articles'
 
     view = View()
@@ -78,6 +97,8 @@ def test_base_model_multiple_context_name_from_model() -> None:
     instance_list.model._meta.model._meta.model_name = 'article'
 
     class View(mixins.BaseModelMultipleMixin):
+        """View without explicit context_object_name."""
+
         context_object_name = None
 
     view = View()
@@ -94,6 +115,8 @@ def test_base_model_single_context_name_explicit() -> None:
     """Explicit context_object_name is returned as-is."""
 
     class View(mixins.BaseModelSingleMixin):
+        """View with explicit context_object_name."""
+
         context_object_name = 'article'
 
     view = View()
@@ -105,12 +128,18 @@ def test_base_model_single_context_name_from_instance() -> None:
     from django.db import models
 
     class FakeModel(models.Model):
+        """Fake model for testing context name derivation."""
+
         class Meta:
+            """Meta class for FakeModel."""
+
             app_label = 'test'
 
     instance = FakeModel.__new__(FakeModel)
 
     class View(mixins.BaseModelSingleMixin):
+        """View without explicit context_object_name."""
+
         context_object_name = None
 
     view = View()
@@ -127,10 +156,15 @@ def test_initial_mixin_get_initial() -> None:
     """get_initial populates values from query string via initials map."""
 
     class Base:
+        """Base class providing get_initial method."""
+
         def get_initial(self):
+            """Return initial values dictionary."""
             return {}
 
     class View(mixins.InitialMixin, Base):
+        """View with initials mapping for populating initial values."""
+
         initials = {'name': 'default_name', 'age': 25}
 
     view = View()
@@ -145,6 +179,8 @@ def test_set_initial_from_func_success() -> None:
     """set_initial_from_func applies func to the query param value."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_func success case."""
+
         pass
 
     view = View()
@@ -167,6 +203,8 @@ def test_set_initial_from_func_value_error() -> None:
     """set_initial_from_func returns None and adds error on ValueError."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_func ValueError handling."""
+
         pass
 
     view = View()
@@ -188,6 +226,8 @@ def test_set_initial_from_func_key_error() -> None:
     """set_initial_from_func returns None and adds error on KeyError."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_func KeyError handling."""
+
         pass
 
     def bad_func(val):
@@ -212,6 +252,8 @@ def test_set_initial_from_func_default() -> None:
     """set_initial_from_func uses default when key is not in GET."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_func default value."""
+
         pass
 
     sentinel = object()
@@ -238,6 +280,8 @@ def test_set_initial_from_model_success() -> None:
     """set_initial_from_model looks up instance by pk from query string."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_model success case."""
+
         pass
 
     view = View()
@@ -264,6 +308,8 @@ def test_set_initial_from_model_value_error() -> None:
     """set_initial_from_model returns None on ValueError from pk lookup."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_model ValueError handling."""
+
         pass
 
     view = View()
@@ -288,6 +334,8 @@ def test_set_initial_from_model_does_not_exist() -> None:
     """set_initial_from_model returns None when model instance not found."""
 
     class View(mixins.InitialMixin):
+        """View for testing set_initial_from_model DoesNotExist handling."""
+
         pass
 
     view = View()
@@ -318,10 +366,15 @@ def test_logged_cookie_mixin_authenticated() -> None:
     """Sets logged cookie to True for authenticated users."""
 
     class Base:
+        """Base class providing post method."""
+
         def post(self, *args, **kwargs):
+            """Return mocked response."""
             return MagicMock()
 
     class View(mixins.LoggedCookieMixin, Base):
+        """View combining LoggedCookieMixin with base."""
+
         request = MagicMock()
 
     view = View()
@@ -334,10 +387,15 @@ def test_logged_cookie_mixin_unauthenticated() -> None:
     """Sets logged cookie to False for unauthenticated users."""
 
     class Base:
+        """Base class providing post method."""
+
         def post(self, *args, **kwargs):
+            """Return mocked response."""
             return MagicMock()
 
     class View(mixins.LoggedCookieMixin, Base):
+        """View combining LoggedCookieMixin with base."""
+
         request = MagicMock()
 
     view = View()
@@ -355,10 +413,15 @@ def test_redirect_mixin_redirects() -> None:
     """dispatch() redirects when redirect_view is set."""
 
     class Base:
+        """Base class providing dispatch method."""
+
         def dispatch(self, request, *args, **kwargs):
+            """Return original response."""
             return 'original'
 
     class View(mixins.RedirectMixin, Base):
+        """View with redirect_view configured."""
+
         redirect_view = 'home'
 
     view = View()
@@ -375,10 +438,15 @@ def test_redirect_mixin_no_redirect() -> None:
     """dispatch() proceeds normally when redirect_view is None."""
 
     class Base:
+        """Base class providing dispatch method."""
+
         def dispatch(self, request, *args, **kwargs):
+            """Return original response."""
             return 'original'
 
     class View(mixins.RedirectMixin, Base):
+        """View without redirect_view configured."""
+
         redirect_view = None
 
     view = View()
@@ -395,6 +463,8 @@ def test_template_response_mixin_explicit_name() -> None:
     """Returns template_name when explicitly set."""
 
     class View(mixins.TemplateResponseMixin):
+        """View with explicit template_name."""
+
         template_name = 'custom.html'
 
     view = View()
@@ -405,6 +475,8 @@ def test_template_response_mixin_auto_names() -> None:
     """Generates template candidates from directory and action."""
 
     class View(mixins.TemplateResponseMixin):
+        """View with template_directory and action for auto-generation."""
+
         template_name = None
         template_directory = 'articles'
         action = 'detail'
@@ -426,13 +498,19 @@ def test_validation_errors_mixin_catches_field_error() -> None:
     """form_valid catches ValidationError and adds field errors to form."""
 
     class Base:
+        """Base class that raises field ValidationError."""
+
         def form_valid(self, form):
+            """Raise field ValidationError."""
             raise ValidationError({'name': 'Name is required'})
 
         def form_invalid(self, form):
+            """Return invalid response."""
             return 'invalid_response'
 
     class View(mixins.ValidationErrorsMixin, Base):
+        """View combining ValidationErrorsMixin with base."""
+
         pass
 
     view = View()
@@ -446,13 +524,19 @@ def test_validation_errors_mixin_catches_non_field_error() -> None:
     """form_valid adds non-field errors to NON_FIELD_ERRORS."""
 
     class Base:
+        """Base class that raises non-field ValidationError."""
+
         def form_valid(self, form):
+            """Raise non-field ValidationError."""
             raise ValidationError('General error')
 
         def form_invalid(self, form):
+            """Return invalid response."""
             return 'invalid_response'
 
     class View(mixins.ValidationErrorsMixin, Base):
+        """View combining ValidationErrorsMixin with base."""
+
         pass
 
     view = View()
@@ -467,10 +551,15 @@ def test_validation_errors_mixin_success() -> None:
     """form_valid returns normally when no ValidationError is raised."""
 
     class Base:
+        """Base class with successful form_valid."""
+
         def form_valid(self, form):
+            """Return success response."""
             return 'success'
 
     class View(mixins.ValidationErrorsMixin, Base):
+        """View combining ValidationErrorsMixin with base."""
+
         pass
 
     view = View()

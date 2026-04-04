@@ -18,15 +18,20 @@ def test_get_properties() -> None:
     """Only properties are yielded, not regular methods."""
 
     class MyObj:
+        """Test class with properties and a method."""
+
         @property
         def name(self):
+            """Return name property."""
             return 'hello'
 
         @property
         def value(self):
+            """Return value property."""
             return 42
 
         def method(self):
+            """Regular method (not a property)."""
             pass
 
     obj = MyObj()
@@ -38,12 +43,18 @@ def test_merge_bases_attribute() -> None:
     """Attribute values are accumulated through the MRO using merge_func."""
 
     class Base:
+        """Base class with items."""
+
         items = [1, 2]
 
     class Child(Base):
+        """Child class with additional items."""
+
         items = [3]
 
     class GrandChild(Child):
+        """GrandChild class with additional items."""
+
         items = [4]
 
     result = types.merge_bases_attribute(GrandChild, 'items', [], [])
@@ -56,9 +67,13 @@ def test_merge_bases_attribute_with_default() -> None:
     """Classes missing the attribute use the default value."""
 
     class A:
+        """Class without tags attribute."""
+
         pass
 
     class B(A):
+        """Class with tags attribute."""
+
         tags = ('x',)
 
     result = types.merge_bases_attribute(B, 'tags', (), ())

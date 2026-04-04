@@ -4,6 +4,7 @@ from pytoolbox import string
 
 
 def test_camel_to_dash() -> None:
+    """camel_to_dash() converts camelCase to dash-separated string."""
     assert string.camel_to_dash('snakesOnAPlane') == 'snakes-on-a-plane'
     assert string.camel_to_dash('SnakesOnAPlane') == 'snakes-on-a-plane'
     assert string.camel_to_dash('-Snakes-On-APlane-') == '-snakes-on-a-plane-'
@@ -16,6 +17,7 @@ def test_camel_to_dash() -> None:
 
 
 def test_camel_to_snake() -> None:
+    """camel_to_snake() converts camelCase to snake_case."""
     assert string.camel_to_snake('snakesOnAPlane') == 'snakes_on_a_plane'
     assert string.camel_to_snake('SnakesOnAPlane') == 'snakes_on_a_plane'
     assert string.camel_to_snake('_Snakes_On_APlane_') == '_snakes_on_a_plane_'
@@ -28,6 +30,7 @@ def test_camel_to_snake() -> None:
 
 
 def test_dash_to_camel() -> None:
+    """dash_to_camel() converts dash-separated string to camelCase."""
     assert string.dash_to_camel('-snakes-on-a-plane-') == '-snakesOnAPlane-'
     assert string.dash_to_camel('snakes-on-a-plane') == 'snakesOnAPlane'
     assert string.dash_to_camel('Snakes-on-a-plane') == 'snakesOnAPlane'
@@ -40,6 +43,7 @@ def test_dash_to_camel() -> None:
 
 
 def test_snake_to_camel() -> None:
+    """snake_to_camel() converts snake_case to camelCase."""
     assert string.snake_to_camel('_snakes_on_a_plane_') == '_snakesOnAPlane_'
     assert string.snake_to_camel('snakes_on_a_plane') == 'snakesOnAPlane'
     assert string.snake_to_camel('Snakes_on_a_plane') == 'snakesOnAPlane'

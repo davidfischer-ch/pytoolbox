@@ -17,6 +17,7 @@ def _force_color(monkeypatch):
 
 
 def test_get_logger_from_callable() -> None:
+    """get_logger() creates a logger that calls the provided callable."""
     func = mock.Mock(return_value=None)
     func.__name__ = 'func'
     log = logging.get_logger(func)
@@ -28,16 +29,19 @@ def test_get_logger_from_callable() -> None:
 
 
 def test_get_logger_from_logger() -> None:
+    """get_logger() returns the same logger for equivalent inputs."""
     assert logging.get_logger(stdlib_logging.getLogger(__name__)) is logging.get_logger(__name__)
     assert logging.get_logger(logging.get_logger(__name__)) is logging.get_logger(__name__)
 
 
 def test_get_logger_from_none() -> None:
+    """get_logger() raises NotImplementedError when called with None."""
     with raises(NotImplementedError, match='Logging with None'):
         logging.get_logger(None)
 
 
 def test_setup_logging_colorize_only_on_console_handler() -> None:
+    """setup_logging() applies ColorizeFormatter only to console handler."""
     log = logging.setup_logging(
         'test_colorize_console',
         reset=True,
@@ -49,6 +53,7 @@ def test_setup_logging_colorize_only_on_console_handler() -> None:
 
 
 def test_setup_logging_file_handler_not_colorized(tmp_path) -> None:
+    """setup_logging() does not colorize file handlers."""
     log = logging.setup_logging(
         'test_colorize_file',
         reset=True,
@@ -63,6 +68,7 @@ def test_setup_logging_file_handler_not_colorized(tmp_path) -> None:
 
 
 def test_setup_logging_child_logger_gets_colorized(tmp_path) -> None:
+    """setup_logging() colorizes child loggers but not file output."""
     logging.setup_logging(
         'test_parent',
         reset=True,
@@ -80,6 +86,7 @@ def test_setup_logging_child_logger_gets_colorized(tmp_path) -> None:
 
 
 def test_colorize_formatter_warning() -> None:
+    """ColorizeFormatter applies yellow color to WARNING level."""
     formatter = logging.ColorizeFormatter()
     record = stdlib_logging.LogRecord(
         name='test',
@@ -97,6 +104,7 @@ def test_colorize_formatter_warning() -> None:
 
 
 def test_colorize_formatter_error() -> None:
+    """ColorizeFormatter applies red color to ERROR level."""
     formatter = logging.ColorizeFormatter()
     record = stdlib_logging.LogRecord(
         name='test',
@@ -113,6 +121,7 @@ def test_colorize_formatter_error() -> None:
 
 
 def test_colorize_formatter_no_color_for_unknown_level() -> None:
+    """ColorizeFormatter does not apply color to levels without color mapping."""
     formatter = logging.ColorizeFormatter()
     record = stdlib_logging.LogRecord(
         name='test',
@@ -129,6 +138,7 @@ def test_colorize_formatter_no_color_for_unknown_level() -> None:
 
 
 def test_colorize_formatter_custom_color_by_level() -> None:
+    """ColorizeFormatter uses custom color mapping when provided."""
     formatter = logging.ColorizeFormatter(
         color_by_level={stdlib_logging.CRITICAL: 'magenta'},
     )
@@ -146,6 +156,7 @@ def test_colorize_formatter_custom_color_by_level() -> None:
 
 
 def test_colorize_formatter_does_not_mutate_record() -> None:
+    """ColorizeFormatter does not modify the original log record."""
     formatter = logging.ColorizeFormatter()
     record = stdlib_logging.LogRecord(
         name='test',

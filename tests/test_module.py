@@ -15,14 +15,19 @@ _private_variable = 0  # pylint:disable=invalid-name
 
 
 def public_function():
+    """A public test function for module testing."""
     pass
 
 
 class PublicClass(types.MissingType):
+    """A public test class for module testing."""
+
     pass
 
 
 class _PrivateClass(_validation.CleanAttributesMixin):
+    """A private test class for module testing."""
+
     pass
 
 

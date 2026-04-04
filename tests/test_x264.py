@@ -4,6 +4,7 @@ from pytoolbox.multimedia.x264 import ENCODING_REGEX
 
 
 def test_encoding_regex() -> None:
+    """ENCODING_REGEX extracts encoding progress fields from x264 output."""
     assert ENCODING_REGEX.match(
         '[79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02',
     ).groupdict() == {

@@ -14,6 +14,7 @@ from pytoolbox.unittest import (
 
 
 def test_asserts() -> None:
+    """asserts helper provides fluent assertion methods."""
     asserts.true(True)
     asserts.false(False)
     with asserts.raises(AssertionError):
@@ -22,6 +23,7 @@ def test_asserts() -> None:
 
 
 def test_should_run() -> None:
+    """FilterByTagsMixin.should_run() determines if a test should run based on tags."""
     assert FilterByTagsMixin.should_run(set(), set(), set(), set(), set()) is True
     assert FilterByTagsMixin.should_run(set(), set(), set(), set(), {'b'}) is True
     assert FilterByTagsMixin.should_run(set(), set(), set(), {'a'}, set()) is False
@@ -38,6 +40,7 @@ def test_should_run() -> None:
 
 
 def test_should_run_with_extra() -> None:
+    """FilterByTagsMixin.should_run() handles extra tags correctly."""
     assert FilterByTagsMixin.should_run(set(), set(), {'a'}, set(), set()) is True
     assert FilterByTagsMixin.should_run(set(), set(), {'a'}, set(), {'b'}) is True
     assert FilterByTagsMixin.should_run(set(), set(), {'a'}, {'a'}, set()) is False
@@ -55,6 +58,7 @@ def test_should_run_with_extra() -> None:
 
 @skip_if_missing('oAuakwmMMMcccyy-aaa')
 def test_skip_if_missing_skipped() -> None:
+    """skip_if_missing() skips test when binary is not found."""
     raise AssertionError('This should be skipped')
 
 

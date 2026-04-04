@@ -50,6 +50,7 @@ wbQ9FtzdmNZDu5VqtkD8eJ6qAsTd83AIKazwGIGuou0513KDwYwmNGTyWxR1mHfm7zc9rN
 
 @skip_if_missing('ssh-agent')
 def test_add_fingerprint(tmp_path):
+    """add_fingerprint() adds host key to known_hosts file."""
     path = tmp_path / 'signature'
     ssh.add_fingerprint(path, 'github.com')
     assert ' ssh-rsa ' in path.read_text(encoding='utf-8')
@@ -57,6 +58,7 @@ def test_add_fingerprint(tmp_path):
 
 @skip_if_missing('ssh-agent')
 def test_add_key():
+    """add_key() adds an SSH private key to the agent."""
     ssh.stop_agent()
     assert not ssh.is_agent_up()
     try:
@@ -73,6 +75,7 @@ def test_add_key():
 
 @skip_if_missing('ssh-agent')
 def test_scoped_agent():
+    """scoped_agent() starts an agent for the context and cleans up on exit."""
     ssh.stop_agent()
     assert not ssh.is_agent_up()
     with ssh.scoped_agent() as variables:
@@ -86,6 +89,7 @@ def test_scoped_agent():
 
 @skip_if_missing('ssh-agent')
 def test_start_agent():
+    """start_agent() starts an SSH agent and returns environment variables."""
     ssh.stop_agent()
     assert not ssh.is_agent_up()
     variables = ssh.start_agent()
@@ -98,6 +102,7 @@ def test_start_agent():
 
 @skip_if_missing('ssh-agent')
 def test_stop_agent():
+    """stop_agent() stops a running SSH agent."""
     ssh.stop_agent()
     assert not ssh.is_agent_up()
     assert not ssh.stop_agent()

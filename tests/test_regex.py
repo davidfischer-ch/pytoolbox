@@ -46,6 +46,7 @@ from pytoolbox import exceptions, regex
     ],
 )
 def test_group_replace(mapping, expected: str) -> None:
+    """group_replace() replaces regex groups with provided values."""
     pattern = re.compile(r'(?P<amount>\d+) (?P<money>[A-Z]{3})')
     text = 'Our price 100 CHF'
     match = pattern.search(text)
@@ -53,6 +54,7 @@ def test_group_replace(mapping, expected: str) -> None:
 
 
 def test_group_replace_optional_group() -> None:
+    """group_replace() raises when an optional group is missing."""
     pattern = re.compile(r'(?P<amount>\d+)? (?P<money>[A-Z]{3})')
     text = 'Our price: CHF'
     match = pattern.search(text)
@@ -61,6 +63,7 @@ def test_group_replace_optional_group() -> None:
 
 
 def test_group_replace_wrong_group() -> None:
+    """group_replace() raises when a non-existent group is referenced."""
     pattern = re.compile(r'(?P<amount>\d+) (?P<money>[A-Z]{3})')
     text = 'Our price 100 CHF'
     match = pattern.search(text)
@@ -69,11 +72,12 @@ def test_group_replace_wrong_group() -> None:
 
 
 def test_match_equality():
-    # pylint:disable=misplaced-comparison-constant
+    """Match object compares equal to strings matching the pattern."""
     assert regex.Match(r'some-s[a-z]+') == 'some-string'
     assert 'some-string' == regex.Match(r'some-s[a-z]+')
     assert 'some-string' != regex.Match(r'other-s[a-z]+')
 
 
 def test_match_repr():
+    """Match repr returns the pattern string."""
     assert repr(regex.Match(r'\s+')) == '\\s+'

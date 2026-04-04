@@ -12,6 +12,7 @@ from pytoolbox import argparse, exceptions, types
 
 
 def test_is_dir() -> None:
+    """is_dir() returns resolved Path for valid directories."""
     assert argparse.is_dir('/home') == Path('/home')
     assert argparse.is_dir(Path('/home')) == Path('/home')
     with pytest.raises(argparse.ArgumentTypeError):
@@ -19,6 +20,7 @@ def test_is_dir() -> None:
 
 
 def test_is_file() -> None:
+    """is_file() returns resolved Path for valid files."""
     assert argparse.is_file('/etc/hosts') == Path('/etc/hosts')
     assert argparse.is_file(Path('/etc/hosts')) == Path('/etc/hosts')
     with pytest.raises(argparse.ArgumentTypeError):
@@ -27,6 +29,7 @@ def test_is_file() -> None:
 
 @no_type_check
 def test_full_paths() -> None:
+    """FullPaths action resolves paths for single and multiple values."""
     namespace = types.DummyObject()
     multi = argparse.FullPaths(None, 'multi')
     multi(None, namespace, ['a', 'b'])
@@ -97,6 +100,7 @@ def test_full_paths_nargs_optional_positional() -> None:
     ],
 )
 def test_chain_action(sep, arguments, expected):
+    """chain_action parses patterns with optional separator."""
 
     def action_some(args):
         assert args.patterns == expected
@@ -144,6 +148,7 @@ def test_full_paths_via_file_arg() -> None:
     ],
 )
 def test_multiple(input_val, expected) -> None:
+    """multiple() wraps a function to apply it to each element of a sequence."""
     func = argparse.multiple(str.upper)
     assert func(input_val) == expected
 
@@ -152,10 +157,12 @@ def test_multiple(input_val, expected) -> None:
 
 
 def test_password_with_value() -> None:
+    """password() returns the value when a password is provided."""
     assert argparse.password('secret') == 'secret'
 
 
 def test_password_prompts_when_empty() -> None:
+    """password() prompts via getpass when value is None or empty."""
     with patch('pytoolbox.argparse.getpass.getpass', return_value='prompted'):
         assert argparse.password(None) == 'prompted'
         assert argparse.password('') == 'prompted'
@@ -165,6 +172,7 @@ def test_password_prompts_when_empty() -> None:
 
 
 def test_range_valid() -> None:
+    """Range() accepts values within the specified bounds."""
     r = argparse.Range(int, 0, 10)
     assert r(5) == 5
     assert r('7') == 7
@@ -173,6 +181,7 @@ def test_range_valid() -> None:
 
 
 def test_range_out_of_bounds() -> None:
+    """Range() raises ArgumentTypeError for values outside bounds."""
     r = argparse.Range(int, 0, 10)
     with pytest.raises(argparse.ArgumentTypeError, match='Must be in range'):
         r(11)
@@ -181,12 +190,14 @@ def test_range_out_of_bounds() -> None:
 
 
 def test_range_invalid_type() -> None:
+    """Range() raises ArgumentTypeError for non-numeric input."""
     r = argparse.Range(int, 0, 10)
     with pytest.raises(argparse.ArgumentTypeError, match='Must be of type int'):
         r('abc')
 
 
 def test_range_float() -> None:
+    """Range() works with float type and bounds."""
     r = argparse.Range(float, 0.0, 1.0)
     assert r('0.5') == 0.5
     with pytest.raises(argparse.ArgumentTypeError, match='Must be in range'):
@@ -197,6 +208,7 @@ def test_range_float() -> None:
 
 
 def test_action_argument_parser_no_args() -> None:
+    """ActionArgumentParser raises when no action is provided."""
     parser = argparse.ActionArgumentParser()
     parser.add_action('do', lambda args: None)
     with pytest.raises(SystemExit, match='An action is required'):
@@ -204,12 +216,15 @@ def test_action_argument_parser_no_args() -> None:
 
 
 def test_action_argument_parser_version(capsys) -> None:
+    """ActionArgumentParser prints version when 'version' action is called."""
     parser = argparse.ActionArgumentParser(version='1.2.3')
     parser.execute(['version'])
     assert capsys.readouterr().out.strip() == '1.2.3'
 
 
 def test_action_argument_parser_handle_called_process_error() -> None:
+    """ActionArgumentParser handles CalledProcessError by raising SystemExit."""
+
     def failing(args):
         raise exceptions.CalledProcessError(cmd=['test'], returncode=1)
 
@@ -220,7 +235,11 @@ def test_action_argument_parser_handle_called_process_error() -> None:
 
 
 def test_action_argument_parser_handle_message_mixin() -> None:
+    """ActionArgumentParser handles MessageMixin exceptions by raising SystemExit."""
+
     class CustomError(exceptions.MessageMixin):
+        """Custom error class for testing MessageMixin handling."""
+
         message = 'Something went wrong'
 
     def failing(args):
@@ -233,6 +252,8 @@ def test_action_argument_parser_handle_message_mixin() -> None:
 
 
 def test_action_argument_parser_unhandled_exception() -> None:
+    """ActionArgumentParser re-raises unhandled exceptions."""
+
     def failing(args):
         raise ValueError('unexpected')
 
@@ -265,5 +286,6 @@ def test_argument_parser_registers_actions() -> None:
     ],
 )
 def test_env_default(env, name, expected):
+    """env_default() returns default dict from environment variable."""
     with patch.dict(os.environ, env, clear=True):
         assert argparse.env_default(name) == expected

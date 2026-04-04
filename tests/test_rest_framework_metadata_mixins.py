@@ -11,10 +11,14 @@ def test_exclude_related_choices_non_related_field() -> None:
     """Non-related fields pass through get_field_info unchanged."""
 
     class Base:
+        """Base class providing get_field_info."""
+
         def get_field_info(self, field):  # pylint:disable=unused-argument
             return {'type': 'string'}
 
     class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
+        """Fake metadata class combining mixin with base."""
+
         pass
 
     metadata = FakeMetadata()
@@ -27,11 +31,16 @@ def test_exclude_related_choices_related_field() -> None:
     """Related fields have their choices temporarily hidden, then class is restored."""
 
     class Base:
+        """Base class providing get_field_info."""
+
         def get_field_info(self, field):
+            """Test method."""
             has_choices = hasattr(field, 'choices')
             return {'type': 'related', 'has_choices': has_choices}
 
     class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
+        """Fake metadata class combining mixin with base."""
+
         pass
 
     metadata = FakeMetadata()
@@ -46,10 +55,15 @@ def test_exclude_related_choices_restores_class_on_error() -> None:
     """Field's original class is restored even when get_field_info raises an exception."""
 
     class Base:
+        """Base class that raises error in get_field_info."""
+
         def get_field_info(self, field):
+            """Test method."""
             raise RuntimeError('boom')
 
     class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
+        """Fake metadata class combining mixin with base."""
+
         pass
 
     metadata = FakeMetadata()

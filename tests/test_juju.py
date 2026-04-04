@@ -18,6 +18,7 @@ R = '--repository'
 
 
 def test_environment_ensure_num_units() -> None:
+    """Environment.ensure_num_units() deploys, adds, or destroys units to match target."""
     with mock.patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': b'', 'stderr': b'', 'returncode': 0}
 

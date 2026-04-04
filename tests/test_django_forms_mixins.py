@@ -13,12 +13,14 @@ def test_enctype_mixin() -> None:
 
     class FakeForm(mixins.EnctypeMixin):
         def is_multipart(self):
+            """Test method."""
             return False
 
     assert FakeForm().enctype == 'application/x-www-form-urlencoded'
 
     class FakeMultipartForm(mixins.EnctypeMixin):
         def is_multipart(self):
+            """Test method."""
             return True
 
     assert FakeMultipartForm().enctype == 'multipart/form-data'
@@ -29,7 +31,9 @@ def test_map_errors_mixin() -> None:
     added_errors = {}
 
     class Base:
+        """Test class."""
         def add_error(self, field, error):
+            """Test method."""
             added_errors[field] = error
 
     class FakeForm(mixins.MapErrorsMixin, Base):
@@ -53,6 +57,7 @@ def test_staff_only_fields_mixin_removes_for_non_staff() -> None:
     """Staff-only fields are removed from the form for non-staff users."""
 
     class Base:
+        """Test class."""
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -77,6 +82,7 @@ def test_staff_only_fields_mixin_keeps_for_staff() -> None:
     """Staff-only fields remain in the form for staff users."""
 
     class Base:
+        """Test class."""
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -99,6 +105,7 @@ def test_created_by_mixin_sets_user() -> None:
     """created_by is set to request.user for new instances (created_by_id is None)."""
 
     class Base:
+        """Test class."""
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.instance = MagicMock()
             self.instance.created_by_id = None
@@ -119,6 +126,7 @@ def test_created_by_mixin_skips_existing() -> None:
     """created_by is not overwritten when the instance already has a creator."""
 
     class Base:
+        """Test class."""
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.instance = MagicMock()
             self.instance.created_by_id = 42
@@ -139,7 +147,9 @@ def test_model_based_form_cleanup_mixin_delegates() -> None:
     """clean() delegates to model.clean_form() when it exists."""
 
     class Base:
+        """Test class."""
         def clean(self):
+            """Test method."""
             pass
 
     class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
@@ -159,7 +169,9 @@ def test_model_based_form_cleanup_mixin_fallback() -> None:
     """clean() falls back to cleaned_data when model has no clean_form method."""
 
     class Base:
+        """Test class."""
         def clean(self):
+            """Test method."""
             pass
 
     class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
@@ -177,6 +189,7 @@ def test_help_text_to_placeholder_mixin() -> None:
     """Help text is copied to the widget placeholder and then removed."""
 
     class Base:
+        """Test class."""
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [
@@ -196,6 +209,7 @@ def test_convert_email_to_text_mixin() -> None:
     """Email input types are changed to text to avoid i18n issues."""
 
     class Base:
+        """Test class."""
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.fields = OrderedDict(
                 [

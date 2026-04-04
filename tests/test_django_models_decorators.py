@@ -24,6 +24,7 @@ def test_with_urls_creates_detail_url() -> None:
     """Adds get_detail_url that calls reverse with pk argument."""
 
     class MyModel:
+        """Test class."""
         pk = 42
 
     with patch(
@@ -41,6 +42,7 @@ def test_with_urls_sets_absolute_url() -> None:
     """When 'detail' is an action, get_absolute_url is set to get_detail_url."""
 
     class MyModel:
+        """Test class."""
         pk = 1
 
     with patch(
@@ -55,6 +57,7 @@ def test_with_urls_create_action() -> None:
     """The 'create' action adds a classmethod that calls reverse without pk."""
 
     class MyModel:
+        """Test class."""
         pk = 1
 
     with patch(
@@ -71,6 +74,7 @@ def test_with_urls_singleton() -> None:
     """Singleton actions call reverse without pk arguments."""
 
     class MyModel:
+        """Test class."""
         pk = 1
 
     with patch(
@@ -92,9 +96,11 @@ def test_with_urls_skips_existing_method() -> None:
     """Does not overwrite a method that already exists on the model."""
 
     class MyModel:
+        """Test class."""
         pk = 1
 
         def get_detail_url(self):
+            """Test method."""
             return '/custom'
 
     with patch(
@@ -109,6 +115,7 @@ def test_with_urls_interface_actions() -> None:
     """interface_actions attribute is set on the decorated model."""
 
     class MyModel:
+        """Test class."""
         pk = 1
 
     with patch(
@@ -127,6 +134,7 @@ def test_with_urls_no_absolute_url_without_detail() -> None:
     """get_absolute_url is not set when 'detail' is not an action."""
 
     class MyModel:
+        """Test class."""
         pk = 1
 
     with patch(

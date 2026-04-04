@@ -11,10 +11,14 @@ def test_read_only_mixin_sets_read_only() -> None:
     """ReadOnlyMixin forces read_only=True on the serializer."""
 
     class Base:
+        """Base serializer class for testing."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             self.read_only = kwargs.get('read_only')
 
     class FakeSerializer(mixins.ReadOnlyMixin, Base):
+        """Fake serializer combining ReadOnlyMixin with base."""
+
         pass
 
     serializer = FakeSerializer()
@@ -25,10 +29,14 @@ def test_read_only_mixin_create_raises() -> None:
     """create() raises AttributeError to enforce read-only behavior."""
 
     class Base:
+        """Base serializer class for testing."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
     class FakeSerializer(mixins.ReadOnlyMixin, Base):
+        """Fake serializer combining ReadOnlyMixin with base."""
+
         pass
 
     serializer = FakeSerializer()
@@ -40,10 +48,14 @@ def test_read_only_mixin_update_raises() -> None:
     """update() raises AttributeError to enforce read-only behavior."""
 
     class Base:
+        """Base serializer class for testing."""
+
         def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
             pass
 
     class FakeSerializer(mixins.ReadOnlyMixin, Base):
+        """Fake serializer combining ReadOnlyMixin with base."""
+
         pass
 
     serializer = FakeSerializer()
@@ -55,10 +67,15 @@ def test_nested_write_mixin_returns_tuple() -> None:
     """to_internal_value returns (serializer, validated_data) for nested write support."""
 
     class Base:
+        """Base class providing to_internal_value."""
+
         def to_internal_value(self, data):
+            """Test method."""
             return {'key': data}
 
     class FakeSerializer(mixins.NestedWriteMixin, Base):
+        """Fake serializer combining NestedWriteMixin with base."""
+
         pass
 
     serializer = FakeSerializer()
@@ -72,10 +89,15 @@ def test_from_private_key_mixin_dict_delegates_to_super() -> None:
     """Dict input is passed through to the parent serializer for normal deserialization."""
 
     class Base:
+        """Base class providing to_internal_value."""
+
         def to_internal_value(self, data):
+            """Test method."""
             return data
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         pass
 
     serializer = FakeSerializer()
@@ -86,10 +108,15 @@ def test_from_private_key_mixin_empty_delegates_to_super() -> None:
     """Empty or None input is passed through to the parent serializer."""
 
     class Base:
+        """Base class providing to_internal_value."""
+
         def to_internal_value(self, data):
+            """Test method."""
             return data
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         pass
 
     serializer = FakeSerializer()
@@ -102,11 +129,18 @@ def test_from_private_key_mixin_pk_lookup() -> None:
     mock_instance = MagicMock()
 
     class Base:
+        """Base class providing to_internal_value."""
+
         def to_internal_value(self, data):
+            """Test method."""
             return data
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         class Meta:
+            """Meta class with model reference."""
+
             model = MagicMock()
 
     FakeSerializer.Meta.model.objects.get.return_value = mock_instance
@@ -120,16 +154,24 @@ def test_from_private_key_mixin_create_returns_instance() -> None:
     """create() returns the instance directly when validated_data is already a model instance."""
 
     class FakeModel:
+        """Fake model class for testing."""
+
         pass
 
     instance = FakeModel()
 
     class Base:
+        """Base class providing create method."""
+
         def create(self, validated_data):  # pylint:disable=unused-argument
             return 'created'
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         class Meta:
+            """Meta class referencing FakeModel."""
+
             model = FakeModel
 
     serializer = FakeSerializer()
@@ -140,11 +182,17 @@ def test_from_private_key_mixin_create_delegates_for_dict() -> None:
     """create() delegates to super when validated_data is a dict."""
 
     class Base:
+        """Base class providing create method."""
+
         def create(self, validated_data):  # pylint:disable=unused-argument
             return 'created'
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         class Meta:
+            """Meta class with model reference."""
+
             model = MagicMock
 
     serializer = FakeSerializer()
@@ -156,14 +204,22 @@ def test_from_private_key_mixin_does_not_exist() -> None:
     from django.core.exceptions import ObjectDoesNotExist
 
     class Base:
+        """Base class providing to_internal_value."""
+
         def to_internal_value(self, data):
+            """Test method."""
             return data
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         class Meta:
+            """Meta class with model reference."""
+
             model = MagicMock()
 
         def fail(self, key, **kwargs):
+            """Raise AssertionError to verify fail was called."""
             raise AssertionError(f'fail called with {key}')
 
     FakeSerializer.Meta.model.objects.get.side_effect = ObjectDoesNotExist()
@@ -176,14 +232,22 @@ def test_from_private_key_mixin_incorrect_type() -> None:
     """TypeError/ValueError triggers self.fail('incorrect_type')."""
 
     class Base:
+        """Base class providing to_internal_value."""
+
         def to_internal_value(self, data):
+            """Test method."""
             return data
 
     class FakeSerializer(mixins.FromPrivateKeyMixin, Base):
+        """Fake serializer combining FromPrivateKeyMixin with base."""
+
         class Meta:
+            """Meta class with model reference."""
+
             model = MagicMock()
 
         def fail(self, key, **kwargs):
+            """Raise AssertionError to verify fail was called."""
             raise AssertionError(f'fail called with {key}')
 
     FakeSerializer.Meta.model.objects.get.side_effect = TypeError('bad type')

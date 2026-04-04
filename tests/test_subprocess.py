@@ -1,3 +1,4 @@
+# pylint:disable=use-implicit-booleaness-not-comparison
 from __future__ import annotations
 
 import shutil
@@ -19,7 +20,7 @@ def test_quote_is_from_shlex() -> None:
 
 
 def test_to_args_list() -> None:
-    # pylint:disable=use-implicit-booleaness-not-comparison
+    """to_args_list() converts command strings or lists to list of strings."""
     assert subprocess.to_args_list(None) == []  # Hidden feature one should not know:)
     assert subprocess.to_args_list('') == []
     assert subprocess.to_args_list([]) == []
@@ -28,6 +29,7 @@ def test_to_args_list() -> None:
 
 
 def test_to_args_string() -> None:
+    """to_args_string() converts command strings or lists to a single string."""
     assert subprocess.to_args_string(None) == ''  # Hidden feature one should not know:)
     assert subprocess.to_args_string('') == ''
     assert subprocess.to_args_string([]) == ''
@@ -36,6 +38,7 @@ def test_to_args_string() -> None:
 
 
 def test_cmd_happy_case():
+    """cmd() executes a command and returns process info dict."""
     result = subprocess.cmd(['cat', __file__])
     assert isinstance(result['process'], subprocess.Popen)
     assert result['returncode'] == 0
@@ -44,11 +47,7 @@ def test_cmd_happy_case():
 
 
 def test_cmd_logging(caplog, capsys):
-    """
-    Ensure logging is not outputting to stderr by default.
-
-    See https://docs.python.org/3/howto/logging.html#library-config
-    """
+    """cmd() logs command execution without outputting to stderr."""
     caplog.set_level(logging.DEBUG)
     subprocess.cmd(['cat', __file__])
     subprocess.cmd(['echo', 'toto tata'])
@@ -71,6 +70,7 @@ def test_cmd_logging(caplog, capsys):
 
 
 def test_cmd_log_to_func() -> None:
+    """cmd() can use a custom logging function."""
     log = mock.Mock()
     log.__name__ = 'Mock'
     subprocess.cmd(['echo', 'it seem to work'], log=log)
@@ -90,6 +90,7 @@ def test_cmd_log_to_func() -> None:
 
 
 def test_cmd_missing_binary() -> None:
+    """cmd() returns error info when binary is not found."""
     result = subprocess.cmd('hfuejnvwqkdivengz', fail=False)
     assert result['process'] is None
     assert result['returncode'] == 2
@@ -98,6 +99,7 @@ def test_cmd_missing_binary() -> None:
 
 
 def test_cmd_retry_first_try() -> None:
+    """cmd() with retries succeeds on first attempt."""
     log = mock.Mock()
     log.__name__ = 'Mock'
     subprocess.cmd('ls', log=log, tries=5, delay_min=1, delay_max=1)
@@ -105,6 +107,7 @@ def test_cmd_retry_first_try() -> None:
 
 
 def test_cmd_retry_missing_binary_no_retry() -> None:
+    """cmd() does not retry when binary is missing."""
     log = mock.Mock()
     log.__name__ = 'Mock'
     with pytest.raises(OSError):
@@ -119,6 +122,7 @@ def test_cmd_retry_missing_binary_no_retry() -> None:
 
 
 def test_cmd_retry_no_success() -> None:
+    """cmd() retries and eventually fails after all attempts."""
     log = mock.Mock()
     log.__name__ = 'Mock'
     subprocess.cmd(
@@ -144,6 +148,7 @@ def test_cmd_retry_no_success() -> None:
 
 @pytest.mark.skipif(shutil.which('screen') is None, reason='screen not installed')
 def test_screen() -> None:
+    """screen_launch(), screen_list(), and screen_kill() work together."""
     try:
         # Launch some screens
         subprocess.screen_kill('my_1st_screen', fail=False)
@@ -214,10 +219,7 @@ def test_kill_reraises_generic_exception() -> None:
 
 
 def test_su_with_integer_ids() -> None:
-    """
-    su() with integer user/group returns a callable that calls
-    os.setgid and os.setuid.
-    """
+    """su() with integer user/group returns a callable that calls os.setgid and os.setuid."""
     with (
         mock.patch('os.setgid') as mock_setgid,
         mock.patch('os.setuid') as mock_setuid,
@@ -332,10 +334,7 @@ def test_cmd_cli_input() -> None:
 
 
 def test_cmd_fail_raises_called_process_error() -> None:
-    """
-    cmd() raises CalledProcessError when fail=True
-    and process returns non-zero.
-    """
+    """cmd() raises CalledProcessError when fail=True and process returns non-zero."""
     from pytoolbox import exceptions
 
     with pytest.raises(exceptions.CalledProcessError):
@@ -411,10 +410,7 @@ def test_make_without_cmake() -> None:
 
 
 def test_make_with_cmake() -> None:
-    """
-    make() with with_cmake=True runs cmake instead of
-    configure.
-    """
+    """make() with with_cmake=True runs cmake instead of configure."""
     with (
         patch.object(
             subprocess.setuptools.archive_util,

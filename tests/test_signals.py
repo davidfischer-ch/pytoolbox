@@ -9,19 +9,24 @@ import pytest
 from pytoolbox import exceptions, signals
 
 
-# TODO Convert to simple pytest tests
 class TestSignals(unittest.TestCase):
+    """Test class for signal handling functionality."""
+
     def append_list_callback(self, number) -> None:
+        """Append number to list and set flag."""
         self.flag = True
         self.list.append(number)
 
     def raise_handler(self, signum, frame) -> None:
+        """Handler that raises AssertionError."""
         raise AssertionError
 
     def set_flag_handler(self, signum, frame) -> None:  # pylint:disable=unused-argument
+        """Handler that sets flag to True."""
         self.flag = True
 
     def set_flag_callback(self, *args, **kwargs) -> None:
+        """Callback that validates args and sets flag."""
         assert args == (None,)
         assert not kwargs
         self.flag = True

@@ -19,6 +19,8 @@ import pytoolbox
 
 
 def setup(app):
+    """Configure Sphinx extensions for pytoolbox documentation."""
+
     def skip(app, what, name, obj, skip, options):
         return False if name == '__init__' else skip
 

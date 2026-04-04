@@ -27,7 +27,7 @@ def test_strip_char_field_has_empty_validator() -> None:
 
 
 def test_strip_char_field_rejects_blank() -> None:
-    """Whitespace-only input fails validation via the EmptyValidator."""
+    """White-space-only input fails validation via the EmptyValidator."""
     from rest_framework.exceptions import ValidationError as DRFValidationError
 
     field = StripCharField()

@@ -30,6 +30,7 @@ requires_gexiv2 = pytest.mark.skipif(not _gexiv2_available, reason='GExiv2 not a
 
 @requires_gexiv2
 def test_metadata_get_date_with_single_key() -> None:
+    """Metadata.get_date() returns datetime from a single EXIF key."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'Macro.jpg')
     result = metadata.get_date(keys=['Exif.Photo.DateTimeOriginal'])
     assert result == datetime.datetime(2012, 8, 3, 17, 34, 57)
@@ -37,6 +38,7 @@ def test_metadata_get_date_with_single_key() -> None:
 
 @requires_gexiv2
 def test_metadata_getitem_returns_tag() -> None:
+    """Metadata.__getitem__ returns a Tag object for valid keys."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'Macro.jpg')
     tag = metadata['Exif.Image.Make']
     assert isinstance(tag, Tag)
@@ -45,6 +47,7 @@ def test_metadata_getitem_returns_tag() -> None:
 
 @requires_gexiv2
 def test_metadata_init_with_buf() -> None:
+    """Metadata can be initialized from a byte buffer instead of a file path."""
     buf = (DATA_DIRECTORY / 'Macro.jpg').read_bytes()
     metadata = exif.Metadata(buf=buf)
     assert metadata.path is None
@@ -52,12 +55,14 @@ def test_metadata_init_with_buf() -> None:
 
 @requires_gexiv2
 def test_metadata_init_without_path_or_buf_raises() -> None:
+    """Metadata raises ValueError when initialized without path or buf."""
     with pytest.raises(ValueError):
         exif.Metadata()
 
 
 @requires_gexiv2
 def test_metadata_on_david_jpg() -> None:
+    """Metadata correctly extracts properties from David.jpg test file."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'David.jpg')
     assert metadata.camera.brand is None
     assert metadata.camera.model is None
@@ -80,6 +85,7 @@ def test_metadata_on_david_jpg() -> None:
 
 @requires_gexiv2
 def test_metadata_on_glusterfs_jpg() -> None:
+    """Metadata correctly extracts properties from GlusterFS.jpg test file."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'GlusterFS.jpg')
     assert metadata.camera.brand is None
     assert metadata.camera.model is None
@@ -103,6 +109,7 @@ def test_metadata_on_glusterfs_jpg() -> None:
 
 @requires_gexiv2
 def test_metadata_on_macro_jpg() -> None:
+    """Metadata correctly extracts properties from Macro.jpg test file."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'Macro.jpg')
     assert metadata.camera.brand == 'Canon'
     assert metadata.camera.model == 'EOS 5D Mark II'
@@ -125,6 +132,7 @@ def test_metadata_on_macro_jpg() -> None:
 
 @requires_gexiv2
 def test_metadata_rewrite(tmp_path: Path) -> None:
+    """Metadata.rewrite() preserves EXIF data after saving."""
     dst = tmp_path / 'GlusterFS.jpg'
     shutil.copy(DATA_DIRECTORY / 'GlusterFS.jpg', dst)
     metadata = exif.Metadata(path=dst)
@@ -136,6 +144,7 @@ def test_metadata_rewrite(tmp_path: Path) -> None:
 
 @requires_gexiv2
 def test_metadata_save_file_no_path_raises() -> None:
+    """Metadata.save_file() raises UndefinedPathError when no path is set."""
     buf = (DATA_DIRECTORY / 'Macro.jpg').read_bytes()
     metadata = exif.Metadata(buf=buf)
     with pytest.raises(exceptions.UndefinedPathError):
@@ -144,6 +153,7 @@ def test_metadata_save_file_no_path_raises() -> None:
 
 @requires_gexiv2
 def test_metadata_save_file_uses_self_path(tmp_path: Path) -> None:
+    """Metadata.save_file() uses self.path when no explicit path is given."""
     dst = tmp_path / 'Macro.jpg'
     shutil.copy(DATA_DIRECTORY / 'Macro.jpg', dst)
     metadata = exif.Metadata(path=dst)
@@ -154,6 +164,7 @@ def test_metadata_save_file_uses_self_path(tmp_path: Path) -> None:
 
 @requires_gexiv2
 def test_metadata_save_file_with_explicit_path(tmp_path: Path) -> None:
+    """Metadata.save_file() saves to an explicit path when provided."""
     copy = tmp_path / 'Macro.jpg'
     other = tmp_path / 'other.jpg'
     shutil.copy(DATA_DIRECTORY / 'Macro.jpg', copy)
@@ -166,6 +177,7 @@ def test_metadata_save_file_with_explicit_path(tmp_path: Path) -> None:
 
 @requires_gexiv2
 def test_metadata_setitem(tmp_path: Path) -> None:
+    """Metadata.__setitem__ updates EXIF tag value."""
     dst = tmp_path / 'Macro.jpg'
     shutil.copy(DATA_DIRECTORY / 'Macro.jpg', dst)
     metadata = exif.Metadata(path=dst)
@@ -177,6 +189,7 @@ def test_metadata_setitem(tmp_path: Path) -> None:
 
 @requires_gexiv2
 def test_metadata_setitem_without_type_hook_raises() -> None:
+    """Metadata.__setitem__ raises NotImplementedError for unsupported tag types."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'Macro.jpg')
     with pytest.raises(NotImplementedError):
         metadata['Exif.Photo.MakerNote'] = b'raw data'
@@ -184,6 +197,7 @@ def test_metadata_setitem_without_type_hook_raises() -> None:
 
 @requires_gexiv2
 def test_metadata_tags_returns_dict_of_tags() -> None:
+    """Metadata.tags returns a dict of Tag objects keyed by tag name."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'Macro.jpg')
     tags = metadata.tags
     assert 'Exif.Image.Make' in tags

@@ -74,7 +74,9 @@ def test_multi_tables_get_queryset_valid_name() -> None:
             return 'default_filtered'
 
     class Base:
+        """Test class."""
         def get_queryset(self):
+            """Test method."""
             return 'base_qs'
 
     class TestView(FakeView, Base):
@@ -93,7 +95,9 @@ def test_multi_tables_get_queryset_bad_name_returns_none() -> None:
         request = MagicMock()
 
     class Base:
+        """Test class."""
         def get_queryset(self):
+            """Test method."""
             qs = MagicMock()
             qs.none.return_value = 'empty_qs'
             return qs
@@ -110,6 +114,7 @@ def test_multi_tables_get_context_data() -> None:
     """Replaces the single 'datatable' context key with a 'datatables' list of tuples."""
 
     class Base:
+        """Test class."""
         def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
             return {'datatable': 'default_table', 'extra': 'data'}
 

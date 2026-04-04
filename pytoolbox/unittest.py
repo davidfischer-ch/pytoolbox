@@ -107,6 +107,7 @@ class AwareTearDownMixin:
         pass  # de bleu, c'est fantastique !  # pylint:disable=unnecessary-pass
 
     def run(self, result: unittest.TestResult | None = None) -> unittest.TestResult:
+        """Execute the test and call :meth:`awareTearDown` with the result."""
         result = super().run(result)
         self.awareTearDown(result)
         return result
@@ -144,6 +145,7 @@ class FilterByTagsMixin(InspectMixin):
 
     @classmethod
     def setUpClass(cls) -> None:  # pylint:disable=invalid-name
+        """Set up the test class, optionally skipping based on tags."""
         if cls.fast_class_skip_enabled:
             cls.fast_class_skip()
         super().setUpClass()
@@ -194,6 +196,7 @@ class FilterByTagsMixin(InspectMixin):
         return set(itertools.chain(cls.required_tags, getattr(current_test, 'required_tags', ())))
 
     def setUp(self) -> None:  # pylint:disable=invalid-name
+        """Skip the test if its tags don't match the filter criteria."""
         if not self.should_run(
             self.get_tags(self.current_test),
             self.get_required_tags(self.current_test),
@@ -212,12 +215,14 @@ class FFmpegMixin:
 
     @classmethod
     def setUpClass(cls) -> None:  # pylint:disable=invalid-name
+        """Verify FFmpeg stream classes and their codec classes are properly configured."""
         for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
             assert stream_class is not None, name
             assert stream_class.codec_class is not None, name
         super().setUpClass()
 
     def setUp(self) -> None:  # pylint:disable=invalid-name
+        """Initialize FFmpeg and FFprobe instances for use in tests."""
         super().setUp()
         self.ffmpeg = self.ffmpeg_class()
         self.ffprobe = self.ffmpeg.ffprobe_class()
@@ -407,10 +412,12 @@ class TimingMixin:
     timing_logger = None
 
     def setUp(self) -> None:  # pylint:disable=invalid-name
+        """Record the test start time."""
         self.start_time = time.time()
         super().setUp()
 
     def tearDown(self) -> None:  # pylint:disable=invalid-name
+        """Log the test execution time if a logger is configured."""
         super().tearDown()
         if self.timing_logger:
             self.timing_logger.info('%s: %.3f', self.id(), time.time() - self.start_time)

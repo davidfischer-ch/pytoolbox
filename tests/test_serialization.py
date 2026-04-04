@@ -1,3 +1,4 @@
+# pylint:disable=protected-access
 from __future__ import annotations
 
 import math
@@ -10,6 +11,8 @@ from pytoolbox.serialization import PickleableObject
 
 
 class MyPoint(PickleableObject):
+    """Test point class for PickleableObject tests."""
+
     def __init__(self, name=None, x=0, y=0):
         self.name = name
         self.x = x
@@ -17,10 +20,12 @@ class MyPoint(PickleableObject):
 
     @property
     def length(self):
+        """Return the Euclidean length of the point from the origin."""
         return math.sqrt(self.x * self.x + self.y * self.y)
 
 
 def test_pickleable_object() -> None:
+    """PickleableObject can write and read itself from pickle files."""
     point_1 = MyPoint(name='My point', x=6, y=-3)
     point_1.write('test.pkl')
     point_2 = MyPoint.read('test.pkl', store_path=True)
@@ -31,12 +36,12 @@ def test_pickleable_object() -> None:
     os.remove('test2.pkl')
     point_2.write()
     assert os.path.exists('test2.pkl') is False
-    assert point_2._pickle_path == 'test.pkl'  # pylint:disable=protected-access
+    assert point_2._pickle_path == 'test.pkl'
     os.remove('test.pkl')
 
     point_2.write('test2.pkl', store_path=True)
     assert os.path.exists('test.pkl') is False
-    assert point_2._pickle_path == 'test2.pkl'  # pylint:disable=protected-access
+    assert point_2._pickle_path == 'test2.pkl'
     del point_2._pickle_path
     with pytest.raises(ValueError):
         point_2.write()

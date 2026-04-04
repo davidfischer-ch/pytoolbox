@@ -6,16 +6,19 @@ from pytoolbox.validation import valid_email, valid_filename, valid_secret, vali
 
 
 def test_validate_list() -> None:
+    """validate_list() validates each element against a regex pattern."""
     regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
     validate_list([10, "call(['my_var', recursive=False])"], regexes)
 
 
 def test_validate_list_fail_size() -> None:
+    """validate_list() raises IndexError when list sizes don't match."""
     with pytest.raises(IndexError):
         validate_list([1, 2], [1, 2, 3])
 
 
 def test_validate_list_fail_value() -> None:
+    """validate_list() raises ValueError when element doesn't match regex."""
     with pytest.raises(ValueError):
         regexes = [r'\d+', r"call\(\[u*'my_var', recursive=(True|False)\]\)"]
         validate_list([10, "call(['my_var', recursive='error'])"], regexes)

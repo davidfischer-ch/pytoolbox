@@ -22,16 +22,19 @@ def test_str_to_time_microseconds() -> None:
 
 
 def test_str_to_time_microseconds_small() -> None:
+    """str_to_time() correctly parses time strings with small microseconds."""
     result = dt_module.str_to_time('01:00:00.001')
     assert result == datetime.time(1, 0, 0, 1000)
 
 
 def test_datetime_now_fmt_none_returns_datetime() -> None:
+    """datetime_now() with fmt=None returns a datetime object."""
     result = dt_module.datetime_now(fmt=None)
     assert isinstance(result, datetime.datetime)
 
 
 def test_datetime_now_fmt_str_returns_str() -> None:
+    """datetime_now() with fmt string returns a formatted string."""
     result = dt_module.datetime_now(fmt='%Y-%m-%d')
     assert isinstance(result, str)
 

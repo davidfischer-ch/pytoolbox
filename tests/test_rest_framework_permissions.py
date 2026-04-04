@@ -15,6 +15,7 @@ from pytoolbox.rest_framework.permissions import (  # noqa: E402
 
 
 def test_has_permission_true_when_first_sub_permission_allows(request_mock, view_mock) -> None:
+    """HasPermission returns True if any sub-permission allows access."""
     perm = IsAuthenticatedOrTokenHasReadWriteScope()
     p1, p2 = mock.MagicMock(), mock.MagicMock()
     p1.has_permission.return_value = True
@@ -28,6 +29,7 @@ def test_has_permission_true_when_only_second_sub_permission_allows(
     request_mock,
     view_mock,
 ) -> None:
+    """Has permission returns True if any sub-permission allows (not just the first)."""
     perm = IsAuthenticatedOrTokenHasReadWriteScope()
     p1, p2 = mock.MagicMock(), mock.MagicMock()
     p1.has_permission.return_value = False
@@ -37,6 +39,7 @@ def test_has_permission_true_when_only_second_sub_permission_allows(
 
 
 def test_has_permission_false_when_no_sub_permission_allows(request_mock, view_mock) -> None:
+    """HasPermission returns False when no sub-permission allows access."""
     perm = IsAuthenticatedOrTokenHasReadWriteScope()
     p1, p2 = mock.MagicMock(), mock.MagicMock()
     p1.has_permission.return_value = False

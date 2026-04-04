@@ -5,6 +5,8 @@ from pytoolbox import enum
 
 
 class Priority(enum.OrderedEnum):
+    """Priority enum for testing OrderedEnum functionality."""
+
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -110,6 +112,8 @@ def test_cross_enum_comparison() -> None:
     """
 
     class Other(enum.OrderedEnum):
+        """Another enum for cross-enum comparison test."""
+
         A = 1
 
     assert Priority.LOW.__eq__(Other.A) is NotImplemented

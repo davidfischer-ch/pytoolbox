@@ -4,6 +4,8 @@ from pytoolbox import states
 
 
 class MediaState(states.StateEnum):
+    """Media processing state enum for testing."""
+
     NEW = 'NEW'
     QUEUED_ANALYZE = 'QUEUED_ANALYZE'
     ANALYZING = 'ANALYZING'
@@ -31,6 +33,8 @@ class MediaState(states.StateEnum):
 
 
 class PlayerState(states.StateEnum):
+    """Player state enum for testing."""
+
     NEW = 'NEW'
     STOPPED = 'STOPPED'
     PLAYING = 'PLAYING'
@@ -54,6 +58,7 @@ class MergeState(MediaState, PlayerState, metaclass=states.StateEnumMergeMetacla
 
 
 def test_state_enum_get() -> None:
+    """StateEnum.get() returns state by case-insensitive name or 'all'."""
     assert MediaState.get('new') == MediaState.NEW
     assert MediaState.get('New') is None
     assert MediaState.get('all') == MediaState.ALL_STATES
@@ -61,6 +66,7 @@ def test_state_enum_get() -> None:
 
 
 def test_state_enum_get_transit_from() -> None:
+    """StateEnum.get_transit_from() returns states that can transition to a given state."""
     assert MediaState.get_transit_from(MediaState.NEW) == frozenset([MediaState.NEW])
     assert MediaState.get_transit_from(MediaState.ANALYZING) == frozenset(
         [
@@ -78,6 +84,7 @@ def test_state_enum_get_transit_from() -> None:
 
 
 def test_state_enum_all_states() -> None:
+    """StateEnum.ALL_STATES contains all defined states."""
     assert MediaState.ALL_STATES == frozenset(
         [
             MediaState.NEW,
@@ -92,10 +99,12 @@ def test_state_enum_all_states() -> None:
 
 
 def test_state_enum_final_states() -> None:
+    """StateEnum.FINAL_STATES contains states with no outgoing transitions."""
     assert MediaState.FINAL_STATES == frozenset([MediaState.DELETED, MediaState.REJECTED])
 
 
 def test_merged_state_get() -> None:
+    """Merged StateEnum.get() returns state by name from any parent class."""
     assert MergeState.get('stopped') == MergeState.STOPPED
     assert MergeState.get('stopPed') is None
     assert MergeState.get('all') == MergeState.ALL_STATES
@@ -103,6 +112,7 @@ def test_merged_state_get() -> None:
 
 
 def test_merged_state_get_transit_from() -> None:
+    """Merged StateEnum.get_transit_from() works across merged enums."""
     assert MergeState.get_transit_from(MergeState.NEW) == frozenset([MergeState.NEW])
     assert MergeState.get_transit_from(MergeState.PLAYING) == frozenset([MergeState.STOPPED])
     assert MergeState.get_transit_from(MergeState.DELETED, auto_inverse=True) == (
@@ -116,6 +126,7 @@ def test_merged_state_get_transit_from() -> None:
 
 
 def test_merged_state_all_states() -> None:
+    """Merged StateEnum.ALL_STATES contains states from all parent classes."""
     assert MergeState.ALL_STATES == frozenset(
         [
             MergeState.NEW,
@@ -132,4 +143,5 @@ def test_merged_state_all_states() -> None:
 
 
 def test_merged_state_final_states() -> None:
+    """Merged StateEnum.FINAL_STATES contains final states from merged enums."""
     assert MergeState.FINAL_STATES == frozenset([MergeState.DELETED, MergeState.REJECTED])

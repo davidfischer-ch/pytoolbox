@@ -15,6 +15,8 @@ class Media:
 
 class MediaForm:
     class Meta:
+            """Meta class."""
+        """Test class."""
         model = Media
 
 

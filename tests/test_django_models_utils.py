@@ -84,6 +84,7 @@ def test_try_get_field_related_does_not_exist() -> None:
     class Holder:
         @property
         def profile(self):
+            """Test method."""
             raise RelatedObjectDoesNotExist('missing')
 
     result = utils.try_get_field(Holder(), 'profile')
@@ -96,6 +97,7 @@ def test_try_get_field_other_exception_reraises() -> None:
     class Holder:
         @property
         def profile(self):
+            """Test method."""
             raise ValueError('bad value')
 
     import pytest

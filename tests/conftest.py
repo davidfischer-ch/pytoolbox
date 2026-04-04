@@ -32,6 +32,8 @@ SMALL_MP4_FILENAME: Final[Path] = TMP_DIRECTORY / 'small.mp4'
 
 # TODO Promote it to the library (merge)
 class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
+    """Mixin to download and extract static FFmpeg binaries for testing."""
+
     executable: Path
 
     def __init__(self, *args, **kwargs) -> None:
@@ -47,6 +49,7 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
         expected_hash: str = FFMPEG_RELEASE_CHECKSUM[1],
         hash_algorithm: str = FFMPEG_RELEASE_CHECKSUM[0],
     ) -> Path:
+        """Download and extract the static FFmpeg binary."""
         filesystem.makedirs(directory)
         archive = directory / archive_url.split('/')[-1]  # Get archive filename from URL
         archive_name = archive.name.removesuffix(archive_extension)
@@ -71,11 +74,15 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
 
 # TODO Promote it to the library (merge)
 class StaticFFprobe(DownloadStaticFFmpegMixin, ffmpeg.FFprobe):
+    """FFprobe using downloaded static binary."""
+
     pass
 
 
 # TODO Promote it to the library (merge)
 class StaticEncodeStatistics(ffmpeg.EncodeStatistics):
+    """Encode statistics using static FFprobe."""
+
     ffprobe_class = StaticFFprobe
 
 
@@ -84,11 +91,15 @@ class StaticEncodeStatisticsWithFrameBaseRatio(
     ffmpeg.FrameBasedRatioMixin,
     StaticEncodeStatistics,
 ):
+    """Encode statistics with frame-based ratio using static FFprobe."""
+
     pass
 
 
 # TODO Promote it to the library (merge)
 class StaticFFmpeg(DownloadStaticFFmpegMixin, ffmpeg.FFmpeg):
+    """FFmpeg using downloaded static binary."""
+
     ffprobe_class = StaticFFprobe
     statistics_class = StaticEncodeStatistics
 
@@ -121,6 +132,7 @@ def pytest_configure(config):  # pylint:disable=unused-argument
 
 @pytest.fixture(scope='function')
 def pytoolbox_git(tmp_path: Path) -> Path:
+    """Clone pytoolbox repository at a specific commit for testing."""
     pytoolbox_path = tmp_path / 'pytoolbox'
     subprocess.cmd(
         ['git', 'clone', 'https://github.com/davidfischer-ch/pytoolbox.git'],
@@ -135,6 +147,7 @@ def pytoolbox_git(tmp_path: Path) -> Path:
 
 @pytest.fixture(scope='session')
 def static_ffmpeg(request) -> type[StaticFFmpeg]:  # pylint:disable=unused-argument
+    """Return the StaticFFmpeg class for use in tests."""
     return StaticFFmpeg
 
 
@@ -143,6 +156,7 @@ def statistics(  # pylint:disable=redefined-outer-name
     small_mp4: Path,
     tmp_path: Path,
 ) -> StaticEncodeStatistics:
+    """Return encode statistics fixture for testing."""
     return StaticEncodeStatistics(
         [ffmpeg.Media(small_mp4)],
         [ffmpeg.Media(tmp_path / 'output.mp4')],
@@ -156,6 +170,7 @@ def frame_based_statistics(  # pylint:disable=redefined-outer-name,too-few-publi
     small_mp4: Path,
     tmp_path: Path,
 ) -> StaticEncodeStatisticsWithFrameBaseRatio:
+    """Return frame-based encode statistics fixture for testing."""
     return StaticEncodeStatisticsWithFrameBaseRatio(
         [ffmpeg.Media(small_mp4)],
         [ffmpeg.Media(tmp_path / 'output.mp4')],
@@ -166,6 +181,7 @@ def frame_based_statistics(  # pylint:disable=redefined-outer-name,too-few-publi
 
 @pytest.fixture(scope='session')
 def small_mp4(request) -> Path:  # pylint:disable=unused-argument
+    """Download and return path to small.mp4 test video."""
     print('Download small.mp4')
     filesystem.makedirs(TMP_DIRECTORY)
     http.download_ext(
@@ -180,9 +196,11 @@ def small_mp4(request) -> Path:  # pylint:disable=unused-argument
 
 @pytest.fixture(scope='function')
 def request_mock():
+    """Return a MagicMock for simulating request objects."""
     return mock.MagicMock()
 
 
 @pytest.fixture(scope='function')
 def view_mock():
+    """Return a MagicMock for simulating view objects."""
     return mock.MagicMock()

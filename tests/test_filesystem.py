@@ -1,3 +1,4 @@
+# pylint:disable=use-implicit-booleaness-not-comparison
 from __future__ import annotations
 
 import sys
@@ -11,6 +12,7 @@ from pytoolbox import filesystem
 
 @mark.skipif(sys.platform == 'win32', reason='os.chown is POSIX only')
 def test_chown(tmp_path: Path) -> None:
+    """chown() changes file ownership for user and/or group."""
     file_a = tmp_path / 'a.txt'
     file_b = tmp_path / 'b.txt'
     file_c = tmp_path / 'other' / 'c.txt'
@@ -70,6 +72,7 @@ def test_chown_recursive_broken_symlink(tmp_path: Path) -> None:
 
 
 def test_copy_recursive(tmp_path: Path) -> None:
+    """copy_recursive() copies files matching patterns to destination."""
     src_path = Path(__file__).parent.parent / 'pytoolbox'
     stats = filesystem.copy_recursive(src_path, tmp_path, ['*/camera.py', '*/ffmpeg.py'])
     assert stats['src_size'] >= 6529  # Expect code to not shrink
@@ -100,7 +103,7 @@ def test_copy_recursive_chunk_size(small_mp4: Path, tmp_path: Path, chunk_size: 
 
 
 def test_copy_recursive_missing(tmp_path: Path) -> None:
-    # pylint:disable=use-implicit-booleaness-not-comparison
+    """copy_recursive() returns zero size when source is missing."""
     assert filesystem.copy_recursive(tmp_path / 'missing', tmp_path / 'target')['src_size'] == 0
     assert list(filesystem.find_recursive(tmp_path / 'target', '*')) == []
 
