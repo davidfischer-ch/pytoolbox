@@ -599,7 +599,7 @@ def _make_preconditions_obj():
         def save(self, *args, **kwargs):
             saved_kwargs.update(kwargs)
 
-        def _do_update(self, base_qs, using, pk_val, values, uf, fu):
+        def _do_update(self, base_qs, using, pk_val, values, uf, fu, returning_fields):
             return True
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
@@ -698,7 +698,7 @@ def test_do_update_precondition_failure() -> None:
     """_do_update raises precondition error when row exists but update fails."""
 
     class Base:
-        def _do_update(self, base_qs, using, pk, values, uf, fu):
+        def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
             return False
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
@@ -712,7 +712,25 @@ def test_do_update_precondition_failure() -> None:
     filtered_qs.filter.return_value.exists.return_value = True
 
     with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
-        obj._do_update(base_qs, 'default', 1, [], None, False)
+        obj._do_update(base_qs, 'default', 1, [], None, False, None)
+
+
+def test_do_update_forwards_returning_fields() -> None:
+    """_do_update passes returning_fields through to the base implementation."""
+    received = {}
+
+    class Base:
+        def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
+            received['returning_fields'] = returning_fields
+            return True
+
+    class TestObj(mixins.UpdatePreconditionsMixin, Base):
+        pass
+
+    sentinel = object()
+    obj = TestObj()
+    obj._do_update(MagicMock(), 'default', 1, [], None, False, sentinel)
+    assert received['returning_fields'] is sentinel
 
 
 # ---------------------------------------------------------------------------

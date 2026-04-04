@@ -27,7 +27,13 @@ from __future__ import annotations
 import collections
 import itertools
 import re
+import sys
 from typing import TYPE_CHECKING
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
@@ -340,6 +346,7 @@ class UpdatePreconditionsMixin:
                 raise self.precondition_error_class()
             raise
 
+    @override
     def _do_update(
         self,
         base_qs: QuerySet,
@@ -348,10 +355,11 @@ class UpdatePreconditionsMixin:
         values: list,
         update_fields: set | None,
         force_update: bool,
+        returning_fields: object,
     ) -> bool:
         # FIXME _do_update is called once for each model in the inheritance hierarchy: Handle this!
         args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
-        updated = super()._do_update(*args)
+        updated = super()._do_update(*args, returning_fields)
         if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
             raise self.precondition_error_class()
         return updated
