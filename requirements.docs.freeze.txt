@@ -71,7 +71,7 @@ pluggy==1.6.0
 protobuf==7.34.0
 pycairo==1.29.0
 pycparser==3.0
-Pygments==2.19.2
+Pygments==2.20.0
 PyGObject==3.56.1
 PyGObject-stubs==2.16.0
 pylint==4.0.5
