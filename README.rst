@@ -19,7 +19,8 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library supports Python 3.11 and more recent.
+This library is tested on Python 3.12, 3.13 and 3.14. Python 3.11 is supported on a
+best-effort basis but is no longer part of the CI matrix.
 
 The entire codebase is **fully type-hinted** (Python 3.10+ syntax).
 This means you get autocompletion, inline documentation and static analysis
@@ -140,8 +141,8 @@ How to check coverage ?
 
 Remarks:
 
-* All Django related modules are excluded from tests!
-* However I am using them with Django 1.8 up to 3.1.0.
+* Django 6+ is required for the ``django`` and ``rest_framework`` extras.
+* Django and REST framework tests run in CI on Python 3.12+.
 
 ---------------
 How to use it ?
