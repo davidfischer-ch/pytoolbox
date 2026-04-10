@@ -7,7 +7,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'pytoolbox'
-version = '14.10.2'
+version = '14.11.0'
 
 authors = [
     {name = 'David Fischer', email = 'david@fisch3r.net'}

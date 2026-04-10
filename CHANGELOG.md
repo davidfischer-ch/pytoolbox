@@ -2,6 +2,19 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.11.0 (2026-04-10)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.2...14.11.0
+
+### Minor compatibility breaks
+
+* Module `django.test.mixins`: Replace `num_range: range` with `min_queries: int, max_queries: int` in `assertNumQueriesIn`
+
+### Fix and enhancements
+
+* Drop Python 3.11 from CI matrix (Django 6 requires Python 3.12+); Python 3.11 remains supported on a best-effort basis
+* Bump `requests` to 2.33.0 and `pygments` to 2.20.0
+
 ## v14.10.2 (2026-04-04)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.1...14.10.2
