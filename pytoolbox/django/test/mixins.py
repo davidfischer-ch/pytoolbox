@@ -34,11 +34,13 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
     def __init__(
         self,
         test_case: object,
-        num_range: range,
+        min_queries: int,
+        max_queries: int,
         connection: BaseDatabaseWrapper,
     ) -> None:
         self.test_case = test_case
-        self.range = num_range
+        self.min_queries = min_queries
+        self.max_queries = max_queries
         super().__init__(connection)
 
     def __exit__(
@@ -50,10 +52,10 @@ class _AssertNumQueriesInContext(CaptureQueriesContext):
         super().__exit__(exc_type, exc_value, traceback)
         if exc_type is None:
             executed = len(self)
-            self.test_case.assertIn(
-                executed,
-                self.range,
-                f'{executed} queries executed, {self.range} expected{os.linesep}'
+            self.test_case.assertTrue(
+                self.min_queries <= executed <= self.max_queries,
+                f'{executed} queries executed, expected between '
+                f'{self.min_queries} and {self.max_queries}{os.linesep}'
                 f'Captured queries were:{os.linesep}'
                 f'{os.linesep.join(query["sql"] for query in self.captured_queries)}',
             )
@@ -128,14 +130,18 @@ class QueriesMixin:
 
     def assertNumQueriesIn(  # noqa: N802
         self,
-        num_range: range,
+        min_queries: int,
+        max_queries: int,
         func: Callable | None = None,
         *args: object,
         **kwargs: object,
     ) -> object:
-        """Assert that the number of queries is within *num_range*."""
+        """
+        Assert that the number of queries is between *min_queries* and
+        *max_queries* (both inclusive).
+        """
         connection = connections[kwargs.pop('using', DEFAULT_DB_ALIAS)]
-        context = _AssertNumQueriesInContext(self, num_range, connection)
+        context = _AssertNumQueriesInContext(self, min_queries, max_queries, connection)
         if func is None:
             return context
         with context:
