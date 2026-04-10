@@ -19,7 +19,7 @@ Documentation: https://pytoolbox.readthedocs.org
 
 Repository: https://github.com/davidfischer-ch/pytoolbox
 
-This library is tested on Python 3.12, 3.13 and 3.14. Python 3.11 is supported on a
+This library is tested on Python 3.12 and 3.13. Python 3.11 is supported on a
 best-effort basis but is no longer part of the CI matrix.
 
 The entire codebase is **fully type-hinted** (Python 3.10+ syntax).
