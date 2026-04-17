@@ -6,7 +6,7 @@ Mix-ins for building your own query-sets.
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from django.db import transaction
 
@@ -22,7 +22,7 @@ _all = module.All(globals())
 class AtomicGetUpdateOrCreateMixin:
     """Wrap ``get_or_create`` and ``update_or_create`` in atomic blocks."""
 
-    savepoint = False
+    savepoint: ClassVar[bool] = False
 
     def get_or_create(
         self,
@@ -46,9 +46,9 @@ class AtomicGetUpdateOrCreateMixin:
 class AtomicGetRestoreOrCreateMixin:
     """Wrap ``get_restore_or_create`` in an atomic block."""
 
-    savepoint = False
+    savepoint: ClassVar[bool] = False
 
-    def get_restore_or_create(self, *args: object, **kwargs: object) -> object:
+    def get_restore_or_create(self, *args: object, **kwargs: object) -> tuple[models.Model, bool]:
         """Wrap ``get_restore_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_restore_or_create(*args, **kwargs)
@@ -79,7 +79,7 @@ class StateMixin:
     * Add a `state` field to the model for saving instance state in database.
     """
 
-    _skip_names = frozenset(['__getstate__', 'model'])
+    _skip_names: ClassVar[frozenset[str]] = frozenset(['__getstate__', 'model'])
 
     def __getattr__(self, name: str) -> object:
         # avoid strange infinite recursion with defer()

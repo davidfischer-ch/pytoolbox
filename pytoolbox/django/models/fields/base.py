@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import math
 import os
+from typing import Any, ClassVar
 
 from django.conf import settings
 from django.core import validators as dj_validators
@@ -51,7 +52,7 @@ class ExtraChoicesField(StripCharField):
         extra_choices: list | None = None,
         **kwargs: object,
     ) -> None:
-        self.extra_choices = extra_choices or []
+        self.extra_choices: list[Any] = extra_choices or []
         super().__init__(verbose_name=verbose_name, **kwargs)
 
     def deconstruct(self) -> tuple[str, str, list, dict]:
@@ -77,13 +78,21 @@ class ExtraChoicesField(StripCharField):
 class CreatedAtField(mixins.OptionsMixin, models.DateTimeField):
     """Auto-set datetime field for creation timestamps."""
 
-    default_options = {'default': now, 'editable': False, 'verbose_name': _('Created at')}
+    default_options: ClassVar[dict[str, Any]] = {
+        'default': now,
+        'editable': False,
+        'verbose_name': _('Created at'),
+    }
 
 
 class UpdatedAtField(mixins.OptionsMixin, models.DateTimeField):
     """Auto-updated datetime field for modification timestamps."""
 
-    default_options = {'auto_now': True, 'editable': False, 'verbose_name': _('Updated at')}
+    default_options: ClassVar[dict[str, Any]] = {
+        'auto_now': True,
+        'editable': False,
+        'verbose_name': _('Updated at'),
+    }
 
 
 # Miscellaneous
@@ -92,22 +101,27 @@ class UpdatedAtField(mixins.OptionsMixin, models.DateTimeField):
 class CreatedByField(mixins.OptionsMixin, models.ForeignKey):
     """Non-editable foreign key to the user who created the instance."""
 
-    default_options = {'to': settings.AUTH_USER_MODEL, 'editable': False}
+    default_options: ClassVar[dict[str, Any]] = {
+        'to': settings.AUTH_USER_MODEL,
+        'editable': False,
+    }
 
 
 class MD5ChecksumField(StripCharField):
     """Char field validated as a 32-character hexadecimal MD5 checksum."""
 
-    default_error_messages = {'invalid': _('Enter a valid MD5 checksum')}
-    default_options = {'max_length': 32}
-    default_validators = [validators.MD5ChecksumValidator()]
+    default_error_messages: ClassVar[dict[str, str]] = {'invalid': _('Enter a valid MD5 checksum')}
+    default_options: ClassVar[dict[str, Any]] = {'max_length': 32}
+    default_validators: ClassVar[list[validators.MD5ChecksumValidator]] = [
+        validators.MD5ChecksumValidator()
+    ]
 
 
 class MoneyField(mixins.OptionsMixin, models.DecimalField):
     """Decimal field pre-configured with min/max validators for monetary values."""
 
     def __init__(self, max_value: int, decimal_places: int = 2, **kwargs: object) -> None:
-        self.max_value = max_value
+        self.max_value: int = max_value
         super().__init__(
             decimal_places=decimal_places,
             max_digits=int(math.log10(max_value)) + 3,
@@ -130,7 +144,8 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
 class URLField(StripCharField, models.URLField):
     """An URLFIeld with StripCharField behavior inside."""
 
-    default_options = {'max_length': 8000}  # http://tools.ietf.org/html/rfc7230#section-3.1.1
+    # http://tools.ietf.org/html/rfc7230#section-3.1.1
+    default_options: ClassVar[dict[str, Any]] = {'max_length': 8000}
 
 
 # Storage
@@ -159,7 +174,7 @@ class FieldFile(files.FieldFile):
 class FileField(mixins.OptionsMixin, models.FileField):
     """A FileField with OptionsMixin applied."""
 
-    attr_class = FieldFile
+    attr_class: ClassVar[type[FieldFile]] = FieldFile
 
 
 __all__ = _all.diff(globals())

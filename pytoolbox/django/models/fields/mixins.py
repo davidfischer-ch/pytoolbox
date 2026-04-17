@@ -5,7 +5,7 @@ Mix-ins for building your own models fields.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from pytoolbox.django.core import validators
 
@@ -41,8 +41,8 @@ class NullifyMixin:
 class OptionsMixin:
     """Apply default and override keyword arguments to field constructors."""
 
-    default_options = {}
-    override_options = {}
+    default_options: ClassVar[dict[str, Any]] = {}
+    override_options: ClassVar[dict[str, Any]] = {}
 
     def __init__(self, **kwargs: object) -> None:
         super().__init__(**{**self.default_options, **kwargs, **self.override_options})
@@ -51,7 +51,7 @@ class OptionsMixin:
 class StripMixin:
     """Strip whitespace (see Django ticket 6362)."""
 
-    default_validators = [validators.EmptyValidator()]
+    default_validators: ClassVar[list[validators.EmptyValidator]] = [validators.EmptyValidator()]
 
     def pre_save(self, model_instance: models.Model, add: bool) -> str | None:
         """Strip leading and trailing whitespace before saving."""

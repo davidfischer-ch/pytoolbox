@@ -29,7 +29,7 @@ import collections
 import itertools
 import re
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -128,7 +128,7 @@ class AutoRemovePKFromUpdateFieldsMixin:
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self.previous_pk = self.pk
+        self.previous_pk: Any = self.pk
 
     @override
     def save(
@@ -177,12 +177,12 @@ class AutoUpdateFieldsMixin:
       after this mix-in.
     """
 
-    default_force_update = False
+    default_force_update: ClassVar[bool] = False
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._setted_fields = set()
-        self._fields_names = frozenset(f.attname for f in self._meta.fields)
+        self._setted_fields: set[str] = set()
+        self._fields_names: frozenset[str] = frozenset(f.attname for f in self._meta.fields)
 
     def __setattr__(self, name: str, value: object) -> None:
         """Track field assignments for automatic ``update_fields`` detection."""
@@ -236,8 +236,8 @@ class BetterUniquenessErrorsMixin:
     :class:`pytoolbox.django.views.mixins.ValidationErrorsMixin` in your edit views.
     """
 
-    unique_from_integrity_error = True
-    unique_together_hide_fields = ()
+    unique_from_integrity_error: ClassVar[bool] = True
+    unique_together_hide_fields: ClassVar[tuple[str, ...]] = ()
 
     @override
     def save(
@@ -400,7 +400,9 @@ class SaveInstanceFilesMixin:
 class UpdatePreconditionsMixin:
     """Guard row updates with filter/exclude preconditions for optimistic concurrency."""
 
-    precondition_error_class = exceptions.DatabaseUpdatePreconditionsError
+    precondition_error_class: ClassVar[type[Exception]] = (
+        exceptions.DatabaseUpdatePreconditionsError
+    )
 
     def apply_preconditions(
         self,
@@ -478,7 +480,7 @@ class StateTransitionEventsMixin:
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self.previous_state = self.state
+        self.previous_state: Any = self.state
 
     def on_post_state_transition(self, args: tuple, kwargs: dict) -> None:
         """Fire the post-state-transition signal with the previous state."""
@@ -513,9 +515,11 @@ class StateTransitionEventsMixin:
 class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
     """Add state-based preconditions to row updates for safe transitions."""
 
-    check_state = True
-    invalid_state_error_class = exceptions.InvalidStateError
-    transition_not_allowed_error_class = exceptions.TransitionNotAllowedError
+    check_state: ClassVar[bool] = True
+    invalid_state_error_class: ClassVar[type[Exception]] = exceptions.InvalidStateError
+    transition_not_allowed_error_class: ClassVar[type[Exception]] = (
+        exceptions.TransitionNotAllowedError
+    )
 
     def can_transit_to(self, state: str, fail: bool = False, noop_skip: bool = False) -> bool:
         """
@@ -562,8 +566,8 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
 class ValidateOnSaveMixin:
     """Run :meth:`full_clean` automatically before every save."""
 
-    validate_on_save = True
-    validate_on_save_kwargs = {}
+    validate_on_save: ClassVar[bool] = True
+    validate_on_save_kwargs: ClassVar[dict[str, Any]] = {}
     """Keyword arguments forwarded to :meth:`full_clean`."""
 
     @override
