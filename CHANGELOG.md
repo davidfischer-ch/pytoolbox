@@ -2,6 +2,17 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.11.1 (2026-04-17)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.0...14.11.1
+
+### Fix and enhancements
+
+* Module `django.models.mixins`: Add `ClassVar` annotations to class-level attributes and explicit type annotations to instance variables in `__init__` methods for mypy compatibility
+* Module `django.models.fields.mixins`: Add `ClassVar` annotations to `OptionsMixin` and `StripMixin` class-level attributes for mypy compatibility
+* Module `django.models.fields.base`: Add `ClassVar` annotations to class-level attributes and explicit type annotations to instance variables for mypy compatibility
+* Module `django.models.query.mixins`: Add `ClassVar` annotations to class-level attributes and fix `get_restore_or_create` return type for mypy compatibility
+
 ## v14.11.0 (2026-04-10)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.2...14.11.0
