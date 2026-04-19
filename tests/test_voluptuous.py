@@ -22,7 +22,7 @@ from pytoolbox.voluptuous import (
 # the actual validator function: Email() returns the validator, then
 # Email()('value') validates 'value'.
 
-# Email ------------------------------------------------------------------
+# --- Email ----------------------------------------------------------------------------------------
 
 
 def test_email_valid() -> None:
@@ -42,7 +42,7 @@ def test_email_coerces_to_str() -> None:
         Email()(12345)
 
 
-# EmailSet ---------------------------------------------------------------
+# --- EmailSet -------------------------------------------------------------------------------------
 
 
 def test_email_set_valid() -> None:
@@ -69,7 +69,7 @@ def test_email_set_deduplicates() -> None:
     assert result == {'x@y.com'}
 
 
-# GitCommitHash ----------------------------------------------------------
+# --- GitCommitHash --------------------------------------------------------------------------------
 
 
 def test_git_commit_hash_valid() -> None:
@@ -96,7 +96,7 @@ def test_git_commit_hash_non_hex() -> None:
         GitCommitHash()('g' * 40)
 
 
-# Password ---------------------------------------------------------------
+# --- Password -------------------------------------------------------------------------------------
 
 
 def test_password_valid() -> None:
@@ -128,7 +128,7 @@ def test_password_default_length() -> None:
     assert validator('sixteen_chars!!!') is None
 
 
-# Percent ----------------------------------------------------------------
+# --- Percent --------------------------------------------------------------------------------------
 
 
 def test_percent_valid() -> None:
@@ -146,7 +146,7 @@ def test_percent_out_of_range() -> None:
         Percent()(101)
 
 
-# SHA256 -----------------------------------------------------------------
+# --- SHA256 ---------------------------------------------------------------------------------------
 
 
 def test_sha256_valid() -> None:
@@ -167,7 +167,7 @@ def test_sha256_uppercase() -> None:
         SHA256()('A' * 64)
 
 
-# Version ----------------------------------------------------------------
+# --- Version --------------------------------------------------------------------------------------
 
 
 def test_version_valid_4_digits() -> None:
