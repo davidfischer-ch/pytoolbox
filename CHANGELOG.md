@@ -2,6 +2,19 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+## v14.11.2 (2026-04-20)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.1...14.11.2
+
+### Features
+
+* Module `argparse`: Add `aliases` parameter to `ActionArgumentParser.add_action` to register additional names for the same sub-command
+* Module `argparse`: Add `help` parameter to `ActionArgumentParser.add_action`; defaults to the first line of the function's docstring
+
+### Fix and enhancements
+
+* Normalize all section header comments to `# --- Name ---` 100-character format across source and test files
+
 ## v14.11.1 (2026-04-17)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.0...14.11.1
