@@ -22,7 +22,7 @@ from .types import get_slots
 _all = module.All(globals())
 
 
-# Data -> File -------------------------------------------------------------------------------------
+# --- Data -> File ---------------------------------------------------------------------------------
 
 
 def to_file(
@@ -104,7 +104,7 @@ def to_file(
     return backup_path if backup else None
 
 
-# Object <-> Pickle file ---------------------------------------------------------------------------
+# --- Object <-> Pickle file -----------------------------------------------------------------------
 
 
 class PickleableObject:
@@ -164,7 +164,7 @@ class PickleableObject:
                 self._pickle_path = pickle_path  # pylint:disable=attribute-defined-outside-init
 
 
-# Object <-> JSON string ---------------------------------------------------------------------------
+# --- Object <-> JSON string -----------------------------------------------------------------------
 
 
 # http://stackoverflow.com/questions/6255387/mongodb-object-serialized-as-json
@@ -402,7 +402,7 @@ class JsoneableObject:
         return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
-# Object <-> Dictionary ----------------------------------------------------------------------------
+# --- Object <-> Dictionary ------------------------------------------------------------------------
 
 
 def object_to_dict(
@@ -664,7 +664,7 @@ class SlotsToDictMixin:
         return self_dict
 
 
-# YAML ---------------------------------------------------------------------------------------------
+# --- YAML -----------------------------------------------------------------------------------------
 
 
 YamlDataTypes: TypeAlias = dict | list | str | None

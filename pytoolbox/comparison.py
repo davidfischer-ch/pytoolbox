@@ -48,7 +48,7 @@ class SlotsEqualityMixin:
         return not self.__eq__(other)
 
 
-# Content ------------------------------------------------------------------------------------------
+# --- Content --------------------------------------------------------------------------------------
 
 
 def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) -> str:
@@ -72,7 +72,7 @@ def _colorize(diff: Iterable[str]) -> Iterator[str]:
             yield line
 
 
-# Versions -----------------------------------------------------------------------------------------
+# --- Versions -------------------------------------------------------------------------------------
 
 
 def _eqn(a: object, b: object) -> bool | None:  # pylint:disable=invalid-name

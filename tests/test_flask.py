@@ -10,7 +10,7 @@ from werkzeug import exceptions as w_exceptions
 
 from pytoolbox import flask as flask_utils
 
-# check_id() tests -------------------------------------------------------
+# --- check_id -------------------------------------------------------------------------------------
 
 
 def test_check_id_valid_uuid() -> None:
@@ -42,7 +42,7 @@ def test_check_id_objectid_when_bson_available() -> None:
     assert result is mock_objectid_instance
 
 
-# map_exceptions() tests -------------------------------------------------
+# --- map_exceptions -------------------------------------------------------------------------------
 
 
 def test_map_exceptions_type_error() -> None:

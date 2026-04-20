@@ -14,9 +14,7 @@ from django.db.utils import IntegrityError
 from pytoolbox.django.core import exceptions
 from pytoolbox.django.models import mixins
 
-# ---------------------------------------------------------------------------
-# FasterValidateOnSaveMixin
-# ---------------------------------------------------------------------------
+# --- FasterValidateOnSaveMixin --------------------------------------------------------------------
 
 
 def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
@@ -43,9 +41,7 @@ def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
     assert 'name' not in kwargs['exclude']
 
 
-# ---------------------------------------------------------------------------
-# PublicMetaMixin
-# ---------------------------------------------------------------------------
+# --- PublicMetaMixin ------------------------------------------------------------------------------
 
 
 def test_public_meta_mixin() -> None:
@@ -62,9 +58,7 @@ def test_public_meta_mixin() -> None:
     assert TestModel.meta() is TestModel._meta  # pylint:disable=no-member
 
 
-# ---------------------------------------------------------------------------
-# ValidateOnSaveMixin
-# ---------------------------------------------------------------------------
+# --- ValidateOnSaveMixin --------------------------------------------------------------------------
 
 
 def test_validate_on_save_mixin_calls_full_clean() -> None:
@@ -125,9 +119,7 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
     obj.full_clean.assert_not_called()
 
 
-# ---------------------------------------------------------------------------
-# AlwaysUpdateFieldsMixin
-# ---------------------------------------------------------------------------
+# --- AlwaysUpdateFieldsMixin ----------------------------------------------------------------------
 
 
 def test_always_update_fields_mixin() -> None:
@@ -194,9 +186,7 @@ def test_always_update_fields_mixin_force_update() -> None:
     assert 'modified_at' in saved_kwargs['update_fields']
 
 
-# ---------------------------------------------------------------------------
-# AutoForceInsertMixin
-# ---------------------------------------------------------------------------
+# --- AutoForceInsertMixin -------------------------------------------------------------------------
 
 
 def test_auto_force_insert_mixin() -> None:
@@ -246,9 +236,7 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
     assert saved_kwargs['force_insert'] is False
 
 
-# ---------------------------------------------------------------------------
-# CallFieldsPreSaveMixin
-# ---------------------------------------------------------------------------
+# --- CallFieldsPreSaveMixin -----------------------------------------------------------------------
 
 
 def test_call_fields_pre_save_mixin() -> None:
@@ -276,9 +264,7 @@ def test_call_fields_pre_save_mixin() -> None:
     field3.pre_save.assert_called_once_with(obj, False)
 
 
-# ---------------------------------------------------------------------------
-# ReloadMixin
-# ---------------------------------------------------------------------------
+# --- ReloadMixin ----------------------------------------------------------------------------------
 
 
 def test_reload_mixin() -> None:
@@ -298,9 +284,7 @@ def test_reload_mixin() -> None:
     assert result is mock_instance
 
 
-# ---------------------------------------------------------------------------
-# AutoRemovePKFromUpdateFieldsMixin
-# ---------------------------------------------------------------------------
+# --- AutoRemovePKFromUpdateFieldsMixin ------------------------------------------------------------
 
 
 def _make_auto_remove_pk_obj(pk_value=1):
@@ -364,9 +348,7 @@ def test_auto_remove_pk_no_update_fields() -> None:
     assert saved_kwargs['update_fields'] is None
 
 
-# ---------------------------------------------------------------------------
-# AutoUpdateFieldsMixin
-# ---------------------------------------------------------------------------
+# --- AutoUpdateFieldsMixin ------------------------------------------------------------------------
 
 
 def _make_auto_update_obj(adding=False):
@@ -432,9 +414,7 @@ def test_auto_update_fields_force_insert_skips() -> None:
     assert saved_kwargs['update_fields'] is None
 
 
-# ---------------------------------------------------------------------------
-# BetterUniquenessErrorsMixin
-# ---------------------------------------------------------------------------
+# --- BetterUniquenessErrorsMixin ------------------------------------------------------------------
 
 
 def _make_uniqueness_obj(
@@ -616,9 +596,7 @@ def test_perform_unique_checks_single_field_error_passthrough() -> None:
     assert error in result['name']
 
 
-# ---------------------------------------------------------------------------
-# SaveInstanceFilesMixin
-# ---------------------------------------------------------------------------
+# --- SaveInstanceFilesMixin -----------------------------------------------------------------------
 
 
 def test_save_instance_files_new_instance() -> None:
@@ -675,9 +653,7 @@ def test_save_instance_files_existing_instance() -> None:
     assert len(save_calls) == 1
 
 
-# ---------------------------------------------------------------------------
-# UpdatePreconditionsMixin
-# ---------------------------------------------------------------------------
+# --- UpdatePreconditionsMixin ---------------------------------------------------------------------
 
 
 def _make_preconditions_obj():
@@ -835,9 +811,7 @@ def test_do_update_forwards_returning_fields() -> None:
     assert received['returning_fields'] is sentinel
 
 
-# ---------------------------------------------------------------------------
-# StateTransitionEventsMixin
-# ---------------------------------------------------------------------------
+# --- StateTransitionEventsMixin -------------------------------------------------------------------
 
 
 def test_state_transition_events_init() -> None:
@@ -935,9 +909,7 @@ def test_state_transition_events_no_signal_without_state() -> None:
         mock_send.assert_not_called()
 
 
-# ---------------------------------------------------------------------------
-# StateTransitionPreconditionMixin
-# ---------------------------------------------------------------------------
+# --- StateTransitionPreconditionMixin -------------------------------------------------------------
 
 
 def _make_state_machine(current_state='PENDING'):
@@ -1036,9 +1008,7 @@ def test_state_transition_pop_preconditions_adds_state_filter() -> None:
     assert has_state
 
 
-# ---------------------------------------------------------------------------
-# RelatedModelMixin
-# ---------------------------------------------------------------------------
+# --- RelatedModelMixin ----------------------------------------------------------------------------
 
 
 def test_related_model_mixin_delegates() -> None:

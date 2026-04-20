@@ -10,9 +10,7 @@ from django.core.exceptions import ValidationError
 from pytoolbox.django.forms import mixins as forms_mixins
 from pytoolbox.django.views import mixins
 
-# ---------------------------------------------------------------------------
-# AddRequestToFormKwargsMixin
-# ---------------------------------------------------------------------------
+# --- AddRequestToFormKwargsMixin ------------------------------------------------------------------
 
 
 def test_add_request_to_form_kwargs() -> None:
@@ -71,9 +69,7 @@ def test_add_request_not_added_for_plain_form() -> None:
     assert 'request' not in kwargs
 
 
-# ---------------------------------------------------------------------------
-# BaseModelMultipleMixin
-# ---------------------------------------------------------------------------
+# --- BaseModelMultipleMixin -----------------------------------------------------------------------
 
 
 def test_base_model_multiple_context_name_explicit() -> None:
@@ -104,9 +100,7 @@ def test_base_model_multiple_context_name_from_model() -> None:
     assert result == 'article_list'
 
 
-# ---------------------------------------------------------------------------
-# BaseModelSingleMixin
-# ---------------------------------------------------------------------------
+# --- BaseModelSingleMixin -------------------------------------------------------------------------
 
 
 def test_base_model_single_context_name_explicit() -> None:
@@ -145,9 +139,7 @@ def test_base_model_single_context_name_from_instance() -> None:
     assert result == 'fakemodel'
 
 
-# ---------------------------------------------------------------------------
-# InitialMixin
-# ---------------------------------------------------------------------------
+# --- InitialMixin ---------------------------------------------------------------------------------
 
 
 def test_initial_mixin_get_initial() -> None:
@@ -341,9 +333,7 @@ def test_set_initial_from_model_does_not_exist() -> None:
     assert result is None
 
 
-# ---------------------------------------------------------------------------
-# LoggedCookieMixin
-# ---------------------------------------------------------------------------
+# --- LoggedCookieMixin ----------------------------------------------------------------------------
 
 
 def test_logged_cookie_mixin_authenticated() -> None:
@@ -388,9 +378,7 @@ def test_logged_cookie_mixin_unauthenticated() -> None:
     response.set_cookie.assert_called_once_with('logged', False)
 
 
-# ---------------------------------------------------------------------------
-# RedirectMixin
-# ---------------------------------------------------------------------------
+# --- RedirectMixin --------------------------------------------------------------------------------
 
 
 def test_redirect_mixin_redirects() -> None:
@@ -438,9 +426,7 @@ def test_redirect_mixin_no_redirect() -> None:
     assert result == 'original'
 
 
-# ---------------------------------------------------------------------------
-# TemplateResponseMixin
-# ---------------------------------------------------------------------------
+# --- TemplateResponseMixin ------------------------------------------------------------------------
 
 
 def test_template_response_mixin_explicit_name() -> None:
@@ -473,9 +459,7 @@ def test_template_response_mixin_auto_names() -> None:
     ]
 
 
-# ---------------------------------------------------------------------------
-# ValidationErrorsMixin
-# ---------------------------------------------------------------------------
+# --- ValidationErrorsMixin ------------------------------------------------------------------------
 
 
 def test_validation_errors_mixin_catches_field_error() -> None:

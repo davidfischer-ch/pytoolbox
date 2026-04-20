@@ -34,7 +34,7 @@ def test_enable_colors_with_termcolor() -> None:
         assert termcolor.colored('test', 'green') == '\x1b[32mtest\x1b[0m'
 
 
-# confirm() tests -------------------------------------------------------
+# --- confirm --------------------------------------------------------------------------------------
 
 
 def test_confirm_default_true_empty_input() -> None:
@@ -73,7 +73,7 @@ def test_confirm_invalid_then_valid_input() -> None:
     assert 'please enter y(es) or n(o).' in stream.getvalue()
 
 
-# choice() tests ---------------------------------------------------------
+# --- choice ---------------------------------------------------------------------------------------
 
 
 def test_choice_valid_input() -> None:
@@ -107,7 +107,7 @@ def test_choice_invalid_then_valid() -> None:
     assert 'Please choose between' in stream.getvalue()
 
 
-# print_error() tests ----------------------------------------------------
+# --- print_error ----------------------------------------------------------------------------------
 
 
 def test_print_error_with_exit() -> None:
@@ -129,7 +129,7 @@ def test_print_error_no_exit() -> None:
     assert '[ERROR] warning' in stream.getvalue()
 
 
-# progress_bar() tests ---------------------------------------------------
+# --- progress_bar ---------------------------------------------------------------------------------
 
 
 def test_progress_bar_writes_correct_bar() -> None:
@@ -159,7 +159,7 @@ def test_progress_bar_zero_total() -> None:
     assert stream.getvalue() == ''
 
 
-# set_columns() tests ----------------------------------------------------
+# --- set_columns ----------------------------------------------------------------------------------
 
 
 def test_set_columns_explicit_value() -> None:

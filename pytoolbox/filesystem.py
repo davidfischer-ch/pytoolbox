@@ -891,7 +891,7 @@ class TempStorage:
 __all__ = _all.diff(globals())
 
 
-# Deprecated ---------------------------------------------------------------------------------------
+# --- Deprecated -----------------------------------------------------------------------------------
 
 
 @deprecated('Use pytoolbox.filesystem.copy_recursive instead (drop-in replacement)')

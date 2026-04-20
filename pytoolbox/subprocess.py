@@ -132,7 +132,7 @@ def to_args_string(args: CallArgsType | None) -> str:
     return args if isinstance(args, str) else ' '.join(quote(str(a)) for a in args if a is not None)
 
 
-# --------------------------------------------------------------------------------------------------
+# --- Execution ------------------------------------------------------------------------------------
 
 
 def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
@@ -372,7 +372,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     return result
 
 
-# --------------------------------------------------------------------------------------------------
+# --- Build ----------------------------------------------------------------------------------------
 
 
 def make(
@@ -405,7 +405,7 @@ def make(
     return results
 
 
-# --------------------------------------------------------------------------------------------------
+# --- Utilities ------------------------------------------------------------------------------------
 
 
 def rsync(  # pylint:disable=too-many-arguments,too-many-locals
@@ -488,7 +488,7 @@ def screen_list(name: str | None = None, **kwargs) -> list[str]:
 __all__ = _all.diff(globals())
 
 
-# Deprecated ---------------------------------------------------------------------------------------
+# --- Deprecated -----------------------------------------------------------------------------------
 
 
 @deprecated('Use pytoolbox.git.clone_or_pull instead (drop-in replacement)')

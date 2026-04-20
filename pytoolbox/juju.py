@@ -172,7 +172,7 @@ def save_unit_config(path: str, service: str, config: dict) -> None:
         yaml.dump(config, f)
 
 
-# Environments -------------------------------------------------------------------------------------
+# --- Environments ---------------------------------------------------------------------------------
 
 
 def add_environment(
@@ -278,7 +278,7 @@ def get_environments_count(environments: str | None = None) -> int:
         return len(yaml.load(f)['environments'])
 
 
-# Units --------------------------------------------------------------------------------------------
+# --- Units ----------------------------------------------------------------------------------------
 
 
 def get_unit_path(service: str, number: int, *args: str) -> str:
@@ -286,7 +286,7 @@ def get_unit_path(service: str, number: int, *args: str) -> str:
     return os.path.join(f'/var/lib/juju/agents/unit-{service}-{number}/charm', *args)
 
 
-# Helpers ------------------------------------------------------------------------------------------
+# --- Helpers --------------------------------------------------------------------------------------
 
 
 __get_ip = None  # pylint:disable=invalid-name
@@ -1306,7 +1306,7 @@ class DeploymentScenario:
         raise NotImplementedError('Here should be implemented the deployment scenario.')
 
 
-# Simulation ---------------------------------------------------------------------------------------
+# --- Simulation -----------------------------------------------------------------------------------
 
 # DISCLAIMER: Ideally this module will implement a simulated juju_do to make it possible to use the
 # same methods to drive a real or a simulated juju process ... The following code is a partial/light
