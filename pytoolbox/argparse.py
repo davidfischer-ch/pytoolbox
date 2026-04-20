@@ -40,7 +40,7 @@ from argparse import (  # noqa:E402,F401 pylint:disable=unused-import,wrong-impo
     Namespace,
 )
 
-# Argument Parsing Actions -------------------------------------------------------------------------
+# --- Argument Parsing Actions ---------------------------------------------------------------------
 
 
 class ChainAction(argparse._AppendAction):  # pylint:disable=protected-access
@@ -84,7 +84,7 @@ class FullPaths(argparse.Action):
         setattr(namespace, self.dest, value)
 
 
-# Argument Parsing Types ---------------------------------------------------------------------------
+# --- Argument Parsing Types -----------------------------------------------------------------------
 
 
 def is_dir(path: Path | str) -> Path:
@@ -145,7 +145,7 @@ class Range:  # pylint:disable=too-few-public-methods
         return value
 
 
-# Argument Parsing Defaults ------------------------------------------------------------------------
+# --- Argument Parsing Defaults --------------------------------------------------------------------
 
 
 def env_default(name: str) -> dict[str, Any]:
@@ -154,7 +154,7 @@ def env_default(name: str) -> dict[str, Any]:
     return {'required': True} if value is None else {'default': value}
 
 
-# Argument Parsing Configuration Combos ------------------------------------------------------------
+# --- Argument Parsing Configuration Combos --------------------------------------------------------
 
 DIRECTORY_ARG: Final[dict[str, str | Callable]] = {'action': 'fullpaths', 'type': is_dir}
 FILE_ARG: Final[dict[str, str | Callable]] = {'action': 'fullpaths', 'type': is_file}
@@ -166,7 +166,7 @@ def MULTI_ARG(sep: str | None = None) -> dict[str, str | Callable]:  # noqa: N80
     return {'action': 'chain', 'nargs': '+', 'type': functools.partial(separator, sep=sep)}
 
 
-# Argument Parsing Core ----------------------------------------------------------------------------
+# --- Argument Parsing Core ------------------------------------------------------------------------
 
 
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
@@ -200,13 +200,23 @@ class ActionArgumentParser(ArgumentParser):
         """Print the version string."""
         print(self._version)
 
-    def add_action(self, name: str, func: Callable, *, nested: bool = False) -> Callable:
+    def add_action(
+        self,
+        name: str,
+        func: Callable,
+        *,
+        aliases: list[str] | None = None,
+        help: str | None = None,  # pylint: disable=redefined-builtin
+        nested: bool = False,
+    ) -> Callable:
         """
         Register a sub-command action.
 
         By default the sub-parser is a plain :class:`ArgumentParser`, so positional arguments work
         correctly. Pass ``nested=True`` to get an :class:`ActionArgumentParser` sub-parser that
-        can itself host further sub-commands.
+        can itself host further sub-commands. Pass ``aliases`` to register additional names for the
+        same sub-command. ``help`` overrides the one-line summary shown in the parent's help
+        listing; if omitted it is derived from the first line of ``func.__doc__``.
 
         >>> def greet(args): print(f'Hello, {args.name}!')
         >>> parser = ActionArgumentParser()
@@ -227,11 +237,36 @@ class ActionArgumentParser(ArgumentParser):
         True
         >>> parser.parse_args(['group', 'run']).func is sub_run
         True
+
+        Aliases are registered as additional names for the same sub-command:
+
+        >>> def status(args): print('status')
+        >>> parser = ActionArgumentParser()
+        >>> arg = parser.add_action('status', status, aliases=['st'])
+        >>> _ = arg('--diff', action='store_true')
+        >>> parser.parse_args(['st', '--diff']).func is status
+        True
+
+        ``help`` defaults to the first line of the function's docstring:
+
+        >>> def deploy(args): pass
+        >>> deploy.__doc__ = 'Deploy the application.'
+        >>> parser = ActionArgumentParser()
+        >>> _ = parser.add_action('deploy', deploy)
+        >>> parser._action._get_subactions()[0].help
+        'Deploy the application.'
         """
+        if help is None and func.__doc__:
+            help = func.__doc__.strip().splitlines()[0]
         orig_class = self._action._parser_class
         self._action._parser_class = type(self) if nested else ArgumentParser
         try:
-            parser = self._action.add_parser(name, description=func.__doc__)
+            parser = self._action.add_parser(
+                name,
+                aliases=aliases or [],
+                description=func.__doc__,
+                help=help,
+            )
         finally:
             self._action._parser_class = orig_class
         parser.set_defaults(func=func)
@@ -267,7 +302,7 @@ class ActionArgumentParser(ArgumentParser):
 __all__ = _all.diff(globals())
 
 
-# Deprecated ---------------------------------------------------------------------------------------
+# --- Deprecated -----------------------------------------------------------------------------------
 
 
 @deprecated('Use pytoolbox.console.set_columns instead (drop-in replacement)')

@@ -138,7 +138,7 @@ def test_full_paths_via_file_arg() -> None:
     assert args.file == Path('/etc/hosts').resolve()
 
 
-# multiple -----------------------------------------------------------------------------------------
+# --- multiple -------------------------------------------------------------------------------------
 
 
 @mark.parametrize(
@@ -155,7 +155,7 @@ def test_multiple(input_val, expected) -> None:
     assert func(input_val) == expected
 
 
-# password -----------------------------------------------------------------------------------------
+# --- password -------------------------------------------------------------------------------------
 
 
 def test_password_with_value() -> None:
@@ -170,7 +170,7 @@ def test_password_prompts_when_empty() -> None:
         assert argparse.password('') == 'prompted'
 
 
-# Range --------------------------------------------------------------------------------------------
+# --- Range ----------------------------------------------------------------------------------------
 
 
 def test_range_valid() -> None:
@@ -206,7 +206,7 @@ def test_range_float() -> None:
         r('1.5')
 
 
-# ActionArgumentParser -----------------------------------------------------------------------------
+# --- ActionArgumentParser -------------------------------------------------------------------------
 
 
 def test_action_argument_parser_no_args() -> None:
@@ -265,7 +265,7 @@ def test_action_argument_parser_unhandled_exception() -> None:
         parser.execute(['fail'])
 
 
-# ArgumentParser -----------------------------------------------------------------------------------
+# --- ArgumentParser -------------------------------------------------------------------------------
 
 
 def test_argument_parser_registers_actions() -> None:
@@ -276,7 +276,77 @@ def test_argument_parser_registers_actions() -> None:
     assert args.path == Path('/usr/lib').resolve()
 
 
-# env_default --------------------------------------------------------------------------------------
+# --- add_action -----------------------------------------------------------------------------------
+
+
+def test_add_action_alias_dispatches_to_same_func() -> None:
+    """Alias resolves to the same function as the primary name."""
+    results = []
+
+    def action_status(args):  # pylint: disable=unused-argument
+        results.append('status')
+
+    parser = argparse.ActionArgumentParser()
+    arg = parser.add_action('status', action_status, aliases=['st'])
+    arg('--diff', action='store_true', default=False)
+    parser.execute(['st', '--diff'])
+    parser.execute(['status'])
+    assert results == ['status', 'status']
+
+
+def test_add_action_alias_passes_args() -> None:
+    """Arguments registered on the primary name are accessible via an alias."""
+    captured = []
+
+    def action_status(args):
+        captured.append(args.diff)
+
+    parser = argparse.ActionArgumentParser()
+    arg = parser.add_action('status', action_status, aliases=['st'])
+    arg('--diff', action='store_true', default=False)
+    parser.execute(['st', '--diff'])
+    assert captured == [True]
+
+
+def test_add_action_help_explicit() -> None:
+    """Explicit help overrides the docstring-derived default."""
+
+    def action(args):  # pylint: disable=unused-argument
+        pass
+
+    action.__doc__ = 'Long docstring summary.\n\nMore detail.'
+    parser = argparse.ActionArgumentParser()
+    parser.add_action('do', action, help='Short override.')
+    subaction = parser._action._get_subactions()[0]  # pylint: disable=protected-access
+    assert subaction.help == 'Short override.'
+
+
+def test_add_action_help_from_docstring() -> None:
+    """Help defaults to the first line of func.__doc__ when not provided."""
+
+    def action(args):  # pylint: disable=unused-argument
+        pass
+
+    action.__doc__ = 'Deploy the application.\n\nMore detail here.'
+    parser = argparse.ActionArgumentParser()
+    parser.add_action('deploy', action)
+    subaction = parser._action._get_subactions()[0]  # pylint: disable=protected-access
+    assert subaction.help == 'Deploy the application.'
+
+
+def test_add_action_help_none_when_no_docstring() -> None:
+    """Help stays None when func has no docstring and help is not provided."""
+
+    def action(args):  # pylint: disable=unused-argument
+        pass
+
+    parser = argparse.ActionArgumentParser()
+    parser.add_action('do', action)
+    subaction = parser._action._get_subactions()[0]  # pylint: disable=protected-access
+    assert subaction.help is None
+
+
+# --- env_default ----------------------------------------------------------------------------------
 
 
 @mark.parametrize(
