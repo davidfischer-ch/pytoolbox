@@ -120,7 +120,7 @@ types-pytz==2026.1.1.20260304
 types-requests==2.32.4.20260107
 types-urllib3==1.26.25.14
 typing_extensions==4.15.0
-urllib3==2.6.3
+urllib3==2.7.0
 voluptuous==0.16.0
 websocket-client==1.9.0
 Werkzeug==3.1.6
