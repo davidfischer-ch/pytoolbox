@@ -2,6 +2,7 @@
 
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
+
 ## v14.11.2 (2026-04-20)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.1...14.11.2
@@ -15,6 +16,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.1...14.11.2
 
 * Normalize all section header comments to `# --- Name ---` 100-character format across source and test files
 
+
 ## v14.11.1 (2026-04-17)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.0...14.11.1
@@ -25,6 +27,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.0...14.11.1
 * Module `django.models.fields.mixins`: Add `ClassVar` annotations to `OptionsMixin` and `StripMixin` class-level attributes for mypy compatibility
 * Module `django.models.fields.base`: Add `ClassVar` annotations to class-level attributes and explicit type annotations to instance variables for mypy compatibility
 * Module `django.models.query.mixins`: Add `ClassVar` annotations to class-level attributes and fix `get_restore_or_create` return type for mypy compatibility
+
 
 ## v14.11.0 (2026-04-10)
 
@@ -38,6 +41,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.2...14.11.0
 
 * Drop Python 3.11 from CI matrix (Django 6 requires Python 3.12+); Python 3.11 remains supported on a best-effort basis
 * Bump `requests` to 2.33.0 and `pygments` to 2.20.0
+
 
 ## v14.10.2 (2026-04-04)
 
@@ -55,6 +59,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.1...14.10.2
 * Add `typing_extensions` as dependency for Python < 3.12 (provides `override`)
 * Move pylint disables from global config to file level; add missing docstrings; rename `ex` → `exc` throughout
 
+
 ## v14.10.1 (2026-03-29)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.0...14.10.1
@@ -66,6 +71,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.0...14.10.1
 ### Fix and enhancements
 
 * Module `crypto`: Fix mypy type errors in `new` and `guess_algorithm`
+
 
 ## v14.10.0 (2026-03-22)
 
@@ -93,6 +99,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.2...14.10.0
 * Add Windows CI support; skip POSIX-only tests on Windows
 * Add tests for new modules and functions
 
+
 ## v14.9.2 (2026-03-11)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.1...14.9.2
@@ -108,6 +115,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.1...14.9.2
 
 * Expand test coverage to cover exception branches and signal handler preservation
 
+
 ## v14.9.1 (2026-03-08)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.0...14.9.1
@@ -117,6 +125,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.0...14.9.1
 * Fix Windows incompatibilities to prevent import-time crashes
 * Module `filesystem`: Defer `import magic` into `file_mime()` with `ImportWarning` fallback when `python-magic` / `libmagic` is unavailable
 * Fix linter issues
+
 
 ## v14.9.0 (2026-03-08)
 
@@ -163,6 +172,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.6...14.8.7
 * Module `argparse`: Add `nested` parameter to `add_action` for sub-parsers with sub-commands
 * Merge MRs from dependabot
 
+
 ## v14.8.6 (2025-09-05)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.5...14.8.6
@@ -172,6 +182,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.5...14.8.6
 * Module `rest_framework.serializers`: Replace `smart_text` with `smart_str` (Django 5+ compat)
 * Fix strange CI & linter issues
 * Merge MR from depndabot
+
 
 ## v14.8.5 (2025-02-14)
 
@@ -184,6 +195,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.4...14.8.5
 ### Fix and enhancements
 
 * Merge MRs from dependabot
+
 
 ## v14.8.4 (2024-11-09)
 
@@ -200,6 +212,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.3...14.8.4
 * Integrate latest pylintrc
 * Fix various linter issues
 
+
 ## v14.8.3 (2024-06-20)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.2...14.8.3
@@ -212,6 +225,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.2...14.8.3
 
 * Add `.flake8` configuration
 * Merge MR from dependabot
+
 
 ## v14.8.2 (2024-04-03)
 
@@ -226,6 +240,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.1...14.8.2
 
 * Keep `git` / `subprocess` log records separated
 * Prevent a strange issue when reloading logging module
+
 
 ## v14.8.1 (2024-04-02)
 
@@ -263,6 +278,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.0...14.8.1
 * Class `exceptions.CalledProcessError`: Add property `cmd_short` and prevent exposing sensitive data in `__str__` or `__repr__`
 * Fix calls to `yaml.dump` (as its now `ruamel.yaml`)
 * Various improvements such as type hints, documentation, tests
+
 
 ## v14.8.0 (2024-03-25)
 
@@ -308,6 +324,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.7.0...14.8.0
 * Replace `pyyaml` by `ruamel.yaml`
 * Cover `regex.Match` with tests
 * Test code with `ruff`
+
 
 ## v14.7.0 (2024-03-22)
 
@@ -374,6 +391,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.7.0
 * Fix various linter issues
 * Update `AUTHORS.md`
 
+
 ## v14.6.0 (2023-08-15)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.1...14.6.0
@@ -393,6 +411,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.1...14.6.0
 * Add more type hints (especially `humanize` and `multimedia.exif`)
 * Add `PyGObject` to requirements for `imaging` feature
 
+
 ## v14.5.1 (2023-06-08)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.5.1
@@ -400,6 +419,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.5.0...14.5.1
 ### Fix and enhancements
 
 * Make code compatible with legacy versions of `packaging`
+
 
 ## v14.5.0 (2023-06-07)
 
@@ -420,6 +440,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.4.0...14.5.0
 * Apply recommendations from linters (or silent it...)
 * Convert Changelog and Authors in Markdown
 
+
 ## v14.4.0 (2022-12-09)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.3.0...14.4.0
@@ -434,10 +455,12 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.3.0...14.4.0
 * Add function `console.toggle_colors`
 * Module `comparison`: Add `unified_diff`, `compare_versions` and `satisfy_version_constraints`
 
+
 ## Fix and enhancements
 
 * Compatibility with latest Django releases
 * Compatibility with latest `packaging` module (`LegacyVersion` was dropped)
+
 
 ## v14.3.0 (2022-09-09)
 
@@ -453,6 +476,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.2.0...14.3.0
 * Add [types.merge_annotations` class decorator
 * Module `comparison`: Add `unified_diff`, `compare_versions` and `satisfy_version_constraints`
 
+
 ## v14.2.0 (2022-06-10)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.2.0
@@ -467,11 +491,13 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.2.0
 
 * Add some type hints (more to come)
 
+
 ## Fix and enhancements
 
 * Convert some FIXMEs to TODOs
 * Ensure Python 3.10 compatibility
 * Fix many linter issues
+
 
 ## v14.1.0
 
@@ -485,22 +511,27 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.2...14.1.0
 
 * Module `django.models.fields`: Add `NullifyMixin`, `CharField` and `TextField`
 
+
 ## Fix and enhancements
 
 * Module `django.signals`: Fix `strip_strings_and_validate_model` not importable from `django.signals`
 * Module `django.models.fields`: Fix `StripMixin` not fair play with inheritance
 
+
 ## v14.0.2
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.1...14.0.2
+
 
 ## Fix and enhancements
 
 * Fix Django deprecation warning (`ugettext_lazy` -> `gettext_lazy`)
 
+
 ## v14.0.1
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.0...14.0.1
+
 
 ## Fix and enhancements
 
@@ -508,9 +539,11 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.0...14.0.1
 * Fix Keras imports (because they changed)
 * Fix newer pylint errors
 
+
 ## v14.0.0
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
+
 
 ## Major compatibility breaks
 
@@ -533,6 +566,7 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 * Test on recent Python releases from 3.6 to 3.8 (3.9 will come next)
 * Temporarily removed PyPy 3.6 from test matrix due to `tensorflow` (work in progress)
 
+
 ## Fix and enhancements
 
 * setup.py an extra `all` one can install with pip install `.[all]`
@@ -545,15 +579,18 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 * Update Travis CI configuration: Define distribution, update script, ...
 * Generate documentation with `python setup.py docs`
 
+
 ## v13.5.0
 
 ### Minor compatibility breaks
 
 * Class `multimedia.exif.miscellaneous.VideoStream`: Rename rotate to rotation
 
+
 ## Fix and enhancements
 
 * Module `multimedia.exif`: Add Tamron brand
+
 
 ## v13.4.0
 
@@ -562,12 +599,15 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 * Drop Python 2.6 + Python 3.2 support (remove from Travis CI build)
 * Module `multimedia.ffmpeg`: Allow to pass input options (encoding)
 
+
 ## Fix and enhancements
 
 * Module `multimedia.ffmpeg`: Refresh metadata classes
 * Class `multimedia.exif.Metadata`: Allow to define path to save EXIF metadata
 
+
 ## v13.3.5
+
 
 ## Fix and enhancements
 
@@ -577,7 +617,9 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 * Class `django.models.fields.\*`: Use `OptionsMixin` on all fields
 * Add `requests` to requirements
 
+
 ## v13.3.0
+
 
 ## Fix and enhancements
 
@@ -587,7 +629,9 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 
 * Add module `pandas`
 
+
 ## v13.2.0
+
 
 ## Fix and enhancements
 
@@ -597,7 +641,9 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 
 * Add function `console.shell`
 
+
 ## v13.1.3
+
 
 ## Fix and enhancements
 
@@ -606,17 +652,21 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/13.5.0...14.0.0
 
 Thanks to \@TobbeEdgeware!
 
+
 ## v13.1.1
 
 ### Minor compatibility breaks
 
 * Function `serialization.object_to_dict`: Rely almost only on schema to produce output structure (hint: use list in schema)
 
+
 ## Fix and enhancements
 
 * Function `collections.swap_dict_of_values`: Implement simple key-value swap.
 
+
 ## v13.0.4
+
 
 ## Fix and enhancements
 
@@ -624,7 +674,9 @@ Thanks to \@TobbeEdgeware!
 * Function `multimedia.image.remove_transparency`: Enhance code (remove `force_rgb arg` from 13.0.2).
 * Function `serialization.object_to_dict`: Add `iterable_callback` to customize container type of iterables.
 
+
 ## v13.0.0
+
 
 ## Compatibility breaks
 
@@ -639,9 +691,11 @@ Thanks to \@TobbeEdgeware!
 * Add function `filesystem.to_group_id`
 * Add function `regex.from_path_patterns`
 
+
 ## Fix and enhancements
 
 * Replace relative imports of `len(.) > 1` by absolute imports
+
 
 ## v12.2.3
 
@@ -649,12 +703,15 @@ Thanks to \@TobbeEdgeware!
 
 * Add module `aws.s3`
 
+
 ## v12.1.2
+
 
 ## Compatibility breaks
 
 * Remove `object_to_dict` and `object_to_dictV2`
 * Rename `object_to_dictV3` to `object_to_dict`
+
 
 ## Fix and enhancements
 
@@ -663,7 +720,9 @@ Thanks to \@TobbeEdgeware!
 * Function `serialization.object_to_dict`: Also add depth information.
 * Function `serialization.to_file`: Fix `to_file` not using `makedirs` properly
 
+
 ## v11.10.0
+
 
 ## Fix and enhancements
 
@@ -675,7 +734,9 @@ Thanks to \@TobbeEdgeware!
 * Add class `django.models.fields.mixins.LowercaseMixin`
 * Add function `serialization.object_to_dictV3`
 
+
 ## v11.9.1
+
 
 ## Fix and enhancements
 
@@ -689,6 +750,7 @@ Thanks to \@TobbeEdgeware!
 ### Features
 
 * Add module `ai`
+
 
 ## v11.8.6
 
@@ -705,6 +767,7 @@ Thanks to \@TobbeEdgeware!
 
 * Add module `multimedia.image.PIL`
 * Add function `types.merge_base_attribute`
+
 
 ## v11.7.6
 
@@ -723,6 +786,7 @@ Thanks to \@TobbeEdgeware!
 * `Class multimedia.exif.Metadata`: Can also read EXIF metadata from buffer
 * Function `argparse.password`: Add it
 
+
 ## v11.7.1
 
 ### Minor compatibility breaks
@@ -733,6 +797,7 @@ Thanks to \@TobbeEdgeware!
 
 * Module `filesystem`: Add `walk_kwargs` to some functions
 * Function `logging.setup_logging`: make possible to setup an instance of logger
+
 
 ## v11.6.4
 
@@ -751,6 +816,7 @@ Thanks to \@TobbeEdgeware!
   * Allow to specify gexiv2 version
 * Use iteritems because its still a Python 2 (and 3) library
 
+
 ## v11.6.0
 
 ### Fixes and enhancements
@@ -762,6 +828,7 @@ Thanks to \@TobbeEdgeware!
 
 * Support Python 3.6
 * Add function `itertools.chunk`
+
 
 ## v11.5.4
 
@@ -776,12 +843,14 @@ Thanks to \@TobbeEdgeware!
 
 * Add function `crypto.get_password_generator`
 
+
 ## v11.5.0
 
 ### Fixes and enhancements
 
 * Improve code quality
 * Remove `try_` prefix from `filesystem` functions (retro compat: `try_` functions still defined)
+
 
 ## v11.4.3
 
@@ -795,12 +864,14 @@ Thanks to \@TobbeEdgeware!
 
 * Add bare argument to `subprocess.git_clone_or_pull`
 
+
 ## v11.4.0
 
 ### Features
 
 * Add module `linux`
 * Add module `setuptools`
+
 
 ## v11.2.0
 
@@ -814,6 +885,7 @@ Thanks to \@TobbeEdgeware!
 * Add docstrings and fix doctests
 * Fix `django.forms.utils.get_instance`
 * Update `FromPrivateKeyMixin` to fix call to fail with recent DRF
+
 
 ## v11.1.0
 
@@ -836,7 +908,9 @@ Thanks to \@TobbeEdgeware!
 * `network.http.download_ext`: Pass `kwargs` to `iter_download_to_file`
 * `django.views.mixins.AddRequestToFormKwargsMixin`: Check form "handles" request as `kwarg` based on its class
 
+
 ## v11.0.0
+
 
 ## Compatibility breaks
 
@@ -860,6 +934,7 @@ Thanks to \@TobbeEdgeware!
 * Update modules headers
 * Make `django.views.mixins.ValidationErrorsMixin` more "generic"
 * Too many to be listed here, https://github.com/davidfischer-ch/pytoolbox/compare/10.4.0...11.0.0
+
 
 ## v10.4.0
 
@@ -895,7 +970,9 @@ Thanks to \@TobbeEdgeware!
 * Split module `multimedia.ffmpeg`
 * Fix `ffmpeg`'s' `mock` class
 
+
 ## v10.3.0
+
 
 ## Compatibility breaks
 
@@ -939,7 +1016,9 @@ Thanks to \@TobbeEdgeware!
 * Follow `os.path` import best practices
 * Make `multimedia.ffmpeg` private functions public
 
+
 ## v10.2.0
+
 
 ## Compatibility breaks
 
@@ -983,7 +1062,9 @@ Thanks to \@TobbeEdgeware!
 * Module `subprocess`: Import Popen from psutil if available
 * Refactor function `django.signals.create_site`
 
+
 ## v10.0.0
+
 
 ## Compatibility breaks
 
@@ -996,6 +1077,7 @@ Thanks to \@TobbeEdgeware!
 ### Fixes and enhancements
 
 * Add class `multimedia.ffmpeg.EncodingState`
+
 
 ## v9.7.2
 
@@ -1023,6 +1105,7 @@ Thanks to \@TobbeEdgeware!
 * Improve `network.http.download_ext` (Can download in chunks + progress callback)
 * Improve `filesystem.get_bytes` + `crypto.*` to read a file in chunks (if `chunk_size` is set)
 
+
 ## v9.4.2
 
 ### Features
@@ -1040,7 +1123,9 @@ Thanks to \@TobbeEdgeware!
 * Refactor module `humanize` + add `naturalfilesize`
 * Improve `humanize` functions to handle `[0-1]` range + big numbers
 
+
 ## v9.3.0-beta
+
 
 ## Compatibility breaks
 
@@ -1068,11 +1153,13 @@ Thanks to \@TobbeEdgeware!
 * Fix `multimedia.ffmpeg.FFmpeg.encode`: Create output directory before the subprocess
 * Improve `multimedia.ffmpeg.FFmpeg.encode`: Handle process missing + simplify mocking
 
+
 ## v8.6.1-beta
 
 ### Fixes and enhancements
 
 * Add function `multimedia.ffmpeg.get_subprocess`
+
 
 ## v8.6.0-beta
 
@@ -1109,7 +1196,9 @@ Thanks to \@TobbeEdgeware!
 * Fix `multimedia.ffmpeg.encode` (skip broken out duration)
 * Improve `multimedia.ffprobe.get_media_duration` to handle media info dict
 
+
 ## v8.0.0-beta
+
 
 ## Compatibility breaks
 
@@ -1121,7 +1210,9 @@ Thanks to \@TobbeEdgeware!
 * Add module `multimedia.ffprobe`
 * Add function `datetime.str2time`
 
+
 ## v7.1.17-beta
+
 
 ## Compatibility breaks
 
@@ -1146,7 +1237,9 @@ Thanks to \@TobbeEdgeware!
 * Use sudo with juju status (to work around https://bugs.launchpad.net/juju-core/+bug/1237259)
 * Add timeout to valid_uri
 
+
 ## v6.6.0-beta
+
 
 ## Compatibility breaks
 
@@ -1184,6 +1277,7 @@ Thanks to \@TobbeEdgeware!
 * Add `juju.Environment.wait_unit`
 * Improve `ffmpeg` module
 
+
 ## v5.6.3-beta
 
 ### Fixes and enhancements
@@ -1191,6 +1285,7 @@ Thanks to \@TobbeEdgeware!
 * Add timeout argument to `cmd()`
 * Remove symlink first, to avoid boring exceptions
 * Add timeout to juju status !
+
 
 ## v5.6.0-beta
 
@@ -1209,6 +1304,7 @@ Thanks to \@TobbeEdgeware!
 * Fix `juju`, `serialization`, `subprocess` modules, update tests
 * Function subprocess.cmd : Handle `logging.Logger` as log, improve docstring, add retry loop
 * Upgrade `relation_` methods
+
 
 ## v5.5.0-beta
 
@@ -1234,6 +1330,7 @@ Thanks to \@TobbeEdgeware!
 * Fix headers + rest markup + update title
 * Enhance function `ffmpeg.encode`
 * Call log more often
+
 
 ## v5.4.19-beta
 
@@ -1279,7 +1376,9 @@ sudo python setup.py install --help
 sudo python setup.py install --extra-flask
 ```
 
+
 ## v5.0.0-beta
+
 
 ## Compatibility breaks
 
@@ -1295,6 +1394,7 @@ sudo python setup.py install --extra-flask
 * Use absolute imports
 * Update classifiers
 * Update README.rst
+
 
 ## v4.8.7-beta
 
@@ -1322,7 +1422,9 @@ sudo python setup.py install --extra-flask
 * Update function `runtests`
 * Update `setup.py`
 
+
 ## v4.0.0-beta
+
 
 ## Compatibility breaks
 
@@ -1340,7 +1442,9 @@ sudo python setup.py install --extra-flask
 * Update `cmd`
 * Update `rsync`
 
+
 ## v3.10.7-beta
+
 
 ## Compatibility breaks
 
