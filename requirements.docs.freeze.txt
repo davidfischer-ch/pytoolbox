@@ -35,7 +35,7 @@ google-pasta==0.2.0
 grpcio==1.78.0
 h11==0.16.0
 h5py==3.14.0
-idna==3.11
+idna==3.15
 imagesize==2.0.0
 iniconfig==2.3.0
 isort==8.0.1
