@@ -150,7 +150,7 @@ def disable_iptables(func: Callable) -> Callable:
 
         try:
             try:
-                py_subprocess.cmd(['sudo', 'service', 'iptables', 'stop'], shell=True)
+                py_subprocess.cmd(['sudo', 'service', 'iptables', 'stop'])
                 print('Disable iptables')
                 has_iptables = True
             except Exception:  # pylint:disable=broad-except
@@ -159,7 +159,7 @@ def disable_iptables(func: Callable) -> Callable:
         finally:
             if has_iptables:  # pylint:disable=used-before-assignment
                 print('Enable iptables')
-                py_subprocess.cmd(['sudo', 'service', 'iptables', 'start'], shell=True)
+                py_subprocess.cmd(['sudo', 'service', 'iptables', 'start'])
 
     return wrapper
 
