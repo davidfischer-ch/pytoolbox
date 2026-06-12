@@ -206,7 +206,7 @@ def valid_secret(secret: str | None, *, none_allowed: bool) -> bool:
     if secret is None:
         return none_allowed
     try:
-        return re.match(r'[A-Za-z0-9@#$%^&+=-_]{8,}', secret) is not None
+        return re.match(r'^[A-Za-z0-9@#$%^&+=_-]{8,}$', secret) is not None
     except Exception:  # pylint:disable=broad-except
         return False
 
@@ -219,7 +219,7 @@ def valid_uri(
     port_mandatory: bool = False,
     default_port: int = 80,
     excepted_errnos: Iterable[int] = (errno.ENOENT, errno.ECONNREFUSED, errno.ENETUNREACH),
-    timeout: int | None = None,
+    timeout: int | None = 60,
 ) -> bool:
     """
     Validate an URI.

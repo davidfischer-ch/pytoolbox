@@ -92,4 +92,4 @@ class KeysValidator:
 class MD5ChecksumValidator(validators.RegexValidator):
     """Validate that a value is a 32-character hexadecimal MD5 checksum."""
 
-    regex = re.compile(r'[0-9a-f]{32}')
+    regex = re.compile(r'^[0-9a-f]{32}$')
