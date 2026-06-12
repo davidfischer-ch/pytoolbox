@@ -126,7 +126,7 @@ def reset_logger(log: LoggerType) -> logging.Logger:
     return log
 
 
-def setup_logging(
+def setup_logging(  # pylint: disable=too-many-arguments
     log: LoggerType = '',
     reset: bool = False,
     path: Path | str | None = None,
