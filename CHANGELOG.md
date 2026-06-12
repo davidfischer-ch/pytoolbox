@@ -3,6 +3,22 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.11.4 (2026-06-13)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.3...14.11.4
+
+### Fix and enhancements
+
+* Module `django.core.validators`: Anchor `MD5ChecksumValidator` regex with `^...$` to prevent validation bypass via embedded checksums
+* Module `validation`: Fix `valid_secret` regex — `=-_` was an unintended character range; anchor with `^...$` so trailing junk is rejected
+* Module `validation`: Default `valid_uri` timeout to 60 seconds to prevent indefinite hang on stalled connections
+* Module `network.http`: Restrict `download()` to `http`/`https` schemes; raise `ValueError` on others to prevent local-file reads
+* Module `network.http`: Add `DEFAULT_TIMEOUT = 60` and apply it as the default across all download functions and `Resource`
+* Module `crypto`: Use `secrets.choice` instead of `random.SystemRandom().choice` in `get_password_generator`
+* Module `multimedia.ffmpeg.ffprobe`: Replace `xml.dom.minidom` with `defusedxml.minidom` to block XML entity expansion attacks; add `defusedxml` as a core dependency
+* Module `decorators`: Drop `shell=True` from `disable_iptables` — it was ineffective with list-form commands and a latent foot-gun
+
+
 ## v14.11.3 (2026-06-12)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.2...14.11.3
