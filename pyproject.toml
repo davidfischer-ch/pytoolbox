@@ -53,6 +53,7 @@ dependencies = [
     'python-magic-bin; sys_platform == "win32"',
     'python-magic; sys_platform != "win32"',
     'cryptography',
+    'defusedxml',
     'typing_extensions; python_version < "3.12"',
     'tzdata',
     'requests',

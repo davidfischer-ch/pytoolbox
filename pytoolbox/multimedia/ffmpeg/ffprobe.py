@@ -15,7 +15,8 @@ import re
 import subprocess
 from pathlib import Path
 from typing import Final, Type
-from xml.dom import minidom
+
+from defusedxml import minidom
 
 from pytoolbox import subprocess as py_subprocess
 from pytoolbox.datetime import parts_to_time, secs_to_time
