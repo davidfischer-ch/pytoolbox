@@ -3,6 +3,15 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.11.3 (2026-06-12)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.2...14.11.3
+
+### Features
+
+* Module `logging`: Add `stream` parameter to `setup_logging` to override the console output stream
+
+
 ## v14.11.2 (2026-04-20)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.1...14.11.2
