@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Final, Literal, Protocol, TypeAlias, cast
+from typing import Final, Literal, Protocol, TextIO, TypeAlias, cast
 
 from .collections import merge_dicts
 
@@ -136,6 +136,7 @@ def setup_logging(
     color_by_level: dict[int | str, Color] | None = None,
     fmt: str = '%(asctime)s %(levelname)-8s - %(message)s',
     datefmt: str = '%d/%m/%Y %H:%M:%S',
+    stream: TextIO | None = None,
 ) -> logging.Logger:
     r"""
     Set up logging.
@@ -153,6 +154,18 @@ def setup_logging(
     >>> log.debug('this is my hidden debug')
     >>> log.handlers = []  # Remove handlers manually: pas de bras, pas de chocolat !
     >>> log.info('no handlers, no messages ;-)')
+
+    Console logs go to *stream*, by default ``sys.stdout``: the pattern for an application or
+    a service, whose standard output is its log stream, captured by the platform (systemd,
+    container runtime, CI job, ...); this is the twelve-factor approach.
+
+    A command line tool follows the opposite pattern: its standard output is its product
+    (parseable data), so the diagnostics belong to ``sys.stderr``. This is what ``git``
+    (progress, hints), ``curl`` (progress meter) and ``jq`` (errors) do, enabling pipelines
+    such as ``my-tool | jq .`` while keeping the messages visible on the terminal:
+
+    >>> log = setup_logging('e', reset=True, console=True, fmt=None, stream=sys.stderr)
+    >>> log.info('sent to stderr, hence invisible to this doctest')
 
     Colorization is not guaranteed (your environment may disable it).
     Use `pytoolbox.console.toggle_colors` appropriately to ensure it.
@@ -198,7 +211,7 @@ def setup_logging(
         file_handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=datefmt))
         log.addHandler(file_handler)
     if console:
-        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler = logging.StreamHandler(sys.stdout if stream is None else stream)
         if colorize:
             formatter = ColorizeFormatter(fmt=fmt, datefmt=datefmt, color_by_level=color_by_level)
         else:

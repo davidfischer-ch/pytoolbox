@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging as stdlib_logging
+import sys
 from unittest import mock
 
 import pytest
@@ -52,6 +53,15 @@ def test_setup_logging_colorize_only_on_console_handler() -> None:
     )
     console_handler = log.handlers[0]
     assert isinstance(console_handler.formatter, logging.ColorizeFormatter)
+
+
+def test_setup_logging_stream() -> None:
+    """setup_logging() routes the console handler to the given stream (default: stdout)."""
+    log = logging.setup_logging('test_stream_default', reset=True, console=True)
+    assert log.handlers[0].stream is sys.stdout
+
+    log = logging.setup_logging('test_stream_stderr', reset=True, console=True, stream=sys.stderr)
+    assert log.handlers[0].stream is sys.stderr
 
 
 def test_setup_logging_file_handler_not_colorized(tmp_path) -> None:
