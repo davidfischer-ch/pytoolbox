@@ -26,6 +26,10 @@ _all = module.All(globals())
 
 DEFAULT_CHUNK_SIZE: Final[int] = 100 * 1024
 
+# Per-socket-operation timeout (max seconds with no data flowing), not a total-download cap.
+# A stalled or dead connection aborts after this; a slow-but-progressing download is unaffected.
+DEFAULT_TIMEOUT: Final[int] = 60
+
 
 @dataclass(frozen=True, slots=True)
 class Resource:  # pylint:disable=too-many-instance-attributes
@@ -45,7 +49,7 @@ class Resource:  # pylint:disable=too-many-instance-attributes
     headers: dict[str, str] | None = None
     params: dict | list[tuple] | bytes | None = None
     proxies: dict[str, str] | None = None
-    timeout: int | None = None
+    timeout: int | None = DEFAULT_TIMEOUT
     verify: bool = True
 
 
@@ -75,10 +79,12 @@ class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
     ) -> None: ...
 
 
-def download(url: str, path: Path) -> None:
+def download(url: str, path: Path, *, timeout: int | None = DEFAULT_TIMEOUT) -> None:
     """Read the content of given `url` and save it as a file `path`."""
+    if urllib.parse.urlsplit(url).scheme not in {'http', 'https'}:
+        raise ValueError(f'Unsupported URL scheme for download: {url}')
     with path.open('wb') as target:
-        with urllib.request.urlopen(url) as source:
+        with urllib.request.urlopen(url, timeout=timeout) as source:
             target.write(source.read())
 
 
@@ -99,7 +105,7 @@ def iter_download_core(  # pylint:disable=too-many-arguments
     headers: dict[str, str] | None = None,
     params: dict | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
-    timeout: int | None = None,
+    timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
 ) -> Iterator[tuple[int, int, bytes]]:
     """Yield ``(position, length, chunk)`` tuples while downloading *url*."""
@@ -146,7 +152,7 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     headers: dict[str, str] | None = None,
     params: dict | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
-    timeout: int | None = None,
+    timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
 ) -> Iterator[tuple[int, int, bytes | None, bool, str | None]]:
     """Download *url* to *path*, yielding progress tuples with hash info."""
@@ -211,7 +217,7 @@ def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
     headers: dict[str, str] | None = None,
     params: dict | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
-    timeout: int | None = None,
+    timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
 ) -> tuple[bool, bool, str | None]:
     """
