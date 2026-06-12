@@ -7,7 +7,7 @@ from __future__ import annotations
 import collections
 import hashlib
 import os
-import random
+import secrets
 import string
 from base64 import b64encode
 from collections.abc import Callable, Iterable
@@ -98,7 +98,7 @@ def get_password_generator(
     False
     """
     return collections.defaultdict(
-        lambda: ''.join(random.SystemRandom().choice(characters) for _ in range(length)),
+        lambda: ''.join(secrets.choice(characters) for _ in range(length)),
     )
 
 
