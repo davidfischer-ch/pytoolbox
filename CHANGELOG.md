@@ -3,6 +3,18 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.11.5 (2026-07-08)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.4...14.11.5
+
+### Fix and enhancements
+
+* Module `django.models.mixins`: Skip generated columns in `CallFieldsPreSaveMixin` so a model
+  with a `GeneratedField` saves instead of failing when `pre_save` reads the uncomputed value
+* Cap `pytest` below `9.0.3`: that release removed the `path` hookspec argument that
+  `pytest-pylint` 0.21.0 still declares, which broke test collection
+
+
 ## v14.11.4 (2026-06-13)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.3...14.11.4
