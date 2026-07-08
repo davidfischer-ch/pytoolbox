@@ -240,10 +240,10 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
 
 
 def test_call_fields_pre_save_mixin() -> None:
-    """pre_save is called on all non-pk fields, pk field is skipped."""
-    field1 = MagicMock(primary_key=False)
-    field2 = MagicMock(primary_key=True)
-    field3 = MagicMock(primary_key=False)
+    """pre_save is called on every writable non-pk field; the pk field is skipped."""
+    field1 = MagicMock(primary_key=False, generated=False)
+    field2 = MagicMock(primary_key=True, generated=False)
+    field3 = MagicMock(primary_key=False, generated=False)
 
     class Base:
         """Test class."""
@@ -262,6 +262,29 @@ def test_call_fields_pre_save_mixin() -> None:
     field1.pre_save.assert_called_once_with(obj, False)
     field2.pre_save.assert_not_called()
     field3.pre_save.assert_called_once_with(obj, False)
+
+
+def test_call_fields_pre_save_mixin_skips_generated_fields() -> None:
+    """A generated column is skipped: its pre_save would lazy-load an uncomputed value and fail."""
+    writable = MagicMock(primary_key=False, generated=False)
+    generated = MagicMock(primary_key=False, generated=True)
+
+    class Base:
+        """Test class."""
+
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
+
+    class TestObj(mixins.CallFieldsPreSaveMixin, Base):
+        """Test object with CallFieldsPreSaveMixin."""
+
+        _meta = MagicMock(local_concrete_fields=[writable, generated])
+        _state = MagicMock(adding=True)
+
+    obj = TestObj()
+    obj.save()
+    writable.pre_save.assert_called_once_with(obj, True)
+    generated.pre_save.assert_not_called()
 
 
 # --- ReloadMixin ----------------------------------------------------------------------------------

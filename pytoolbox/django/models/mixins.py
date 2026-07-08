@@ -313,9 +313,13 @@ class CallFieldsPreSaveMixin:
         using: str | None = None,
         update_fields: object = None,
     ) -> None:
-        """Call each non-PK field's :meth:`pre_save` before saving."""
-        non_pk_fields = (f for f in self._meta.local_concrete_fields if not f.primary_key)
-        for field in non_pk_fields:
+        """Call each writable non-PK field's :meth:`pre_save` before saving."""
+        # Skip generated columns: they have no writable value, and Django's ``GeneratedField``
+        # ``pre_save`` would lazy-load the not-yet-computed value and fail mid-save.
+        fields = (
+            f for f in self._meta.local_concrete_fields if not f.primary_key and not f.generated
+        )
+        for field in fields:
             field.pre_save(self, self._state.adding)
         super().save(
             force_insert=force_insert,
