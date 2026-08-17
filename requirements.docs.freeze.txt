@@ -109,7 +109,7 @@ sphinxcontrib-jquery==4.1
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
-sqlparse==0.5.5
+sqlparse==0.6.0
 tensorflow==2.21.0
 termcolor==3.3.0
 tldextract==5.3.1
