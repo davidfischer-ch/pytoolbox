@@ -21,7 +21,7 @@ Django==6.0.3
 django-filter==25.2
 django-formtools==2.5.1
 django-oauth-toolkit==3.2.0
-djangorestframework==3.16.1
+djangorestframework==3.17.2
 dlib==20.0.0
 dnspython==2.8.0
 docutils==0.22.4
