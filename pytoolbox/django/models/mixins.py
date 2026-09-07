@@ -28,13 +28,8 @@ from __future__ import annotations
 import collections
 import itertools
 import re
-import sys
+from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, ClassVar
-
-if sys.version_info >= (3, 12):
-    from typing import override
-else:
-    from typing_extensions import override
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, models
@@ -42,8 +37,10 @@ from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 from django.utils.functional import cached_property
 
+from pytoolbox import exceptions as py_exceptions
 from pytoolbox import itertools as py_itertools  # pylint:disable=reimported
 from pytoolbox import module
+from pytoolbox.compat import override
 from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
 
@@ -53,31 +50,39 @@ try:
     _ModelNotUpdated: type[Exception] = models.Model.NotUpdated
 except AttributeError:
 
-    class _ModelNotUpdated(Exception):  # type: ignore[no-redef]
+    class _ModelNotUpdated(Exception):  # noqa: N818  # mirrors Django's Model.NotUpdated
         """Sentinel: Django < 6 does not raise Model.NotUpdated."""
 
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
     from django.db.models import options as meta_module
+    from django.db.models.base import ModelBase
+
+# Every mixin below completes a Model and reads its attributes (`pk`, `_meta`, `save`, ...). Naming
+# Model as the base under TYPE_CHECKING states that requirement for the checker while leaving the
+# mixins plain at runtime, where they must stay to the left of the model class.
+_ModelMixin = models.Model if TYPE_CHECKING else object
 
 _all = module.All(globals())
 
 
-class AlwaysUpdateFieldsMixin:
+class AlwaysUpdateFieldsMixin(_ModelMixin):
     """
     Ensure fields listed in the attribute ``self.always_update_fields`` are always updated by
     ``self.save()``. Makes the usage of ``self.save(update_fields=...)`` cleaner.
     """
 
+    always_update_fields: ClassVar[Iterable[str]]
+
     @override
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Add ``always_update_fields`` to ``update_fields`` before saving."""
         if force_update or update_fields:
@@ -91,17 +96,17 @@ class AlwaysUpdateFieldsMixin:
         )
 
 
-class AutoForceInsertMixin:
+class AutoForceInsertMixin(_ModelMixin):
     """Automatically set ``force_insert`` based on the instance's adding state."""
 
     @override
     def save(
         self,
         *,
-        force_insert: bool | None = None,
+        force_insert: bool | tuple[ModelBase, ...] | None = None,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Set ``force_insert`` from ``_state.adding`` when not explicitly given."""
         if force_insert is None:
@@ -114,7 +119,7 @@ class AutoForceInsertMixin:
         )
 
 
-class AutoRemovePKFromUpdateFieldsMixin:
+class AutoRemovePKFromUpdateFieldsMixin(_ModelMixin):
     """
     If the primary key is set but unchanged, then remove the primary key from the list of fields to
     update. This fix an issue when saving, ``ValueError: The following fields do not exist in this
@@ -126,7 +131,7 @@ class AutoRemovePKFromUpdateFieldsMixin:
     own default options for save.
     """
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.previous_pk: Any = self.pk
 
@@ -134,10 +139,10 @@ class AutoRemovePKFromUpdateFieldsMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Remove unchanged primary key from ``update_fields`` to avoid Django errors."""
         if update_fields and self._meta.pk.attname in update_fields:
@@ -157,7 +162,7 @@ class AutoRemovePKFromUpdateFieldsMixin:
         self.previous_pk = self.pk
 
 
-class AutoUpdateFieldsMixin:
+class AutoUpdateFieldsMixin(_ModelMixin):
     """
     Keep track of what fields were set in order to make UPDATE queries lighter.
 
@@ -179,7 +184,7 @@ class AutoUpdateFieldsMixin:
 
     default_force_update: ClassVar[bool] = False
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._setted_fields: set[str] = set()
         self._fields_names: frozenset[str] = frozenset(f.attname for f in self._meta.fields)
@@ -195,10 +200,10 @@ class AutoUpdateFieldsMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool | None = None,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Populate ``update_fields`` from tracked field assignments."""
         if not self._state.adding and not force_insert:
@@ -215,7 +220,7 @@ class AutoUpdateFieldsMixin:
         self._setted_fields = set()
 
 
-class BetterUniquenessErrorsMixin:
+class BetterUniquenessErrorsMixin(_ModelMixin):
     """
     Hide some fields from the unique-together errors.
     Convert uniqueness integrity errors to validation errors.
@@ -243,10 +248,10 @@ class BetterUniquenessErrorsMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Convert uniqueness :class:`~django.db.utils.IntegrityError` to validation errors."""
         try:
@@ -276,8 +281,13 @@ class BetterUniquenessErrorsMixin:
         raise exc
 
     @override
-    def _perform_unique_checks(self, unique_checks: list) -> dict[str, list]:
-        errors_by_field = super()._perform_unique_checks(unique_checks)
+    def _perform_unique_checks(  # pyrefly: ignore[bad-override]
+        self,
+        unique_checks: list[tuple[type[models.Model], tuple[str, ...]]],
+    ) -> dict[str, list[ValidationError]]:
+        # django-stubs does not declare this private Django hook, so neither @override nor the
+        # super() call below can be checked against it.
+        errors_by_field = super()._perform_unique_checks(unique_checks)  # pyrefly: ignore
         hidden_fields = set(self.unique_together_hide_fields)
         if not hidden_fields:
             return errors_by_field
@@ -297,7 +307,7 @@ class BetterUniquenessErrorsMixin:
         return filtered_errors_by_field
 
 
-class CallFieldsPreSaveMixin:
+class CallFieldsPreSaveMixin(_ModelMixin):
     """
     If you wanna be sure the fields pre_save method are called, now you can!
 
@@ -308,10 +318,10 @@ class CallFieldsPreSaveMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Call each writable non-PK field's :meth:`pre_save` before saving."""
         # Skip generated columns: they have no writable value, and Django's ``GeneratedField``
@@ -329,7 +339,7 @@ class CallFieldsPreSaveMixin:
         )
 
 
-class PublicMetaMixin:
+class PublicMetaMixin(_ModelMixin):
     """
     Make `_meta` public in templates through a class method called `meta`.
     """
@@ -340,7 +350,7 @@ class PublicMetaMixin:
         return cls._meta
 
 
-class RelatedModelMixin:
+class RelatedModelMixin(_ModelMixin):
     """Provide shortcuts to access related model classes and managers."""
 
     @classmethod
@@ -354,7 +364,7 @@ class RelatedModelMixin:
         return utils.get_related_model(cls, field)
 
 
-class ReloadMixin:
+class ReloadMixin(_ModelMixin):
     """Provide a :meth:`reload` method to re-fetch the instance from the database."""
 
     def reload(self) -> models.Model:
@@ -362,7 +372,7 @@ class ReloadMixin:
         return self._meta.model._default_manager.get(pk=self.pk)
 
 
-class SaveInstanceFilesMixin:
+class SaveInstanceFilesMixin(_ModelMixin):
     """
     Overrides saves() with a method that saves the instance first and then the instance's file
     fields this ensure that the upload_path method will get a valid instance id / private key.
@@ -372,10 +382,10 @@ class SaveInstanceFilesMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Save the instance before file fields so ``upload_to`` gets a valid PK."""
         saved_fields = {}
@@ -401,22 +411,32 @@ class SaveInstanceFilesMixin:
         )
 
 
-class UpdatePreconditionsMixin:
+class UpdatePreconditionsMixin(_ModelMixin):
     """Guard row updates with filter/exclude preconditions for optimistic concurrency."""
 
-    precondition_error_class: ClassVar[type[Exception]] = (
+    precondition_error_class: ClassVar[type[py_exceptions.MessageMixin]] = (
         exceptions.DatabaseUpdatePreconditionsError
     )
 
-    def apply_preconditions(
+    # Stashed by pop_preconditions() and consumed by apply_preconditions().
+    _preconditions: tuple[dict[str, Any], dict[str, Any]]
+
+    def apply_preconditions(  # pylint:disable=too-many-arguments
         self,
         base_qs: QuerySet,
-        using: str,
-        pk_val: object,
-        values: list,
-        update_fields: set | None,
+        using: str | None,
+        pk_val: Any,
+        values: Collection[tuple[models.Field, type[models.Model] | None, Any]],
+        update_fields: Iterable[str] | None,
         force_update: bool,
-    ) -> tuple[QuerySet, str, object, list, set | None, bool]:
+    ) -> tuple[
+        QuerySet,
+        str | None,
+        Any,
+        Collection[tuple[models.Field, type[models.Model] | None, Any]],
+        Iterable[str] | None,
+        bool,
+    ]:
         """Apply stored precondition filters to the update query set."""
         if hasattr(self, '_preconditions'):
             pre_excludes, pre_filters = self._preconditions
@@ -427,7 +447,11 @@ class UpdatePreconditionsMixin:
                 base_qs = base_qs.filter(**pre_filters)
         return base_qs, using, pk_val, values, update_fields, force_update
 
-    def pop_preconditions(self, *args: object, **kwargs: object) -> tuple[tuple, dict, bool]:
+    def pop_preconditions(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> tuple[tuple[Any, ...], dict[str, Any], bool]:
         """Extract ``pre_excludes`` and ``pre_filters`` from *kwargs*."""
         self._preconditions = kwargs.pop('pre_excludes', {}), kwargs.pop('pre_filters', {})
         return args, kwargs, any(self._preconditions)
@@ -436,11 +460,11 @@ class UpdatePreconditionsMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
-        **extra_kwargs: object,
+        update_fields: Iterable[str] | None = None,
+        **extra_kwargs: Any,
     ) -> None:
         """Save with precondition guards, raising on failed preconditions."""
         _, _, has_preconditions = self.pop_preconditions(**extra_kwargs)
@@ -461,32 +485,42 @@ class UpdatePreconditionsMixin:
             raise
 
     @override
-    def _do_update(
+    def _do_update(  # pylint:disable=too-many-arguments
         self,
         base_qs: QuerySet,
-        using: str,
-        pk_val: object,
-        values: list,
-        update_fields: set | None,
-        force_update: bool,
-        returning_fields: object,
-    ) -> bool:
+        using: str | None,
+        pk_val: Any,
+        values: Collection[tuple[models.Field, type[models.Model] | None, Any]],
+        update_fields: Iterable[str] | None,
+        forced_update: bool,
+        returning_fields: Sequence[models.Field],
+    ) -> list[Sequence[Any]]:
         # FIXME _do_update is called once for each model in the inheritance hierarchy: Handle this!
-        args = self.apply_preconditions(base_qs, using, pk_val, values, update_fields, force_update)
+        args = self.apply_preconditions(
+            base_qs,
+            using,
+            pk_val,
+            values,
+            update_fields,
+            forced_update,
+        )
         updated = super()._do_update(*args, returning_fields)
         if not updated and args[0] != base_qs and base_qs.filter(pk=pk_val).exists():
             raise self.precondition_error_class()
         return updated
 
 
-class StateTransitionEventsMixin:
+class StateTransitionEventsMixin(_ModelMixin):
     """Send :data:`~pytoolbox.django.signals.post_state_transition` after state changes."""
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    # Supplied by the model: its current state field.
+    state: Any
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.previous_state: Any = self.state
 
-    def on_post_state_transition(self, args: tuple, kwargs: dict) -> None:
+    def on_post_state_transition(self, args: tuple[Any, ...], kwargs: dict[str, Any]) -> None:
         """Fire the post-state-transition signal with the previous state."""
         signals.post_state_transition.send(
             instance=self,
@@ -499,10 +533,10 @@ class StateTransitionEventsMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Save and fire post-state-transition signal if state was updated."""
         super().save(
@@ -519,9 +553,15 @@ class StateTransitionEventsMixin:
 class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
     """Add state-based preconditions to row updates for safe transitions."""
 
+    # Supplied by the model: its current state field and the state machine describing it.
+    state: Any
+    states: Any
+
     check_state: ClassVar[bool] = True
-    invalid_state_error_class: ClassVar[type[Exception]] = exceptions.InvalidStateError
-    transition_not_allowed_error_class: ClassVar[type[Exception]] = (
+    invalid_state_error_class: ClassVar[type[py_exceptions.MessageMixin]] = (
+        exceptions.InvalidStateError
+    )
+    transition_not_allowed_error_class: ClassVar[type[py_exceptions.MessageMixin]] = (
         exceptions.TransitionNotAllowedError
     )
 
@@ -539,7 +579,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
             return False
         raise self.transition_not_allowed_error_class(instance=self, state=state)
 
-    def check_state_in(self, states: object, fail: bool = False) -> bool:
+    def check_state_in(self, states: Iterable[str] | str, fail: bool = False) -> bool:
         """Return ``True`` if the instance's state is in *states*."""
         states = sorted(py_itertools.chain(states))
         if self.state in states:
@@ -548,7 +588,8 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
             return False
         raise self.invalid_state_error_class(instance=self, states=states)
 
-    def pop_preconditions(self, *args: object, **kwargs: object) -> tuple[tuple, dict, bool]:
+    @override
+    def pop_preconditions(self, *args: Any, **kwargs: Any) -> tuple[tuple, dict[str, Any], bool]:
         """
         Add state precondition if state will be saved and state is not enforced by preconditions.
         """
@@ -567,7 +608,7 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
         return args, kwargs, any(self._preconditions)
 
 
-class ValidateOnSaveMixin:
+class ValidateOnSaveMixin(_ModelMixin):
     """Run :meth:`full_clean` automatically before every save."""
 
     validate_on_save: ClassVar[bool] = True
@@ -578,11 +619,11 @@ class ValidateOnSaveMixin:
     def save(
         self,
         *,
-        force_insert: bool = False,
+        force_insert: bool | tuple[ModelBase, ...] = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: object = None,
-        **extra_kwargs: object,
+        update_fields: Iterable[str] | None = None,
+        **extra_kwargs: Any,
     ) -> None:
         """Call :meth:`full_clean` before saving if ``validate_on_save`` is set."""
         validate = extra_kwargs.pop('validate', None)
@@ -602,7 +643,9 @@ class FasterValidateOnSaveMixin(ValidateOnSaveMixin):
     """
 
     @cached_property
-    def validate_on_save_kwargs(self) -> dict[str, object]:
+    # The base holds a class-level default; this subclass has to compute it per instance.
+    @override
+    def validate_on_save_kwargs(self) -> dict[str, Any]:  # pyrefly: ignore[bad-override]
         """Return kwargs that skip uniqueness and relation field validation."""
         return {
             'exclude': [f.name for f in self._meta.concrete_fields if f.is_relation],

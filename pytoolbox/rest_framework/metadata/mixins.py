@@ -8,25 +8,35 @@ Mix-ins for building your own
 
 from __future__ import annotations
 
-from collections import OrderedDict
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rest_framework import serializers
+
+from pytoolbox.compat import override
 
 __all__ = ['ExcludeRelatedChoicesMixin']
 
 
-class ExcludeRelatedChoicesMixin:
+if TYPE_CHECKING:
+    from rest_framework.metadata import SimpleMetadata
+
+# The mixins complete DRF's SimpleMetadata; naming the base under TYPE_CHECKING states that
+# requirement for the checker only.
+_MetadataMixin = SimpleMetadata if TYPE_CHECKING else object
+
+
+class ExcludeRelatedChoicesMixin(_MetadataMixin):
     """Do not includes related fields to avoid having choices with hundreds instances."""
 
     related_fields = (serializers.RelatedField, serializers.ManyRelatedField)
 
-    def get_field_info(self, field: serializers.Field) -> OrderedDict[str, Any]:
+    @override
+    def get_field_info(self, field: serializers.Field) -> dict[str, Any]:
         """Return field info, stripping choices from related fields."""
         if hasattr(field, 'choices') and isinstance(field, self.related_fields):
-            field_class = type(field)
+            field_class: type[serializers.Field] = type(field)
 
-            class HaveNoChoicesProxy(field_class):
+            class HaveNoChoicesProxy(field_class):  # type: ignore[valid-type,misc]
                 """Proxy that hides the choices property from related fields."""
 
                 @property
@@ -35,8 +45,10 @@ class ExcludeRelatedChoicesMixin:
                     raise AttributeError
 
             try:
-                field.__class__ = HaveNoChoicesProxy
+                # Swapping __class__ in and out is what hides `choices` for one call; no checker can
+                # follow a class built from a variable.
+                field.__class__ = HaveNoChoicesProxy  # pyrefly: ignore[bad-argument-type]
                 return super().get_field_info(field)
             finally:
-                field.__class__ = field_class
+                field.__class__ = field_class  # pyrefly: ignore[bad-argument-type]
         return super().get_field_info(field)

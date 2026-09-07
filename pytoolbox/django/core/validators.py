@@ -5,12 +5,13 @@ Custom Django validators for forms and model fields.
 
 from __future__ import annotations
 
-import copy
 import re
+from typing import ClassVar
 
 from django.core import validators
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils.deconstruct import deconstructible
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 __all__ = ['EmptyValidator', 'KeysValidator', 'MD5ChecksumValidator']
@@ -34,7 +35,7 @@ class KeysValidator:
     https://github.com/django/django/blob/master/django/contrib/postgres/validators.py
     """
 
-    messages = {
+    messages: ClassVar[dict[str, str | Promise]] = {
         'missing_keys': _('Some keys were missing: %(keys)s'),
         'extra_keys': _('Some unknown keys were provided: %(keys)s'),
     }
@@ -46,7 +47,7 @@ class KeysValidator:
         required_keys: set[str] | None = None,
         optional_keys: set[str] | None = None,
         strict: bool = False,
-        messages: dict[str, str] | None = None,
+        messages: dict[str, str | Promise] | None = None,
     ) -> None:
         self.required_keys = set(required_keys or [])
         self.optional_keys = set(optional_keys or [])
@@ -54,8 +55,8 @@ class KeysValidator:
             raise ImproperlyConfigured('You must set at least `required_keys` or `optional_keys`')
         self.strict = strict
         if messages is not None:
-            self.messages = copy.copy(self.messages)
-            self.messages.update(messages)
+            # Django declares `messages` read-only on the base validator.
+            self.messages = {**self.messages, **messages}  # pyrefly: ignore[read-only]
 
     def __call__(self, value: dict[str, object]) -> None:
         keys = set(value.keys())
@@ -63,7 +64,7 @@ class KeysValidator:
             missing_keys = self.required_keys - keys
             if missing_keys:
                 raise ValidationError(
-                    self.messages['missing_keys'],
+                    self.messages['missing_keys'],  # pyrefly: ignore[bad-argument-type]
                     code='missing_keys',
                     params={'keys': ', '.join(missing_keys)},
                 )
@@ -71,7 +72,7 @@ class KeysValidator:
             extra_keys = keys - self.required_keys - self.optional_keys
             if extra_keys:
                 raise ValidationError(
-                    self.messages['extra_keys'],
+                    self.messages['extra_keys'],  # pyrefly: ignore[bad-argument-type]
                     code='extra_keys',
                     params={'keys': ', '.join(extra_keys)},
                 )

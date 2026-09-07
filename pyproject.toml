@@ -66,6 +66,7 @@ dependencies = [
 atlassian = ['jira']
 aws = ['boto3']
 django = ['django>=6']
+django_datatable_view = ['django-datatable-view']
 django_filter = ['django-filter']
 django_formtools = ['django-formtools']
 flask = ['flask']
@@ -96,7 +97,7 @@ vision = [
 ]
 voluptuous = ['voluptuous']
 all = [
-    'pytoolbox[atlassian,aws,django,django_filter,django_formtools,flask,imaging,jinja2,mongodb,network,pandas,rest_framework,selenium,smpte2022,vision,voluptuous]'
+    'pytoolbox[atlassian,aws,django,django_datatable_view,django_filter,django_formtools,flask,imaging,jinja2,mongodb,network,pandas,rest_framework,selenium,smpte2022,vision,voluptuous]'
 ]
 doc = [
     'sphinx>=7.2.6',
@@ -105,8 +106,8 @@ doc = [
 test = [
     'colored>=2.2.4',
     'coverage>=7.4.4',
-    'mypy>=1.9.0',
     'pylint>=3.1.0',
+    'pyrefly>=1.2.0',
     'pytest>=8.1.1,<9.0.3',
     'pytest-cov>=4.1.0',
     'pytest-pylint>=0.21.0',
@@ -114,6 +115,8 @@ test = [
     'ruff>=0.3.3',
     # Stubs
     'PyGObject-stubs>=2.10.0; sys_platform != "win32"',
+    'django-stubs>=6.1.0',
+    'djangorestframework-stubs>=3.18.1',
     'types-requests>=2.31.0.20240311',
     'types-urllib3>=1.26.25.14'
 ]
@@ -154,29 +157,45 @@ doctest_optionflags = ['ELLIPSIS', 'NORMALIZE_WHITESPACE']
 
 # Linters -------------------------------------------------------------------------------------------
 
-[tool.mypy]
-disable_error_code = ['import-untyped']
+[tool.pyrefly]
+# Paths are relative to this file.
+project-includes = ['pytoolbox']
+project-excludes = ['**/__pycache__/**', '**/*.egg-info/**', '**/docs/build/**']
 
-[[tool.mypy.overrides]]
-module = [
-    'pytoolbox.django.forms.mixins',
-    'pytoolbox.django.models.decorators',
-    'pytoolbox.django.models.metaclass',
-    'pytoolbox.django.models.mixins',
-    'pytoolbox.django.test.mixins',
-    'pytoolbox.django.test.runner.mixins',
-    'pytoolbox.django.utils.logging',
-    'pytoolbox.django.views.mixins',
-    'pytoolbox.django_datatable_view.views.mixins',
-    'pytoolbox.django_filter.filterset.mixins',
-    'pytoolbox.django_formtools.views.mixins',
-    'pytoolbox.rest_framework.metadata.mixins',
-    'pytoolbox.rest_framework.serializers.mixins',
-    'pytoolbox.rest_framework.views.mixins',
-    'pytoolbox.selenium.test',
-    'pytoolbox.unittest'
+# Pyrefly checks a few things mypy never did; `legacy` turns those off so the migration does not
+# start out with a fresh class of violations on top of the ones mypy already reported.
+preset = 'legacy'
+
+# There is no virtualenv in the repository, so the interpreter has to come from PATH.
+fallback-python-interpreter-name = 'python3'
+
+# dlib is a package whose whole API comes from `from _dlib_pybind11 import *`, a compiled
+# extension carrying no type information, so the module resolves while every name in it does
+# not. Reading it as Any is the closest a checker can get.
+replace-imports-with-any = ['dlib']
+
+# Modules that may not be installed, and that a checker could not introspect anyway: crispy_forms
+# and psycopg2 are imported by the code paths needing them, psutil is a best-effort import with a
+# fallback, the rest are C extensions or ship no type information. Listing the ones the vision
+# extra provides keeps the check working without that extra too.
+ignore-missing-imports = [
+    'crispy_forms',
+    'fastxor',
+    'keras',
+    'keras.layers',
+    'keras.models',
+    'psutil',
+    'psycopg2.extras',
+    'tensorflow'
 ]
-ignore_errors = true
+
+[tool.pyrefly.errors]
+# mypy's `disable_error_code = ['import-untyped']`. Unlike mypy, pyrefly follows untyped imports
+# by default, so the per-module `follow_untyped_imports` list mypy needed is gone with it.
+untyped-import = 'ignore'
+
+# A method that overrides one of its bases says so, and the checker enforces it.
+missing-override-decorator = 'error'
 
 [tool.pylint.main]
 jobs = 0
@@ -233,6 +252,11 @@ enable = [
 ]
 disable = [
     'attribute-defined-outside-init',
+    # Mixins name the class they complete as a TYPE_CHECKING-only base, which is `object` at
+    # runtime; that is the point, not a leftover. pylint takes the TYPE_CHECKING branch, so it
+    # also counts those bases as real ancestors.
+    'too-many-ancestors',
+    'useless-object-inheritance',
     'consider-using-assignment-expr',
     'cyclic-import',
     'fixme',
@@ -249,7 +273,7 @@ ignore-imports       = true
 ignore-signatures    = true
 
 [tool.pylint.spelling]
-spelling-ignore-comment-directives = 'fmt: on,fmt: off,noqa:,noqa,nosec,isort:skip,mypy:,pragma:,# noinspection'
+spelling-ignore-comment-directives = 'fmt: on,fmt: off,noqa:,noqa,nosec,isort:skip,pyrefly:,pragma:,# noinspection'
 spelling-private-dict-file         = 'custom_dict.txt'
 
 [tool.pylint.typecheck]

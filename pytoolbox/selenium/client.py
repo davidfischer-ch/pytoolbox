@@ -4,11 +4,14 @@ Selenium live test client for interacting with a running server.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 from urllib.parse import urljoin
 
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import ui
+
+from pytoolbox.compat import override
 
 from . import common, exceptions, webdrivers
 
@@ -38,6 +41,7 @@ class LiveClient(common.FindMixin):
         assert not value or not self._css_prefix, self._css_prefix
         self._css_prefix = value
 
+    @override
     def find_css(
         self,
         css_selector: str,
@@ -51,6 +55,7 @@ class LiveClient(common.FindMixin):
             css_selector = f'{self.css_prefix} {css_selector}'
         return self.web_driver.find_css(css_selector, force_list=force_list, fail=fail)
 
+    @override
     def find_xpath(self, xpath: str, *, force_list: bool = False, fail: bool = True) -> Any:
         """Find elements by XPath expression."""
         return self.web_driver.find_xpath(xpath, force_list=force_list, fail=fail)
@@ -59,7 +64,7 @@ class LiveClient(common.FindMixin):
         """Navigate to a URL relative to the live server."""
         assert data is None
         url = urljoin(self.live_server_url, url) if '://' not in url else url
-        response = type('Response', (object,), self.web_driver.execute(Command.GET, {'url': url}))
+        response = SimpleNamespace(**self.web_driver.execute(Command.GET, {'url': url}))
         response.status_code = 200 if self.web_driver.current_url == url else 404
         return response
 
@@ -98,7 +103,7 @@ class LiveClient(common.FindMixin):
                 return bool(self.find_css(css_selector, prefix=prefix, fail=False)) ^ inverse
 
             return ui.WebDriverWait(self.web_driver, timeout).until(wait_func)
-        except exceptions.TimeoutException:  # pylint:disable=no-member
+        except exceptions.TimeoutException:
             if fail:
                 raise
         return None

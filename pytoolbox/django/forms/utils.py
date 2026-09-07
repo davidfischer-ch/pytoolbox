@@ -6,9 +6,10 @@ Some utilities related to the forms.
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.contrib import messages
+from django.forms import ModelChoiceField
 from django.forms.utils import ErrorList
 
 from pytoolbox import module
@@ -24,10 +25,10 @@ _all = module.All(globals())
 def conditional_required(
     form: forms.Form,
     required_dict: dict[str, bool | None],
-    data: dict[str, object] | None = None,
+    data: dict[str, Any] | None = None,
     *,
     cleanup: bool = False,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """
     Toggle requirement of some fields based on a dictionary with 'field name' -> 'required boolean'.
     """
@@ -35,7 +36,9 @@ def conditional_required(
     for name, value in data.items():
         required = required_dict.get(name, None)
         if required and not value:
-            form._errors[name] = ErrorList(['This field is required.'])
+            # add_error() would also drop the field from cleaned_data, which callers still read.
+            errors = form._errors  # noqa: SLF001  # pyrefly: ignore[missing-attribute]
+            errors[name] = ErrorList(['This field is required.'])
         if required is False and cleanup:
             data[name] = None
     return data
@@ -53,7 +56,10 @@ def get_instance(
     """
     if form.is_valid():
         return form.cleaned_data[field_name]
-    queryset = form.fields[field_name].queryset
+    field = form.fields[field_name]
+    if not isinstance(field, ModelChoiceField) or field.queryset is None:
+        raise TypeError(f'Field {field_name} carries no queryset')
+    queryset = field.queryset
     try:
         return queryset.get(pk=form.data[form.add_prefix(field_name)])
     except (KeyError, queryset.model.DoesNotExist):
@@ -92,7 +98,7 @@ def update_widget_attributes(widget: forms.Widget, updates: dict[str, object]) -
     updates = copy(updates)
     if 'class' in updates:
         class_set = {c for c in widget.attrs.get('class', '').split(' ') if c}
-        for cls in {c for c in updates['class'].split(' ') if c}:
+        for cls in {c for c in str(updates['class']).split(' ') if c}:
             operation, cls = cls[0], cls[1:]
             if operation == '+' or (operation == '^' and cls not in class_set):
                 class_set.add(cls)
@@ -109,7 +115,7 @@ def update_widget_attributes(widget: forms.Widget, updates: dict[str, object]) -
 
 def validate_start_end(
     form: forms.Form,
-    data: dict[str, object] | None = None,
+    data: dict[str, Any] | None = None,
     *,
     start_name: str = 'start_date',
     end_name: str = 'end_date',
@@ -123,7 +129,9 @@ def validate_start_end(
     if start and end and start > end:
         start_label = start_name.replace('_', ' ')
         end_label = end_name.replace('_', ' ')
-        form._errors[end_name] = ErrorList([f'The {start_label} cannot be before the {end_label}.'])
+        # add_error() would also drop the field from cleaned_data, which callers still read.
+        errors = form._errors  # noqa: SLF001  # pyrefly: ignore[missing-attribute]
+        errors[end_name] = ErrorList([f'The {start_label} cannot be before the {end_label}.'])
 
 
 __all__ = _all.diff(globals())

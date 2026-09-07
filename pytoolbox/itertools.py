@@ -33,7 +33,7 @@ def chain(*objects: Any, callback: Callable[[Any], bool] = isiterable) -> iterto
     return itertools.chain.from_iterable(o if callback(o) else [o] for o in objects)
 
 
-def chunk(objects: Iterable, length: int, of_type: type = list) -> Generator:
+def chunk(objects: Iterable, length: int, of_type: type[Any] = list) -> Generator:
     """
     Yield successive chunks of defined `length` from `objects`. Last chunk may be smaller.
 

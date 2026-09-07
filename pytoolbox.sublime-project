@@ -1,0 +1,8 @@
+{
+    "folders": [
+        {"path": "."}
+    ],
+    "settings": {
+        "SublimeLinter.linters.pylint.working_dir": "${project_path}"
+    }
+}

@@ -238,15 +238,19 @@ def parts_to_time(
 
 
 @overload  # type: ignore[misc]
-def secs_to_time(value: float | int, *, as_delta: Literal[False] = False) -> datetime.time: ...
+def secs_to_time(
+    value: float | int | str,
+    *,
+    as_delta: Literal[False] = False,
+) -> datetime.time: ...
 
 
 @overload
-def secs_to_time(value: float | int, *, as_delta: Literal[True]) -> datetime.timedelta: ...
+def secs_to_time(value: float | int | str, *, as_delta: Literal[True]) -> datetime.timedelta: ...
 
 
 def secs_to_time(
-    value: float | int,
+    value: float | int | str,
     *,
     as_delta: bool = False,
 ) -> datetime.time | datetime.timedelta:
@@ -268,7 +272,7 @@ def secs_to_time(
     >>> secs_to_time(0, as_delta=True)
     datetime.timedelta(0)
     """
-    delta = datetime.timedelta(seconds=float(value))  # type: ignore[arg-type]
+    delta = datetime.timedelta(seconds=float(value))
     return delta if as_delta else (datetime.datetime.min + delta).time()
 
 

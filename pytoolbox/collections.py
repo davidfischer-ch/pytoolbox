@@ -6,13 +6,18 @@ from __future__ import annotations
 
 import collections
 import math
-from collections.abc import Iterable
-from typing import Any
+from collections.abc import Iterable, Mapping
+from typing import Any, TypeVar
+
+from pytoolbox.compat import override
 
 from . import module
 from .datetime import TimeValue, total_seconds
 
 _all = module.All(globals())
+
+_K = TypeVar('_K')
+_V = TypeVar('_V')
 
 
 class EventsTable:
@@ -132,6 +137,7 @@ class pygal_deque(collections.deque):  # noqa: N801
 
     last = None
 
+    @override
     def append(self, value: Any) -> None:  # pylint:disable=arguments-renamed
         """Append a value, replacing duplicates with ``None``."""
         if value != self.last and value is not None:
@@ -168,7 +174,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         return self_list
 
 
-def flatten_dict(the_dict: dict, key_template: str = '{0}.{1}') -> dict:
+def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dict:
     """
     Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given
     `key_template`.
@@ -194,7 +200,7 @@ def flatten_dict(the_dict: dict, key_template: str = '{0}.{1}') -> dict:
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
-def merge_dicts(*dicts: dict) -> dict:
+def merge_dicts(*dicts: Mapping[_K, _V]) -> dict[_K, _V]:
     """
     Return a dictionary from multiple dictionaries.
 
@@ -216,10 +222,10 @@ def merge_dicts(*dicts: dict) -> dict:
 
 
 def swap_dict_of_values(
-    the_dict: dict,
-    type: type | None = set,  # pylint:disable=redefined-builtin
+    the_dict: dict[str, Any],
+    type: type[Any] | None = set,  # pylint:disable=redefined-builtin
     method: Any = set.add,
-) -> dict:
+) -> dict[str, Any]:
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
@@ -264,7 +270,7 @@ def swap_dict_of_values(
 
 def to_dict_of_values(
     iterable: Iterable[tuple[Any, Any]],
-    type: type = list,  # pylint:disable=redefined-builtin
+    type: type[Any] = list,  # pylint:disable=redefined-builtin
     method: Any = list.append,
 ) -> collections.defaultdict:
     """
@@ -287,7 +293,7 @@ def to_dict_of_values(
     return dict_of_values
 
 
-def window(values: list, index: int, delta: int) -> tuple[list, int, int]:
+def window(values: list[Any], index: int, delta: int) -> tuple[list, int, int]:
     """
     Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with
     (items, left, right).

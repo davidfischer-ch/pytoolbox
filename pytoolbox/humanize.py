@@ -141,11 +141,11 @@ def naturalfilesize(  # pylint:disable=dangerous-default-value
     >>> naturalfilesize(314159265358979323846, system='gnu')
     '314 E'
     """
-    return _natural_number(  # type: ignore[arg-type]
+    return _natural_number(
         size_bytes,
         fmt=fmt,
         scale=scale,
-        **(args[system] if system else args),
+        **(args[system] if system else args),  # pyrefly: ignore[bad-argument-type]
     )
 
 
@@ -311,11 +311,11 @@ def parse_filesize(  # pylint:disable=dangerous-default-value
     >>> parse_filesize('314 E', system='gnu')
     3.14e+20
     """
-    return _parse_natural_number(  # type: ignore[arg-type]
+    return _parse_natural_number(
         value=size,
         kind='file size',
         pattern=pattern,
-        **(args[system] if system else args),
+        **(args[system] if system else args),  # pyrefly: ignore[bad-argument-type]
     )
 
 

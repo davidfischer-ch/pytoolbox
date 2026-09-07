@@ -6,25 +6,40 @@ powered views.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
+
+from pytoolbox.compat import override
 
 if TYPE_CHECKING:
+    from datatableview.views import DatatableView
     from django.db.models import QuerySet
+
+# The mixin completes a DatatableView and reads its attributes; naming the base under TYPE_CHECKING
+# states that requirement for the checker only.
+_DatatableMixin = DatatableView if TYPE_CHECKING else object
 
 __all__ = ['MultiTablesMixin']
 
 
-class MultiTablesMixin:
+class MultiTablesMixin(_DatatableMixin):
     """Implements the base code for using multiple django-datatable-views powered tables."""
 
     multi_default = 'default'
-    multi_datatables = ()
+    multi_datatables: ClassVar[tuple[tuple[str, str], ...]] = ()
     request_name_key = 'datatable-name'
+
+    if TYPE_CHECKING:
+        # Private hooks of DatatableView, which ships no type information for them.
+        datatable_structure_class: type[Any]
+
+        def _get_datatable_options(self) -> Any: ...
+        def get_model(self) -> Any: ...
 
     def get_ajax_url(self, name: str | None = None) -> str:
         """Return the AJAX URL for the given datatable name."""
         return self.request.path + f'?{self.request_name_key}={self.get_datatable_name(name)}'
 
+    @override
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Return context data with all datatables grouped by name and label."""
         context = super().get_context_data(**kwargs)
@@ -39,7 +54,8 @@ class MultiTablesMixin:
         ]
         return context
 
-    def get_datatable(self, name: str | None = None) -> Any:
+    @override
+    def get_datatable(self, name: str | None = None, **kwargs: Any) -> Any:
         """Return the datatable structure for the given name."""
         return self.get_datatable_structure(name=name)
 
@@ -56,6 +72,7 @@ class MultiTablesMixin:
             model=self.get_model(),
         )
 
+    @override
     def get_queryset(self, name: str | None = None) -> QuerySet:
         """Return the queryset for the given datatable name."""
         qs = super().get_queryset()

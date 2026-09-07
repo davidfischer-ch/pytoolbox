@@ -6,6 +6,7 @@ Extra fields for your forms.
 from __future__ import annotations
 
 import copy
+from typing import Any
 
 from django import forms
 
@@ -18,7 +19,7 @@ class StripCharField(forms.RegexField):
     default_widget_attrs = {'autofocus': 'autofocus'}
     max_length = None
 
-    def __init__(self, **kwargs: object) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         attrs = copy.deepcopy(self.default_widget_attrs)
         attrs.update(kwargs.pop('widget_attrs', None) or {})
         super().__init__(

@@ -26,7 +26,7 @@ import os
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, TypedDict
 
 from . import console, exceptions, itertools, logging, module
 from .decorators import deprecated
@@ -103,7 +103,7 @@ def is_file(path: Path | str) -> Path:
     raise argparse.ArgumentTypeError(f'{path} is not a file')
 
 
-def multiple(func: Callable[[Any], Any]) -> Callable:
+def multiple(func: Callable[[Any], Any]) -> Callable[..., Any]:
     """Return a list with the result of `func`(value) for value in values."""
 
     def _multiple(values: Any) -> Any:
@@ -130,7 +130,7 @@ def separator(value: str, sep: str | None) -> list[str]:
 class Range:  # pylint:disable=too-few-public-methods
     """Argparse type that validates a value is within ``[min, max]``."""
 
-    def __init__(self, type: type, min: Any, max: Any) -> None:  # pylint:disable=redefined-builtin
+    def __init__(self, type: type[Any], min: Any, max: Any) -> None:  # pylint:disable=redefined-builtin
         self.type = type
         self.min = min
         self.max = max
@@ -156,12 +156,38 @@ def env_default(name: str) -> dict[str, Any]:
 
 # --- Argument Parsing Configuration Combos --------------------------------------------------------
 
-DIRECTORY_ARG: Final[dict[str, str | Callable]] = {'action': 'fullpaths', 'type': is_dir}
-FILE_ARG: Final[dict[str, str | Callable]] = {'action': 'fullpaths', 'type': is_file}
-REMAINDER_ARG: Final[dict[str, Any]] = {'nargs': argparse.REMAINDER}
+
+class PathArg(TypedDict):
+    """Argument configuration expanding a command-line value to a checked :class:`~pathlib.Path`."""
+
+    action: str
+    type: Callable[[str], Path]
 
 
-def MULTI_ARG(sep: str | None = None) -> dict[str, str | Callable]:  # noqa: N802
+class MultiArg(TypedDict):
+    """Argument configuration chaining multiple separated values into a single list."""
+
+    action: str
+    nargs: str
+    type: Callable[[str], list[str]]
+
+
+class RemainderArg(TypedDict):
+    """Argument configuration collecting every remaining command-line value."""
+
+    nargs: str
+
+
+# The combos are typed dictionaries rather than plain dicts so that unpacking them into
+# `add_argument(**FILE_ARG)` is checked key by key: a `dict[str, str | Callable]` makes every
+# keyword a union the type checker then rejects against argparse's typed parameters.
+
+DIRECTORY_ARG: Final[PathArg] = {'action': 'fullpaths', 'type': is_dir}
+FILE_ARG: Final[PathArg] = {'action': 'fullpaths', 'type': is_file}
+REMAINDER_ARG: Final[RemainderArg] = {'nargs': argparse.REMAINDER}
+
+
+def MULTI_ARG(sep: str | None = None) -> MultiArg:  # noqa: N802
     """Return argument config for chaining multiple separated values."""
     return {'action': 'chain', 'nargs': '+', 'type': functools.partial(separator, sep=sep)}
 
@@ -203,12 +229,12 @@ class ActionArgumentParser(ArgumentParser):
     def add_action(
         self,
         name: str,
-        func: Callable,
+        func: Callable[..., Any],
         *,
         aliases: list[str] | None = None,
         help: str | None = None,  # pylint: disable=redefined-builtin
         nested: bool = False,
-    ) -> Callable:
+    ) -> Callable[..., Any]:
         """
         Register a sub-command action.
 
@@ -259,7 +285,9 @@ class ActionArgumentParser(ArgumentParser):
         if help is None and func.__doc__:
             help = func.__doc__.strip().splitlines()[0]
         orig_class = self._action._parser_class
-        self._action._parser_class = type(self) if nested else ArgumentParser
+        # The subparser class is chosen per action; typeshed pins it to the parser's own type.
+        parser_class = type(self) if nested else ArgumentParser
+        self._action._parser_class = parser_class  # pyrefly: ignore[bad-assignment]
         try:
             parser = self._action.add_parser(
                 name,

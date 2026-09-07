@@ -18,6 +18,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext as _
 
+from pytoolbox.compat import override
 from pytoolbox.datetime import secs_to_time as _secs_to_time
 from pytoolbox.django.core import constants
 
@@ -41,7 +42,9 @@ from . import register, string_if_invalid
 # [2]: esc = conditional_escape if autoescape else lambda x: x
 
 try:
-    from django.template.defaulttags import include_is_allowed as _include_is_allowed
+    from django.template.defaulttags import (
+        include_is_allowed as _include_is_allowed,  # pyrefly: ignore[missing-module-attribute]
+    )
 except ImportError:
 
     def _include_is_allowed(filepath: str) -> bool:
@@ -90,11 +93,11 @@ def getattribute(value: Any, attribute: Any) -> Any:
     return string_if_invalid
 
 
-@register.filter(needs_autoescape=True, safe=True)
+@register.filter(needs_autoescape=True, safe=True)  # pyrefly: ignore[no-matching-overload]
 @stringfilter
 def inline(filepath: str, msg: bool = True, *, autoescape: bool = True) -> str:
     """Inline the contents of a static file into the template output."""
-    if filepath in (None, string_if_invalid):
+    if filepath is None or filepath == string_if_invalid:
         return string_if_invalid
     if _include_is_allowed(filepath):
         return Path(filepath).read_text(encoding='utf-8')
@@ -197,16 +200,16 @@ def timedelta(value: datetime.timedelta | float | None, digits: int = 0) -> str:
         None|timedelta:10 -> (empty string)
         (empty string)|timedelta -> (empty string)
     """
-    if value in (None, string_if_invalid):
+    if value is None or value == string_if_invalid:
         return string_if_invalid
-    seconds = value.total_seconds() if hasattr(value, 'total_seconds') else float(value)
+    seconds = value.total_seconds() if isinstance(value, datetime.timedelta) else float(value)
     return force_str(datetime.timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
 
 
 @register.filter
 def verbose_name(instance: Any) -> str:
     """Return the verbose name (singular) of a model."""
-    if instance in (None, string_if_invalid):
+    if instance is None or instance == string_if_invalid:
         return string_if_invalid
     return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
 
@@ -214,7 +217,7 @@ def verbose_name(instance: Any) -> str:
 @register.filter
 def verbose_name_plural(instance: Any) -> str:
     """Return the verbose name (plural) of a model."""
-    if instance in (None, string_if_invalid):
+    if instance is None or instance == string_if_invalid:
         return string_if_invalid
     return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
 
@@ -226,6 +229,7 @@ class StaticPathNode(StaticNode):
     """Resolve a static file path using ``STATIC_ROOT`` instead of ``STATIC_URL``."""
 
     @classmethod
+    @override
     def handle_simple(cls, path: str) -> str:
         """Return the absolute filesystem path for a static file."""
         return os.path.join(PrefixNode.handle_simple('STATIC_ROOT'), path)

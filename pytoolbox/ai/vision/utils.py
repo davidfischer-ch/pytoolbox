@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -15,14 +16,17 @@ from pytoolbox.network.http import download_ext
 
 def load_image(path: str) -> np.ndarray:
     """Reverse channels because OpenCV loads images in BGR mode."""
-    return cv2.imread(path, 1)[..., ::-1]  # pylint:disable=no-member
+    image = cv2.imread(path, 1)  # pylint:disable=no-member
+    if image is None:
+        raise ValueError(f'Unable to load the image {path}')
+    return image[..., ::-1]
 
 
 def load_to_file(uri: str) -> str:
     """Download a remote URI to a local temp file, or return the path as-is."""
     if uri.startswith('http'):
         path = os.path.join(tempfile.gettempdir(), os.path.basename(uri))
-        download_ext(uri, path, force=False)
+        download_ext(uri, Path(path), force=False)
         return path
     return uri
 

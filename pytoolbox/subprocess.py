@@ -16,7 +16,7 @@ import threading
 import time
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import IO, Literal, TypeAlias, TypedDict, overload
+from typing import IO, Any, Literal, TypeAlias, TypedDict, overload
 
 import setuptools.archive_util
 
@@ -74,7 +74,7 @@ def kill(process: Popen) -> None:
             raise
 
 
-def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid-name
+def su(user: str | int, group: str | int) -> Callable[..., Any]:  # pylint:disable=invalid-name
     """
     Return a function to change current user/group id. Is a no-op on Windows.
 
@@ -104,7 +104,7 @@ def su(user: str | int, group: str | int) -> Callable:  # pylint:disable=invalid
 def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
     """Add the O_NONBLOCK flag to a file descriptor. No-op on Windows."""
     if hasattr(os, 'set_blocking'):
-        os.set_blocking(fd.fileno() if hasattr(fd, 'fileno') else fd, False)
+        os.set_blocking(fd if isinstance(fd, int) else fd.fileno(), False)
 
 
 # http://stackoverflow.com/a/7730201/190597
@@ -147,14 +147,15 @@ def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
     arguments = to_args_list(arguments)
     process = Popen(to_args_string(arguments) if shell else arguments, shell=shell, **kwargs)
     if not hasattr(process, 'args'):
-        process.args = arguments
+        # Popen sets this itself on every supported platform this runs on.
+        process.args = arguments  # pyrefly: ignore[missing-attribute]
     return process
 
 
 # thanks http://stackoverflow.com/questions/1191374$
 def _communicate_with_timeout(  # pylint:disable=redefined-builtin
     *,
-    data: dict,
+    data: dict[str, Any],
     process: Popen,
     input: str | None,
 ) -> None:
@@ -177,7 +178,7 @@ def cmd(  # pylint:disable=too-many-arguments
     delay_min: float = ...,
     delay_max: float = ...,
     success_codes: Iterable[int] = ...,
-    **kwargs: object,
+    **kwargs: Any,
 ) -> CallResult: ...
 
 
@@ -197,7 +198,7 @@ def cmd(  # pylint:disable=too-many-arguments
     delay_min: float = ...,
     delay_max: float = ...,
     success_codes: Iterable[int] = ...,
-    **kwargs: object,
+    **kwargs: Any,
 ) -> CallResult: ...
 
 
@@ -217,7 +218,7 @@ def cmd(  # pylint:disable=too-many-arguments
     delay_min: float = ...,
     delay_max: float = ...,
     success_codes: Iterable[int] = ...,
-    **kwargs: object,
+    **kwargs: Any,
 ) -> CallResultFull: ...
 
 
@@ -236,7 +237,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     delay_min: float = 5,
     delay_max: float = 10,
     success_codes: Iterable[int] = (0,),
-    **kwargs: object,
+    **kwargs: Any,
 ) -> CallResult | CallResultFull:
     """
     Call the `command` and return a dictionary with process, stdout, stderr, and the returncode.
@@ -306,13 +307,13 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
             }
 
         # Write to stdin (answer to questions, ...)
-        if cli_input is not None:
+        if cli_input is not None and process.stdin is not None:
             process.stdin.write(cli_input)
             process.stdin.flush()
 
         # Interact with the process and wait for the process to terminate
         if communicate:
-            data: dict = {}
+            data: dict[str, Any] = {}
             thread = threading.Thread(
                 target=_communicate_with_timeout,
                 kwargs={'data': data, 'input': input, 'process': process},
@@ -464,7 +465,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     return cmd([c for c in command if c], **kwargs)
 
 
-def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: object) -> None:
+def screen_kill(name: str | None = None, *, fail: bool = True, **kwargs: Any) -> None:
     """Kill all screen instances called `name` or all if `name` is None."""
     for instance_name in screen_list(name=name, **kwargs):
         cmd(  # type: ignore[call-overload]

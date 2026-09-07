@@ -4,10 +4,12 @@ Data classes for FFmpeg/FFprobe media, codec, format, and stream info.
 
 from __future__ import annotations
 
+import datetime
 from pathlib import Path
 from typing import Any
 
 from pytoolbox import comparison, filesystem, validation
+from pytoolbox.compat import override
 from pytoolbox.subprocess import CallArgsType, to_args_list
 from pytoolbox.types import get_slots
 
@@ -38,7 +40,7 @@ class BaseInfo(  # pylint:disable=too-few-public-methods
         for attr in get_slots(self):
             self._set_attribute(attr, info)
 
-    def _set_attribute(self, name: str, info: dict) -> Any:
+    def _set_attribute(self, name: str, info: dict[str, Any]) -> Any:
         """Set attribute `name` value from the `info` or ``self.defaults`` dictionary."""
         value = info.get(self.attr_name_template.format(name=name), self.defaults.get(name))
         setattr(self, name, value)
@@ -145,7 +147,7 @@ class Stream(BaseInfo):
     bit_per_raw_sample: int | None
     bit_rate: int | None
     codec: Codec
-    disposition: dict | None
+    disposition: dict[str, Any] | None
     duration: float | None
     duration_ts: float | None
     index: int | None
@@ -265,14 +267,19 @@ class AudioStream(Stream):
 class SubtitleStream(Stream):
     """Represent a subtitle stream."""
 
+    start_pts: int | None
+    start_time: float | None
+
     __slots__ = ('duration', 'duration_ts', 'start_pts', 'start_time', 'tags')
 
     @staticmethod
+    @override
     def clean_duration(value: float | int | str | None) -> float | None:
         """Parse ``duration`` as a float."""
         return None if value is None else float(value)
 
     @staticmethod
+    @override
     def clean_duration_ts(value: int | str | None) -> int | None:
         """Convert ``duration_ts`` to an integer."""
         return None if value is None else int(value)
@@ -290,6 +297,14 @@ class SubtitleStream(Stream):
 
 class VideoStream(Stream):
     """Represent a video stream with resolution and pixel format info."""
+
+    display_aspect_ratio: str | None
+    has_b_frames: int | None
+    height: int | None
+    level: int | None
+    pix_fmt: str | None
+    sample_aspect_ratio: str | None
+    width: int | None
 
     __slots__ = (
         'bit_per_raw_sample',
@@ -326,12 +341,16 @@ class VideoStream(Stream):
     @property
     def rotation(self) -> int:
         """Return the stream rotation angle from metadata tags."""
-        tags = self.tags  # type: ignore[attr-defined]  # pylint:disable=no-member
+        tags = self.tags
         return int(0 if tags is None else tags.get('rotate', 0))
 
 
 class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     """Represent a media file or pipe with its FFmpeg options."""
+
+    # Attached while an encoding is tracked; neither is read from the file itself.
+    duration: datetime.timedelta | None = None
+    frame: float | None = None
 
     __slots__ = ('_path', 'options', '_is_pipe')
 

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import math
 import os
+from collections.abc import Sequence
 from typing import Any, ClassVar
 
 from django.conf import settings
@@ -17,6 +18,7 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from pytoolbox import module
+from pytoolbox.compat import override
 from pytoolbox.django.core import validators
 
 from . import mixins
@@ -49,24 +51,26 @@ class ExtraChoicesField(StripCharField):
     def __init__(
         self,
         verbose_name: str | None = None,
-        extra_choices: list | None = None,
-        **kwargs: object,
+        extra_choices: list[Any] | None = None,
+        **kwargs: Any,
     ) -> None:
         self.extra_choices: list[Any] = extra_choices or []
         super().__init__(verbose_name=verbose_name, **kwargs)
 
-    def deconstruct(self) -> tuple[str, str, list, dict]:
+    @override
+    def deconstruct(self) -> tuple[str, str, Sequence[Any], dict[str, Any]]:
         """Include ``extra_choices`` in the field's deconstructed representation."""
         name, path, args, kwargs = super().deconstruct()
         if self.extra_choices:
             kwargs['extra_choices'] = self.extra_choices
         return name, path, args, kwargs
 
-    def validate(self, value: object, model_instance: object) -> None:
+    @override
+    def validate(self, value: Any, model_instance: models.Model | None) -> None:
         """Validate against both standard and extra choices."""
         choices = self._choices
         try:
-            self._choices = list(self.choices) + list(self.extra_choices)
+            self._choices = list(self.choices or []) + list(self.extra_choices)
             return super().validate(value, model_instance)
         finally:
             self._choices = choices
@@ -110,17 +114,15 @@ class CreatedByField(mixins.OptionsMixin, models.ForeignKey):
 class MD5ChecksumField(StripCharField):
     """Char field validated as a 32-character hexadecimal MD5 checksum."""
 
-    default_error_messages: ClassVar[dict[str, str]] = {'invalid': _('Enter a valid MD5 checksum')}
+    default_error_messages = {'invalid': _('Enter a valid MD5 checksum')}  # noqa: RUF012
     default_options: ClassVar[dict[str, Any]] = {'max_length': 32}
-    default_validators: ClassVar[list[validators.MD5ChecksumValidator]] = [
-        validators.MD5ChecksumValidator()
-    ]
+    default_validators = [validators.MD5ChecksumValidator()]  # noqa: RUF012
 
 
 class MoneyField(mixins.OptionsMixin, models.DecimalField):
     """Decimal field pre-configured with min/max validators for monetary values."""
 
-    def __init__(self, max_value: int, decimal_places: int = 2, **kwargs: object) -> None:
+    def __init__(self, max_value: int, decimal_places: int = 2, **kwargs: Any) -> None:
         self.max_value: int = max_value
         super().__init__(
             decimal_places=decimal_places,
@@ -132,7 +134,8 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
             **kwargs,
         )
 
-    def deconstruct(self) -> tuple[str, str, list, dict]:
+    @override
+    def deconstruct(self) -> tuple[str, str, list[Any], dict[str, Any]]:
         """Reconstruct with ``max_value`` as the sole positional argument."""
         name, path, args, kwargs = super().deconstruct()
         kwargs.pop('decimal_places', None)
@@ -157,24 +160,27 @@ class FieldFile(files.FieldFile):
     @property
     def basename(self) -> str | None:
         """Return the base name of the file or ``None`` if empty."""
-        return os.path.basename(self.name) if self else None
+        return os.path.basename(self.name) if self and self.name else None
 
     @basename.setter
     def basename(self, value: str) -> None:
         # TODO use storage.get_valid_name
-        self.name = self.field.upload_to(self.instance, os.path.basename(value))
+        upload_to = self.field.upload_to
+        if not callable(upload_to):
+            raise TypeError(f'Field {self.field.name} has no upload_to callable')
+        self.name = str(upload_to(self.instance, os.path.basename(value)))
         setattr(self.instance, self.field.name, self.name)
 
     @property
     def exists(self) -> bool:
         """Return ``True`` if the file exists in storage."""
-        return bool(self) and self.storage.exists(self.name)
+        return bool(self) and self.name is not None and self.storage.exists(self.name)
 
 
 class FileField(mixins.OptionsMixin, models.FileField):
     """A FileField with OptionsMixin applied."""
 
-    attr_class: ClassVar[type[FieldFile]] = FieldFile
+    attr_class = FieldFile
 
 
 __all__ = _all.diff(globals())

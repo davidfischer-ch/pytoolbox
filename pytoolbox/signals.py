@@ -9,6 +9,7 @@ import inspect
 import signal
 from collections.abc import Callable
 from types import FrameType
+from typing import Any
 
 from . import exceptions
 
@@ -31,7 +32,7 @@ def propagate_handler(signum: int, frame: FrameType | None) -> None:
 
 def register_handler(
     signum: int,
-    handler: Callable,
+    handler: Callable[..., Any],
     *,
     append: bool = True,
     reset: bool = False,
@@ -55,12 +56,12 @@ def register_handler(
 
 def register_callback(
     signum: int,
-    callback: Callable,
+    callback: Callable[..., Any],
     *,
     append: bool = True,
     reset: bool = False,
-    args: list | None = None,
-    kwargs: dict | None = None,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
 ) -> None:
     """Register a callback as a signal handler, wrapping it to ignore ``signum`` and ``frame``."""
     return register_handler(

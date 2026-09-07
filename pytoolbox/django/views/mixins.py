@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.contrib import messages
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -16,21 +16,36 @@ from django.shortcuts import redirect
 from django.views.generic import base as generic
 
 from pytoolbox import module
+from pytoolbox.compat import override
 from pytoolbox.django.core import exceptions
 from pytoolbox.django.forms import mixins as forms_mixins
 from pytoolbox.django.models import utils
 
 if TYPE_CHECKING:
     from django import forms
-    from django.http import HttpRequest, HttpResponse
+    from django.http import HttpRequest, HttpResponse, HttpResponseBase
+    from django.views.generic.edit import ModelFormMixin, ProcessFormView
+
+    class _ViewsMixin(ModelFormMixin, ProcessFormView):
+        """
+        The class-based view surface the mixins below complete.
+
+        They read the view's request, its dispatch chain and its form handling, so this states
+        that requirement for the checker; at runtime they stay plain mixins, to be placed to
+        the left of the view class they complete.
+        """
+
+else:
+    _ViewsMixin = object
 
 _all = module.All(globals())
 
 
-class AddRequestToFormKwargsMixin:
+class AddRequestToFormKwargsMixin(_ViewsMixin):
     """Add the view request to the keywords arguments for instantiating the form."""
 
-    def get_form_kwargs(self, *args: object, **kwargs: object) -> dict[str, object]:
+    @override
+    def get_form_kwargs(self, *args: Any, **kwargs: Any) -> dict[str, object]:
         """Add the request to form kwargs if the form is a :class:`RequestMixin`."""
         kwargs = super().get_form_kwargs(*args, **kwargs)
         if self.should_add_request_to_form_kwargs():
@@ -45,35 +60,38 @@ class AddRequestToFormKwargsMixin:
         return issubclass(self.get_form_class(), forms_mixins.RequestMixin)
 
 
-class BaseModelMultipleMixin:
+class BaseModelMultipleMixin(_ViewsMixin):
     """Derive context object name from the base model of the queryset."""
 
-    def get_context_object_name(self, instance_list: object) -> str | None:
+    @override
+    def get_context_object_name(self, obj: Any) -> str:
         """Get the name of the item to be used in the context."""
         if self.context_object_name:
             return self.context_object_name
-        if hasattr(instance_list, 'model'):
-            return f'{utils.get_base_model(instance_list.model)._meta.model_name}_list'
-        return None
+        if hasattr(obj, 'model'):
+            return f'{utils.get_base_model(obj.model)._meta.model_name}_list'
+        return ''
 
 
-class BaseModelSingleMixin:
+class BaseModelSingleMixin(_ViewsMixin):
     """Derive context object name from the base model of the instance."""
 
-    def get_context_object_name(self, instance: object) -> str | None:
+    @override
+    def get_context_object_name(self, obj: Any) -> str:
         """Get the name to use for the instance."""
         if self.context_object_name:
             return self.context_object_name
-        if isinstance(instance, models.Model):
-            return utils.get_base_model(instance)._meta.model_name
-        return None
+        if isinstance(obj, models.Model):
+            return utils.get_base_model(obj)._meta.model_name or ''
+        return ''
 
 
-class InitialMixin:
+class InitialMixin(_ViewsMixin):
     """Add helpers to safely use the URL query string to fill a form with initial values."""
 
     initials = {}
 
+    @override
     def get_initial(self) -> dict[str, object]:
         """Populate initial form values from :attr:`initials` and query string."""
         initial = super().get_initial()
@@ -91,7 +109,7 @@ class InitialMixin:
         initial: dict[str, object],
         name: str,
         default: object,
-        func: Callable,
+        func: Callable[..., Any],
         msg_value: str,
         mgs_missing: str,
     ) -> object:
@@ -122,7 +140,9 @@ class InitialMixin:
         value = self.request.GET.get(name, default)
         if value is not default:
             try:
-                value = model.objects.for_user(self.request.user).get(pk=value)
+                # The caller's model is expected to expose a per-user manager.
+                manager = model.objects
+                value = manager.for_user(self.request.user).get(pk=value)  # pyrefly: ignore
             except ValueError:
                 messages.error(self.request, f'{name} - {msg_value}.')
                 return None
@@ -133,23 +153,27 @@ class InitialMixin:
         return value
 
 
-class LoggedCookieMixin:
+class LoggedCookieMixin(_ViewsMixin):
     """Add a "logged" cookie set to "True" if user is authenticated else to "False"."""
 
-    def post(self, *args: object, **kwargs: object) -> HttpResponse:
+    @override
+    def post(self, *args: Any, **kwargs: Any) -> HttpResponse:
         """Set a ``logged`` cookie reflecting the user's authentication state."""
         response = super().post(*args, **kwargs)
         logged = self.request.user.is_authenticated
-        response.set_cookie('logged', logged if isinstance(logged, bool) else logged())
+        # Django types the value as a string but stringifies whatever it is given.
+        value = logged if isinstance(logged, bool) else logged()
+        response.set_cookie('logged', value)  # pyrefly: ignore[bad-argument-type]
         return response
 
 
-class RedirectMixin:
+class RedirectMixin(_ViewsMixin):
     """Redirect to a page."""
 
     redirect_view = None
 
-    def dispatch(self, request: HttpRequest, *args: object, **kwargs: object) -> HttpResponse:
+    @override
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         """Redirect to :attr:`redirect_view` if set, otherwise dispatch normally."""
         if self.redirect_view:
             return redirect(self.redirect_view)
@@ -161,6 +185,11 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
 
     default_template_directory = 'default'
 
+    # Supplied by the view: where its templates live and which action is being rendered.
+    template_directory: str
+    action: str
+
+    @override
     def get_template_names(self) -> list[str]:
         """Return template candidates based on :attr:`template_directory` and action."""
         return (
@@ -173,12 +202,13 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
         )
 
 
-class ValidationErrorsMixin:
+class ValidationErrorsMixin(_ViewsMixin):
     """
     Catch :class:`~django.core.exceptions.ValidationError` during save
     and re-display the form.
     """
 
+    @override
     def form_valid(self, form: forms.Form) -> HttpResponse:
         """Catch :class:`~django.core.exceptions.ValidationError` and re-display the form."""
         try:

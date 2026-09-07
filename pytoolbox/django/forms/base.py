@@ -4,7 +4,7 @@ Extra forms.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.utils.functional import cached_property
 
@@ -19,7 +19,7 @@ __all__ = ['SerializedInstanceForm']
 class SerializedInstanceForm:
     """Form that serializes and deserializes a model instance by content type."""
 
-    def __init__(self, **kwargs: object) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self.app_label = kwargs['app_label']
         self.model = kwargs['model']
         self.pk = kwargs['pk']

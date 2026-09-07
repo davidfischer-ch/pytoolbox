@@ -10,6 +10,8 @@ import types
 from collections.abc import Callable, Generator, Iterable
 from typing import Any, Self, TypeVar
 
+from pytoolbox.compat import override
+
 from . import module
 from .collections import merge_dicts
 
@@ -18,7 +20,7 @@ _all = module.All(globals())
 GenericType = TypeVar('GenericType', bound=type)  # pylint:disable=invalid-name
 
 
-def get_arguments_names(function: Callable) -> list[str]:
+def get_arguments_names(function: Callable[..., Any]) -> list[str]:
     """
     Return a list with arguments names.
 
@@ -97,7 +99,7 @@ def get_subclasses(obj: Any, *, nested: bool = True) -> Iterable[tuple[type, lis
             yield from get_subclasses(subclass, nested=nested)
 
 
-def isiterable(obj: Any, *, blacklist: type | types.UnionType = bytes | str) -> bool:
+def isiterable(obj: Any, *, blacklist: type[Any] | types.UnionType = bytes | str) -> bool:
     """
     Return ``True`` if the object is an iterable, but ``False`` for any class in `blacklist`.
 
@@ -162,7 +164,7 @@ def merge_annotations(cls: GenericType) -> GenericType:
 
 
 def merge_bases_attribute(
-    cls: type,
+    cls: type[Any],
     attr_name: str,
     init: Any,
     default: Any,
@@ -239,7 +241,7 @@ class EchoObject:
     <class 'pytoolbox.types.MyEchoObject'>
     """
 
-    attr_class: type | None = None
+    attr_class: type[Any] | None = None
 
     def __init__(self, name: str, **attrs) -> None:
         assert '_name' not in attrs
@@ -284,17 +286,19 @@ class EchoDict(dict):
     <class 'set'>
     """
 
-    item_class: type = EchoObject
+    item_class: type[Any] = EchoObject
 
     def __init__(self, name: str, **items) -> None:
         assert '_name' not in items
         super().__init__(**items)
         self._name = name
 
+    @override
     def __contains__(self, key: Any) -> bool:
         """Return True because missing items are generated."""
         return True
 
+    @override
     def __getitem__(self, key: Any) -> Any:
         try:
             return super().__getitem__(key)
@@ -308,7 +312,7 @@ class MissingType:
     def __copy__(self) -> Self:
         return self
 
-    def __deepcopy__(self, memo: dict) -> Self:
+    def __deepcopy__(self, memo: dict[str, Any]) -> Self:
         return self
 
     def __bool__(self) -> bool:

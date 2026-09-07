@@ -14,7 +14,7 @@ import urllib.request
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Final, Protocol, TextIO
+from typing import Any, Final, Protocol, TextIO
 
 import requests
 from requests.auth import AuthBase
@@ -39,7 +39,7 @@ class Resource:  # pylint:disable=too-many-instance-attributes
     url: str
     path: Path
 
-    hash_algorithm: Callable | str | None = None
+    hash_algorithm: Callable[..., Any] | str | None = None
     expected_hash: str | None = None
 
     allow_redirects: bool = True
@@ -47,7 +47,7 @@ class Resource:  # pylint:disable=too-many-instance-attributes
     cert: str | tuple[str, str] | None = None
     cookies: dict[str, str] | None = None
     headers: dict[str, str] | None = None
-    params: dict | list[tuple] | bytes | None = None
+    params: dict[str, Any] | list[tuple] | bytes | None = None
     proxies: dict[str, str] | None = None
     timeout: int | None = DEFAULT_TIMEOUT
     verify: bool = True
@@ -60,7 +60,7 @@ class SingleProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
         self,
         start_time: float,
         position: int,
-        length: int,
+        length: int | None,
         chunk: bytes | None,
     ) -> None: ...
 
@@ -73,7 +73,7 @@ class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
         *,
         start_time: float,
         current: int,
-        total: int,
+        total: int | None,
         stream: TextIO,
         template: str,
     ) -> None: ...
@@ -103,11 +103,11 @@ def iter_download_core(  # pylint:disable=too-many-arguments
     cert: str | tuple[str, str] | None = None,
     cookies: dict[str, str] | None = None,
     headers: dict[str, str] | None = None,
-    params: dict | list[tuple] | bytes | None = None,
+    params: dict[str, Any] | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
     timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
-) -> Iterator[tuple[int, int, bytes]]:
+) -> Iterator[tuple[int, int | None, bytes]]:
     """Yield ``(position, length, chunk)`` tuples while downloading *url*."""
     response = requests.get(
         url=url,
@@ -143,18 +143,18 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     code: int = 200,
     chunk_size: int | None = DEFAULT_CHUNK_SIZE,
     force: bool = True,
-    hash_algorithm: Callable | str | None = None,
+    hash_algorithm: Callable[..., Any] | str | None = None,
     expected_hash: str | None = None,
     allow_redirects: bool = True,
     auth: AuthBase | tuple[str, str] | None = None,
     cert: str | tuple[str, str] | None = None,
     cookies: dict[str, str] | None = None,
     headers: dict[str, str] | None = None,
-    params: dict | list[tuple] | bytes | None = None,
+    params: dict[str, Any] | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
     timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
-) -> Iterator[tuple[int, int, bytes | None, bool, str | None]]:
+) -> Iterator[tuple[int, int | None, bytes | None, bool, str | None]]:
     """Download *url* to *path*, yielding progress tuples with hash info."""
     position = length = 0
     chunk: bytes | None = None
@@ -207,7 +207,7 @@ def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
     code: int = 200,
     chunk_size: int | None = DEFAULT_CHUNK_SIZE,
     force: bool = True,
-    hash_algorithm: Callable | str | None = None,
+    hash_algorithm: Callable[..., Any] | str | None = None,
     expected_hash: str | None = None,
     progress_callback: SingleProgressCallback | None = None,
     allow_redirects: bool = True,
@@ -215,7 +215,7 @@ def download_ext(  # pylint:disable=too-many-arguments,too-many-locals
     cert: str | tuple[str, str] | None = None,
     cookies: dict[str, str] | None = None,
     headers: dict[str, str] | None = None,
-    params: dict | list[tuple] | bytes | None = None,
+    params: dict[str, Any] | list[tuple] | bytes | None = None,
     proxies: dict[str, str] | None = None,
     timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
@@ -345,11 +345,13 @@ def download_ext_multi(
         if not resource.path.exists():
             filesystem.makedirs(resource.path, parent=True)
             try:
+                fields: dict[str, Any] = asdict(resource)
+                del fields['name']  # Labels the download for the caller, not a request field.
                 for returned in iter_download_to_file(
                     code=code,
                     chunk_size=chunk_size,
                     force=force,
-                    **asdict(resource),
+                    **fields,
                 ):
                     callback(current=returned[0], total=returned[1])
             except Exception:

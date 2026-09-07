@@ -7,25 +7,27 @@ from __future__ import annotations
 
 import collections.abc
 import functools
-from typing import Final
+from typing import IO, TYPE_CHECKING, Any, Final
 
 from pytoolbox import module
+
+if TYPE_CHECKING:
+    from _typeshed import StrOrBytesPath
 
 _all = module.All(globals())
 
 from PIL import Image  # noqa pylint:disable=wrong-import-order,wrong-import-position
 
-TRANSPOSE_SEQUENCES: Final[dict[int | None, list[int]]] = {
-    # pylint:disable=no-member
+TRANSPOSE_SEQUENCES: Final[dict[int | None, list[Image.Transpose]]] = {
     None: [],
     1: [],
-    2: [Image.FLIP_LEFT_RIGHT],
-    3: [Image.ROTATE_180],
-    4: [Image.FLIP_TOP_BOTTOM],
-    5: [Image.FLIP_LEFT_RIGHT, Image.ROTATE_90],
-    6: [Image.ROTATE_270],
-    7: [Image.FLIP_TOP_BOTTOM, Image.ROTATE_90],
-    8: [Image.ROTATE_90],
+    2: [Image.Transpose.FLIP_LEFT_RIGHT],
+    3: [Image.Transpose.ROTATE_180],
+    4: [Image.Transpose.FLIP_TOP_BOTTOM],
+    5: [Image.Transpose.FLIP_LEFT_RIGHT, Image.Transpose.ROTATE_90],
+    6: [Image.Transpose.ROTATE_270],
+    7: [Image.Transpose.FLIP_TOP_BOTTOM, Image.Transpose.ROTATE_90],
+    8: [Image.Transpose.ROTATE_90],
 }
 
 
@@ -49,14 +51,16 @@ def apply_orientation(  # pylint:disable=dangerous-default-value
         ...,
         int | None,
     ] = get_orientation,
-    sequences: dict[int | None, list] = TRANSPOSE_SEQUENCES,
+    sequences: dict[int | None, list[Any]] = TRANSPOSE_SEQUENCES,
 ) -> Image.Image:
     """Credits: https://stackoverflow.com/questions/4228530/pil-thumbnail-is-rotating-my-image."""
     orientation = get_orientation(image)
     return functools.reduce(lambda i, op: i.transpose(op), sequences.get(orientation, []), image)
 
 
-def open(file_or_path: object) -> Image.Image:  # pylint:disable=redefined-builtin
+def open(  # pylint:disable=redefined-builtin
+    file_or_path: IO[bytes] | StrOrBytesPath,
+) -> Image.Image:
     """Open an image and load it, tolerating truncated files."""
     image = Image.open(file_or_path)
     try:
@@ -97,7 +101,7 @@ def remove_transparency(
     return new_image
 
 
-def save(image: Image.Image, *args: object, **kwargs: object) -> None:
+def save(image: Image.Image, *args: Any, **kwargs: Any) -> None:
     """Save *image*, preserving EXIF data by default."""
     kwargs.setdefault('exif', image.info.get('exif', b''))
     return image.save(*args, **kwargs)

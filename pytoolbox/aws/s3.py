@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 from pytoolbox.regex import from_path_patterns
 
 
-def copy_object(s3: Any, bucket_name: str, source_key: str, target_key: str) -> dict:
+def copy_object(s3: Any, bucket_name: str, source_key: str, target_key: str) -> dict[str, Any]:
     """Copy an object within the same bucket."""
     return s3.copy_object(
         CopySource={'Bucket': bucket_name, 'Key': source_key},

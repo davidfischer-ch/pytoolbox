@@ -7,7 +7,9 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Final, Literal, Protocol, TextIO, TypeAlias, cast
+from typing import Any, Final, Literal, Protocol, TextIO, TypeAlias, cast
+
+from pytoolbox.compat import override
 
 from .collections import merge_dicts
 
@@ -83,8 +85,8 @@ class BasicFuncLogger(logging.Logger):
         self,
         level: int,
         msg: str,
-        *args: object,
-        **kwargs: object,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         self._log_func(msg)
 
@@ -243,6 +245,7 @@ class ColorizeFormatter(logging.Formatter):
             color_by_level or {},
         )
 
+    @override
     def format(self, record: logging.LogRecord) -> str:
         """Format the record then wrap the message part in ANSI color."""
         text = super().format(record)
