@@ -39,7 +39,7 @@ strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db.models import fields
@@ -49,6 +49,7 @@ from pytoolbox import logging
 
 if TYPE_CHECKING:
     from django.db import models
+    from django.db.backends.base.base import BaseDatabaseWrapper
 
 # pylint:disable=unused-argument
 
@@ -63,7 +64,7 @@ __all__ = [
 logger = logging.get_logger(__name__)
 
 
-def clean_files_delete_handler(instance: models.Model, signal: object, **kwargs: object) -> None:
+def clean_files_delete_handler(instance: models.Model, signal: object, **kwargs: Any) -> None:
     """
     Remove the files of the instance's file fields when it is removed from the database.
 
@@ -83,7 +84,7 @@ def clean_files_delete_handler(instance: models.Model, signal: object, **kwargs:
                 file_field.delete(save=False)
 
 
-def create_site(sender: object, **kwargs: object) -> None:
+def create_site(sender: object, **kwargs: Any) -> None:
     """
     Ensure the site name and domain is well configured.
 
@@ -106,7 +107,11 @@ def create_site(sender: object, **kwargs: object) -> None:
     )
 
 
-def setup_postgresql_hstore_extension(sender: object, connection: object, **kwargs: object) -> None:
+def setup_postgresql_hstore_extension(
+    sender: object,
+    connection: BaseDatabaseWrapper,
+    **kwargs: Any,
+) -> None:
     """Create the PostgreSQL ``hstore`` extension and register it globally."""
     from psycopg2.extras import register_hstore
 
@@ -119,7 +124,7 @@ def strip_strings_and_validate_model(
     sender: object,
     instance: models.Model,
     raw: bool,
-    **kwargs: object,
+    **kwargs: Any,
 ) -> None:
     """Strip the string fields of the instance and run the instance's full_clean()."""
     if not raw:

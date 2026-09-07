@@ -9,8 +9,13 @@ from pytoolbox import collections, exceptions
 __all__ = ['Brand']
 
 
-class Brand:
-    """Normalize and validate camera/device brand names from EXIF data."""
+class Brand(str):
+    """
+    A normalized camera/device brand name.
+
+    A ``str`` subclass so that ``Brand(value)`` really yields a ``Brand``: the constructor
+    normalises the raw EXIF string and returns ``None`` when there is nothing to name.
+    """
 
     brands = frozenset(
         [
@@ -60,8 +65,9 @@ class Brand:
         },
     )
 
-    def __new__(cls, brand: str) -> str | None:
-        return cls.clean(brand)
+    def __new__(cls, brand: str) -> Brand | None:  # type: ignore[misc]
+        cleaned = cls.clean(brand)
+        return None if cleaned is None else super().__new__(cls, cleaned)
 
     @classmethod
     def clean(cls, brand: str) -> str | None:

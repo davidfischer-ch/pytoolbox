@@ -11,61 +11,72 @@ from django.contrib.auth.views import redirect_to_login
 from rest_framework import renderers
 
 from pytoolbox import module
+from pytoolbox.compat import override
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+    from rest_framework import viewsets
     from rest_framework.request import Request
     from rest_framework.response import Response
     from rest_framework.serializers import Serializer
 
+# Each mixin below completes a DRF generic view and reads its attributes (`action`, `request`,
+# `get_queryset`, ...); naming the base under TYPE_CHECKING states that for the checker only.
+_ViewsMixin = viewsets.GenericViewSet if TYPE_CHECKING else object
+
 _all = module.All(globals())
 
 
-class ActionToQuerysetMixin:
+class ActionToQuerysetMixin(_ViewsMixin):
     """Select the queryset based on the current viewset action."""
 
     querysets = {}
 
+    @override
     def get_queryset(self) -> QuerySet:
         """Return the queryset mapped to the current action."""
         return self.querysets.get(self.action, self.queryset)
 
 
-class ActionToSerializerMixin:
+class ActionToSerializerMixin(_ViewsMixin):
     """Select the serializer class based on the current viewset action."""
 
     serializers_classes = {}
 
+    @override
     def get_serializer_class(self) -> type[Serializer]:
         """Return the serializer class mapped to the current action."""
         return self.serializers_classes.get(self.action, self.serializer_class)
 
 
-class MethodToQuerysetMixin:
+class MethodToQuerysetMixin(_ViewsMixin):
     """Select the queryset based on the HTTP request method."""
 
     querysets = {}
 
+    @override
     def get_queryset(self) -> QuerySet:
         """Return the queryset mapped to the current HTTP method."""
         return self.querysets.get(self.request.method, self.queryset)
 
 
-class MethodToSerializerMixin:
+class MethodToSerializerMixin(_ViewsMixin):
     """Select the serializer class based on the HTTP request method."""
 
     serializers_classes = {}
 
+    @override
     def get_serializer_class(self) -> type[Serializer]:
         """Return the serializer class mapped to the current HTTP method."""
         return self.serializers_classes.get(self.request.method, self.serializer_class)
 
 
-class RedirectToLoginMixin:
+class RedirectToLoginMixin(_ViewsMixin):
     """Redirect unauthenticated browsable API requests to the login page."""
 
     redirected_classes = (renderers.BrowsableAPIRenderer,)
 
+    @override
     def finalize_response(
         self,
         request: Request,
@@ -74,14 +85,15 @@ class RedirectToLoginMixin:
         **kwargs: Any,
     ) -> Response:
         """Redirect to login if the user is unauthenticated and using a browser."""
-        response = super().finalize_response(request, response, *args, **kwargs)
+        api_response = super().finalize_response(request, response, *args, **kwargs)
         logged = request.user.is_authenticated
         if not (logged if isinstance(logged, bool) else logged()) and isinstance(
-            response.accepted_renderer, self.redirected_classes
+            api_response.accepted_renderer, self.redirected_classes
         ):
-            response = redirect_to_login(request.path)
-            response.data = {}
-        return response
+            redirection = redirect_to_login(request.path)
+            redirection.data = {}  # type: ignore[attr-defined]
+            return redirection  # pyrefly: ignore[bad-return]
+        return api_response
 
 
 __all__ = _all.diff(globals())

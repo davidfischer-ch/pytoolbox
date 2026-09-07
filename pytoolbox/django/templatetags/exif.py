@@ -61,7 +61,7 @@ WHITE_BALANCE_LABELS: Final[dict[WhiteBalance, str]] = cast(
 @register.filter(is_safe=True)
 def exposure_mode(value: int | ExposureMode | None, autoescape: bool = True) -> str:
     """Return the human-readable exposure mode label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
+    if value is None or value == string_if_invalid:
         return string_if_invalid
     if not isinstance(value, ExposureMode):
         value = ExposureMode(value)
@@ -71,7 +71,7 @@ def exposure_mode(value: int | ExposureMode | None, autoescape: bool = True) -> 
 @register.filter(is_safe=True)
 def orientation(value: int | Orientation | None, autoescape: bool = True) -> str:
     """Return the human-readable orientation label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
+    if value is None or value == string_if_invalid:
         return string_if_invalid
     if not isinstance(value, Orientation):
         value = Orientation(value)
@@ -81,7 +81,7 @@ def orientation(value: int | Orientation | None, autoescape: bool = True) -> str
 @register.filter(is_safe=True)
 def sensing_method(value: int | SensingMethod | None, autoescape: bool = True) -> str:
     """Return the human-readable sensing method label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
+    if value is None or value == string_if_invalid:
         return string_if_invalid
     if not isinstance(value, SensingMethod):
         value = SensingMethod(value)
@@ -91,7 +91,7 @@ def sensing_method(value: int | SensingMethod | None, autoescape: bool = True) -
 @register.filter(is_safe=True)
 def white_balance(value: int | WhiteBalance | None, autoescape: bool = True) -> str:
     """Return the human-readable white balance label for the given EXIF integer or enum."""
-    if value in (None, string_if_invalid):
+    if value is None or value == string_if_invalid:
         return string_if_invalid
     if not isinstance(value, WhiteBalance):
         value = WhiteBalance(value)

@@ -77,7 +77,7 @@ def chown(
     *,
     recursive: bool = False,
     top_down: bool = True,
-    on_error: Callable | None = None,
+    on_error: Callable[..., Any] | None = None,
     follow_symlinks: bool = False,
 ) -> None:
     """
@@ -120,7 +120,7 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     *,
     regex: bool = False,
     top_down: bool = True,
-    on_error: Callable | None = None,
+    on_error: Callable[..., Any] | None = None,
     follow_symlinks: bool = False,
     # Processing arguments
     chunk_size: int = 1024 * 1024,
@@ -232,7 +232,7 @@ def find_recursive(
     *,
     regex: bool = False,
     top_down: bool = True,
-    on_error: Callable | None = None,
+    on_error: Callable[..., Any] | None = None,
     follow_symlinks: bool = False,
 ) -> Iterator[Path]:
     r"""
@@ -334,7 +334,7 @@ def first_that_exist(*paths: Path) -> Path | None:
 
 def from_template(
     template: Path | str,
-    target: Path | None,
+    target: Path | str | None,
     values: dict[str, Any],
     *,
     jinja2: bool = False,
@@ -400,7 +400,7 @@ def from_template(
     if post_func:
         content = post_func(content, values=values, jinja2=jinja2)
     if target:
-        target.write_text(content, encoding='utf-8')
+        Path(target).write_text(content, encoding='utf-8')
     return content
 
 
@@ -432,7 +432,7 @@ def get_size(
     *,
     regex: bool = False,
     top_down: bool = True,
-    on_error: Callable | None = None,
+    on_error: Callable[..., Any] | None = None,
     follow_symlinks: bool = False,
 ) -> int:
     r"""
@@ -469,7 +469,7 @@ def get_size(
     )
 
 
-def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
+def makedirs(path: Path | str, *, mode: int = 0o777, parent: bool = False) -> bool:
     """
     Recursively make directories (which may already exists) without throwing an exception.
     Returns True if operation is successful, False if directory found and re-raise any other type
@@ -501,14 +501,15 @@ def makedirs(path: Path, *, mode: int = 0o777, parent: bool = False) -> bool:
         ...
     FileExistsError: ...
     """
+    directory = Path(path)
     if parent:
-        path = path.parent
+        directory = directory.parent
     try:
-        os.makedirs(path, mode=mode)
+        os.makedirs(directory, mode=mode)
         return True
     except OSError as exc:
         # Directory exists
-        if exc.errno == errno.EEXIST and path.is_dir():
+        if exc.errno == errno.EEXIST and directory.is_dir():
             return False
         raise  # Re-raise exception if a different error occurred
 

@@ -32,7 +32,7 @@ from pytoolbox.ai.vision import utils
 
 __all__ = ['DlibFaceDetector']
 
-TEMPLATE: Final[np.ndarray] = np.float32(
+TEMPLATE: Final[np.ndarray] = np.array(
     [
         (0.0792396913815, 0.339223741112),
         (0.0829219487236, 0.456955367943),
@@ -102,7 +102,8 @@ TEMPLATE: Final[np.ndarray] = np.float32(
         (0.572539621444, 0.776609286626),
         (0.5240106503, 0.783370783245),
         (0.477561227414, 0.778476346951),
-    ]
+    ],
+    dtype=np.float32,
 )
 
 TPL_MIN, TPL_MAX = np.min(TEMPLATE, axis=0), np.max(TEMPLATE, axis=0)
@@ -178,12 +179,12 @@ class DlibFaceDetector:
         if landmarks is None:
             landmarks = self.find_landmarks(image, box)
 
-        landmarks = np.float32(landmarks)
-        landmark_indices = np.array(landmark_indices)  # pylint:disable=redefined-variable-type
+        points = np.array(landmarks, dtype=np.float32)
+        indices = np.array(landmark_indices)
 
         H = cv2.getAffineTransform(  # pylint:disable=no-member  # noqa: N806
-            landmarks[landmark_indices],  # pylint:disable=unsubscriptable-object
-            dimension * MINMAX_TEMPLATE[landmark_indices],
+            points[indices],
+            dimension * MINMAX_TEMPLATE[indices],
         )
 
         return cv2.warpAffine(image, H, (dimension, dimension))  # pylint:disable=no-member

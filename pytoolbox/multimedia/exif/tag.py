@@ -8,14 +8,21 @@ import datetime
 import re
 from collections.abc import Callable
 from fractions import Fraction
-from typing import Literal
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 from pytoolbox import decorators, exceptions
 from pytoolbox.datetime import str_to_datetime, str_to_time
 
 from .brand import Brand
 
+if TYPE_CHECKING:
+    from .metadata import Metadata
+
 __all__ = ['Tag', 'TagSet']
+
+# A tag holds whichever Python type its EXIF type maps to, so a number keeps its own type through
+# clean_number() instead of widening to the union of everything a tag can hold.
+_NumberT = TypeVar('_NumberT', int, Fraction)
 
 
 class Tag:
@@ -53,7 +60,7 @@ class Tag:
         'XmpText': str,
     }
 
-    def __init__(self, metadata: object, key: str) -> None:
+    def __init__(self, metadata: Metadata, key: str) -> None:
         self.metadata = metadata
         self.key = key
 
@@ -61,7 +68,7 @@ class Tag:
         return f'<{type(self).__name__} {self.key}: {str(self.data)[:20]}>'
 
     @property
-    def data(self) -> object:
+    def data(self) -> Any:
         """Return the tag value converted to its Python type."""
         if self.data_bytes is None:
             return None
@@ -81,7 +88,7 @@ class Tag:
     @decorators.cached_property
     def description(self) -> str:
         """Return the human-readable description of this tag."""
-        return self.metadata.exiv2.get_tag_description(self.key)
+        return self.metadata.exiv2.get_tag_description(self.key) or ''
 
     @property
     def brand(self) -> Brand | None:
@@ -107,17 +114,17 @@ class Tag:
         return raw.get_size() if raw else 0
 
     @decorators.cached_property
-    def type(self) -> type:
+    def type(self) -> type[Any]:
         """Return the Python type corresponding to this tag's EXIF type."""
         tag_type = self.metadata.exiv2.try_get_tag_type(self.key)
+        if tag_type is None:
+            return bytes
         try:
             return self.type_to_python[tag_type]
         except KeyError as exc:
-            if tag_type:
-                raise KeyError(f'Unknow tag type {tag_type}') from exc
-        return bytes
+            raise KeyError(f'Unknow tag type {tag_type}') from exc
 
-    def clean(self, data: object) -> object:
+    def clean(self, data: Any) -> Any:
         """Convert raw tag data to the appropriate Python type."""
         if isinstance(data, str):
             data = data.strip()
@@ -143,7 +150,7 @@ class Tag:
             data_repr=repr(data),
         )
 
-    def get_type_hook(self, *, mode: Literal['get', 'set']) -> Callable | None:
+    def get_type_hook(self, *, mode: Literal['get', 'set']) -> Callable[..., Any] | None:
         """Return the GExiv2 accessor method for *mode* (``'get'`` or ``'set'``)."""
         name = self.type_to_hook.get(self.type)
         return getattr(self.metadata.exiv2, f'try_{mode}_{name}') if name else None
@@ -152,10 +159,10 @@ class Tag:
 class TagSet:  # pylint:disable=too-few-public-methods
     """Base class for groups of related EXIF tags."""
 
-    def __init__(self, metadata: object) -> None:
+    def __init__(self, metadata: Metadata) -> None:
         self.metadata = metadata
 
     @staticmethod
-    def clean_number(number: int | Fraction | None) -> int | Fraction | None:
+    def clean_number(number: _NumberT | None) -> _NumberT | None:
         """Return *number* if positive, otherwise ``None``."""
         return number if number and number > 0 else None

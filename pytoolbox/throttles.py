@@ -8,6 +8,8 @@ import time
 from collections.abc import Callable, Generator, Iterable
 from typing import Any
 
+from pytoolbox.compat import override
+
 from .datetime import total_seconds
 from .types import Missing
 
@@ -47,7 +49,7 @@ class TimeThrottle:
     def throttle_iterable(
         self,
         objects: Iterable,
-        callback: Callable = lambda o: None,
+        callback: Callable[..., Any] = lambda o: None,
     ) -> Generator:
         """
         Consume and skips some objects to yield them at defined `min_delay`. First and last objects
@@ -90,9 +92,13 @@ class TimeAndRatioThrottle(TimeThrottle):
         super().__init__(min_time_delta)
         self.min_ratio_delta = total_seconds(min_ratio_delta)
         self.max_time_delta = total_seconds(max_time_delta)
-        self.previous_ratio = 0
+        self.previous_ratio: float = 0
 
-    def is_throttled(self, ratio: float) -> bool:  # pylint:disable=arguments-differ
+    @override
+    def is_throttled(  # type: ignore[override]  # pylint:disable=arguments-differ
+        self,
+        ratio: float,
+    ) -> bool:
         """Return a boolean indicating if you should throttle."""
         if not self.previous_time:
             self._update(ratio)
@@ -108,6 +114,10 @@ class TimeAndRatioThrottle(TimeThrottle):
             return False
         return True
 
-    def _update(self, ratio: float) -> None:  # pylint:disable=arguments-differ
+    @override
+    def _update(  # type: ignore[override]  # pylint:disable=arguments-differ
+        self,
+        ratio: float,
+    ) -> None:
         super()._update()
         self.previous_ratio = ratio

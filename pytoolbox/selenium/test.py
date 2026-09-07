@@ -1,28 +1,43 @@
-# pylint:disable=no-member
 """
 Mixin for Selenium-based live test cases.
 """
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, ClassVar
+
+from pytoolbox.compat import override
+
 from . import client  # pylint:disable=unused-import
+
+if TYPE_CHECKING:
+    from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+
+# The mixin completes a live-server test case: it calls its assertions and reads the URL that
+# case serves on. Naming the base under TYPE_CHECKING states that requirement for the checker
+# while leaving the mixin plain at runtime, where it must stay to the left of the test case.
+_LiveTestCaseMixin = StaticLiveServerTestCase if TYPE_CHECKING else object
 
 __all__ = ['LiveTestCaseMixin']
 
 
-class LiveTestCaseMixin:
+class LiveTestCaseMixin(_LiveTestCaseMixin):
     """Mixin that provides a shared :class:`LiveClient` for live server tests."""
 
     live_client_class = client.LiveClient  # pylint:disable=used-before-assignment
 
+    # Built once per test case class by setUp, and shared by every test in it.
+    client: ClassVar[client.LiveClient]  # type: ignore[assignment]
+
+    @override
     def setUp(self) -> None:  # pylint:disable=invalid-name
         """Call super's setUp and instantiate a live test client, only once."""
         super().setUp()
         if not hasattr(type(self), 'client'):
             type(self).client = self.live_client_class(self.live_server_url)
-        self.client = type(self).client
 
     @classmethod
+    @override
     def tearDownClass(cls) -> None:  # pylint:disable=invalid-name
         """Quit the live-test client and call super's tearDownClass."""
         if hasattr(cls, 'client'):

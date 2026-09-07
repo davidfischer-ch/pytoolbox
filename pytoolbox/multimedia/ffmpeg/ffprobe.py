@@ -14,7 +14,8 @@ import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Final, Type
+from typing import Any, Final, Literal, TypeAlias, overload
+from xml.dom.minidom import Element  # nosec B408  # only the type; parsing goes via defusedxml
 
 from defusedxml import minidom
 
@@ -23,7 +24,10 @@ from pytoolbox.datetime import parts_to_time, secs_to_time
 
 from . import miscellaneous, utils
 
-__all__ = ['DURATION_REGEX', 'FFprobe']
+__all__ = ['DURATION_REGEX', 'FFprobe', 'MediaLike']
+
+# What every accessor below accepts: a Media, the path of one, or an already probed info dict.
+MediaLike: TypeAlias = 'miscellaneous.Media | Path | str | dict[str, Any]'
 
 DURATION_REGEX: Final[re.Pattern] = re.compile(
     r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S',
@@ -35,14 +39,18 @@ class FFprobe:
 
     executable: Path = Path('ffprobe')
     duration_regex: re.Pattern = DURATION_REGEX
-    format_class: type | None = None
-    media_class: Type[miscellaneous.Media] = miscellaneous.Media
-    stream_classes: dict[str, type | None] = {'audio': None, 'subtitle': None, 'video': None}
+    format_class: type[miscellaneous.Format] | None = None
+    media_class: type[miscellaneous.Media] = miscellaneous.Media
+    stream_classes: dict[str, type[miscellaneous.Stream] | None] = {
+        'audio': None,
+        'subtitle': None,
+        'video': None,
+    }
 
     def __init__(self, executable: Path | None = None) -> None:
         self.executable = executable or self.executable
 
-    def __call__(self, *arguments) -> str:
+    def __call__(self, *arguments: Path | float | int | str | None) -> str:
         """Call FFprobe with given arguments and return the output."""
         process = py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
@@ -51,11 +59,30 @@ class FFprobe:
             universal_newlines=True,
         )
         process.wait()
+        assert process.stdout is not None  # noqa: S101  # opened with stdout=PIPE just above
         return process.stdout.read()
+
+    @overload
+    def get_media_duration(
+        self,
+        media: MediaLike,
+        *,
+        as_delta: Literal[False] = False,
+        fail: bool = False,
+    ) -> datetime.time | None: ...
+
+    @overload
+    def get_media_duration(
+        self,
+        media: MediaLike,
+        *,
+        as_delta: Literal[True],
+        fail: bool = False,
+    ) -> datetime.timedelta | None: ...
 
     def get_media_duration(
         self,
-        media: object,
+        media: MediaLike,
         *,
         as_delta: bool = False,
         fail: bool = False,
@@ -72,9 +99,10 @@ class FFprobe:
         if isinstance(media, (str, Path)) and os.path.splitext(media)[1] == '.mpd':
             with open(media, encoding='utf-8') as f:
                 mpd = minidom.parse(f)
-            if mpd.firstChild.nodeName == 'MPD':
+            root = mpd.firstChild
+            if isinstance(root, Element) and root.nodeName == 'MPD':
                 match = self.duration_regex.search(
-                    mpd.firstChild.getAttribute('mediaPresentationDuration'),
+                    root.getAttribute('mediaPresentationDuration'),
                 )
                 if match is not None:
                     hours, minutes = int(match.group('hours')), int(match.group('minutes'))
@@ -90,15 +118,25 @@ class FFprobe:
                 except KeyError:
                     return None
             # ffmpeg may return this so strange value, 00:00:00.04, let it being None
-            if duration and (
-                duration >= datetime.timedelta(seconds=1)
-                if as_delta
-                else duration >= datetime.time(0, 0, 1)
-            ):
+            if isinstance(duration, datetime.timedelta):
+                if duration >= datetime.timedelta(seconds=1):
+                    return duration
+            elif duration is not None and duration >= datetime.time(0, 0, 1):
                 return duration
         return None
 
-    def get_media_info(self, media: object, *, fail: bool = False) -> dict | None:
+    @overload
+    def get_media_info(self, media: MediaLike, *, fail: Literal[True]) -> dict[str, Any]: ...
+
+    @overload
+    def get_media_info(
+        self,
+        media: MediaLike,
+        *,
+        fail: bool = False,
+    ) -> dict[str, Any] | None: ...
+
+    def get_media_info(self, media: MediaLike, *, fail: bool = False) -> dict[str, Any] | None:
         """
         Return a Python dictionary containing information about the media or None in case of error.
         Set `media` to an instance of `self.media_class` or a path.
@@ -134,13 +172,36 @@ class FFprobe:
                 raise
         return None
 
-    def get_media_format(self, media: object, *, fail: bool = False) -> object:
+    @overload
+    def get_media_format(
+        self,
+        media: MediaLike,
+        *,
+        fail: Literal[True],
+    ) -> miscellaneous.Format | dict[str, Any]: ...
+
+    @overload
+    def get_media_format(
+        self,
+        media: MediaLike,
+        *,
+        fail: bool = False,
+    ) -> miscellaneous.Format | dict[str, Any] | None: ...
+
+    def get_media_format(
+        self,
+        media: MediaLike,
+        *,
+        fail: bool = False,
+    ) -> miscellaneous.Format | dict[str, Any] | None:
         """
         Return information about the container (and file) or None in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
         `get_media_info()`.
         """
         info = self.get_media_info(media, fail=fail)
+        if info is None:
+            return None
         try:
             cls, the_format = self.format_class, info['format']
             if cls and not isinstance(the_format, cls):  # pylint:disable=all
@@ -153,24 +214,26 @@ class FFprobe:
 
     def get_media_streams(
         self,
-        media: object,
+        media: MediaLike,
         *,
-        condition: collections.abc.Callable[[dict], bool] = lambda stream: True,
+        condition: collections.abc.Callable[[dict[str, Any]], bool] = lambda stream: True,
         fail: bool = False,
-    ) -> list:
+    ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the media streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
         `get_media_info()`.
         """
         info = self.get_media_info(media, fail=fail)
+        if info is None:
+            return []
         try:
             raw_streams = (s for s in info['streams'] if condition(s))
         except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
             return []
-        streams = []
+        streams: list[miscellaneous.Stream | dict[str, Any]] = []
         for stream in raw_streams:
             stream_class = self.stream_classes[stream['codec_type']]
             streams.append(
@@ -180,7 +243,12 @@ class FFprobe:
             )
         return streams
 
-    def get_audio_streams(self, media: object, *, fail: bool = False) -> list:
+    def get_audio_streams(
+        self,
+        media: MediaLike,
+        *,
+        fail: bool = False,
+    ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the audio streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -192,7 +260,12 @@ class FFprobe:
             fail=fail,
         )
 
-    def get_subtitle_streams(self, media: object, *, fail: bool = False) -> list:
+    def get_subtitle_streams(
+        self,
+        media: MediaLike,
+        *,
+        fail: bool = False,
+    ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the subtitle streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -204,7 +277,12 @@ class FFprobe:
             fail=fail,
         )
 
-    def get_video_streams(self, media: object, *, fail: bool = False) -> list:
+    def get_video_streams(
+        self,
+        media: MediaLike,
+        *,
+        fail: bool = False,
+    ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the video streams of `media` or [] in case of error.
         Set `media` to an instance of `self.media_class`, a path or the output of
@@ -216,9 +294,27 @@ class FFprobe:
             fail=fail,
         )
 
+    @overload
     def get_video_frame_rate(
         self,
-        media: object,
+        media: MediaLike,
+        *,
+        index: int = 0,
+        fail: Literal[True],
+    ) -> float: ...
+
+    @overload
+    def get_video_frame_rate(
+        self,
+        media: MediaLike,
+        *,
+        index: int = 0,
+        fail: bool = False,
+    ) -> float | None: ...
+
+    def get_video_frame_rate(
+        self,
+        media: MediaLike,
         *,
         index: int = 0,
         fail: bool = False,
@@ -232,16 +328,33 @@ class FFprobe:
             stream = self.get_video_streams(media)[index]
             if isinstance(stream, dict):
                 return utils.to_frame_rate(stream['avg_frame_rate'])
-            else:
-                return stream.avg_frame_rate
+            return stream.avg_frame_rate
         except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
         return None
 
+    @overload
     def get_video_resolution(
         self,
-        media: object,
+        media: MediaLike,
+        *,
+        index: int = 0,
+        fail: Literal[True],
+    ) -> list[int]: ...
+
+    @overload
+    def get_video_resolution(
+        self,
+        media: MediaLike,
+        *,
+        index: int = 0,
+        fail: bool = False,
+    ) -> list[int] | None: ...
+
+    def get_video_resolution(
+        self,
+        media: MediaLike,
         *,
         index: int = 0,
         fail: bool = False,
@@ -253,15 +366,22 @@ class FFprobe:
         """
         try:
             stream = self.get_video_streams(media)[index]
-            is_dict = isinstance(stream, dict)
-            if is_dict:
+            if isinstance(stream, dict):
                 return [int(stream['width']), int(stream['height'])]
-            return [stream.width, stream.height]
+            if isinstance(stream, miscellaneous.VideoStream):
+                if stream.width is None or stream.height is None:
+                    raise ValueError(f'Video stream carries no resolution: {stream!r}')
+                return [stream.width, stream.height]
+            raise TypeError(f'Not a video stream: {stream!r}')
         except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
         return None
 
-    def to_media(self, media: object) -> miscellaneous.Media:
+    def to_media(self, media: MediaLike) -> miscellaneous.Media:
         """Wrap *media* in a :class:`~.miscellaneous.Media` if needed."""
-        return media if isinstance(media, self.media_class) else self.media_class(media)
+        if isinstance(media, self.media_class):
+            return media
+        if isinstance(media, (Path, str)):
+            return self.media_class(media)
+        raise TypeError(f'Cannot build a media out of {media!r}')

@@ -6,67 +6,90 @@ Mix-ins for building your own query-sets.
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, ClassVar
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.db import transaction
 
 from pytoolbox import module
+from pytoolbox.compat import override
 
 if TYPE_CHECKING:
     from django.db import models
     from django.db.models import QuerySet
 
+# Each mixin below completes a QuerySet; naming the base under TYPE_CHECKING states that requirement
+# for the checker only.
+_QueryMixin = models.QuerySet if TYPE_CHECKING else object
+
 _all = module.All(globals())
 
 
-class AtomicGetUpdateOrCreateMixin:
+class AtomicGetUpdateOrCreateMixin(_QueryMixin):
     """Wrap ``get_or_create`` and ``update_or_create`` in atomic blocks."""
 
     savepoint: ClassVar[bool] = False
 
+    @override
     def get_or_create(
         self,
-        defaults: dict[str, object] | None = None,
-        **kwargs: object,
-    ) -> tuple[models.Model, bool]:
+        defaults: Mapping[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> tuple[Any, bool]:
         """Wrap ``get_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             return super().get_or_create(defaults=defaults, **kwargs)
 
+    @override
     def update_or_create(
         self,
-        defaults: dict[str, object] | None = None,
-        **kwargs: object,
-    ) -> tuple[models.Model, bool]:
+        defaults: Mapping[str, Any] | None = None,
+        create_defaults: Mapping[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> tuple[Any, bool]:
         """Wrap ``update_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
-            return super().update_or_create(defaults=defaults, **kwargs)
+            return super().update_or_create(
+                defaults=defaults,
+                create_defaults=create_defaults,
+                **kwargs,
+            )
 
 
-class AtomicGetRestoreOrCreateMixin:
+class AtomicGetRestoreOrCreateMixin(_QueryMixin):
     """Wrap ``get_restore_or_create`` in an atomic block."""
 
     savepoint: ClassVar[bool] = False
 
-    def get_restore_or_create(self, *args: object, **kwargs: object) -> tuple[models.Model, bool]:
+    if TYPE_CHECKING:
+        # Supplied by the soft-delete query set this mixin is combined with.
+        def get_restore_or_create(  # noqa: D102
+            self,
+            *args: Any,
+            **kwargs: Any,
+        ) -> tuple[Any, bool]: ...
+
+    def get_restore_or_create(self, *args: Any, **kwargs: Any) -> tuple[models.Model, bool]:
         """Wrap ``get_restore_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
-            return super().get_restore_or_create(*args, **kwargs)
+            # Provided by the soft-delete query set to the left of this mixin.
+            return super().get_restore_or_create(*args, **kwargs)  # pyrefly: ignore
 
 
-class CreateModelMethodMixin:
+class CreateModelMethodMixin(_QueryMixin):
     """Delegate ``create`` to the model's ``create`` class method if available."""
 
-    def create(self, *args: object, **kwargs: object) -> models.Model:
+    @override
+    def create(self, *args: Any, **kwargs: Any) -> models.Model:
         """Delegate to the model's ``create`` class method if available."""
         if hasattr(self.model, 'create'):
             return self.model.create(*args, **kwargs)
         return super().create(*args, **kwargs)
 
-    create.alters_data = True
+    create.alters_data = True  # type: ignore[attr-defined]
 
 
-class StateMixin:
+class StateMixin(_QueryMixin):
     """
     Generate on the fly utility query-set filtering methods to a model using a
     :class:`pytoolbox.states.StateEnum` to implement its own state machine. Then you can use

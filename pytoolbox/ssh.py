@@ -12,7 +12,7 @@ import stat
 import tempfile
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 from . import exceptions, logging, subprocess
 from .subprocess import CallArgType, CallResultFull
@@ -86,7 +86,7 @@ def scoped_agent() -> Iterator[dict]:
         stop_agent()
 
 
-def start_agent() -> dict:
+def start_agent() -> dict[str, Any]:
     """
     Start an SSH agent in the background.
     Export related environment variables.

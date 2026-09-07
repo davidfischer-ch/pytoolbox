@@ -34,7 +34,7 @@ class cached_property:  # pylint:disable=too-few-public-methods  # noqa: N801
     Copyright: Django Project.
     """
 
-    def __init__(self, func: Callable, name: str | None = None) -> None:
+    def __init__(self, func: Callable[..., Any], name: str | None = None) -> None:
         self.func = func
         self.__doc__ = getattr(func, '__doc__')
         self.name = name or func.__name__
@@ -42,7 +42,7 @@ class cached_property:  # pylint:disable=too-few-public-methods  # noqa: N801
     def __get__(  # pylint:disable=redefined-builtin
         self,
         instance: Any,
-        type: type | None = None,
+        type: type[Any] | None = None,
     ) -> Any:
         """Compute, cache on the instance, and return the property value."""
         if instance is None:
@@ -54,7 +54,7 @@ class cached_property:  # pylint:disable=too-few-public-methods  # noqa: N801
 def deprecated(guidelines: str = '') -> Callable:
     """Return a decorator that marks a function as deprecated."""
 
-    def _deprecated(func: Callable) -> Callable:
+    def _deprecated(func: Callable[..., Any]) -> Callable[..., Any]:
         """
         Emit a :class:`DeprecationWarning` when the decorated function is used.
 
@@ -100,10 +100,10 @@ class hybridmethod:  # pylint:disable=too-few-public-methods  # noqa: N801
     20
     """
 
-    def __init__(self, func: Callable) -> None:
+    def __init__(self, func: Callable[..., Any]) -> None:
         self.func = func
 
-    def __get__(self, obj: Any, cls: type) -> Callable:
+    def __get__(self, obj: Any, cls: type[Any]) -> Callable[..., Any]:
         """Return a bound callable dispatching to the instance or the class."""
         context = obj if obj is not None else cls
 
@@ -122,10 +122,10 @@ def confirm_it(
     *,
     default: bool = False,
     abort_message: str = 'Operation aborted by the user',
-) -> Callable:
+) -> Callable[..., Any]:
     """Ask for confirmation before calling the decorated function."""
 
-    def _confirm_it(func: Callable) -> Callable:
+    def _confirm_it(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any | None:
             if console.confirm(message, default=default):
@@ -138,7 +138,7 @@ def confirm_it(
     return _confirm_it
 
 
-def disable_iptables(func: Callable) -> Callable:
+def disable_iptables(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Stop the iptables service if necessary, execute the decorated function and then reactivate
     iptables if it was previously stopped.
@@ -167,7 +167,7 @@ def disable_iptables(func: Callable) -> Callable:
 def root_required(error_message: str = 'This script must be run as root.') -> Callable:
     """Raise an exception if the current user is not root."""
 
-    def _root_required(func: Callable) -> Callable:
+    def _root_required(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
             if getattr(os, 'geteuid', lambda: 0)() != 0:
@@ -179,7 +179,7 @@ def root_required(error_message: str = 'This script must be run as root.') -> Ca
     return _root_required
 
 
-def run_once(func: Callable) -> Callable:
+def run_once(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorate a function so it executes only once, returning ``None`` thereafter."""
 
     @functools.wraps(func)

@@ -1,11 +1,12 @@
-# pylint:disable=no-member
 """
 Common mixins for Selenium element lookup.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from selenium.webdriver.common.by import By
 
 from . import exceptions
 
@@ -15,9 +16,19 @@ __all__ = ['FindMixin']
 class FindMixin:
     """Mixin providing shortcut methods for finding web elements."""
 
+    if TYPE_CHECKING:
+
+        def find_elements(  # pylint:disable=unused-argument
+            self,
+            by: str,
+            value: str,
+        ) -> list[Any]:
+            """Supplied by the driver or the element this mixin completes."""
+            return []
+
     @staticmethod
     def clean_elements(
-        elements: list,
+        elements: list[Any],
         criteria: str,
         *,
         force_list: bool = False,
@@ -40,7 +51,7 @@ class FindMixin:
     ) -> Any:
         """Find elements by CSS selector."""
         assert prefix  # Not implemented
-        elements = self.find_elements_by_css_selector(css_selector)
+        elements = self.find_elements(By.CSS_SELECTOR, css_selector)
         return self.clean_elements(elements, css_selector, force_list=force_list, fail=fail)
 
     def find_id(
@@ -72,5 +83,5 @@ class FindMixin:
 
     def find_xpath(self, xpath: str, *, force_list: bool = False, fail: bool = True) -> Any:
         """Find elements by XPath expression."""
-        elements = self.find_elements_by_xpath(xpath)
+        elements = self.find_elements(By.XPATH, xpath)
         return self.clean_elements(elements, xpath, force_list=force_list, fail=fail)

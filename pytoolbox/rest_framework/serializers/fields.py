@@ -11,6 +11,7 @@ from typing import Any
 
 from rest_framework import serializers
 
+from pytoolbox.compat import override
 from pytoolbox.django.core.validators import EmptyValidator
 
 __all__ = ['StripCharField']
@@ -23,6 +24,7 @@ class StripCharField(serializers.CharField):
         super().__init__(**kwargs)
         self.validators.append(EmptyValidator(message=self.error_messages['blank']))
 
+    @override
     def to_internal_value(self, data: Any) -> str:
         """Return the stripped value of the incoming data."""
         data = super().to_internal_value(data)

@@ -22,7 +22,7 @@ _all = module.All(globals())
 def get_message(validation_error: ValidationError) -> str:
     """Return the interpolated message from a :class:`~django.core.exceptions.ValidationError`."""
     message, params = validation_error.message, validation_error.params
-    return message % params if params else message
+    return str(message % params if params else message)
 
 
 def has_code(validation_error: ValidationError, code: str) -> bool:
@@ -79,7 +79,7 @@ def iter_validation_errors(
 class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
     """Raised when row update preconditions fail due to a concurrent change."""
 
-    message = _(
+    message = _(  # pyrefly: ignore[bad-assignment]
         'Row update request preconditions failed: '
         'A concurrent request changed the row in database.',
     )
@@ -88,13 +88,17 @@ class DatabaseUpdatePreconditionsError(exceptions.MessageMixin, DatabaseError):
 class InvalidStateError(exceptions.MessageMixin, Exception):
     """Raised when an instance is in an unexpected state."""
 
-    message = _('State of {instance} is {instance.state}, excepted in any of {states}.')
+    message = _(  # pyrefly: ignore[bad-assignment]
+        'State of {instance} is {instance.state}, excepted in any of {states}.'
+    )
 
 
 class TransitionNotAllowedError(exceptions.MessageMixin, Exception):
     """Raised when a state transition is not allowed."""
 
-    message = _('Cannot change state of {instance} from {instance.state} to {state}.')
+    message = _(  # pyrefly: ignore[bad-assignment]
+        'Cannot change state of {instance} from {instance.state} to {state}.'
+    )
 
 
 __all__ = _all.diff(globals())

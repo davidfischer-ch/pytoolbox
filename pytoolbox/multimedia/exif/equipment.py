@@ -6,8 +6,15 @@ from __future__ import annotations
 
 import abc
 import re
+from typing import TYPE_CHECKING
+
+from pytoolbox import decorators
 
 from .brand import Brand
+
+if TYPE_CHECKING:
+    from .metadata import Metadata
+    from .tag import Tag
 
 __all__ = ['Equipement']
 
@@ -15,17 +22,16 @@ __all__ = ['Equipement']
 class Equipement(metaclass=abc.ABCMeta):
     """Abstract base for photographic equipment identified from EXIF data."""
 
-    def __init__(self, metadata: object) -> None:
+    def __init__(self, metadata: Metadata) -> None:
         self.metadata = metadata
 
     def __bool__(self) -> bool:
         return bool(self.model)
 
     def __eq__(self, other: object) -> bool:
-        try:
-            return self.brand == other.brand and self.model == other.model
-        except AttributeError:
+        if not isinstance(other, Equipement):
             return NotImplemented
+        return self.brand == other.brand and self.model == other.model
 
     def __hash__(self) -> int:
         return hash(repr(self))
@@ -42,17 +48,21 @@ class Equipement(metaclass=abc.ABCMeta):
     def model(self) -> str | None:
         """Return the model name with the brand prefix stripped."""
         if self.brand and self._model:
-            return re.sub(rf'{self.brand}\s+', '', self._model, 1, re.IGNORECASE)
+            return re.sub(rf'{self.brand}\s+', '', self._model, count=1, flags=re.IGNORECASE)
         return self._model
 
-    @property
-    @abc.abstractmethod
-    def tags(self) -> dict:
+    @decorators.cached_property
+    def tags(self) -> dict[str, Tag]:
         """Return EXIF tags related to this equipment."""
+        return self._get_tags()
 
     def refresh(self) -> None:
         """Clear cached tags so they are recomputed on next access."""
         self.__dict__.pop('tags', None)
+
+    @abc.abstractmethod
+    def _get_tags(self) -> dict[str, Tag]:
+        """Return the EXIF tags describing this equipment."""
 
     @property
     @abc.abstractmethod

@@ -15,20 +15,23 @@ import time
 import unittest
 from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Protocol, cast
+
+from pytoolbox.compat import override
 
 from . import module
 from .multimedia import ffmpeg
+from .multimedia.ffmpeg import miscellaneous as ffmpeg_miscellaneous
 from .string import snake_to_camel
 from .types import Missing
 
 _all = module.All(globals())
 
 
-def skip_if_missing(binary: str) -> Callable:
+def skip_if_missing(binary: str) -> Callable[..., Any]:
     """Ensure the binary is available or skip the test."""
 
-    def _skip_if_missing(func: Callable) -> Any:
+    def _skip_if_missing(func: Callable[..., Any]) -> Any:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             if not shutil.which(binary):
@@ -40,21 +43,38 @@ def skip_if_missing(binary: str) -> Callable:
     return _skip_if_missing
 
 
+class TaggedTest(Protocol):  # pylint:disable=too-few-public-methods
+    """A test method carrying the tags :func:`with_tags` attached to it."""
+
+    tags: set[str]
+    required_tags: set[str]
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Run the test."""
+
+
 def with_tags(
     tags: str | set[str] | None = None,
     required: str | set[str] | None = None,
-) -> Callable:
+) -> Callable[[Callable], Callable[..., Any]]:
     """Decorate a test method with filterable tags."""
 
-    def _with_tags(f: Callable) -> Callable:
-        f.tags = set([tags] if isinstance(tags, str) else tags or [])
-        f.required_tags = set([required] if isinstance(required, str) else required or [])
+    def _with_tags(f: Callable[..., Any]) -> Callable[..., Any]:
+        tagged = cast('TaggedTest', f)
+        tagged.tags = set([tags] if isinstance(tags, str) else tags or [])
+        tagged.required_tags = set([required] if isinstance(required, str) else required or [])
         return f
 
     return _with_tags
 
 
-class InMixin:
+# Each mixin below completes a TestCase and calls its assertions; naming the base under
+# TYPE_CHECKING states that requirement for the checker while leaving the mixins plain at runtime,
+# where they must stay to the left of the test case class.
+_TestCaseMixin = unittest.TestCase if TYPE_CHECKING else object
+
+
+class InMixin(_TestCaseMixin):
     """Mixin providing ``assertIn`` / ``assertNotIn`` with sorted output."""
 
     @staticmethod
@@ -62,35 +82,37 @@ class InMixin:
         """Return *obj* sorted if it is not a string or bytes sequence."""
         return obj if isinstance(obj, (str, bytes)) else sorted(obj)
 
+    @override
     def assertIn(  # pylint:disable=invalid-name  # noqa: N802
         self,
-        obj_a: Any,
-        obj_b: Any,
-        msg: str | None = None,
+        member: Any,
+        container: Any,
+        msg: Any = None,
     ) -> None:
-        """Assert that *obj_a* is contained in *obj_b*."""
-        assert obj_a in obj_b, f'{obj_a} not in {self.assert_in_hook(obj_b)}: {msg or ""}'
+        """Assert that *member* is contained in *container*."""
+        assert member in container, f'{member} not in {self.assert_in_hook(container)}: {msg or ""}'
 
+    @override
     def assertNotIn(  # pylint:disable=invalid-name  # noqa: N802
         self,
-        obj_a: Any,
-        obj_b: Any,
-        msg: str | None = None,
+        member: Any,
+        container: Any,
+        msg: Any = None,
     ) -> None:
-        """Assert that *obj_a* is not contained in *obj_b*."""
-        assert obj_a not in obj_b, f'{obj_a} in {self.assert_in_hook(obj_b)}: {msg or ""}'
+        """Assert that *member* is not contained in *container*."""
+        assert member not in container, f'{member} in {self.assert_in_hook(container)}: {msg or ""}'
 
 
-class InspectMixin:
+class InspectMixin(_TestCaseMixin):
     """Mixin providing introspection of test methods."""
 
     @property
-    def current_test(self) -> Callable:
+    def current_test(self) -> Callable[..., Any]:
         """Return the bound method for the currently running test."""
         return getattr(self, self.id().split('.')[-1])
 
     @classmethod
-    def get_test_methods(cls) -> Iterator[tuple[str, Callable]]:
+    def get_test_methods(cls) -> Iterator[tuple[str, Callable[..., Any]]]:
         """Return an iterator of ``(name, method)`` for all test methods."""
         return (
             (n, m)
@@ -99,14 +121,15 @@ class InspectMixin:
         )
 
 
-class AwareTearDownMixin:
+class AwareTearDownMixin(_TestCaseMixin):
     """Mixin calling :meth:`awareTearDown` with the test result after each run."""
 
-    def awareTearDown(self, result: unittest.TestResult) -> None:  # noqa: N802
+    def awareTearDown(self, result: unittest.TestResult | None) -> None:  # noqa: N802
         """Handle post-test cleanup with access to the test *result*."""
         # de bleu, c'est fantastique !
 
-    def run(self, result: unittest.TestResult | None = None) -> unittest.TestResult:
+    @override
+    def run(self, result: unittest.TestResult | None = None) -> unittest.TestResult | None:
         """Execute the test and call :meth:`awareTearDown` with the result."""
         result = super().run(result)
         self.awareTearDown(result)
@@ -144,6 +167,7 @@ class FilterByTagsMixin(InspectMixin):
         return True
 
     @classmethod
+    @override
     def setUpClass(cls) -> None:  # pylint:disable=invalid-name
         """Set up the test class, optionally skipping based on tags."""
         if cls.fast_class_skip_enabled:
@@ -179,7 +203,7 @@ class FilterByTagsMixin(InspectMixin):
         return set(t for t in os.environ.get(cls.skip_tags_variable, '').split(',') if t)
 
     @classmethod
-    def get_tags(cls, current_test: Callable) -> set[str]:
+    def get_tags(cls, current_test: Callable[..., Any]) -> set[str]:
         """Return the combined tags for *current_test* including class-level tags."""
         my_id = (cls.__name__, current_test.__name__)
         return set(
@@ -191,10 +215,11 @@ class FilterByTagsMixin(InspectMixin):
         )
 
     @classmethod
-    def get_required_tags(cls, current_test: Callable) -> set[str]:
+    def get_required_tags(cls, current_test: Callable[..., Any]) -> set[str]:
         """Return the combined required tags for *current_test*."""
         return set(itertools.chain(cls.required_tags, getattr(current_test, 'required_tags', ())))
 
+    @override
     def setUp(self) -> None:  # pylint:disable=invalid-name
         """Skip the test if its tags don't match the filter criteria."""
         if not self.should_run(
@@ -208,12 +233,23 @@ class FilterByTagsMixin(InspectMixin):
         super().setUp()
 
 
-class FFmpegMixin:
+class FFmpegMixin(_TestCaseMixin):
     """Mixin providing FFmpeg/FFprobe assertions for media tests."""
 
     ffmpeg_class = ffmpeg.FFmpeg
 
+    if TYPE_CHECKING:
+
+        def assertRelativeEqual(  # noqa: N802
+            self,
+            first: float | None,
+            second: float | None,
+            msg: str = '',
+        ) -> None:
+            """Supplied by the test case this mixin completes."""
+
     @classmethod
+    @override
     def setUpClass(cls) -> None:  # pylint:disable=invalid-name
         """Verify FFmpeg stream classes and their codec classes are properly configured."""
         for name, stream_class in cls.ffmpeg_class.ffprobe_class.stream_classes.items():
@@ -221,6 +257,7 @@ class FFmpegMixin:
             assert stream_class.codec_class is not None, name
         super().setUpClass()
 
+    @override
     def setUp(self) -> None:  # pylint:disable=invalid-name
         """Initialize FFmpeg and FFprobe instances for use in tests."""
         super().setUp()
@@ -237,7 +274,7 @@ class FFmpegMixin:
         **codec_attrs: Any,
     ) -> None:
         """Assert that the codec attributes of a stream match expected values."""
-        codec = getattr(self.ffprobe, f'get_{stream_type}_streams')(path)[index].codec
+        codec = self._get_stream(path, stream_type, index).codec
         for attr, value in codec_attrs.items():
             self.assertEqual(getattr(codec, attr), value, msg=f'Codec attribute {attr}')
 
@@ -268,6 +305,29 @@ class FFmpegMixin:
         """Assert that the video codec at *index* matches expected attributes."""
         self.assertMediaCodecEqual(path, 'video', index, **codec_attrs)
 
+    def _get_stream(
+        self,
+        path: str | Path,
+        stream_type: str,
+        index: int,
+    ) -> ffmpeg_miscellaneous.Stream:
+        """Return one stream of *path*, refusing the raw dict form setUpClass rules out."""
+        stream = getattr(self.ffprobe, f'get_{stream_type}_streams')(path)[index]
+        if not isinstance(stream, ffmpeg_miscellaneous.Stream):
+            raise TypeError(f'Not a parsed stream: {stream!r}')
+        return stream
+
+    def _get_video_stream(
+        self,
+        path: str | Path,
+        index: int,
+    ) -> ffmpeg_miscellaneous.VideoStream:
+        """Return one video stream of *path*."""
+        stream = self._get_stream(path, 'video', index)
+        if not isinstance(stream, ffmpeg_miscellaneous.VideoStream):
+            raise TypeError(f'Not a video stream: {stream!r}')
+        return stream
+
     # Streams Asserts
 
     def assertAudioStreamEqual(  # pylint:disable=invalid-name  # noqa: N802
@@ -280,8 +340,8 @@ class FFmpegMixin:
         same_codec: bool = True,
     ) -> None:
         """Assert that two audio streams have equal codec and bit rate."""
-        first = self.ffprobe.get_audio_streams(first_path)[first_index]
-        second = self.ffprobe.get_audio_streams(second_path)[second_index]
+        first = self._get_stream(first_path, 'audio', first_index)
+        second = self._get_stream(second_path, 'audio', second_index)
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mistmatch.')
         self.assertEqual(first.bit_rate, second.bit_rate, msg='Bit rate mistmatch.')
@@ -297,7 +357,9 @@ class FFmpegMixin:
         same_start_time: bool = True,
     ) -> None:
         """Assert that two media files have equal format metadata."""
-        formats = [self.ffprobe.get_media_info(p)['format'] for p in (first_path, second_path)]
+        formats = [
+            self.ffprobe.get_media_info(p, fail=True)['format'] for p in (first_path, second_path)
+        ]
         bit_rates, durations, sizes, start_times = [], [], [], []
         for the_format in formats:
             the_format.pop('filename')
@@ -306,6 +368,7 @@ class FFmpegMixin:
             bit_rates.append(float(the_format.pop('bit_rate', 0)))
             sizes.append(int(the_format.pop('size')))
             start_times.append(float(the_format.pop('start_time')))
+        # pylint:disable=no-value-for-parameter  # filled by the unpacked pairs
         if same_bit_rate:
             self.assertRelativeEqual(*bit_rates, msg='Bit rate mistmatch.')
         if same_duration:
@@ -326,8 +389,8 @@ class FFmpegMixin:
         same_codec: bool = True,
     ) -> None:
         """Assert that two video streams have equal codec, frame rate, and dimensions."""
-        first = self.ffprobe.get_video_streams(first_path)[first_index]
-        second = self.ffprobe.get_video_streams(second_path)[second_index]
+        first = self._get_video_stream(first_path, first_index)
+        second = self._get_video_stream(second_path, second_index)
         if same_codec:
             self.assertEqual(first.codec, second.codec, msg='Codec mismatch.')
         self.assertRelativeEqual(
@@ -349,19 +412,19 @@ class FFmpegMixin:
     def assertEncodeFailure(  # pylint:disable=invalid-name  # noqa: N802
         self,
         generator: Generator,
-    ) -> list:
+    ) -> list[Any]:
         """Assert that the encode *generator* ends in a failure state."""
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.FAILURE)
 
-    def assertEncodeSuccess(self, generator: Generator) -> list:  # noqa: N802
+    def assertEncodeSuccess(self, generator: Generator) -> list[Any]:  # noqa: N802
         """Assert that the encode *generator* ends in a success state."""
         return self.assertEncodeState(generator, state=ffmpeg.EncodeState.SUCCESS)
 
     def assertEncodeState(  # noqa: N802
         self,
         generator: Generator,
-        state: ffmpeg.EncodeState,
-    ) -> list:
+        state: str,
+    ) -> list[Any]:
         """Assert that the encode *generator* ends in the expected *state*."""
         results = list(generator)
         result = io.StringIO()
@@ -374,7 +437,7 @@ class FFmpegMixin:
         return results
 
 
-class MissingMixin:
+class MissingMixin(_TestCaseMixin):
     """Mixin providing assertions for the :data:`~pytoolbox.types.Missing` sentinel."""
 
     def assertIsMissing(  # pylint:disable=invalid-name  # noqa: N802
@@ -396,7 +459,7 @@ class MissingMixin:
         return self.assertIsNot(value, Missing, *args, **kwargs)
 
 
-class SnakeCaseMixin:  # pylint:disable=too-few-public-methods
+class SnakeCaseMixin(_TestCaseMixin):  # pylint:disable=too-few-public-methods
     """Mixin allowing snake_case access to camelCase assertion methods."""
 
     def __getattr__(self, name: str) -> Any:
@@ -406,16 +469,18 @@ class SnakeCaseMixin:  # pylint:disable=too-few-public-methods
         raise AttributeError
 
 
-class TimingMixin:
+class TimingMixin(_TestCaseMixin):
     """Mixin that logs each test's execution time."""
 
     timing_logger = None
 
+    @override
     def setUp(self) -> None:  # pylint:disable=invalid-name
         """Record the test start time."""
         self.start_time = time.time()
         super().setUp()
 
+    @override
     def tearDown(self) -> None:  # pylint:disable=invalid-name
         """Log the test execution time if a logger is configured."""
         super().tearDown()

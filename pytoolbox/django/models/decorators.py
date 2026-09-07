@@ -5,17 +5,14 @@ Decorators for enhancing your models.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
-try:
-    from django.urls import reverse
-except ImportError:
-    # For Django < 2.0
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 __all__ = ['with_urls']
 
 
-def with_urls(base_url: str, *interface_actions: str, **kwargs: object) -> Callable[[type], type]:
+def with_urls(base_url: str, *interface_actions: str, **kwargs: Any) -> Callable[[type], type[Any]]:
     """Decorate a model to generate ``get_<action>_url`` methods from URL patterns."""
     base_url = base_url + ':'
 
@@ -27,7 +24,7 @@ def with_urls(base_url: str, *interface_actions: str, **kwargs: object) -> Calla
     if kwargs:
         raise AttributeError(kwargs)
 
-    def _with_urls(model: type) -> type:
+    def _with_urls(model: type[Any]) -> type[Any]:
         model.interface_actions = interface_actions
 
         for action in interface_actions:

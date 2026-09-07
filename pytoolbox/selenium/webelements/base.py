@@ -4,10 +4,11 @@ Base :class:`WebElement` with automatic component specialization.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from selenium.webdriver.remote import webelement
 
+from pytoolbox.compat import override
 from pytoolbox.selenium import common, exceptions
 
 __all__ = ['WebElement']
@@ -15,6 +16,9 @@ __all__ = ['WebElement']
 
 class WebElement(common.FindMixin, webelement.WebElement):
     """A web element that specializes itself based on ``data-component``."""
+
+    # Declared by each specialized subclass, and matched against the element's data-component.
+    component: ClassVar[str]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -25,6 +29,7 @@ class WebElement(common.FindMixin, webelement.WebElement):
         """Return the value as-is (subclasses may override to coerce types)."""
         return value
 
+    @override
     def get_attribute(self, name: str) -> Any:
         """Return an attribute, applying :meth:`clean_value` for ``value``."""
         value = super().get_attribute(name)
@@ -33,7 +38,7 @@ class WebElement(common.FindMixin, webelement.WebElement):
     def _specialize(self) -> None:
         if component := self.get_attribute('data-component'):
             try:
-                self.__class__ = next(  # pylint: disable=invalid-class-object
+                self.__class__ = next(
                     c for c in type(self).__subclasses__() if c.component == component
                 )
             except StopIteration:

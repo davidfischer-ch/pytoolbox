@@ -186,7 +186,8 @@ def add_environment(
     environments: str | None = None,
 ) -> Any:
     """Register and bootstrap a new Juju environment."""
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
+    environments_path = environments or DEFAULT_ENVIRONMENTS_FILE
+    with open(environments_path, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
     if environment == 'default':
@@ -212,7 +213,7 @@ def add_environment(
 
     environments_dict['environments'][environment] = environment_dict
 
-    with open(environments, 'w', encoding='utf-8') as f:
+    with open(environments_path, 'w', encoding='utf-8') as f:
         yaml.dump(environments_dict, f)
 
     try:
@@ -220,7 +221,7 @@ def add_environment(
     except RuntimeError as exc:
         if 'configuration error' in str(exc):
             del environments_dict['environments'][environment]
-            with open(environments, 'w', encoding='utf-8') as f:
+            with open(environments_path, 'w', encoding='utf-8') as f:
                 yaml.dump(environments_dict, f)
             raise ValueError(f'Cannot add environment {environment} ({exc}).') from exc
         raise
@@ -252,12 +253,12 @@ def get_environments(
     environments: str | None = None,
     get_status: bool = False,
     status_timeout: int | None = None,
-) -> tuple[dict, str]:
+) -> tuple[dict[str, Any], str]:
     """Return all environments and the default environment name."""
     with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
-    environments = {}
+    result: dict[str, Any] = {}
     for environment in environments_dict['environments'].items():
         information = environment[1]
         if get_status:
@@ -267,9 +268,9 @@ def get_environments(
                 )
             except RuntimeError:
                 information['status'] = UNKNOWN
-        environments[environment[0]] = information
+        result[environment[0]] = information
 
-    return environments, environments_dict['default']
+    return result, environments_dict['default']
 
 
 def get_environments_count(environments: str | None = None) -> int:
@@ -441,7 +442,7 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
             if not (rel_ids := self.relation_ids('peer')):
                 return True  # no peer relation, so we're a leader that feels alone !
             assert len(rel_ids) == 1, f'Expect only 1 peer relation id: {rel_ids}'
-            peers = self.relation_list(rel_ids[0])
+            peers = self.relation_list(rel_ids[0]) or []
             self.debug(f'us={self.name} peers={peers}')
             return len(peers) == 0 or self.name <= min(peers)
         except Exception as exc:  # pylint:disable=broad-except
@@ -453,9 +454,9 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
     def log(self, message: str) -> None:
         """Log a message via ``juju-log`` or print to stdout."""
         if self.juju_ok:
-            return self.cmd(['juju-log', message], logging=False)  # Avoid infinite loop !
+            self.cmd(['juju-log', message], logging=False)  # Avoid infinite loop !
+            return
         print(message)
-        return None
 
     def open_port(self, port: int, protocol: str = 'TCP') -> Any:
         """Open a port on the unit's firewall."""
@@ -610,13 +611,18 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
 
     # ----------------------------------------------------------------------------------------------
 
-    def cmd(self, command: list[str], logging: bool = True, **kwargs) -> dict:
+    def cmd(self, command: list[str], logging: bool = True, **kwargs: Any) -> Any:
         """
         Call the `command` and return a dictionary with `stdout`, `stderr`, and the `returncode`.
         """
-        return subprocess.cmd(command, log=self.debug if logging else None, **kwargs)
+        # The caller picks the options, so no single overload of cmd() can be selected here.
+        return subprocess.cmd(  # pyrefly: ignore[no-matching-overload]
+            command,
+            log=self.debug if logging else None,
+            **kwargs,
+        )
 
-    def template_to_config(self, template: str, config: str, values: dict) -> None:
+    def template_to_config(self, template: str, config: str, values: dict[str, Any]) -> None:
         """Generate a configuration file from a template."""
         filesystem.from_template(template, config, values)
         self.remark(f'File {config} successfully generated')
@@ -643,7 +649,8 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
             self.save_local_config()
         except (_subprocess.CalledProcessError, exceptions.CalledProcessError) as exc:
             self.log('Exception caught:')
-            self.log(exc.output)
+            output = exc.output if isinstance(exc, _subprocess.CalledProcessError) else exc.stdout
+            self.log(str(output))
             raise
         finally:
             self.hook(f'Exiting {type(self).__name__} hook {hook_name}')
@@ -696,7 +703,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
             raise RuntimeError(f'Unable to retrieve status of environment {self.name}.')
         return status_dict
 
-    def is_bootstrapped(self, timeout: int = 15) -> bool:
+    def is_bootstrapped(self, timeout: int | None = 15) -> bool:
         """Return True if the environment is bootstrapped (status returns something)."""
         try:
             return bool(self.status(timeout=timeout))
@@ -705,6 +712,8 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
 
     def symlink_local_charms(self, default_path: str = 'default') -> None:
         """Symlink charms default directory to directory of current release."""
+        if self.release is None:
+            raise ValueError('The environment has no release to symlink to')
         release_symlink = os.path.join(self.charms_path, self.release)
         filesystem.remove(release_symlink)
         filesystem.symlink(os.path.join(self.charms_path, default_path), release_symlink)
@@ -759,7 +768,8 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         while True:
             time_zero = time.time()
             try:
-                state = self.status(timeout=status_timeout)['machines']['0']['agent-state']
+                status = self.status(timeout=status_timeout)
+                state = status['machines']['0']['agent-state']  # type: ignore[index]
             except (KeyError, TypeError):
                 state = UNKNOWN
 
@@ -785,11 +795,12 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         force: bool = True,
         remove_default: bool = False,
         remove: bool = False,
-        timeout: int = 15,
+        timeout: int | None = 15,
     ) -> Any:
         """Destroy the environment and optionally remove it from configuration."""
         # TODO simpler algorithm
-        with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
+        environments_path = environments or DEFAULT_ENVIRONMENTS_FILE
+        with open(environments_path, encoding='utf-8') as f:
             environments_dict = yaml.load(f)
 
         name = environments_dict['default'] if self.name == 'default' else self.name
@@ -812,7 +823,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
                 raise RuntimeError(f'Environment {name} not removed, it is still alive.')
 
             del environments_dict['environments'][name]
-            with open(environments, 'w', encoding='utf-8') as f:
+            with open(environments_path, 'w', encoding='utf-8') as f:
                 yaml.dump(environments_dict, f)
         return result
 
@@ -827,7 +838,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         service: str,
         default: Any = None,
         fail: bool = True,
-        timeout: int = 15,
+        timeout: int | None = 15,
     ) -> Any:
         """Return the status dictionary of a service."""
         if not (status_dict := self.status(fail=fail, timeout=timeout)):
@@ -995,7 +1006,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
                         repository=repository,
                     )
 
-            elif units_count < num_units:
+            elif num_units is not None and units_count < num_units:
                 # avoid to add units if number of units to add is 0
                 if num_units := num_units - units_count:
                     results['add_units'] = self.add_units(
@@ -1004,7 +1015,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
                         to=to,
                     )
 
-            elif units_count > num_units:
+            elif num_units is not None and units_count > num_units:
                 num_units = units_count - num_units
                 destroyed = {}
                 units_number_to_keep = (
@@ -1322,7 +1333,8 @@ class SimulatedUnit:
         stop_latency_range: tuple[int, int],
         state: str = PENDING,
     ) -> None:
-        self.counter = self.next_state = None
+        self.counter: int | None = None
+        self.next_state: str | None = None
         self.state = state
         self.start_latency_range = start_latency_range
         self.stop_latency_range = stop_latency_range
@@ -1341,7 +1353,7 @@ class SimulatedUnit:
         """Advance the state machine by one tick."""
         if self.counter:
             self.counter -= 1
-            if self.counter == 0:
+            if self.counter == 0 and self.next_state is not None:
                 self.state = self.next_state
                 self.next_state = None
 

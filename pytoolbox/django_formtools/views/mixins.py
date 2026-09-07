@@ -8,18 +8,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from pytoolbox.compat import override
+
 if TYPE_CHECKING:
     from django.forms import Form
     from django.http import HttpRequest, HttpResponse
+    from formtools.wizard.views import WizardView
 
 from pytoolbox.django import forms
+
+# Each mixin below completes a form-wizard view and reads its attributes (`steps`, `request`,
+# `storage`, ...); naming the base under TYPE_CHECKING states that for the checker only.
+_WizardMixin = WizardView if TYPE_CHECKING else object
 
 __all__ = ['CrispyFormsMixin', 'DataTableViewCompositionMixin', 'SerializeStepInstanceMixin']
 
 
-class CrispyFormsMixin:
+class CrispyFormsMixin(_WizardMixin):
     """Integrate crispy-forms layout with the form wizard management form."""
 
+    @override
     def get_context_data(self, form: Form, **kwargs: Any) -> dict[str, Any]:
         """Add the management form to the form for working with crispy forms."""
         from crispy_forms import layout
@@ -32,11 +40,12 @@ class CrispyFormsMixin:
         return context
 
 
-class DataTableViewCompositionMixin:
+class DataTableViewCompositionMixin(_WizardMixin):
     """Compose the wizard with some tables views."""
 
     table_view_classes = {}
 
+    @override
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         """Retrieve the table view and delegate AJAX to the table view."""
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -45,7 +54,9 @@ class DataTableViewCompositionMixin:
                 return view.get_ajax(request, *args, **kwargs)
         return super().get(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    @override
+    # WizardView declares `form` positionally; this passes it through **kwargs instead.
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:  # pyrefly: ignore[bad-override]
         """Update the context with the context returned by the table view."""
         context = super().get_context_data(**kwargs)
         view = self.get_table_view()
@@ -64,7 +75,7 @@ class DataTableViewCompositionMixin:
         return None
 
 
-class SerializeStepInstanceMixin:
+class SerializeStepInstanceMixin(_WizardMixin):
     """Serialize and restore model instances across wizard steps."""
 
     serialized_instance_form_class = forms.SerializedInstanceForm
@@ -76,29 +87,36 @@ class SerializeStepInstanceMixin:
         try:
             return self.storage.extra_data[self.serialized_instances_key]
         except KeyError:
-            value = self.storage.extra_data[self.serialized_instances_key] = {}
+            value: dict[str, Any] = {}
+            # WizardStorage types extra_data as optional; the wizard always initialises it.
+            extra_data: dict[str, Any] = self.storage.extra_data  # pyrefly: ignore
+            extra_data[self.serialized_instances_key] = value
             return value
 
     def serialize_step_instance(self, form: Form, step: str | None = None) -> None:
         """Serialize the form's saved instance for the given step."""
         self.serialized_instances[step or self.steps.current] = (
-            self.serialized_instance_form_class.serialize(form.save())
+            self.serialized_instance_form_class.serialize(form.save())  # pyrefly: ignore
         )
 
     # WizardView "Standard Methods"
 
+    @override
     def get_form(self, step: str | None = None, *args: Any, **kwargs: Any) -> Form:
         """Return the form for the step, using serialized data if available."""
         if step is None:
             step = self.steps.current
-        if step in self.serialized_instances.keys():
-            self.form_list[step] = self.serialized_instance_form_class
+        if step in self.serialized_instances:
+            # WizardView builds form_list before dispatching a step.
+            form_list: dict[str, Any] = self.form_list  # pyrefly: ignore
+            form_list[step] = self.serialized_instance_form_class
         return super().get_form(step, *args, **kwargs)
 
-    def get_form_kwargs(self, step: str) -> dict[str, Any]:
+    @override
+    def get_form_kwargs(self, step: str | None = None) -> dict[str, Any]:
         """Return form kwargs, merging in serialized instance data if present."""
         form_kwargs = super().get_form_kwargs(step)
-        serialized_instance = self.serialized_instances.get(step, None)
+        serialized_instance = self.serialized_instances.get(step or self.steps.current)
         if serialized_instance:
             form_kwargs.update(serialized_instance)
         return form_kwargs

@@ -312,7 +312,7 @@ def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool
     except ValueError:
         if not objectid_allowed:
             return False
-        if ObjectId is None:
+        if ObjectId is None or InvalidId is None:
             raise RuntimeError('bson library not installed')  # pylint:disable=raise-missing-from
         try:
             ObjectId(value)

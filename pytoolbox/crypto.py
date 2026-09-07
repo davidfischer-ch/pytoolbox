@@ -12,7 +12,7 @@ import string
 from base64 import b64encode
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Literal, overload
+from typing import Any, Literal, overload
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 
-def new(algorithm: Callable | str = hashlib.sha256) -> hashlib._Hash:
+def new(algorithm: Callable[..., Any] | str = hashlib.sha256) -> hashlib._Hash:
     """
     Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm`
     is a string else instantiate algorithm.
@@ -42,7 +42,7 @@ def checksum(
     path_or_data: Path | str,
     *,
     encoding: str = 'utf-8',
-    algorithm: Callable | str = hashlib.sha256,
+    algorithm: Callable[..., Any] | str = hashlib.sha256,
     chunk_size: int | None = None,
 ) -> str:
     r"""

@@ -7,8 +7,8 @@ from __future__ import annotations
 import difflib
 import operator as op
 import os
-from collections.abc import Iterable, Iterator
-from typing import TypeAlias
+from collections.abc import Callable, Iterable, Iterator
+from typing import Any, Final, TypeAlias
 
 import termcolor
 from packaging.version import (
@@ -83,7 +83,10 @@ def _nen(a: object, b: object) -> bool | None:  # pylint:disable=invalid-name
     return False if a == b else None
 
 
-VERSION_OPERATIONS: dict = {  # pylint:disable=consider-using-namedtuple-or-dataclass
+# Keyed by the parsed-version type, so that a Version and a LegacyVersion each get their own
+# operator table.
+# pylint:disable=consider-using-namedtuple-or-dataclass
+VERSION_OPERATIONS: Final[dict[type, dict[str, Callable[[Any, Any], bool | None] | None]]] = {
     Version: {'<': op.lt, '<=': op.le, '==': op.eq, '!=': op.ne, '>=': op.ge, '>': op.gt},
     str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen},
 }

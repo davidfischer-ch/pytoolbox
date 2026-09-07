@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Final
 
 import tensorflow as tf
-from keras import backend as K  # noqa: N812
+from keras import ops
 from keras.layers import (  # pylint:disable=import-error
     Activation,
     AveragePooling2D,
@@ -37,7 +37,7 @@ E = 0.00001  # Epsilon
 
 def conv2d_bn(
     tensor: tf.Tensor,
-    layer: str | None = None,
+    layer: str,
     cv1_out: int | None = None,
     cv1_filter: tuple[int, int] = (1, 1),
     cv1_strides: tuple[int, int] = (1, 1),
@@ -375,7 +375,7 @@ def create_model() -> Model:  # pylint:disable=too-many-locals,too-many-statemen
     dense_layer = Dense(128, name='dense_layer')(reshape_layer)
 
     outputs = Lambda(
-        lambda x: K.l2_normalize(x, axis=1),  # pylint:disable=no-member
+        lambda x: ops.normalize(x, axis=1, order=2),
         name='norm_layer',
     )(dense_layer)
 

@@ -63,7 +63,7 @@ class Metadata:
             raise NotImplementedError(key)
 
     @property
-    def tags(self) -> dict:
+    def tags(self) -> dict[str, tag.Tag]:
         """Return a dictionary of all EXIF tags as :class:`~.tag.Tag` instances."""
         return {k: self[k] for k in self.exiv2.get_exif_tags()}  # pylint: disable=no-member
 

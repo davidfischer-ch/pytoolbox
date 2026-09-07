@@ -16,7 +16,7 @@ from . import register, string_if_invalid
 @register.filter(is_safe=True)
 def duration(value: dt.timedelta | None, autoescape: bool = True) -> str:
     """Return a human-readable duration string for the given timedelta value."""
-    if value in (None, string_if_invalid):
+    if value is None or value == string_if_invalid:
         return string_if_invalid
     t = timedelta_to_time(value)
     h, m, s = t.hour, t.minute, t.second
@@ -44,7 +44,7 @@ def naturalbitrate(bps: float | None, kwargs_string: str | None = None) -> str:
         None|naturalbitrate -> (empty string)
         (empty string)|naturalbitrate -> (empty string)
     """
-    if bps in (None, string_if_invalid):
+    if bps is None or bps == string_if_invalid:
         return string_if_invalid
     return humanize.naturalbitrate(
         bps,
@@ -72,7 +72,7 @@ def naturalfilesize(the_bytes: float | None, kwargs_string: str | None = None) -
         None|naturalfilesize -> (empty string)
         (empty string)|naturalfilesize -> (empty string)
     """
-    if the_bytes in (None, string_if_invalid):
+    if the_bytes is None or the_bytes == string_if_invalid:
         return string_if_invalid
     return humanize.naturalfilesize(
         the_bytes,

@@ -5,7 +5,10 @@ x264 encoder wrapper (not yet fully implemented).
 from __future__ import annotations
 
 import re
-from typing import Final
+from pathlib import Path
+from typing import Any, Final
+
+from pytoolbox.compat import override
 
 from .ffmpeg import FFmpeg
 
@@ -22,19 +25,20 @@ class X264(FFmpeg):
     """Wrap the x264 standalone encoder (not yet implemented)."""
 
     # encoding_regex = ENCODING_REGEX
-    executable = 'x264'
+    executable = Path('x264')
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
 
+    @override
     def _get_arguments(
         self,
         inputs: object,
         outputs: object,
         in_options: object = None,
         out_options: object = None,
-    ) -> tuple[list, list, list, list[str], list[str]]:
+    ) -> tuple[list, list[Any], list[Any], list[str], list[str]]:
         raise NotImplementedError('Must be reimplemented based on newer FFmpeg class interface')
         # in_paths = [f for f in ([in_paths] if isinstance(in_paths, str) else in_paths)]
         # if len(in_paths) > 1:

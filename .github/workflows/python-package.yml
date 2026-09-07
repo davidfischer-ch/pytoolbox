@@ -34,6 +34,9 @@ jobs:
     - name: Debug env
       run: |
         env | sort | grep -i -E 'COLOR|TERM|CI'
+    - name: Type check with pyrefly
+      run: |
+        pyrefly check
     - name: Test with pytest
       run: |
         python -m pytest -vvvv

@@ -4,10 +4,15 @@ Lens equipment representation extracted from EXIF metadata.
 
 from __future__ import annotations
 
-from pytoolbox import decorators
+from typing import TYPE_CHECKING
+
+from pytoolbox.compat import override
 
 from .brand import Brand
 from .equipment import Equipement
+
+if TYPE_CHECKING:
+    from .tag import Tag
 
 __all__ = ['Lens']
 
@@ -18,6 +23,7 @@ class Lens(Equipement):
     brand_class = Brand
 
     @property
+    @override
     def brand(self) -> Brand | None:
         """Return the lens brand inferred from tags or model name."""
         if brands := {t.brand for t in self.tags.values() if t.brand}:
@@ -28,10 +34,11 @@ class Lens(Equipement):
         return self.brand_class(model.split(' ')[0]) if model else None
 
     @property
+    @override
     def _model(self) -> str | None:
         return next((t.data for t in self.tags.values() if 'model' in t.label.lower()), None)
 
-    @decorators.cached_property
-    def tags(self) -> dict:  # type: ignore[override]  # pylint: disable=invalid-overridden-method
+    @override
+    def _get_tags(self) -> dict[str, Tag]:
         """Return EXIF tags related to the lens."""
         return {k: t for k, t in self.metadata.tags.items() if 'lens' in t.label.lower()}

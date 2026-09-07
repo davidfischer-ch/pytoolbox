@@ -4,7 +4,15 @@ Re-export all Selenium exceptions and add custom ones.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from selenium.common import exceptions
+
+if TYPE_CHECKING:
+    # pylint:disable=wildcard-import,unused-wildcard-import
+    # globals().update() below is what re-exports these at runtime; the star import is how a
+    # type checker gets to see the same names.
+    from selenium.common.exceptions import *  # noqa: F403
 
 # Replace the infamous "from selenium.common.exceptions import *" :)
 things = {k: v for k, v in exceptions.__dict__.items() if k[0] != '_'}

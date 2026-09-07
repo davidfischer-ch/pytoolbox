@@ -11,15 +11,21 @@ import select
 import subprocess
 import sys
 import time
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Final
+from typing import Any, Final, TypeAlias
 
 from pytoolbox import filesystem
 from pytoolbox import subprocess as py_subprocess
 
-from . import encode, ffprobe  # pylint:disable=unused-import
+from . import encode, ffprobe, miscellaneous  # pylint:disable=unused-import
 
-__all__ = ['FRAME_MD5_REGEX', 'FFmpeg']
+__all__ = ['FRAME_MD5_REGEX', 'FFmpeg', 'MediasArg']
+
+# One media or several, each given as a path or as an already built Media.
+MediasArg: TypeAlias = (
+    miscellaneous.Media | Path | str | Iterable[miscellaneous.Media | Path | str] | None
+)
 
 FRAME_MD5_REGEX: Final[re.Pattern] = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
@@ -48,7 +54,7 @@ class FFmpeg:
         self.encoding = encoding
         self.ffprobe = self.ffprobe_class()
 
-    def __call__(self, *arguments) -> subprocess.Popen:
+    def __call__(self, *arguments: Path | float | int | str | None) -> Any:
         """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
         return py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
@@ -56,17 +62,17 @@ class FFmpeg:
             universal_newlines=True,
         )
 
-    def encode(  # pylint:disable=too-many-locals
+    def encode(
         self,
-        inputs: object,
-        outputs: object,
-        in_options: object = None,
-        out_options: object = None,
+        inputs: MediasArg,
+        outputs: MediasArg,
+        in_options: py_subprocess.CallArgsType | None = None,
+        out_options: py_subprocess.CallArgsType | None = None,
         create_directories: bool = True,
         process_poll: bool = True,
-        process_kwargs: dict | None = None,
-        statistics_kwargs: dict | None = None,
-    ) -> object:
+        process_kwargs: dict[str, Any] | None = None,
+        statistics_kwargs: dict[str, Any] | None = None,
+    ) -> Iterator[encode.EncodeStatistics]:
         """
         Encode a set of input files input to a set of output files and yields statistics about the
         encoding.
@@ -118,21 +124,27 @@ class FFmpeg:
                 match = FRAME_MD5_REGEX.search(f.read())
             return match.group() if match else None
 
-    def _clean_medias_argument(self, value: object) -> list:
+    def _clean_medias_argument(self, value: MediasArg) -> list[miscellaneous.Media]:
         """
         Return a list of Media instances from passed value.
         Value can be one or multiple instances of string or Media.
         """
-        values = [value] if isinstance(value, (str, Path, self.ffprobe.media_class)) else value
+        values = [value] if isinstance(value, (str, Path, miscellaneous.Media)) else value
         return [self.ffprobe.to_media(v) for v in values] if values else []
 
     def _get_arguments(
         self,
-        inputs: object,
-        outputs: object,
-        in_options: object = None,
-        out_options: object = None,
-    ) -> tuple[list, list, list, list[str], list[str]]:
+        inputs: MediasArg,
+        outputs: MediasArg,
+        in_options: py_subprocess.CallArgsType | None = None,
+        out_options: py_subprocess.CallArgsType | None = None,
+    ) -> tuple[
+        list[Path | str],
+        list[miscellaneous.Media],
+        list[miscellaneous.Media],
+        list[str],
+        list[str],
+    ]:
         """
         Return the arguments for the encoding process.
 
@@ -158,6 +170,8 @@ class FFmpeg:
         return args, inputs, outputs, in_options, out_options
 
     def _get_chunk(self, process: subprocess.Popen) -> str | None:
+        if process.stderr is None:
+            return None
         if sys.platform != 'win32':
             select.select([process.stderr], [], [], self.chunk_read_timeout)
         try:
@@ -171,7 +185,10 @@ class FFmpeg:
         return None
 
     @staticmethod
-    def _get_process(arguments: list, **process_kwargs: object) -> subprocess.Popen:
+    def _get_process(
+        arguments: list[Path | str],
+        **process_kwargs: Any,
+    ) -> Any:
         """Return an encoding process with stderr made asynchronous."""
         process = py_subprocess.raw_cmd(
             arguments,
@@ -179,5 +196,6 @@ class FFmpeg:
             close_fds=True,
             **process_kwargs,
         )
+        assert process.stderr is not None  # noqa: S101  # opened with stderr=PIPE just above
         py_subprocess.make_async(process.stderr)
         return process

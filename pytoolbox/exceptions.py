@@ -11,6 +11,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, Any
 
+from pytoolbox.compat import override
+
 from . import module
 
 _all = module.All(globals())
@@ -34,11 +36,13 @@ class MessageMixin(Exception):  # noqa: N818
             missing = ', '.join(missing)  # type: ignore[assignment]
             raise AttributeError(f'{type(self)} is missing attributes or properties: {missing}')
 
+    @override
     def __repr__(self) -> str:
         args = [] if self.message == type(self).message else [f'{repr(self.message)}']
         args.extend(f'{a}={repr(getattr(self, a))}' for a in self.attrs)
         return f'{type(self).__name__}({", ".join(args)})'
 
+    @override
     def __str__(self) -> str:
         attributes = inspect.getmembers(self, lambda a: not inspect.isroutine(a))
         return self.message.format(**{a: v for a, v in attributes if a[0] != '_'})

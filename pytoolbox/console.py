@@ -120,7 +120,7 @@ def progress_bar(
     *,
     start_time: float,  # pylint:disable=unused-argument
     current: int,
-    total: int,
+    total: int | None,
     size: int = 50,
     done: str = '=',
     todo: str = ' ',

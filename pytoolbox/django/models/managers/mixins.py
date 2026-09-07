@@ -12,6 +12,11 @@ from pytoolbox.django.models.query import mixins as query_mixins
 
 if TYPE_CHECKING:
     from django.db import models
+    from django.db import models as dj_models
+
+# The mixin completes a Manager and reads its model; naming the base under TYPE_CHECKING states that
+# requirement for the checker only.
+_ManagerMixin = dj_models.Manager if TYPE_CHECKING else object
 
 _all = module.All(globals())
 
@@ -21,7 +26,7 @@ CreateModelMethodMixin = query_mixins.CreateModelMethodMixin
 StateMixin = query_mixins.StateMixin
 
 
-class RelatedModelMixin:
+class RelatedModelMixin(_ManagerMixin):
     """Provide shortcuts to access related model classes and managers."""
 
     def get_related_manager(self, field: str) -> models.Manager:

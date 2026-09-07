@@ -20,7 +20,9 @@ except (KeyError, TypeError):
 
 register = template.Library()
 
-# Submodule imports come after register/string_if_invalid since they import both from here.
+# Submodule imports come after register/string_if_invalid since they import both from here, and
+# they are re-exports: __all__ is computed at the end of the module, which ruff cannot see.
+# ruff: noqa: E402, F401
 from .exif import (
     EXPOSURE_MODE_LABELS,
     ORIENTATION_LABELS,

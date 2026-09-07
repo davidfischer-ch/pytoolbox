@@ -5,8 +5,12 @@ EXIF image metadata including orientation and dimensions.
 from __future__ import annotations
 
 import enum
+from typing import TYPE_CHECKING
 
 from .tag import TagSet
+
+if TYPE_CHECKING:
+    from .metadata import Metadata
 
 __all__ = ['Image', 'Orientation']
 
@@ -39,7 +43,7 @@ class Image(TagSet):
         Orientation.ROT_270_CW: -270,
     }
 
-    def __init__(self, metadata: object, orientation: Orientation | int | None = None) -> None:
+    def __init__(self, metadata: Metadata, orientation: Orientation | int | None = None) -> None:
         super().__init__(metadata)
         self._orientation = None if orientation is None else Orientation(orientation)
 

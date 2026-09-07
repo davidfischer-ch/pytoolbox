@@ -15,6 +15,8 @@ from typing import Any, TypeAlias
 
 import ruamel.yaml
 
+from pytoolbox.compat import override
+
 from . import filesystem, module
 from .private import ObjectId
 from .types import get_slots
@@ -171,6 +173,7 @@ class PickleableObject:
 class SmartJSONEncoderV1(json.JSONEncoder):
     """JSON encoder that serializes :class:`ObjectId` and ``__dict__``."""
 
+    @override
     def default(self, obj: Any) -> Any:  # pylint:disable=arguments-differ
         if ObjectId is not None and isinstance(obj, ObjectId):
             return str(obj)
@@ -182,8 +185,9 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 class SmartJSONEncoderV2(json.JSONEncoder):
     """JSON encoder that also serializes properties alongside attributes."""
 
+    @override
     def default(self, obj: Any) -> Any:  # pylint:disable=arguments-differ
-        if isinstance(obj, ObjectId):
+        if ObjectId is not None and isinstance(obj, ObjectId):
             return str(obj)
         attributes = {}
         for attr in inspect.getmembers(obj):
@@ -231,7 +235,7 @@ def object_to_json(obj: Any, include_properties: bool, **kwargs: Any) -> str:
     )
 
 
-def json_to_object(cls: type, json_string: str, inspect_constructor: bool) -> Any:
+def json_to_object(cls: type[Any], json_string: str, inspect_constructor: bool) -> Any:
     """
     Deserialize the JSON string `json_string` to an instance of `cls`.
 
@@ -241,7 +245,9 @@ def json_to_object(cls: type, json_string: str, inspect_constructor: bool) -> An
     return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
-def jsonfile_to_object(cls: type, path_or_file: str | io.IOBase, inspect_constructor: bool) -> Any:
+def jsonfile_to_object(
+    cls: type[Any], path_or_file: str | io.IOBase, inspect_constructor: bool
+) -> Any:
     """
     Load and deserialize the JSON string stored in a file `path` to an instance of `cls`.
 
@@ -407,7 +413,7 @@ class JsoneableObject:
 
 def object_to_dict(
     obj: Any,
-    schema: dict | list,
+    schema: dict[str, Any] | list[Any],
     *,
     depth: int = 0,
     callback: Any = lambda o, s, d: (o, s),
@@ -574,12 +580,12 @@ def object_to_dict(
 
 def _object_to_dict_item(
     obj: Any,
-    schema: dict,
+    schema: dict[str, Any],
     *,
     depth: int = 0,
     callback: Any = lambda o, s, d: (o, s),
     iterable_callback: Any = lambda o, s, d: list,
-) -> dict | None:
+) -> dict[str, Any] | None:
     if obj is None:
         return None
 
@@ -608,7 +614,7 @@ def _object_to_dict_item(
     return obj_dict
 
 
-def dict_to_object(cls: type, the_dict: dict, inspect_constructor: bool) -> Any:
+def dict_to_object(cls: type[Any], the_dict: dict[str, Any], inspect_constructor: bool) -> Any:
     """
     Convert a python dictionary to an instance of a class.
 
