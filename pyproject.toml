@@ -115,6 +115,8 @@ test = [
     'ruff>=0.3.3',
     # Stubs
     'PyGObject-stubs>=2.10.0; sys_platform != "win32"',
+    'django-stubs>=6.1.0',
+    'djangorestframework-stubs>=3.18.1',
     'types-requests>=2.31.0.20240311',
     'types-urllib3>=1.26.25.14'
 ]
@@ -172,15 +174,18 @@ fallback-python-interpreter-name = 'python3'
 # not. Reading it as Any is the closest a checker can get.
 replace-imports-with-any = ['dlib']
 
-# Modules that may not be installed, and that a checker could not introspect anyway: psutil is
-# a best-effort import with a fallback, the rest are C extensions or ship no type information.
-# Listing the ones the vision extra provides keeps the check working without that extra too.
+# Modules that may not be installed, and that a checker could not introspect anyway: crispy_forms
+# and psycopg2 are imported by the code paths needing them, psutil is a best-effort import with a
+# fallback, the rest are C extensions or ship no type information. Listing the ones the vision
+# extra provides keeps the check working without that extra too.
 ignore-missing-imports = [
+    'crispy_forms',
     'fastxor',
     'keras',
     'keras.layers',
     'keras.models',
     'psutil',
+    'psycopg2.extras',
     'tensorflow'
 ]
 
