@@ -3,6 +3,52 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.12.0 (2026-09-07)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.5...14.12.0
+
+### Minor compatibility breaks
+
+* Module `multimedia.exif.equipment`: Replace the abstract `Equipement.tags` property by an abstract `_get_tags()` method, `tags` becoming the cached property calling it
+* Module `multimedia.exif.equipment`: Restrict `Equipement.__eq__` to `Equipement` instances instead of anything exposing `brand` and `model`
+* Module `unittest`: Rename the `InMixin.assertIn` and `assertNotIn` parameters `obj_a`/`obj_b` to `member`/`container` to match `unittest.TestCase`
+* Module `ai.vision.face.recognize.nn4_small2`: Make the `conv2d_bn` argument `layer` required
+
+### Features
+
+* Replace `mypy` by `pyrefly` and type check the whole package, with no module left ignored
+* Add module `compat` exposing `override` from `typing` or `typing_extensions` depending on the Python version
+* Mark every method overriding a base class method with `@override`
+* Module `argparse`: Add the `PathArg`, `MultiArg` and `RemainderArg` typed dictionaries typing the argument configuration combos
+* Module `multimedia.ffmpeg.encode`: Add the `FFmpegStatistics` typed dictionary describing one parsed progress line
+* Module `multimedia.ffmpeg`: Add the `MediasArg` and `MediaLike` type aliases covering every accepted form of the media arguments
+* Module `unittest`: Add the `TaggedTest` protocol describing a test method decorated with `with_tags`
+* Add `django-stubs` and `djangorestframework-stubs` to the `test` extra, without which the type check cannot see the ORM nor DRF
+* Add the `django_datatable_view` extra and include it in the `all` extra
+* Run `pyrefly check` in the GitHub workflow
+
+### Fix and enhancements
+
+* Module `rest_framework.permissions`: Import `TokenHasReadWriteScope` from `oauth2_provider.contrib.rest_framework`, the `ext` module having been renamed years ago
+* Module `ai.vision.face.recognize.nn4_small2`: Normalize with `keras.ops.normalize`, `keras.backend.l2_normalize` having been removed in Keras 3
+* Module `multimedia.ffmpeg.encode`: Return a `datetime` from `EncodeStatistics.get_now`, which was returning a formatted string
+* Module `django.test.mixins`: Post through the test client in `FormWizardMixin.post_wizard_step`, the test case carrying no `post` method
+* Module `serialization`: Guard `SmartJSONEncoderV2.default` against `bson` not being installed, as `SmartJSONEncoderV1` already does
+* Module `validation`: Guard `valid_uuid` against `bson` being only partially importable
+* Module `selenium.client`: Return a `SimpleNamespace` from `LiveClient.get` instead of a dynamically built class
+* Module `ai.vision.utils`: Raise `ValueError` when `load_image` cannot read the image
+* Module `filesystem`: Accept a `str` as well as a `Path` in `from_template` and `makedirs`
+* Module `datetime`: Accept a `str` in `secs_to_time`, which already converted its value
+* Drop the Django < 2.0 `django.core.urlresolvers` import fallbacks
+* Bump the pinned documentation requirements
+    * `cryptography` to 50.0.0
+    * `djangorestframework` to 3.17.2
+    * `keras` to 3.15.0
+    * `pillow` to 12.3.0
+    * `setuptools` to 83.0.0
+    * `sqlparse` to 0.6.0
+
+
 ## v14.11.5 (2026-07-08)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.4...14.11.5
