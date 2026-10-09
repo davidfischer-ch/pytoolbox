@@ -600,7 +600,9 @@ class StateTransitionPreconditionMixin(UpdatePreconditionsMixin):
             pre_excludes, pre_filters = self._preconditions
             if not any(f.startswith('state') for f in itertools.chain(pre_excludes, pre_filters)):
                 states, valid = self.states.get_transit_from(self.state, auto_inverse=True)
-                assert states, (states, valid)
+                # Every state may transit to this one: nothing to exclude, no precondition.
+                if not states:
+                    return args, kwargs, any(self._preconditions)
                 key, values = (
                     ('state__in', states) if len(states) > 1 else ('state', next(iter(states)))
                 )

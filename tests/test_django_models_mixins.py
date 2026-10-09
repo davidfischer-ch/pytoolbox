@@ -11,6 +11,7 @@ from django.db import DatabaseError, models
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 
+from pytoolbox import states
 from pytoolbox.django.core import exceptions
 from pytoolbox.django.models import mixins
 
@@ -753,6 +754,43 @@ def test_apply_preconditions_no_preconditions() -> None:
         False,
     )
     assert result[0] is base_qs
+
+
+def _make_state_obj(state: str):
+    """Create a test object for StateTransitionPreconditionMixin, in *state*."""
+
+    class JobState(states.StateEnum):
+        """A job printing, then ended: ENDED is reachable from every state."""
+
+        PRINTING = 'PRINTING'
+        ENDED = 'ENDED'
+        TRANSITIONS = {
+            PRINTING: frozenset([PRINTING, ENDED]),
+            ENDED: frozenset([ENDED]),
+        }
+
+    class TestObj(mixins.StateTransitionPreconditionMixin):
+        """Test object with StateTransitionPreconditionMixin."""
+
+        states = JobState
+
+    obj = TestObj()
+    obj.state = state
+    return obj
+
+
+def test_state_precondition_filters_the_states_allowed() -> None:
+    """Saving a state only some states reach is guarded by those states."""
+    _args, _kwargs, has = _make_state_obj('PRINTING').pop_preconditions()
+    assert has is True
+
+
+def test_state_precondition_skipped_when_every_state_may_transit() -> None:
+    """Saving a state every state reaches, itself included, needs no precondition."""
+    obj = _make_state_obj('ENDED')
+    _args, _kwargs, has = obj.pop_preconditions()
+    assert has is False
+    assert obj._preconditions == ({}, {})
 
 
 def test_update_preconditions_save_catches_database_error() -> None:
