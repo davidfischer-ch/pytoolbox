@@ -3,6 +3,17 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.12.1 (2026-10-09)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.0...14.12.1
+
+### Fix and enhancements
+
+Module `django.models.mixins`:
+
+* Save a state every state may reach without a precondition in `StateTransitionPreconditionMixin`, instead of failing on an assertion
+
+
 ## v14.12.0 (2026-09-07)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.5...14.12.0
