@@ -7,16 +7,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar
 
+from django import forms
+from django.db import models
 from django.forms import fields
 
 from pytoolbox import module
 from pytoolbox.compat import override
 
 from . import utils, widgets
-
-if TYPE_CHECKING:
-    from django import forms
-    from django.db import models
 
 # Each mixin below completes a Django form and reads its attributes (`fields`, `instance`,
 # `cleaned_data`, ...); naming the base under TYPE_CHECKING states that for the checker only.

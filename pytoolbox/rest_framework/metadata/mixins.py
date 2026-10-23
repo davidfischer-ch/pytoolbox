@@ -11,14 +11,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from rest_framework import serializers
+from rest_framework.metadata import SimpleMetadata
 
 from pytoolbox.compat import override
 
 __all__ = ['ExcludeRelatedChoicesMixin']
-
-
-if TYPE_CHECKING:
-    from rest_framework.metadata import SimpleMetadata
 
 # The mixins complete DRF's SimpleMetadata; naming the base under TYPE_CHECKING states that
 # requirement for the checker only.

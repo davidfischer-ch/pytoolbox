@@ -5,12 +5,9 @@ Some utilities related to the model layer.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from django.db import models
 
 from pytoolbox import module
-
-if TYPE_CHECKING:
-    from django.db import models
 
 _all = module.All(globals())
 

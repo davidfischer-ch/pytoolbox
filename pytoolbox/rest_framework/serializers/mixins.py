@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, NoReturn
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as _
 
@@ -15,7 +16,6 @@ from pytoolbox.compat import override
 from pytoolbox.django.models import utils
 
 if TYPE_CHECKING:
-    from django.db import models
     from rest_framework import serializers
     from rest_framework.serializers import Serializer
 

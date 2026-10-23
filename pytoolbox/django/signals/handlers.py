@@ -39,17 +39,15 @@ strip_strings_and_validate_model, sender=settings.AUTH_USER_MODEL)
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from django.conf import settings
+from django.db import models
+from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.models import fields
 from django.db.models.fields.files import FileField
 
 from pytoolbox import logging
-
-if TYPE_CHECKING:
-    from django.db import models
-    from django.db.backends.base.base import BaseDatabaseWrapper
 
 # pylint:disable=unused-argument
 

@@ -33,6 +33,9 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, models
+from django.db.models import QuerySet
+from django.db.models import options as meta_module
+from django.db.models.base import ModelBase
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
 from django.utils.functional import cached_property
@@ -53,11 +56,6 @@ except AttributeError:
     class _ModelNotUpdated(Exception):  # noqa: N818  # mirrors Django's Model.NotUpdated
         """Sentinel: Django < 6 does not raise Model.NotUpdated."""
 
-
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
-    from django.db.models import options as meta_module
-    from django.db.models.base import ModelBase
 
 # Every mixin below completes a Model and reads its attributes (`pk`, `_meta`, `save`, ...). Naming
 # Model as the base under TYPE_CHECKING states that requirement for the checker while leaving the

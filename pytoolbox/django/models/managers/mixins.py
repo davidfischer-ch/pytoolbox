@@ -6,17 +6,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.db import models
+
 from pytoolbox import module
 from pytoolbox.django.models import utils
 from pytoolbox.django.models.query import mixins as query_mixins
 
-if TYPE_CHECKING:
-    from django.db import models
-    from django.db import models as dj_models
-
 # The mixin completes a Manager and reads its model; naming the base under TYPE_CHECKING states that
 # requirement for the checker only.
-_ManagerMixin = dj_models.Manager if TYPE_CHECKING else object
+_ManagerMixin = models.Manager if TYPE_CHECKING else object
 
 _all = module.All(globals())
 

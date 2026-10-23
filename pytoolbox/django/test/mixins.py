@@ -7,11 +7,14 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, overload
 
 from django.contrib.sites.models import Site
 from django.core.management import call_command
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.backends.base.base import BaseDatabaseWrapper
+from django.http import HttpResponse, HttpResponseBase
 from django.test import TransactionTestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import resolve, reverse
@@ -20,11 +23,6 @@ from pytoolbox import module
 from pytoolbox.compat import override
 
 if TYPE_CHECKING:
-    from types import TracebackType
-    from typing import Any
-
-    from django.db.backends.base.base import BaseDatabaseWrapper
-    from django.http import HttpResponse, HttpResponseBase
 
     class _RestResponse(HttpResponse):
         """

@@ -6,15 +6,12 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
 
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
 from pytoolbox import exceptions, module
-
-if TYPE_CHECKING:
-    from django.core.exceptions import ValidationError
 
 _all = module.All(globals())
 

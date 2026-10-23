@@ -9,11 +9,9 @@ import tempfile
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.test.runner import DiscoverRunner
 
 from pytoolbox.compat import override
-
-if TYPE_CHECKING:
-    from django.test.runner import DiscoverRunner
 
 # Each mixin below completes a test runner; naming the base under TYPE_CHECKING states that
 # requirement for the checker only.

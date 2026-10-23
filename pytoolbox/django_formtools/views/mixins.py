@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from django.forms import Form
+from django.http import HttpRequest, HttpResponse
+
 from pytoolbox.compat import override
+from pytoolbox.django import forms
 
 if TYPE_CHECKING:
-    from django.forms import Form
-    from django.http import HttpRequest, HttpResponse
     from formtools.wizard.views import WizardView
-
-from pytoolbox.django import forms
 
 # Each mixin below completes a form-wizard view and reads its attributes (`steps`, `request`,
 # `storage`, ...); naming the base under TYPE_CHECKING states that for the checker only.

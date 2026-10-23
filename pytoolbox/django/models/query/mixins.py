@@ -9,14 +9,11 @@ import functools
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from django.db import transaction
+from django.db import models, transaction
+from django.db.models import QuerySet
 
 from pytoolbox import module
 from pytoolbox.compat import override
-
-if TYPE_CHECKING:
-    from django.db import models
-    from django.db.models import QuerySet
 
 # Each mixin below completes a QuerySet; naming the base under TYPE_CHECKING states that requirement
 # for the checker only.

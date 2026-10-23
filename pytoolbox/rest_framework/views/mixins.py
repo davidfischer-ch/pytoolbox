@@ -8,17 +8,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth.views import redirect_to_login
-from rest_framework import renderers
+from django.db.models import QuerySet
+from rest_framework import renderers, viewsets
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 
 from pytoolbox import module
 from pytoolbox.compat import override
-
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
-    from rest_framework import viewsets
-    from rest_framework.request import Request
-    from rest_framework.response import Response
-    from rest_framework.serializers import Serializer
 
 # Each mixin below completes a DRF generic view and reads its attributes (`action`, `request`,
 # `get_queryset`, ...); naming the base under TYPE_CHECKING states that for the checker only.

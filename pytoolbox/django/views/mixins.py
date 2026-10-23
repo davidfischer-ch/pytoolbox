@@ -9,11 +9,14 @@ import os
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from django import forms
 from django.contrib import messages
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
+from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import redirect
 from django.views.generic import base as generic
+from django.views.generic.edit import ModelFormMixin, ProcessFormView
 
 from pytoolbox import module
 from pytoolbox.compat import override
@@ -22,9 +25,6 @@ from pytoolbox.django.forms import mixins as forms_mixins
 from pytoolbox.django.models import utils
 
 if TYPE_CHECKING:
-    from django import forms
-    from django.http import HttpRequest, HttpResponse, HttpResponseBase
-    from django.views.generic.edit import ModelFormMixin, ProcessFormView
 
     class _ViewsMixin(ModelFormMixin, ProcessFormView):
         """

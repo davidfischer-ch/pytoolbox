@@ -4,14 +4,12 @@ Extra forms.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from django.db import models
 from django.utils.functional import cached_property
 
 from pytoolbox.django.models import utils
-
-if TYPE_CHECKING:
-    from django.db import models
 
 __all__ = ['SerializedInstanceForm']
 
