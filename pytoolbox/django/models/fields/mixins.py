@@ -5,17 +5,26 @@ Mix-ins for building your own models fields.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, Final
+
+from django.db import models
 
 from pytoolbox.compat import override
 from pytoolbox.django.core import validators
 
-if TYPE_CHECKING:
-    from django.db import models
-
 # Each mixin below completes a model field and reads its attributes (`attname`, `null`, `pre_save`,
 # ...); naming the base under TYPE_CHECKING states that for the checker only.
 _FieldMixin = models.Field if TYPE_CHECKING else object
+
+#: The attribute :meth:`~django.db.models.Field.__init__` stores an option under, where it is not
+#: the option's own name.
+_OPTION_ATTRIBUTES: Final[dict[str, str]] = {
+    'db_tablespace': '_db_tablespace',
+    'error_messages': '_error_messages',
+    'unique': '_unique',
+    'validators': '_validators',
+    'verbose_name': '_verbose_name',
+}
 
 __all__ = ['LowerCaseMixin', 'OptionsMixin', 'StripMixin']
 
@@ -53,6 +62,22 @@ class OptionsMixin(_FieldMixin):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**{**self.default_options, **kwargs, **self.override_options})
+
+    @override
+    def deconstruct(self) -> tuple[str, str, list[Any], dict[str, Any]]:
+        """
+        Keep each default option a site set back to Django's own default.
+
+        :meth:`~django.db.models.Field.deconstruct` leaves out an option equal to Django's default,
+        and the clone a migration rebuilds from it would take the value in ``default_options``
+        instead: a site's ``null=False`` under a ``null=True`` default would come back nullable.
+        """
+        name, path, args, kwargs = super().deconstruct()
+        for option in self.default_options.keys() - kwargs.keys():
+            value = getattr(self, _OPTION_ATTRIBUTES.get(option, option), models.NOT_PROVIDED)
+            if value is not models.NOT_PROVIDED and value != self.default_options[option]:
+                kwargs[option] = value
+        return name, path, args, kwargs
 
 
 class StripMixin(_FieldMixin):
