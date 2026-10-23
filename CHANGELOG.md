@@ -3,6 +3,17 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.12.2 (2026-10-23)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.1...14.12.2
+
+### Fix and enhancements
+
+Module `django.models.fields.mixins`:
+
+* Fix `OptionsMixin` fields losing in migrations an option set back to Django's default
+
+
 ## v14.12.1 (2026-10-09)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.0...14.12.1
