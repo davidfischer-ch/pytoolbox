@@ -5,6 +5,7 @@ Mix-ins for building your own models fields.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, ClassVar, Final
 
 from django.db import models
@@ -64,7 +65,7 @@ class OptionsMixin(_FieldMixin):
         super().__init__(**{**self.default_options, **kwargs, **self.override_options})
 
     @override
-    def deconstruct(self) -> tuple[str, str, list[Any], dict[str, Any]]:
+    def deconstruct(self) -> tuple[str, str, Sequence[Any], dict[str, Any]]:
         """
         Keep each default option a site set back to Django's own default.
 
