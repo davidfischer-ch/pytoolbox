@@ -74,7 +74,7 @@ pycparser==3.0
 Pygments==2.20.0
 PyGObject==3.56.1
 PyGObject-stubs==2.16.0
-pylint==4.0.5
+pylint==4.0.9
 pymongo==4.16.0
 PySocks==1.7.1
 pytest==9.0.2
