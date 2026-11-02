@@ -28,6 +28,16 @@ def test_strip_char_field_has_empty_validator() -> None:
     assert any(isinstance(v, EmptyValidator) for v in field.validators)
 
 
+def test_blank_choice_passes_the_empty_validator() -> None:
+    """A ModelSerializer's ChoiceField for a blank StripCharField runs it on '', and accepts it."""
+    from rest_framework.fields import ChoiceField
+
+    from pytoolbox.django.core.validators import EmptyValidator
+
+    field = ChoiceField(choices=['a'], allow_blank=True, validators=[EmptyValidator()])
+    assert field.run_validation('') == ''
+
+
 def test_strip_char_field_rejects_blank() -> None:
     """White-space-only input fails validation via the EmptyValidator."""
     from rest_framework.exceptions import ValidationError as DRFValidationError

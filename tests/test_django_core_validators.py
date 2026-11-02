@@ -47,9 +47,10 @@ def test_keys_validator_equality() -> None:
 
 
 def test_empty_validator() -> None:
-    """Passes for non-empty strings, raises ValidationError for whitespace-only input."""
+    """Passes for non-empty and empty strings, raises ValidationError for whitespace-only input."""
     validator = validators.EmptyValidator()
     validator('hello')
+    validator('')
     with pytest.raises(ValidationError):
         validator('   ')
 

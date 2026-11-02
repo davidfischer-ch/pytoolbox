@@ -18,9 +18,12 @@ __all__ = ['EmptyValidator', 'KeysValidator', 'MD5ChecksumValidator']
 
 
 class EmptyValidator(validators.RegexValidator):
-    """Reject blank (whitespace-only) values."""
+    """
+    Reject blank (whitespace-only) values. An empty value passes: whether a field may be empty is
+    its `blank` (Django) or `allow_blank` (DRF), and DRF's `ChoiceField` runs validators on it.
+    """
 
-    regex = r'\S+'
+    regex = r'^$|\S'
     message = _('This field cannot be blank.')
     code = 'blank'
 
