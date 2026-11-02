@@ -3,6 +3,16 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.12.4 (2026-11-02)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.3...14.12.4
+
+### Fix and enhancements
+
+Module `django.core.validators`:
+
+* Fix `EmptyValidator` refusing an empty value, which DRF's `ChoiceField` validates: a blank `StripCharField` with choices can be cleared through a `ModelSerializer`
+
 ## v14.12.3 (2026-10-25)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.2...14.12.3
