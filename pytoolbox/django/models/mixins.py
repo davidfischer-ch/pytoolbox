@@ -321,11 +321,17 @@ class CallFieldsPreSaveMixin(_ModelMixin):
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
     ) -> None:
-        """Call each writable non-PK field's :meth:`pre_save` before saving."""
-        # Skip generated columns: they have no writable value, and Django's ``GeneratedField``
-        # ``pre_save`` would lazy-load the not-yet-computed value and fail mid-save.
+        """
+        Call each writable non-PK field's :meth:`pre_save` before saving, deferred fields aside.
+
+        A generated column has no writable value, and its ``pre_save`` would load the value not yet
+        computed. A deferred field's ``pre_save`` would load a value the save does not write.
+        """
+        deferred = self.get_deferred_fields()
         fields = (
-            f for f in self._meta.local_concrete_fields if not f.primary_key and not f.generated
+            f
+            for f in self._meta.local_concrete_fields
+            if not f.primary_key and not f.generated and f.attname not in deferred
         )
         for field in fields:
             field.pre_save(self, self._state.adding)

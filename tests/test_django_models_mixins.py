@@ -258,6 +258,10 @@ def test_call_fields_pre_save_mixin() -> None:
         _meta = MagicMock(local_concrete_fields=[field1, field2, field3])
         _state = MagicMock(adding=False)
 
+        def get_deferred_fields(self) -> set[str]:
+            """Return no deferred field."""
+            return set()
+
     obj = TestObj()
     obj.save()
     field1.pre_save.assert_called_once_with(obj, False)
@@ -282,10 +286,41 @@ def test_call_fields_pre_save_mixin_skips_generated_fields() -> None:
         _meta = MagicMock(local_concrete_fields=[writable, generated])
         _state = MagicMock(adding=True)
 
+        def get_deferred_fields(self) -> set[str]:
+            """Return no deferred field."""
+            return set()
+
     obj = TestObj()
     obj.save()
     writable.pre_save.assert_called_once_with(obj, True)
     generated.pre_save.assert_not_called()
+
+
+def test_call_fields_pre_save_mixin_skips_deferred_fields() -> None:
+    """A deferred field is skipped: its pre_save would load a value the save does not write."""
+    loaded = MagicMock(primary_key=False, generated=False, attname='title')
+    deferred = MagicMock(primary_key=False, generated=False, attname='embedding')
+
+    class Base:
+        """Test class."""
+
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
+
+    class TestObj(mixins.CallFieldsPreSaveMixin, Base):
+        """Test object with CallFieldsPreSaveMixin, one of its fields deferred."""
+
+        _meta = MagicMock(local_concrete_fields=[loaded, deferred])
+        _state = MagicMock(adding=False)
+
+        def get_deferred_fields(self) -> set[str]:
+            """Return the deferred field's attname."""
+            return {'embedding'}
+
+    obj = TestObj()
+    obj.save()
+    loaded.pre_save.assert_called_once_with(obj, False)
+    deferred.pre_save.assert_not_called()
 
 
 # --- ReloadMixin ----------------------------------------------------------------------------------
