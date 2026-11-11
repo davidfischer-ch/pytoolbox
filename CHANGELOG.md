@@ -3,6 +3,19 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.12.5 (2026-11-11)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.4...14.12.5
+
+### Fix and enhancements
+
+Module `django.models.mixins`:
+
+* Fix `CallFieldsPreSaveMixin` loading every deferred field on save: a deferred field's `pre_save`
+  is skipped
+* Fix `ValidateOnSaveMixin` loading every deferred field on save: validation leaves them out
+
+
 ## v14.12.4 (2026-11-02)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.3...14.12.4
