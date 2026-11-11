@@ -11,7 +11,9 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.3...14.12.4
 
 Module `django.core.validators`:
 
-* Fix `EmptyValidator` refusing an empty value, which DRF's `ChoiceField` validates: a blank `StripCharField` with choices can be cleared through a `ModelSerializer`
+* Fix `EmptyValidator` refusing an empty value, which DRF's `ChoiceField` validates: a blank
+  `StripCharField` with choices can be cleared through a `ModelSerializer`
+
 
 ## v14.12.3 (2026-10-25)
 
@@ -21,7 +23,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.2...14.12.3
 
 Module `django.models.fields.mixins`:
 
-* Fix the return type of `OptionsMixin.deconstruct()` to match the `Sequence` of arguments Django returns
+* Fix the return type of `OptionsMixin.deconstruct()` to match the `Sequence` of arguments Django
+  returns
 
 
 ## v14.12.2 (2026-10-23)
@@ -43,7 +46,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.0...14.12.1
 
 Module `django.models.mixins`:
 
-* Save a state every state may reach without a precondition in `StateTransitionPreconditionMixin`, instead of failing on an assertion
+* Save a state every state may reach without a precondition in `StateTransitionPreconditionMixin`,
+  instead of failing on an assertion
 
 
 ## v14.12.0 (2026-09-07)
@@ -52,33 +56,48 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.5...14.12.0
 
 ### Minor compatibility breaks
 
-* Module `multimedia.exif.equipment`: Replace the abstract `Equipement.tags` property by an abstract `_get_tags()` method, `tags` becoming the cached property calling it
-* Module `multimedia.exif.equipment`: Restrict `Equipement.__eq__` to `Equipement` instances instead of anything exposing `brand` and `model`
-* Module `unittest`: Rename the `InMixin.assertIn` and `assertNotIn` parameters `obj_a`/`obj_b` to `member`/`container` to match `unittest.TestCase`
+* Module `multimedia.exif.equipment`: Replace the abstract `Equipement.tags` property by an abstract
+  `_get_tags()` method, `tags` becoming the cached property calling it
+* Module `multimedia.exif.equipment`: Restrict `Equipement.__eq__` to `Equipement` instances instead
+  of anything exposing `brand` and `model`
+* Module `unittest`: Rename the `InMixin.assertIn` and `assertNotIn` parameters `obj_a`/`obj_b` to
+  `member`/`container` to match `unittest.TestCase`
 * Module `ai.vision.face.recognize.nn4_small2`: Make the `conv2d_bn` argument `layer` required
 
 ### Features
 
 * Replace `mypy` by `pyrefly` and type check the whole package, with no module left ignored
-* Add module `compat` exposing `override` from `typing` or `typing_extensions` depending on the Python version
+* Add module `compat` exposing `override` from `typing` or `typing_extensions` depending on the
+  Python version
 * Mark every method overriding a base class method with `@override`
-* Module `argparse`: Add the `PathArg`, `MultiArg` and `RemainderArg` typed dictionaries typing the argument configuration combos
-* Module `multimedia.ffmpeg.encode`: Add the `FFmpegStatistics` typed dictionary describing one parsed progress line
-* Module `multimedia.ffmpeg`: Add the `MediasArg` and `MediaLike` type aliases covering every accepted form of the media arguments
-* Module `unittest`: Add the `TaggedTest` protocol describing a test method decorated with `with_tags`
-* Add `django-stubs` and `djangorestframework-stubs` to the `test` extra, without which the type check cannot see the ORM nor DRF
+* Module `argparse`: Add the `PathArg`, `MultiArg` and `RemainderArg` typed dictionaries typing the
+  argument configuration combos
+* Module `multimedia.ffmpeg.encode`: Add the `FFmpegStatistics` typed dictionary describing one
+  parsed progress line
+* Module `multimedia.ffmpeg`: Add the `MediasArg` and `MediaLike` type aliases covering every
+  accepted form of the media arguments
+* Module `unittest`: Add the `TaggedTest` protocol describing a test method decorated with
+  `with_tags`
+* Add `django-stubs` and `djangorestframework-stubs` to the `test` extra, without which the type
+  check cannot see the ORM nor DRF
 * Add the `django_datatable_view` extra and include it in the `all` extra
 * Run `pyrefly check` in the GitHub workflow
 
 ### Fix and enhancements
 
-* Module `rest_framework.permissions`: Import `TokenHasReadWriteScope` from `oauth2_provider.contrib.rest_framework`, the `ext` module having been renamed years ago
-* Module `ai.vision.face.recognize.nn4_small2`: Normalize with `keras.ops.normalize`, `keras.backend.l2_normalize` having been removed in Keras 3
-* Module `multimedia.ffmpeg.encode`: Return a `datetime` from `EncodeStatistics.get_now`, which was returning a formatted string
-* Module `django.test.mixins`: Post through the test client in `FormWizardMixin.post_wizard_step`, the test case carrying no `post` method
-* Module `serialization`: Guard `SmartJSONEncoderV2.default` against `bson` not being installed, as `SmartJSONEncoderV1` already does
+* Module `rest_framework.permissions`: Import `TokenHasReadWriteScope` from
+  `oauth2_provider.contrib.rest_framework`, the `ext` module having been renamed years ago
+* Module `ai.vision.face.recognize.nn4_small2`: Normalize with `keras.ops.normalize`,
+  `keras.backend.l2_normalize` having been removed in Keras 3
+* Module `multimedia.ffmpeg.encode`: Return a `datetime` from `EncodeStatistics.get_now`, which was
+  returning a formatted string
+* Module `django.test.mixins`: Post through the test client in `FormWizardMixin.post_wizard_step`,
+  the test case carrying no `post` method
+* Module `serialization`: Guard `SmartJSONEncoderV2.default` against `bson` not being installed, as
+  `SmartJSONEncoderV1` already does
 * Module `validation`: Guard `valid_uuid` against `bson` being only partially importable
-* Module `selenium.client`: Return a `SimpleNamespace` from `LiveClient.get` instead of a dynamically built class
+* Module `selenium.client`: Return a `SimpleNamespace` from `LiveClient.get` instead of a
+  dynamically built class
 * Module `ai.vision.utils`: Raise `ValueError` when `load_image` cannot read the image
 * Module `filesystem`: Accept a `str` as well as a `Path` in `from_template` and `makedirs`
 * Module `datetime`: Accept a `str` in `secs_to_time`, which already converted its value
@@ -110,14 +129,22 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.3...14.11.4
 
 ### Fix and enhancements
 
-* Module `django.core.validators`: Anchor `MD5ChecksumValidator` regex with `^...$` to prevent validation bypass via embedded checksums
-* Module `validation`: Fix `valid_secret` regex — `=-_` was an unintended character range; anchor with `^...$` so trailing junk is rejected
-* Module `validation`: Default `valid_uri` timeout to 60 seconds to prevent indefinite hang on stalled connections
-* Module `network.http`: Restrict `download()` to `http`/`https` schemes; raise `ValueError` on others to prevent local-file reads
-* Module `network.http`: Add `DEFAULT_TIMEOUT = 60` and apply it as the default across all download functions and `Resource`
-* Module `crypto`: Use `secrets.choice` instead of `random.SystemRandom().choice` in `get_password_generator`
-* Module `multimedia.ffmpeg.ffprobe`: Replace `xml.dom.minidom` with `defusedxml.minidom` to block XML entity expansion attacks; add `defusedxml` as a core dependency
-* Module `decorators`: Drop `shell=True` from `disable_iptables` — it was ineffective with list-form commands and a latent foot-gun
+* Module `django.core.validators`: Anchor `MD5ChecksumValidator` regex with `^...$` to prevent
+  validation bypass via embedded checksums
+* Module `validation`: Fix `valid_secret` regex — `=-_` was an unintended character range; anchor
+  with `^...$` so trailing junk is rejected
+* Module `validation`: Default `valid_uri` timeout to 60 seconds to prevent indefinite hang on
+  stalled connections
+* Module `network.http`: Restrict `download()` to `http`/`https` schemes; raise `ValueError` on
+  others to prevent local-file reads
+* Module `network.http`: Add `DEFAULT_TIMEOUT = 60` and apply it as the default across all download
+  functions and `Resource`
+* Module `crypto`: Use `secrets.choice` instead of `random.SystemRandom().choice` in
+  `get_password_generator`
+* Module `multimedia.ffmpeg.ffprobe`: Replace `xml.dom.minidom` with `defusedxml.minidom` to block
+  XML entity expansion attacks; add `defusedxml` as a core dependency
+* Module `decorators`: Drop `shell=True` from `disable_iptables` — it was ineffective with list-form
+  commands and a latent foot-gun
 
 
 ## v14.11.3 (2026-06-12)
@@ -135,12 +162,15 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.1...14.11.2
 
 ### Features
 
-* Module `argparse`: Add `aliases` parameter to `ActionArgumentParser.add_action` to register additional names for the same sub-command
-* Module `argparse`: Add `help` parameter to `ActionArgumentParser.add_action`; defaults to the first line of the function's docstring
+* Module `argparse`: Add `aliases` parameter to `ActionArgumentParser.add_action` to register
+  additional names for the same sub-command
+* Module `argparse`: Add `help` parameter to `ActionArgumentParser.add_action`; defaults to the
+  first line of the function's docstring
 
 ### Fix and enhancements
 
-* Normalize all section header comments to `# --- Name ---` 100-character format across source and test files
+* Normalize all section header comments to `# --- Name ---` 100-character format across source and
+  test files
 
 
 ## v14.11.1 (2026-04-17)
@@ -149,10 +179,14 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.11.0...14.11.1
 
 ### Fix and enhancements
 
-* Module `django.models.mixins`: Add `ClassVar` annotations to class-level attributes and explicit type annotations to instance variables in `__init__` methods for mypy compatibility
-* Module `django.models.fields.mixins`: Add `ClassVar` annotations to `OptionsMixin` and `StripMixin` class-level attributes for mypy compatibility
-* Module `django.models.fields.base`: Add `ClassVar` annotations to class-level attributes and explicit type annotations to instance variables for mypy compatibility
-* Module `django.models.query.mixins`: Add `ClassVar` annotations to class-level attributes and fix `get_restore_or_create` return type for mypy compatibility
+* Module `django.models.mixins`: Add `ClassVar` annotations to class-level attributes and explicit
+  type annotations to instance variables in `__init__` methods for mypy compatibility
+* Module `django.models.fields.mixins`: Add `ClassVar` annotations to `OptionsMixin` and
+  `StripMixin` class-level attributes for mypy compatibility
+* Module `django.models.fields.base`: Add `ClassVar` annotations to class-level attributes and
+  explicit type annotations to instance variables for mypy compatibility
+* Module `django.models.query.mixins`: Add `ClassVar` annotations to class-level attributes and fix
+  `get_restore_or_create` return type for mypy compatibility
 
 
 ## v14.11.0 (2026-04-10)
@@ -161,11 +195,13 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.2...14.11.0
 
 ### Minor compatibility breaks
 
-* Module `django.test.mixins`: Replace `num_range: range` with `min_queries: int, max_queries: int` in `assertNumQueriesIn`
+* Module `django.test.mixins`: Replace `num_range: range` with `min_queries: int, max_queries: int`
+  in `assertNumQueriesIn`
 
 ### Fix and enhancements
 
-* Drop Python 3.11 from CI matrix (Django 6 requires Python 3.12+); Python 3.11 remains supported on a best-effort basis
+* Drop Python 3.11 from CI matrix (Django 6 requires Python 3.12+); Python 3.11 remains supported on
+  a best-effort basis
 * Bump `requests` to 2.33.0 and `pygments` to 2.20.0
 
 
@@ -180,10 +216,13 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.10.1...14.10.2
 
 ### Fix and enhancements
 
-* Module `django.models.mixins`: Update all `save()` overrides to keyword-only signatures for Django 6 compatibility; add `@override` decorators
-* Module `django.models.mixins`: Fix `UpdatePreconditionsMixin._do_update` for Django 6.0+ `returning_fields` parameter
+* Module `django.models.mixins`: Update all `save()` overrides to keyword-only signatures for Django
+  6 compatibility; add `@override` decorators
+* Module `django.models.mixins`: Fix `UpdatePreconditionsMixin._do_update` for Django 6.0+
+  `returning_fields` parameter
 * Add `typing_extensions` as dependency for Python < 3.12 (provides `override`)
-* Move pylint disables from global config to file level; add missing docstrings; rename `ex` → `exc` throughout
+* Move pylint disables from global config to file level; add missing docstrings; rename `ex` → `exc`
+  throughout
 
 
 ## v14.10.1 (2026-03-29)
@@ -211,9 +250,11 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.2...14.10.0
 
 * Module `datetime`: Add `set_default_tz` and `timedelta_to_time`
 * Module `django.http`: Add `set_attachment`
-* Module `django.templatetags`: Add `exif` filters and `duration` filter; add `humanize.pluralize` filter
+* Module `django.templatetags`: Add `exif` filters and `duration` filter; add `humanize.pluralize`
+  filter
 * Module `humanize`: Add `pluralize`
-* Module `multimedia.exif.photo`: Add `SensingMethod` (including value 0, not in spec but found in practice) and `WhiteBalance`
+* Module `multimedia.exif.photo`: Add `SensingMethod` (including value 0, not in spec but found in
+  practice) and `WhiteBalance`
 
 ### Fix and enhancements
 
@@ -249,7 +290,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.9.0...14.9.1
 ### Fix and enhancements
 
 * Fix Windows incompatibilities to prevent import-time crashes
-* Module `filesystem`: Defer `import magic` into `file_mime()` with `ImportWarning` fallback when `python-magic` / `libmagic` is unavailable
+* Module `filesystem`: Defer `import magic` into `file_mime()` with `ImportWarning` fallback when
+  `python-magic` / `libmagic` is unavailable
 * Fix linter issues
 
 
@@ -259,7 +301,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.7...14.9.0
 
 ### Minor compatibility breaks
 
-* Module `logging`: `ColorizeFilter` removed — replace with `ColorizeFormatter` (wraps a `Formatter`, attach to handlers instead of loggers)
+* Module `logging`: `ColorizeFilter` removed — replace with `ColorizeFormatter` (wraps a
+  `Formatter`, attach to handlers instead of loggers)
 
 ### Features
 
@@ -386,22 +429,28 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.8.0...14.8.1
 * Add class `argparse.ChainAction` (argument parsing action)
 * Add function `argparse.separator` (argument parsing type)
 * Add function `arpgarse.env_default` (utility function)
-* Add convenient constants `DIRECTORY_ARGS`, `FILE_ARG`, `REMAINDER_ARG` and `MULTI_ARG()` (`arpgarse` module)
+* Add convenient constants `DIRECTORY_ARGS`, `FILE_ARG`, `REMAINDER_ARG` and `MULTI_ARG()`
+  (`arpgarse` module)
 * Add class `argparse.ArgumentParser` (renamed from `argparse.HelpArgumentParser`)
 * Add class `argparse.ActionArgumentParser`
 * Add TypeAlias `Color`
 * Expose `arpgarse.{ArgumentTypeError,Namespace}` to be convenient (`import argparse` not required)
 * Decorator `decorators.deprecated` now accept a `guideline` argument (default to `''`)
-* Expose `logging.{CRITICAL, ..., NOTSET}`, `logging.{Logger, LogRecord}` to be convenient (`import logging` not required)
-* Add TypedDict `subprocess.CallResult` and use it to type hint functions response (added `exception` key)
-* Function `subprocess.cmd`: Now logging to `pytoolbox.subprocess.cmd.<binary>` unless log is defined
-* Function `subprocess.cmd`: Log can be a function, a `Logger` or a `str`. `None` will be mapped to default behavior
+* Expose `logging.{CRITICAL, ..., NOTSET}`, `logging.{Logger, LogRecord}` to be convenient
+  (`import logging` not required)
+* Add TypedDict `subprocess.CallResult` and use it to type hint functions response (added
+  `exception` key)
+* Function `subprocess.cmd`: Now logging to `pytoolbox.subprocess.cmd.<binary>` unless log is
+  defined
+* Function `subprocess.cmd`: Log can be a function, a `Logger` or a `str`. `None` will be mapped to
+  default behavior
 
 ### Fix and enhancements
 
 * Favor `type(obj)` over `obj.__class__`
 * Class `exceptions.MessageMixin`: Now show missing attributes (attributes can be properties too)
-* Class `exceptions.CalledProcessError`: Add property `cmd_short` and prevent exposing sensitive data in `__str__` or `__repr__`
+* Class `exceptions.CalledProcessError`: Add property `cmd_short` and prevent exposing sensitive
+  data in `__str__` or `__repr__`
 * Fix calls to `yaml.dump` (as its now `ruamel.yaml`)
 * Various improvements such as type hints, documentation, tests
 
@@ -471,9 +520,11 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.7.0
   * Function `datetime.datetime_to_str`
   * Function `datetime.str_to_datetime`
 * Method `module.All.diff`: Drop argument `to_type`
-* Function `network.http.download_ext_multi`: Argument `resources` must now be an iterable of `Resource`
+* Function `network.http.download_ext_multi`: Argument `resources` must now be an iterable of
+  `Resource`
 * Functions `validation.valid_*`: Do not accept `None` anymore
-* Rename function `filesystem.recursive_copy` to `filesystem.copy_recursive` (keep a deprecated alias)
+* Rename function `filesystem.recursive_copy` to `filesystem.copy_recursive` (keep a deprecated
+  alias)
 
 ### Deprecations
 
@@ -505,11 +556,15 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.6.0...14.7.0
   * Function `network.http.download_ext`
   * Function `network.http.iter_download_core`
   * Function `network.http.iter_download_to_file`
-* Module `multimedia.ffmpeg`: Enhance it and make it compatible with ffmpeg 6.1 (See commit d026afdbbe86becbccb3c75d2a1830052834cd0a)
-* Function `filesystem.copy_recursive`: Cover it with tests (See commit f4d5bd11992525d9fe08c56c668c254e7093f30d)
-* Class `network.smpte2022.base`: Make it Python 3.9+ compatible (by Július Milan <julius.milan.22@gmail.com>)
+* Module `multimedia.ffmpeg`: Enhance it and make it compatible with ffmpeg 6.1 (See commit
+  d026afdbbe86becbccb3c75d2a1830052834cd0a)
+* Function `filesystem.copy_recursive`: Cover it with tests (See commit
+  f4d5bd11992525d9fe08c56c668c254e7093f30d)
+* Class `network.smpte2022.base`: Make it Python 3.9+ compatible (by Július Milan
+  <julius.milan.22@gmail.com>)
 * Class `types.StrongTypedMixin`: Make it compatible with future style annotations
-* Module `multimedia.ffmpeg.miscellaneous`: Consolidate code (move common attributes to the parent class)
+* Module `multimedia.ffmpeg.miscellaneous`: Consolidate code (move common attributes to the parent
+  class)
 * Class `multimedia.ffmpeg.miscellaneous.Media`: Refactor it ()
 * Refresh `__all__` and don't use magic when not necessary
 * Switch from Travis CI to GitHub Actions
@@ -611,7 +666,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.1.0...14.2.0
 
 * Drop Python 3.6 compatibility
 * Function `filesystem.from_template`: Make Jinja2 template strict with undefined values
-* Module `argparse`: Return `pathlib.Path` instead of `str` (See commit 6acf8d13e2739a6e564b325bc035e33676c9ff07)
+* Module `argparse`: Return `pathlib.Path` instead of `str` (See commit
+  6acf8d13e2739a6e564b325bc035e33676c9ff07)
 
 ### Features
 
@@ -640,7 +696,8 @@ Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.0.2...14.1.0
 
 ## Fix and enhancements
 
-* Module `django.signals`: Fix `strip_strings_and_validate_model` not importable from `django.signals`
+* Module `django.signals`: Fix `strip_strings_and_validate_model` not importable from
+  `django.signals`
 * Module `django.models.fields`: Fix `StripMixin` not fair play with inheritance
 
 
@@ -783,7 +840,8 @@ Thanks to \@TobbeEdgeware!
 
 ### Minor compatibility breaks
 
-* Function `serialization.object_to_dict`: Rely almost only on schema to produce output structure (hint: use list in schema)
+* Function `serialization.object_to_dict`: Rely almost only on schema to produce output structure
+  (hint: use list in schema)
 
 
 ## Fix and enhancements
@@ -797,8 +855,10 @@ Thanks to \@TobbeEdgeware!
 ## Fix and enhancements
 
 * Function `aws.s3.remove_objects`: Add callback argument to make it more flexible.
-* Function `multimedia.image.remove_transparency`: Enhance code (remove `force_rgb arg` from 13.0.2).
-* Function `serialization.object_to_dict`: Add `iterable_callback` to customize container type of iterables.
+* Function `multimedia.image.remove_transparency`: Enhance code (remove `force_rgb arg` from
+  13.0.2).
+* Function `serialization.object_to_dict`: Add `iterable_callback` to customize container type of
+  iterables.
 
 
 ## v13.0.0
@@ -885,7 +945,8 @@ Thanks to \@TobbeEdgeware!
 * Add `functions multimedia.image.PIL.{apply,get}_orientation`
 * Add constant `ORIENTATION_TO_ROTATION` to `multimedia.exif.image.Image`
 * Make function `multimedia.image.PIL.apply_orientation` more generic
-* Make function `multimedia.image.PIL.apply_orientation` defaulting to nothing if orientation is crazy
+* Make function `multimedia.image.PIL.apply_orientation` defaulting to nothing if orientation is
+  crazy
 * Make function `multimedia.image.PIL.get_orientation` more robust
 * Class `exceptions.MessageMixin`: Fix pickle recursion error
 
@@ -1032,7 +1093,8 @@ Thanks to \@TobbeEdgeware!
 * Replace `nose.tools` by `pytoolbox.unittest.asserts`
 * Make `RequestMixin` more transparent
 * `network.http.download_ext`: Pass `kwargs` to `iter_download_to_file`
-* `django.views.mixins.AddRequestToFormKwargsMixin`: Check form "handles" request as `kwarg` based on its class
+* `django.views.mixins.AddRequestToFormKwargsMixin`: Check form "handles" request as `kwarg` based
+  on its class
 
 
 ## v11.0.0
@@ -1046,7 +1108,8 @@ Thanks to \@TobbeEdgeware!
 ### Minor compatibility breaks
 
 * Prefer path over filename (arguments convention)
-* Replace `MapUniqueTogetherMixin` + `MapUniqueTogetherIntegrityErrorToValidationErrorMixin` by `BetterUniquenessErrorsMixin`.
+* Replace `MapUniqueTogetherMixin` + `MapUniqueTogetherIntegrityErrorToValidationErrorMixin` by
+  `BetterUniquenessErrorsMixin`.
 * Move `CancellableDeleteView` to `django.views.base`
 
 ### Features
@@ -1442,7 +1505,8 @@ Thanks to \@TobbeEdgeware!
 ### Features
 
 * Add `console.choice()` (by kyouko-taiga)
-* Add function `serialization.to_file` and use it to improve `PickeableObject` and `JsoneableObject` write methods.
+* Add function `serialization.to_file` and use it to improve `PickeableObject` and `JsoneableObject`
+  write methods.
 
 ### Fixes and enhancements
 
@@ -1487,7 +1551,8 @@ Thanks to \@TobbeEdgeware!
 * Fix `setup.py` to avoid removing tests from packages list if it did not exist.
 * Add kwargs to `serialization.object2json` -> `json.dumps`
 * `map_marker` : Convert to unicode sooner (to handle special field class)
-* `django.forms.SmartModelForm` : Attributes & replacement class applied depending of the form field's class
+* `django.forms.SmartModelForm` : Attributes & replacement class applied depending of the form
+  field's class
 * Add fill option to `collections.pygal_deque.list()`
 * Replace range by xrange, values by itervalues, ...
 * Handle `datetime.date` class (function `datetime.dateime2epoch`)
