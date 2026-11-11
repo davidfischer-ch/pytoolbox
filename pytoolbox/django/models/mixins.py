@@ -328,13 +328,9 @@ class CallFieldsPreSaveMixin(_ModelMixin):
         computed. A deferred field's ``pre_save`` would load a value the save does not write.
         """
         deferred = self.get_deferred_fields()
-        fields = (
-            f
-            for f in self._meta.local_concrete_fields
-            if not f.primary_key and not f.generated and f.attname not in deferred
-        )
-        for field in fields:
-            field.pre_save(self, self._state.adding)
+        for field in self._meta.local_concrete_fields:
+            if not field.primary_key and not field.generated and field.attname not in deferred:
+                field.pre_save(self, self._state.adding)
         super().save(
             force_insert=force_insert,
             force_update=force_update,
@@ -631,10 +627,20 @@ class ValidateOnSaveMixin(_ModelMixin):
         update_fields: Iterable[str] | None = None,
         **extra_kwargs: Any,
     ) -> None:
-        """Call :meth:`full_clean` before saving if ``validate_on_save`` is set."""
+        """
+        Call :meth:`full_clean` before saving if ``validate_on_save`` is set, deferred fields aside.
+
+        A deferred field's stored value was not read, and validating it would load it.
+        """
         validate = extra_kwargs.pop('validate', None)
         if validate if validate is not None else self.validate_on_save:
-            self.full_clean(**self.validate_on_save_kwargs)
+            kwargs = dict(self.validate_on_save_kwargs)
+            if deferred := self.get_deferred_fields():
+                kwargs['exclude'] = [
+                    *kwargs.get('exclude', ()),
+                    *(f.name for f in self._meta.concrete_fields if f.attname in deferred),
+                ]
+            self.full_clean(**kwargs)
         super().save(
             force_insert=force_insert,
             force_update=force_update,

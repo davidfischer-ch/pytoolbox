@@ -76,9 +76,44 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
 
         full_clean = MagicMock()
 
+        def get_deferred_fields(self) -> set[str]:
+            """Return no deferred field."""
+            return set()
+
     obj = TestObj()
     obj.save()
     obj.full_clean.assert_called_once_with()
+
+
+def test_validate_on_save_mixin_leaves_deferred_fields_out() -> None:
+    """save() validates without the deferred fields, by name: their stored values were not read."""
+    title = MagicMock(attname='title')
+    title.name = 'title'
+    body = MagicMock(attname='body')
+    body.name = 'body'
+    author = MagicMock(attname='author_id')
+    author.name = 'author'
+
+    class Base:
+        """Test class."""
+
+        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+            """Save method implementation."""
+
+    class TestObj(mixins.ValidateOnSaveMixin, Base):
+        """Test object with ValidateOnSaveMixin, two of its fields deferred."""
+
+        _meta = MagicMock(concrete_fields=[title, body, author])
+        full_clean = MagicMock()
+        validate_on_save_kwargs = {'exclude': ['title']}
+
+        def get_deferred_fields(self) -> set[str]:
+            """Return the deferred fields' attnames."""
+            return {'author_id', 'body'}
+
+    obj = TestObj()
+    obj.save()
+    obj.full_clean.assert_called_once_with(exclude=['title', 'body', 'author'])
 
 
 def test_validate_on_save_mixin_skips_when_disabled() -> None:
@@ -95,6 +130,10 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
 
         validate_on_save = False
         full_clean = MagicMock()
+
+        def get_deferred_fields(self) -> set[str]:
+            """Return no deferred field."""
+            return set()
 
     obj = TestObj()
     obj.save()
@@ -114,6 +153,10 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
         """Test object with ValidateOnSaveMixin."""
 
         full_clean = MagicMock()
+
+        def get_deferred_fields(self) -> set[str]:
+            """Return no deferred field."""
+            return set()
 
     obj = TestObj()
     obj.save(validate=False)
@@ -299,7 +342,7 @@ def test_call_fields_pre_save_mixin_skips_generated_fields() -> None:
 def test_call_fields_pre_save_mixin_skips_deferred_fields() -> None:
     """A deferred field is skipped: its pre_save would load a value the save does not write."""
     loaded = MagicMock(primary_key=False, generated=False, attname='title')
-    deferred = MagicMock(primary_key=False, generated=False, attname='embedding')
+    deferred = MagicMock(primary_key=False, generated=False, attname='body')
 
     class Base:
         """Test class."""
@@ -315,7 +358,7 @@ def test_call_fields_pre_save_mixin_skips_deferred_fields() -> None:
 
         def get_deferred_fields(self) -> set[str]:
             """Return the deferred field's attname."""
-            return {'embedding'}
+            return {'body'}
 
     obj = TestObj()
     obj.save()
