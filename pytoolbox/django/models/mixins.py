@@ -81,6 +81,7 @@ class AlwaysUpdateFieldsMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Add ``always_update_fields`` to ``update_fields`` before saving."""
         if force_update or update_fields:
@@ -91,6 +92,7 @@ class AlwaysUpdateFieldsMixin(_ModelMixin):
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
 
 
@@ -105,6 +107,7 @@ class AutoForceInsertMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Set ``force_insert`` from ``_state.adding`` when not explicitly given."""
         if force_insert is None:
@@ -114,6 +117,7 @@ class AutoForceInsertMixin(_ModelMixin):
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
 
 
@@ -141,6 +145,7 @@ class AutoRemovePKFromUpdateFieldsMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Remove unchanged primary key from ``update_fields`` to avoid Django errors."""
         if update_fields and self._meta.pk.attname in update_fields:
@@ -156,6 +161,7 @@ class AutoRemovePKFromUpdateFieldsMixin(_ModelMixin):
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
         self.previous_pk = self.pk
 
@@ -202,6 +208,7 @@ class AutoUpdateFieldsMixin(_ModelMixin):
         force_update: bool | None = None,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Populate ``update_fields`` from tracked field assignments."""
         if not self._state.adding and not force_insert:
@@ -214,6 +221,7 @@ class AutoUpdateFieldsMixin(_ModelMixin):
             force_update=bool(force_update),
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
         self._setted_fields = set()
 
@@ -250,6 +258,7 @@ class BetterUniquenessErrorsMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Convert uniqueness :class:`~django.db.utils.IntegrityError` to validation errors."""
         try:
@@ -258,6 +267,7 @@ class BetterUniquenessErrorsMixin(_ModelMixin):
                 force_update=force_update,
                 using=using,
                 update_fields=update_fields,
+                **kwargs,
             )
         except IntegrityError as exc:
             if self.unique_from_integrity_error:
@@ -320,6 +330,7 @@ class CallFieldsPreSaveMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """
         Call each writable non-PK field's :meth:`pre_save` before saving, deferred fields aside.
@@ -336,6 +347,7 @@ class CallFieldsPreSaveMixin(_ModelMixin):
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
 
 
@@ -386,6 +398,7 @@ class SaveInstanceFilesMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Save the instance before file fields so ``upload_to`` gets a valid PK."""
         saved_fields = {}
@@ -399,6 +412,7 @@ class SaveInstanceFilesMixin(_ModelMixin):
                 force_update=force_update,
                 using=using,
                 update_fields=update_fields,
+                **kwargs,
             )
             for name, value in saved_fields.items():
                 setattr(self, name, value)
@@ -408,6 +422,7 @@ class SaveInstanceFilesMixin(_ModelMixin):
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
 
 
@@ -467,13 +482,14 @@ class UpdatePreconditionsMixin(_ModelMixin):
         **extra_kwargs: Any,
     ) -> None:
         """Save with precondition guards, raising on failed preconditions."""
-        _, _, has_preconditions = self.pop_preconditions(**extra_kwargs)
+        _, kwargs, has_preconditions = self.pop_preconditions(**extra_kwargs)
         try:
             super().save(
                 force_insert=force_insert,
                 force_update=force_update,
                 using=using,
                 update_fields=update_fields,
+                **kwargs,
             )
         except _ModelNotUpdated:
             if has_preconditions:
@@ -537,6 +553,7 @@ class StateTransitionEventsMixin(_ModelMixin):
         force_update: bool = False,
         using: str | None = None,
         update_fields: Iterable[str] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Save and fire post-state-transition signal if state was updated."""
         super().save(
@@ -544,6 +561,7 @@ class StateTransitionEventsMixin(_ModelMixin):
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **kwargs,
         )
         if 'state' in (update_fields or ['state']):
             self.on_post_state_transition((), {'update_fields': update_fields})
@@ -634,18 +652,19 @@ class ValidateOnSaveMixin(_ModelMixin):
         """
         validate = extra_kwargs.pop('validate', None)
         if validate if validate is not None else self.validate_on_save:
-            kwargs = dict(self.validate_on_save_kwargs)
+            clean_kwargs = dict(self.validate_on_save_kwargs)
             if deferred := self.get_deferred_fields():
-                kwargs['exclude'] = [
-                    *kwargs.get('exclude', ()),
+                clean_kwargs['exclude'] = [
+                    *clean_kwargs.get('exclude', ()),
                     *(f.name for f in self._meta.concrete_fields if f.attname in deferred),
                 ]
-            self.full_clean(**kwargs)
+            self.full_clean(**clean_kwargs)
         super().save(
             force_insert=force_insert,
             force_update=force_update,
             using=using,
             update_fields=update_fields,
+            **extra_kwargs,
         )
 
 

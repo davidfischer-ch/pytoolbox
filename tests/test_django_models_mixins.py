@@ -1167,3 +1167,53 @@ def test_related_model_mixin_delegates() -> None:
 
     result = TestObj.get_related_manager('author')
     assert result is mock_model._default_manager
+
+
+# --- Keywords passed on ---------------------------------------------------------------------------
+
+
+class _SaveRecorder:
+    """The next class of a save chain: records what reaches it, with what the mixins read."""
+
+    _meta = MagicMock(fields=[], local_concrete_fields=[], pk=MagicMock(attname='id'))
+    always_update_fields = ()
+    full_clean = MagicMock()
+    pk = 1
+    state = 'done'
+
+    def __init__(self) -> None:
+        self._state = MagicMock(adding=False)
+        self.saved: dict = {}
+
+    def get_deferred_fields(self) -> set[str]:
+        """Return no deferred field."""
+        return set()
+
+    def on_post_state_transition(self, *args, **kwargs) -> None:
+        """Fire nothing."""
+
+    def save(self, **kwargs) -> None:
+        """Record the keywords received."""
+        self.saved = kwargs
+
+
+@pytest.mark.parametrize(
+    'mixin',
+    [
+        mixins.AlwaysUpdateFieldsMixin,
+        mixins.AutoForceInsertMixin,
+        mixins.AutoRemovePKFromUpdateFieldsMixin,
+        mixins.AutoUpdateFieldsMixin,
+        mixins.BetterUniquenessErrorsMixin,
+        mixins.CallFieldsPreSaveMixin,
+        mixins.SaveInstanceFilesMixin,
+        mixins.StateTransitionEventsMixin,
+        mixins.UpdatePreconditionsMixin,
+        mixins.ValidateOnSaveMixin,
+    ],
+)
+def test_a_save_mixin_passes_on_the_keywords_it_does_not_take(mixin: type) -> None:
+    """A keyword reaches the next save: `validate` reaches ValidateOnSaveMixin behind the others."""
+    row = type('Row', (mixin, _SaveRecorder), {})()
+    row.save(update_fields=['name'], marker=True)
+    assert row.saved['marker'] is True
