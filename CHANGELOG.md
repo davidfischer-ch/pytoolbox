@@ -3,6 +3,18 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.12.6 (2026-11-14)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.5...14.12.6
+
+### Fix and enhancements
+
+Module `django.models.mixins`:
+
+* Fix the save mixins dropping the keywords they do not take: `save(validate=False)` reaches
+  `ValidateOnSaveMixin` behind them
+
+
 ## v14.12.5 (2026-11-11)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.4...14.12.5
