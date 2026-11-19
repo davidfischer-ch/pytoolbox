@@ -5,7 +5,14 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+from datatableview.views import DatatableView
+from django.contrib.auth.models import User
+from django.test import RequestFactory
+
 from pytoolbox.django_datatable_view.views import mixins
+
+pytestmark = pytest.mark.filterwarnings('ignore:MultiTablesMixin is deprecated:DeprecationWarning')
 
 
 def test_multi_tables_get_datatable_name_from_arg() -> None:
@@ -130,33 +137,36 @@ def test_multi_tables_get_queryset_bad_name_returns_none() -> None:
     assert view.get_queryset() == 'empty_qs'
 
 
-def test_multi_tables_get_context_data() -> None:
-    """Replaces the single 'datatable' context key with a 'datatables' list of tuples."""
+def test_multi_tables_builds_each_datatable_on_a_datatable_view() -> None:
+    """On a DatatableView, each datatable gets its own queryset and its own AJAX URL."""
 
-    class Base:
-        """Test class."""
+    class UsersView(mixins.MultiTablesMixin, DatatableView):
+        """View listing the active users and the staff."""
 
-        def get_context_data(self, **kwargs):  # pylint:disable=unused-argument
-            """Get context data implementation."""
-            return {'datatable': 'default_table', 'extra': 'data'}
+        model = User
+        multi_datatables = (('default', 'Active'), ('staff', 'Staff'))
 
-    class FakeView(mixins.MultiTablesMixin, Base):
-        """Test class."""
+        def get_default_queryset(self, queryset):
+            """Return the active users."""
+            return queryset.filter(is_active=True)
 
-        multi_datatables = (('default', 'Default Table'),)
-        request = MagicMock()
+        def get_staff_queryset(self, queryset):
+            """Return the staff."""
+            return queryset.filter(is_staff=True)
 
-    view = FakeView()
-    view.request.path = '/view/'
-    view.request.GET = {}
-    view.datatable_structure_class = MagicMock()
+    response = UsersView.as_view()(RequestFactory().get('/users/'))
+    tables = {name: table for name, _, table in response.context_data['datatables']}
+    assert tables['default'].url == '/users/?datatable-name=default'
+    assert tables['staff'].url == '/users/?datatable-name=staff'
+    assert str(tables['default'].object_list.query) == str(
+        User.objects.filter(is_active=True).query
+    )
+    assert str(tables['staff'].object_list.query) == str(User.objects.filter(is_staff=True).query)
 
-    context = view.get_context_data()
-    assert 'datatables' in context
-    assert 'datatable' not in context  # popped
-    assert context['extra'] == 'data'
-    assert len(context['datatables']) == 1
-    name, label, table = context['datatables'][0]
-    assert name == 'default'
-    assert label == 'Default Table'
-    assert table == 'default_table'
+
+def test_multi_tables_subclass_is_deprecated() -> None:
+    """Subclassing MultiTablesMixin emits a DeprecationWarning naming its replacement."""
+    with pytest.warns(DeprecationWarning, match='MultipleDatatableMixin'):
+
+        class FakeView(mixins.MultiTablesMixin):  # pylint:disable=unused-variable
+            """Test view with MultiTablesMixin."""
