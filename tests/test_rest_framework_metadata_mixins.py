@@ -1,74 +1,47 @@
 """Tests for the rest_framework.metadata.mixins module."""
 
-# pylint:disable=too-few-public-methods
 from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
 from rest_framework import serializers
+from rest_framework.metadata import SimpleMetadata
 
 from pytoolbox.rest_framework.metadata import mixins
 
-
-def test_exclude_related_choices_non_related_field() -> None:
-    """Non-related fields pass through get_field_info unchanged."""
-
-    class Base:
-        """Base class providing get_field_info."""
-
-        def get_field_info(self, field):  # pylint:disable=unused-argument
-            """Get field info implementation."""
-            return {'type': 'string'}
-
-    class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
-        """Fake metadata class combining mixin with base."""
-
-    metadata = FakeMetadata()
-    field = serializers.CharField()
-    result = metadata.get_field_info(field)
-    assert result == {'type': 'string'}
+pytestmark = pytest.mark.filterwarnings(
+    'ignore:ExcludeRelatedChoicesMixin is deprecated:DeprecationWarning'
+)
 
 
-def test_exclude_related_choices_related_field() -> None:
-    """Related fields have their choices temporarily hidden, then class is restored."""
-
-    class Base:
-        """Base class providing get_field_info."""
-
-        def get_field_info(self, field):
-            """Test method."""
-            has_choices = hasattr(field, 'choices')
-            return {'type': 'related', 'has_choices': has_choices}
-
-    class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
-        """Fake metadata class combining mixin with base."""
-
-    metadata = FakeMetadata()
-    field = serializers.PrimaryKeyRelatedField(queryset=MagicMock())
-    result = metadata.get_field_info(field)
-    assert result['type'] == 'related'
-    # The field's class should be restored after get_field_info
-    assert isinstance(field, serializers.PrimaryKeyRelatedField)
+@pytest.mark.parametrize(
+    'field',
+    [
+        serializers.PrimaryKeyRelatedField(queryset=MagicMock()),
+        serializers.PrimaryKeyRelatedField(many=True, queryset=MagicMock()),
+    ],
+)
+def test_exclude_related_choices_omits_the_choices_of_a_related_field(field) -> None:
+    """A related field has no choices."""
+    assert 'choices' not in _metadata().get_field_info(field)
 
 
-def test_exclude_related_choices_restores_class_on_error() -> None:
-    """Field's original class is restored even when get_field_info raises an exception."""
+def test_exclude_related_choices_subclass_is_deprecated() -> None:
+    """Subclassing ExcludeRelatedChoicesMixin emits a DeprecationWarning naming its replacement."""
+    with pytest.warns(DeprecationWarning, match='SimpleMetadata'):
 
-    class Base:
-        """Base class that raises error in get_field_info."""
+        class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, SimpleMetadata):  # pylint:disable=unused-variable
+            """Fake metadata class combining mixin with base."""
 
-        def get_field_info(self, field):
-            """Test method."""
-            raise RuntimeError('boom')
 
-    class FakeMetadata(mixins.ExcludeRelatedChoicesMixin, Base):
-        """Fake metadata class combining mixin with base."""
+# --- Internals ------------------------------------------------------------------------------------
 
-    metadata = FakeMetadata()
-    field = serializers.PrimaryKeyRelatedField(queryset=MagicMock())
-    original_class = type(field)
-    try:
-        metadata.get_field_info(field)
-    except RuntimeError:
-        pass
-    assert isinstance(field, original_class)
+
+def _metadata() -> SimpleMetadata:
+    """Return a metadata excluding the choices of related fields."""
+
+    class Metadata(mixins.ExcludeRelatedChoicesMixin, SimpleMetadata):
+        """Metadata excluding the choices of related fields."""
+
+    return Metadata()

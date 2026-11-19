@@ -8,10 +8,11 @@ Mix-ins for building your own
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, override
+import warnings
+from typing import TYPE_CHECKING, Any
 
-from rest_framework import serializers
-from rest_framework.metadata import SimpleMetadata
+if TYPE_CHECKING:
+    from rest_framework.metadata import SimpleMetadata
 
 __all__ = ['ExcludeRelatedChoicesMixin']
 
@@ -21,29 +22,18 @@ _MetadataMixin = SimpleMetadata if TYPE_CHECKING else object
 
 
 class ExcludeRelatedChoicesMixin(_MetadataMixin):
-    """Do not includes related fields to avoid having choices with hundreds instances."""
+    """
+    Empty mix-in: :class:`~rest_framework.metadata.SimpleMetadata` omits the choices of related
+    fields, which may list hundreds of instances.
 
-    related_fields = (serializers.RelatedField, serializers.ManyRelatedField)
+    .. deprecated:: 14.13.0
+       Use :class:`~rest_framework.metadata.SimpleMetadata` instead.
+    """
 
-    @override
-    def get_field_info(self, field: serializers.Field) -> dict[str, Any]:
-        """Return field info, stripping choices from related fields."""
-        if hasattr(field, 'choices') and isinstance(field, self.related_fields):
-            field_class: type[serializers.Field] = type(field)
-
-            class HaveNoChoicesProxy(field_class):  # type: ignore[valid-type,misc]
-                """Proxy that hides the choices property from related fields."""
-
-                @property
-                def choices(self) -> None:
-                    """Raise AttributeError to hide choices from metadata."""
-                    raise AttributeError
-
-            try:
-                # Swapping __class__ in and out is what hides `choices` for one call; no checker can
-                # follow a class built from a variable.
-                field.__class__ = HaveNoChoicesProxy  # pyrefly: ignore[bad-argument-type]
-                return super().get_field_info(field)
-            finally:
-                field.__class__ = field_class  # pyrefly: ignore[bad-argument-type]
-        return super().get_field_info(field)
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        warnings.warn(
+            'ExcludeRelatedChoicesMixin is deprecated; use rest_framework.metadata.SimpleMetadata.',
+            DeprecationWarning,
+            stacklevel=2,
+        )

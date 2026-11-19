@@ -6,24 +6,27 @@ Extra `fields <http://www.django-rest-framework.org/api-guide/fields/>`_ for bui
 
 from __future__ import annotations
 
-from typing import Any, override
+import warnings
+from typing import Any
 
 from rest_framework import serializers
-
-from pytoolbox.django.core.validators import EmptyValidator
 
 __all__ = ['StripCharField']
 
 
 class StripCharField(serializers.CharField):
-    """A :class:`~rest_framework.serializers.CharField` that strips whitespace."""
+    """
+    A :class:`~rest_framework.serializers.CharField`, which strips whitespace and rejects a blank
+    value.
+
+    .. deprecated:: 14.13.0
+       Use :class:`~rest_framework.serializers.CharField` instead, which does both by default.
+    """
 
     def __init__(self, **kwargs: Any) -> None:
+        warnings.warn(
+            'StripCharField is deprecated; use rest_framework.serializers.CharField.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
         super().__init__(**kwargs)
-        self.validators.append(EmptyValidator(message=self.error_messages['blank']))
-
-    @override
-    def to_internal_value(self, data: Any) -> str:
-        """Return the stripped value of the incoming data."""
-        data = super().to_internal_value(data)
-        return data.strip() if data else data

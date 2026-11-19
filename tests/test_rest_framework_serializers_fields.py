@@ -3,45 +3,28 @@
 from __future__ import annotations
 
 import pytest
+from rest_framework.exceptions import ValidationError
 
 from pytoolbox.rest_framework.serializers.fields import StripCharField
+
+pytestmark = pytest.mark.filterwarnings('ignore:StripCharField is deprecated:DeprecationWarning')
 
 
 def test_strip_char_field_strips_whitespace() -> None:
     """Leading and trailing whitespace is stripped from input values."""
     field = StripCharField()
-    assert field.to_internal_value('  hello  ') == 'hello'
-    assert field.to_internal_value('no-spaces') == 'no-spaces'
-
-
-def test_strip_char_field_empty_string() -> None:
-    """Empty strings pass through without error."""
-    field = StripCharField()
-    assert field.to_internal_value('') == ''
-
-
-def test_strip_char_field_has_empty_validator() -> None:
-    """EmptyValidator is automatically included in the field's validators."""
-    field = StripCharField()
-    from pytoolbox.django.core.validators import EmptyValidator
-
-    assert any(isinstance(v, EmptyValidator) for v in field.validators)
-
-
-def test_blank_choice_passes_the_empty_validator() -> None:
-    """A ModelSerializer's ChoiceField for a blank StripCharField runs it on '', and accepts it."""
-    from rest_framework.fields import ChoiceField
-
-    from pytoolbox.django.core.validators import EmptyValidator
-
-    field = ChoiceField(choices=['a'], allow_blank=True, validators=[EmptyValidator()])
-    assert field.run_validation('') == ''
+    assert field.run_validation('  hello  ') == 'hello'
+    assert field.run_validation('no-spaces') == 'no-spaces'
 
 
 def test_strip_char_field_rejects_blank() -> None:
-    """White-space-only input fails validation via the EmptyValidator."""
-    from rest_framework.exceptions import ValidationError as DRFValidationError
+    """A white-space-only value fails validation with the blank error."""
+    with pytest.raises(ValidationError) as error:
+        StripCharField().run_validation('   ')
+    assert error.value.get_codes() == ['blank']
 
-    field = StripCharField()
-    with pytest.raises(DRFValidationError):
-        field.run_validators('   ')
+
+def test_strip_char_field_is_deprecated() -> None:
+    """Creating a StripCharField emits a DeprecationWarning naming its replacement."""
+    with pytest.warns(DeprecationWarning, match='CharField'):
+        StripCharField()
