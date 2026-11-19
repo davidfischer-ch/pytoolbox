@@ -8,6 +8,7 @@ import inspect
 import warnings
 from importlib import machinery
 from typing import Any, override
+from unittest import mock
 
 import pytest
 
@@ -38,7 +39,7 @@ def test_an_override_of_the_old_name_is_reached_through_the_new_one_with_a_warni
     with pytest.warns(DeprecationWarning) as record:
 
         class Legacy(Base):
-            """Override the old name only."""
+            """A subclass overriding the old name only."""
 
             def old(self) -> list[str]:
                 """Return the base's names and this one."""
@@ -60,7 +61,7 @@ def test_an_override_of_the_new_name_is_reached_through_the_old_one_silently() -
         warnings.simplefilter('error')
 
         class Current(Base):
-            """Override the new name only."""
+            """A subclass overriding the new name only."""
 
             @override
             def new(self) -> list[str]:
@@ -70,25 +71,97 @@ def test_an_override_of_the_new_name_is_reached_through_the_old_one_silently() -
     assert Current().old() == ['current']  # pylint:disable=no-member
 
 
-def test_overrides_of_both_names_are_kept_as_written() -> None:
-    """A class defining both names keeps each of its methods, without a warning."""
-    with warnings.catch_warnings():
-        warnings.simplefilter('error')
+def test_a_class_defining_both_names_is_refused() -> None:
+    """A class defining both names fails at its creation, naming the name to keep."""
+    with pytest.raises(TypeError, match=r'Both defines both old and new: define only new\.$'):
 
-        class Both(Base):
-            """Override both names, each with its own method."""
+        class Both(Base):  # pylint:disable=unused-variable
+            """A subclass defining the new name, and the old one as a shim calling it."""
 
             def old(self) -> list[str]:
-                """Return this method's name."""
-                return ['old']
+                """Forward to the new name."""
+                return self.new()
 
             @override
             def new(self) -> list[str]:
-                """Return this method's name."""
-                return ['new']
+                """Return the base's names and this one."""
+                return [*super().new(), 'both']
 
-    assert Both().old() == ['old']
-    assert Both().new() == ['new']
+
+def test_a_patch_of_the_defined_name_is_reached_through_the_other_name() -> None:
+    """Patching the name a class defines changes what a caller of either name reaches."""
+    with pytest.warns(DeprecationWarning):
+
+        class Legacy(Base):
+            """A subclass overriding the old name only."""
+
+            def old(self) -> list[str]:
+                """Return this class's name."""
+                return ['legacy']
+
+    class Current(Base):
+        """A subclass overriding the new name only."""
+
+        @override
+        def new(self) -> list[str]:
+            """Return this class's name."""
+            return ['current']
+
+    with (
+        mock.patch.object(Legacy, 'old', return_value=['patched old']),
+        mock.patch.object(Current, 'new', return_value=['patched new']),
+    ):
+        assert Legacy().new() == ['patched old']
+        assert Current().old() == ['patched new']  # pylint:disable=no-member
+
+
+def test_a_base_aliasing_the_old_name_in_its_body_keeps_the_new_one_as_definition() -> None:
+    """A base aliasing its old name in its body passes silently; its old name reaches the new."""
+
+    class AliasBase:
+        """A base declaring its own alias."""
+
+        def __init_subclass__(cls, **kwargs: Any) -> None:
+            super().__init_subclass__(**kwargs)
+            deprecation.alias_renamed_methods(cls, {'old': 'new'})
+
+        def new(self) -> list[str]:
+            """Return this class's name."""
+            return ['base']
+
+        old = new
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+
+        class Current(AliasBase):
+            """A subclass overriding the new name only."""
+
+            @override
+            def new(self) -> list[str]:
+                """Return the base's names and this one."""
+                return [*super().new(), 'current']
+
+    assert Current().old() == ['base', 'current']
+
+    with mock.patch.object(AliasBase, 'new', return_value=['patched']):
+        assert AliasBase().old() == ['patched']
+
+
+def test_a_forwarder_to_a_deleted_name_raises_attribute_error() -> None:
+    """The other name of a deleted method is missing as an attribute, not a broken lookup."""
+
+    class Current(Base):
+        """A subclass overriding the new name only."""
+
+        @override
+        def new(self) -> list[str]:
+            """Return this class's name."""
+            return ['current']
+
+    del Current.new
+
+    assert getattr(Current(), 'old', None) is None
 
 
 def test_a_subclass_of_a_legacy_class_emits_no_second_warning() -> None:
@@ -96,7 +169,7 @@ def test_a_subclass_of_a_legacy_class_emits_no_second_warning() -> None:
     with pytest.warns(DeprecationWarning):
 
         class Legacy(Base):
-            """Override the old name only."""
+            """A subclass overriding the old name only."""
 
             def old(self) -> list[str]:
                 """Return this class's name."""
@@ -106,7 +179,7 @@ def test_a_subclass_of_a_legacy_class_emits_no_second_warning() -> None:
         warnings.simplefilter('error')
 
         class Child(Legacy):
-            """Inherit the legacy override."""
+            """A subclass inheriting the legacy override."""
 
     assert Child().new() == ['legacy']
 
@@ -115,7 +188,7 @@ def test_overrides_under_either_name_chain_through_super() -> None:
     """A mixin on the old name over a class on the new one: each override is reached once."""
 
     class Current(Base):
-        """Override the new name only."""
+        """A subclass overriding the new name only."""
 
         @override
         def new(self) -> list[str]:
@@ -123,7 +196,7 @@ def test_overrides_under_either_name_chain_through_super() -> None:
             return [*super().new(), 'current']
 
     class LegacyMixin:
-        """Override the old name only, outside the base's hierarchy."""
+        """A mixin overriding the old name only, outside the base's hierarchy."""
 
         def old(self) -> list[str]:
             """Return the next class's names and this one."""
@@ -132,7 +205,7 @@ def test_overrides_under_either_name_chain_through_super() -> None:
     with pytest.warns(DeprecationWarning, match='LegacyMixin.old is deprecated'):
 
         class Combined(LegacyMixin, Current):
-            """Stack the legacy mixin over the current override."""
+            """The legacy mixin stacked over the current override."""
 
     assert Combined().new() == ['current', 'legacy']
     assert Combined().old() == ['current', 'legacy']
@@ -143,7 +216,7 @@ def test_the_warning_points_at_the_method_of_a_class_built_by_a_metaclass() -> N
     with pytest.warns(DeprecationWarning) as record:
 
         class Legacy(Base, metaclass=Meta):
-            """Override the old name only, in a class built by a metaclass."""
+            """A subclass overriding the old name only, built by a metaclass."""
 
             def old(self) -> list[str]:
                 """Return this class's name."""
@@ -168,7 +241,7 @@ def test_a_classmethod_under_the_old_name_is_aliased_and_located() -> None:
     with pytest.warns(DeprecationWarning) as record:
 
         class Legacy(ClassBase):
-            """Override the old name only, as a class method."""
+            """A subclass overriding the old name only, as a class method."""
 
             @classmethod
             def old(cls) -> str:
@@ -185,7 +258,7 @@ def test_a_property_under_the_old_name_is_located_at_its_getter() -> None:
     """A property's warning names its getter, also below a cooperative ``__init_subclass__``."""
 
     class Middle(Base):
-        """Add a cooperative ``__init_subclass__`` between the base and its subclasses."""
+        """A cooperative ``__init_subclass__`` between the base and its subclasses."""
 
         def __init_subclass__(cls, **kwargs: Any) -> None:
             super().__init_subclass__(**kwargs)
@@ -193,7 +266,7 @@ def test_a_property_under_the_old_name_is_located_at_its_getter() -> None:
     with pytest.warns(DeprecationWarning) as record:
 
         class Legacy(Middle):
-            """Override the old name only, as a property."""
+            """A subclass overriding the old name only, as a property."""
 
             @property
             def old(self) -> str:
@@ -212,7 +285,7 @@ def test_a_cached_property_under_the_old_name_is_located_at_its_function() -> No
     with pytest.warns(DeprecationWarning) as record:
 
         class Legacy(Base):
-            """Override the old name only, as a cached property."""
+            """A subclass overriding the old name only, as a cached property."""
 
             @functools.cached_property
             def old(self) -> str:
@@ -231,7 +304,7 @@ def test_a_member_without_code_warns_at_the_base_alias_call() -> None:
     with pytest.warns(DeprecationWarning) as record:
 
         class Legacy(Base):
-            """Override the old name only, with a builtin."""
+            """A subclass overriding the old name only, with a builtin."""
 
             old = staticmethod(len)
 
