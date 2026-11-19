@@ -158,7 +158,7 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     """Download *url* to *path*, yielding progress tuples with hash info."""
     position = length = 0
     chunk: bytes | None = None
-    file_hasher = None
+    file_hasher: crypto.Hash | None = None
     file_hash: str | None = None
     downloaded: bool = False
     if force or not path.exists():
@@ -182,8 +182,8 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
                 if hash_algorithm:
                     if file_hasher is None:
                         file_hasher = crypto.new(hash_algorithm)
-                    file_hasher.update(chunk)  # type: ignore[attr-defined]
-                    file_hash = file_hasher.hexdigest()  # type: ignore[attr-defined]
+                    file_hasher.update(chunk)
+                    file_hash = file_hasher.hexdigest()
                 yield position, length, chunk, downloaded, file_hash
                 file = file or path.open('wb')  # pylint: disable=consider-using-with
                 file.write(chunk)

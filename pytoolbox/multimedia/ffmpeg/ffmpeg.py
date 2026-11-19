@@ -18,7 +18,8 @@ from typing import Any, Final
 from pytoolbox import filesystem
 from pytoolbox import subprocess as py_subprocess
 
-from . import encode, ffprobe, miscellaneous  # pylint:disable=unused-import
+from . import ffprobe, miscellaneous
+from .encode import EncodeStatistics
 
 __all__ = ['FRAME_MD5_REGEX', 'FFmpeg', 'MediasArg']
 
@@ -38,7 +39,7 @@ class FFmpeg:
 
     executable: Path = Path('ffmpeg')
     ffprobe_class: type[ffprobe.FFprobe] = ffprobe.FFprobe
-    statistics_class: type[encode.EncodeStatistics] = encode.EncodeStatistics
+    statistics_class: type[EncodeStatistics] = EncodeStatistics
 
     def __init__(
         self,
@@ -72,7 +73,7 @@ class FFmpeg:
         process_poll: bool = True,
         process_kwargs: dict[str, Any] | None = None,
         statistics_kwargs: dict[str, Any] | None = None,
-    ) -> Iterator[encode.EncodeStatistics]:
+    ) -> Iterator[EncodeStatistics]:
         """
         Encode a set of input files input to a set of output files and yields statistics about the
         encoding.

@@ -4,6 +4,7 @@ Collection utilities and data structures.
 
 from __future__ import annotations
 
+import builtins
 import collections
 import math
 from collections.abc import Iterable, Mapping
@@ -151,7 +152,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         if self[0] is None:
             self[0] = first
 
-    def list(self, fill: bool = False) -> list[Any]:
+    def list(self, fill: bool = False) -> builtins.list[Any]:
         """Return the deque as a list, optionally filling ``None`` gaps."""
         self_list = list(self)
         try:

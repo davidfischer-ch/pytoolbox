@@ -71,7 +71,8 @@ class FixFlushMixin(_TestMixin):
         Fix TransactionTestCase tear-down by enabling TRUNCATE CASCADE. Issue with Django 1.8a1.
         """
         assert isinstance(self, TransactionTestCase)
-        for db_name in self._databases_names(include_mirrors=False):  # pyrefly: ignore
+        # pyrefly: ignore[missing-attribute]
+        for db_name in self._databases_names(include_mirrors=False):
             call_command(
                 'flush',
                 verbosity=0,

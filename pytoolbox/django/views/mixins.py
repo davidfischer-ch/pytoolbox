@@ -141,7 +141,8 @@ class InitialMixin(_ViewsMixin):
             try:
                 # The caller's model is expected to expose a per-user manager.
                 manager = model.objects
-                value = manager.for_user(self.request.user).get(pk=value)  # pyrefly: ignore
+                # pyrefly: ignore[missing-attribute]
+                value = manager.for_user(self.request.user).get(pk=value)
             except ValueError:
                 messages.error(self.request, f'{name} - {msg_value}.')
                 return None
@@ -205,7 +206,7 @@ class ValidationErrorsMixin(_ViewsMixin):
     """
 
     @override
-    def form_valid(self, form: forms.Form) -> HttpResponse:
+    def form_valid(self, form: forms.ModelForm[Any]) -> HttpResponse:
         """Catch :class:`~django.core.exceptions.ValidationError` and re-display the form."""
         try:
             return super().form_valid(form)
@@ -217,7 +218,7 @@ class ValidationErrorsMixin(_ViewsMixin):
                     self._handle_unknown_error(form, error)
             return self.form_invalid(form)
 
-    def _handle_unknown_error(self, form: forms.Form, error: ValidationError) -> None:
+    def _handle_unknown_error(self, form: forms.BaseForm, error: ValidationError) -> None:
         form.add_error(NON_FIELD_ERRORS, error)
 
 

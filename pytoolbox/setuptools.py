@@ -5,12 +5,19 @@ Setuptools command extensions.
 from __future__ import annotations
 
 import sys
-from typing import override
+from typing import TYPE_CHECKING, override
 
 import setuptools
 
+# setuptools.Command derives from distutils.core.Command, which exists only through setuptools'
+# import hook and stays unknown to a checker; the TYPE_CHECKING branch names the vendored class.
+if TYPE_CHECKING:
+    from setuptools._distutils.cmd import Command as _Command
+else:
+    _Command = setuptools.Command
 
-class Disabled(setuptools.Command):  # pylint:disable=duplicate-code
+
+class Disabled(_Command):  # pylint:disable=duplicate-code
     """A setuptools command that always exits with an error message."""
 
     description = 'Do not run this.'

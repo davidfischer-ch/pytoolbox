@@ -61,7 +61,8 @@ class AtomicGetRestoreOrCreateMixin(_QueryMixin):
         """Wrap ``get_restore_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
             # Provided by the soft-delete query set to the left of this mixin.
-            return super().get_restore_or_create(*args, **kwargs)  # pyrefly: ignore
+            # pyrefly: ignore[missing-attribute]
+            return super().get_restore_or_create(*args, **kwargs)
 
 
 class CreateModelMethodMixin(_QueryMixin):

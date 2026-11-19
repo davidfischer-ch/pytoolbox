@@ -4,6 +4,7 @@ EXIF tag reading, type conversion, and cleaning utilities.
 
 from __future__ import annotations
 
+import builtins
 import re
 from collections.abc import Callable
 from datetime import datetime, time
@@ -113,7 +114,7 @@ class Tag:
         return raw.get_size() if raw else 0
 
     @decorators.cached_property
-    def type(self) -> type[Any]:
+    def type(self) -> builtins.type[Any]:
         """Return the Python type corresponding to this tag's EXIF type."""
         tag_type = self.metadata.exiv2.try_get_tag_type(self.key)
         if tag_type is None:

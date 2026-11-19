@@ -11,7 +11,7 @@ import string
 from base64 import b64encode
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any, Literal, Protocol, overload
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -19,6 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from . import filesystem
 
 __all__ = [
+    'Hash',
     'new',
     'checksum',
     'generate_rsa_key_pair',
@@ -29,7 +30,29 @@ __all__ = [
 ]
 
 
-def new(algorithm: Callable[..., Any] | str = hashlib.sha256) -> hashlib._Hash:
+class Hash(Protocol):
+    """Hash object of :mod:`hashlib`, or any object hashing data through the same methods."""
+
+    @property
+    def digest_size(self) -> int:
+        """Return the size of the digest, in bytes."""
+
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+
+    def digest(self) -> bytes:
+        """Return the digest of the data hashed so far."""
+
+    def hexdigest(self) -> str:
+        """Return the digest of the data hashed so far, as hexadecimal digits."""
+
+    def update(self, data: bytes, /) -> None:
+        """Hash *data* after the data hashed so far."""
+
+
+# [CONV-PY-ALPHA-ORDER: checksum and guess_algorithm call it]
+def new(algorithm: Callable[..., Any] | str = hashlib.sha256) -> Hash:
     """
     Return an instance of a hash algorithm from :mod:`hashlib` if `algorithm`
     is a string else instantiate algorithm.
@@ -70,8 +93,8 @@ def checksum(
     """
     hasher = new(algorithm)
     for data in filesystem.get_bytes(path_or_data, encoding=encoding, chunk_size=chunk_size):
-        hasher.update(data)  # type: ignore[attr-defined]
-    return hasher.hexdigest()  # type: ignore[attr-defined]
+        hasher.update(data)
+    return hasher.hexdigest()
 
 
 def get_password_generator(
@@ -162,7 +185,7 @@ def guess_algorithm(
     algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: Literal[False] = False,
-) -> set[hashlib._Hash]: ...
+) -> set[Hash]: ...
 
 
 @overload
@@ -171,7 +194,7 @@ def guess_algorithm(
     algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: Literal[True],
-) -> hashlib._Hash | None: ...
+) -> Hash | None: ...
 
 
 def guess_algorithm(
@@ -179,7 +202,7 @@ def guess_algorithm(
     algorithms: Iterable[Callable | str] | None = None,
     *,
     unique: bool = False,
-) -> set[hashlib._Hash] | hashlib._Hash | None:
+) -> set[Hash] | Hash | None:
     """
     Guess the algorithms that have produced the checksum_value, based on its size.
 
@@ -205,7 +228,7 @@ def guess_algorithm(
     {'sha256'}
     """
     digest_size = len(checksum_value) / 2
-    resolved: list[hashlib._Hash]
+    resolved: list[Hash]
     if algorithms:
         resolved = [hashlib.new(a) if isinstance(a, str) else a() for a in algorithms]
     else:
@@ -215,8 +238,8 @@ def guess_algorithm(
             raise NotImplementedError(
                 "Your version of hashlib doesn't implement algorithms_available",
             ) from exc
-    digest_size_to_algorithms: collections.defaultdict[float, set[hashlib._Hash]] = (
-        collections.defaultdict(set)
+    digest_size_to_algorithms: collections.defaultdict[float, set[Hash]] = collections.defaultdict(
+        set
     )
     for algorithm in resolved:
         digest_size_to_algorithms[algorithm.digest_size].add(algorithm)

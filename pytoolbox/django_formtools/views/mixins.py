@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 # Each mixin below completes a form-wizard view and reads its attributes (`steps`, `request`,
 # `storage`, ...); naming the base under TYPE_CHECKING states that for the checker only.
+# django-formtools ships no type information: the checker reads the base as unknown and reports
+# each @override below as a bad-override, ignored at its site.
 _WizardMixin = WizardView if TYPE_CHECKING else object
 
 __all__ = ['CrispyFormsMixin', 'DataTableViewCompositionMixin', 'SerializeStepInstanceMixin']
@@ -27,6 +29,7 @@ class CrispyFormsMixin(_WizardMixin):
     """Integrate crispy-forms layout with the form wizard management form."""
 
     @override
+    # pyrefly: ignore[bad-override]
     def get_context_data(self, form: Form, **kwargs: Any) -> dict[str, Any]:
         """Add the management form to the form for working with crispy forms."""
         from crispy_forms import layout
@@ -45,6 +48,7 @@ class DataTableViewCompositionMixin(_WizardMixin):
     table_view_classes = {}
 
     @override
+    # pyrefly: ignore[bad-override]
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         """Retrieve the table view and delegate AJAX to the table view."""
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -88,19 +92,21 @@ class SerializeStepInstanceMixin(_WizardMixin):
         except KeyError:
             value: dict[str, Any] = {}
             # WizardStorage types extra_data as optional; the wizard always initialises it.
-            extra_data: dict[str, Any] = self.storage.extra_data  # pyrefly: ignore
+            extra_data: dict[str, Any] = self.storage.extra_data
             extra_data[self.serialized_instances_key] = value
             return value
 
     def serialize_step_instance(self, form: Form, step: str | None = None) -> None:
         """Serialize the form's saved instance for the given step."""
         self.serialized_instances[step or self.steps.current] = (
-            self.serialized_instance_form_class.serialize(form.save())  # pyrefly: ignore
+            # pyrefly: ignore[missing-attribute]
+            self.serialized_instance_form_class.serialize(form.save())
         )
 
     # WizardView "Standard Methods"
 
     @override
+    # pyrefly: ignore[bad-override]
     # [keyword-arg-before-vararg: mirrors WizardView.get_form(step=None, data=None, files=None)]
     def get_form(  # pylint:disable=keyword-arg-before-vararg
         self,
@@ -113,11 +119,12 @@ class SerializeStepInstanceMixin(_WizardMixin):
             step = self.steps.current
         if step in self.serialized_instances:
             # WizardView builds form_list before dispatching a step.
-            form_list: dict[str, Any] = self.form_list  # pyrefly: ignore
+            form_list: dict[str, Any] = self.form_list
             form_list[step] = self.serialized_instance_form_class
         return super().get_form(step, *args, **kwargs)
 
     @override
+    # pyrefly: ignore[bad-override]
     def get_form_kwargs(self, step: str | None = None) -> dict[str, Any]:
         """Return form kwargs, merging in serialized instance data if present."""
         form_kwargs = super().get_form_kwargs(step)

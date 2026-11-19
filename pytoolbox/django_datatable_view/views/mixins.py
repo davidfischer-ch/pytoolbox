@@ -15,7 +15,9 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
 
 # The mixin completes a DatatableView and reads its attributes; naming the base under TYPE_CHECKING
-# states that requirement for the checker only.
+# states that requirement for the checker only. django-datatable-view ships no type information:
+# the checker reads the base as unknown and reports each @override below as a bad-override,
+# ignored at its site.
 _DatatableMixin = DatatableView if TYPE_CHECKING else object
 
 __all__ = ['MultiTablesMixin']
@@ -46,6 +48,7 @@ class MultiTablesMixin(_DatatableMixin):
         return self.request.path + f'?{self.request_name_key}={self.get_datatable_name(name)}'
 
     @override
+    # pyrefly: ignore[bad-override]
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Return context data with all datatables grouped by name and label."""
         context = super().get_context_data(**kwargs)
@@ -56,6 +59,7 @@ class MultiTablesMixin(_DatatableMixin):
         return context
 
     @override
+    # pyrefly: ignore[bad-override]
     def get_datatable(self, name: str | None = None, **kwargs: Any) -> Datatable:
         """
         Return the datatable of the given name, by default the one the request names.
@@ -71,6 +75,7 @@ class MultiTablesMixin(_DatatableMixin):
         return self._datatable
 
     @override
+    # pyrefly: ignore[bad-override]
     def get_datatable_kwargs(self, **kwargs: Any) -> dict[str, Any]:
         """Return the datatable's arguments, with the queryset and AJAX URL of its name."""
         name = kwargs.pop('datatable_name')
@@ -86,6 +91,7 @@ class MultiTablesMixin(_DatatableMixin):
         return name or self.request.GET.get(self.request_name_key) or self.multi_default
 
     @override
+    # pyrefly: ignore[bad-override]
     def get_queryset(self, name: str | None = None) -> QuerySet:
         """Return the queryset of the given datatable name, an empty one for an unknown name."""
         queryset = super().get_queryset()

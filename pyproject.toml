@@ -181,6 +181,7 @@ replace-imports-with-any = ['dlib']
 # extra provides keeps the check working without that extra too.
 ignore-missing-imports = [
     'crispy_forms',
+    'cv2',
     'fastxor',
     'keras',
     'keras.layers',

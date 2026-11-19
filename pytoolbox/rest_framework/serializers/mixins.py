@@ -68,9 +68,11 @@ class FromPrivateKeyMixin(_SerializersMixin):
 
 
 class NestedWriteMixin(_SerializersMixin):
-    """Return ``(serializer, validated_data)`` tuples for nested writes."""
+    """Serializer whose internal value pairs itself with the validated data, for nested writes."""
 
     @override
+    # [bad-override: returns the serializer with the validated data, which nested writes need]
+    # pyrefly: ignore[bad-override]
     def to_internal_value(self, data: Any) -> tuple[Serializer, Any]:
         """
         Return a tuple with (self, validate_data) to allow working on validated data with this

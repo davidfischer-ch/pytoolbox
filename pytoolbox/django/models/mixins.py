@@ -286,7 +286,8 @@ class BetterUniquenessErrorsMixin(_ModelMixin):
     ) -> dict[str, list[ValidationError]]:
         # django-stubs does not declare this private Django hook, so neither @override nor the
         # super() call below can be checked against it.
-        errors_by_field = super()._perform_unique_checks(unique_checks)  # pyrefly: ignore
+        # pyrefly: ignore[missing-attribute]
+        errors_by_field = super()._perform_unique_checks(unique_checks)
         hidden_fields = set(self.unique_together_hide_fields)
         if not hidden_fields:
             return errors_by_field
