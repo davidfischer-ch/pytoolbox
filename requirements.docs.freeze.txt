@@ -17,7 +17,7 @@ coverage==7.13.4
 cryptography==50.0.0
 defusedxml==0.7.1
 dill==0.4.1
-Django==6.0.3
+Django==6.0.8
 django-filter==25.2
 django-formtools==2.5.1
 django-oauth-toolkit==3.2.0
