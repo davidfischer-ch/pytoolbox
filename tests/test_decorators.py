@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 import os
-import warnings
 from unittest.mock import patch
 
 import pytest
 
-from pytoolbox import decorators
+from pytoolbox import decorators, deprecation
 
 
 @decorators.run_once
@@ -35,35 +34,9 @@ def test_run_once() -> None:
     assert increment(5.5) is None
 
 
-def test_deprecated_emits_warning() -> None:
-    """Calling a deprecated function emits a DeprecationWarning with name and guidelines."""
-
-    @decorators.deprecated('Use new_func instead')
-    def old_func(x):
-        return x + 1
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter('always')
-        result = old_func(5)
-        assert result == 6
-        assert len(caught) == 1
-        assert issubclass(caught[0].category, DeprecationWarning)
-        assert 'old_func' in str(caught[0].message)
-        assert 'Use new_func instead' in str(caught[0].message)
-
-
-def test_deprecated_without_guidelines() -> None:
-    """Calling a deprecated function without guidelines omits the colon-separated suffix."""
-
-    @decorators.deprecated()
-    def old_func():
-        return 42
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter('always')
-        assert old_func() == 42
-        assert 'old_func' in str(caught[0].message)
-        assert ':' not in str(caught[0].message).split('old_func')[1]
+def test_deprecated_is_reexported_from_its_home() -> None:
+    """Importing ``deprecated`` from the decorators module keeps working, without a warning."""
+    assert decorators.deprecated is deprecation.deprecated
 
 
 def test_root_required_raises_when_not_root() -> None:

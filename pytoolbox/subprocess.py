@@ -21,7 +21,7 @@ from typing import IO, Any, Literal, TypeAlias, TypedDict, overload
 import setuptools.archive_util
 
 from . import exceptions, filesystem, module
-from .decorators import deprecated
+from .deprecation import deprecated
 from .logging import LoggerType, get_logger
 
 _all = module.All(globals())

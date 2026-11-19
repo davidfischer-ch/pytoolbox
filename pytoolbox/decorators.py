@@ -1,16 +1,18 @@
 """
-Decorators for caching, deprecation, access control, and more.
+Decorators for caching, access control, and more.
+
+:func:`deprecated` is re-exported from :mod:`pytoolbox.deprecation`.
 """
 
 from __future__ import annotations
 
 import functools
 import os
-import warnings
 from collections.abc import Callable
 from typing import Any
 
 from . import console
+from .deprecation import deprecated
 
 __all__ = [
     'cached_property',
@@ -49,32 +51,6 @@ class cached_property:  # pylint:disable=too-few-public-methods  # noqa: N801
             return self
         res = instance.__dict__[self.name] = self.func(instance)
         return res
-
-
-def deprecated(guidelines: str = '') -> Callable:
-    """Return a decorator that marks a function as deprecated."""
-
-    def _deprecated(func: Callable[..., Any]) -> Callable[..., Any]:
-        """
-        Emit a :class:`DeprecationWarning` when the decorated function is used.
-
-        Credits: https://wiki.python.org/moin/PythonDecoratorLibrary.
-        """
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
-            guidelines_str = f': {guidelines}' if guidelines else ''
-            warnings.warn_explicit(
-                f'Call to deprecated function {func.__module__}.{func.__name__}{guidelines_str}.',
-                category=DeprecationWarning,
-                filename=func.__code__.co_filename,
-                lineno=func.__code__.co_firstlineno + 1,
-            )
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    return _deprecated
 
 
 class hybridmethod:  # pylint:disable=too-few-public-methods  # noqa: N801

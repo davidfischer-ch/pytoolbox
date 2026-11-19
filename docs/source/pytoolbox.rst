@@ -37,6 +37,7 @@ Submodules
    pytoolbox.crypto
    pytoolbox.datetime
    pytoolbox.decorators
+   pytoolbox.deprecation
    pytoolbox.enum
    pytoolbox.exceptions
    pytoolbox.filesystem

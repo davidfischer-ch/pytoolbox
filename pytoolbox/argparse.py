@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Final, TypedDict
 
 from . import console, exceptions, itertools, logging, module
-from .decorators import deprecated
+from .deprecation import deprecated
 
 log = logging.get_logger(__name__)
 

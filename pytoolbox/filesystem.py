@@ -22,7 +22,7 @@ from typing import Any, BinaryIO, Literal, Protocol, Self, TextIO, TypeAlias, ov
 
 from . import module
 from .datetime import datetime_now
-from .decorators import deprecated
+from .deprecation import deprecated
 from .regex import from_path_patterns
 
 _all = module.All(globals())
