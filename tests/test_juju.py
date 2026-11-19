@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 from unittest import mock
 
 import pytest
@@ -10,14 +11,14 @@ import pytest
 from pytoolbox import juju, serialization
 from pytoolbox.juju import ERROR, PENDING, STARTED
 
-ADD_UNIT = ['juju', 'add-unit', '--environment', 'maas']
-DEPLOY = ['juju', 'deploy', '--environment', 'maas']
-DESTROY_UNIT = ['juju', 'destroy-unit', '--environment', 'maas']
-DESTROY_SERVICE = ['juju', 'destroy-service', '--environment', 'maas']
+ADD_UNIT: Final[list[str]] = ['juju', 'add-unit', '--environment', 'maas']
+DEPLOY: Final[list[str]] = ['juju', 'deploy', '--environment', 'maas']
+DESTROY_UNIT: Final[list[str]] = ['juju', 'destroy-unit', '--environment', 'maas']
+DESTROY_SERVICE: Final[list[str]] = ['juju', 'destroy-service', '--environment', 'maas']
 
-CFG = ['--config', 'config.yaml']
-N = '--num-units'
-R = '--repository'
+CFG: Final[list[str]] = ['--config', 'config.yaml']
+N: Final[str] = '--num-units'
+R: Final[str] = '--repository'
 
 
 def test_environment_ensure_num_units() -> None:
