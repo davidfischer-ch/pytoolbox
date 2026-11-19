@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 from pathlib import Path
 from typing import Final
@@ -26,20 +27,28 @@ EXPECTED_PYTOOLBOX_TAGS: Final[list[str]] = [
 
 
 def test_blame(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
-    """blame() returns git blame output with commit, author, date, and line."""
+    """
+    blame() returns git blame output with commit, author, date, and line.
+
+    The commit is compared on its first 7 characters, whatever width the git version abbreviates it
+    to.
+    """
     f = 'David Fischer'
-    assert git.blame(pytoolbox_git / 'AUTHORS.md') == [
-        f'f6fcb1e7 AUTHORS.md ({f} 2023-06-08 00:03:14 +0200  1) # Main Developers',
-        f'2d601050 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  2) ',
-        f'2d601050 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  3) * {f} @davidfischer-ch',
-        f'2d601050 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  4) ',
-        f'f6fcb1e7 AUTHORS.md ({f} 2023-06-08 00:03:14 +0200  5) # Contributors',
-        f'2d601050 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  6) ',
-        f'a99773f5 AUTHORS.md ({f} 2024-03-20 14:13:13 +0100  7) * Abdulhadi Mohamed @aa6moham',
-        f'2d601050 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  8) * Dimitri Racordon @kyouko-taiga',
-        f'2d601050 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  9) * Guillaume Martres @smarter',
-        f'a99773f5 AUTHORS.md ({f} 2024-03-20 14:13:13 +0100 10) * Julius Milan @juliusmilan',
-        f'a99773f5 AUTHORS.md ({f} 2024-03-20 14:13:13 +0100 11) * Torbjörn Einarsson @tobbee',
+    assert [
+        re.sub(r'^([0-9a-f]{7})[0-9a-f]* ', r'\1 ', line)
+        for line in git.blame(pytoolbox_git / 'AUTHORS.md')
+    ] == [
+        f'f6fcb1e AUTHORS.md ({f} 2023-06-08 00:03:14 +0200  1) # Main Developers',
+        f'2d60105 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  2) ',
+        f'2d60105 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  3) * {f} @davidfischer-ch',
+        f'2d60105 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  4) ',
+        f'f6fcb1e AUTHORS.md ({f} 2023-06-08 00:03:14 +0200  5) # Contributors',
+        f'2d60105 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  6) ',
+        f'a99773f AUTHORS.md ({f} 2024-03-20 14:13:13 +0100  7) * Abdulhadi Mohamed @aa6moham',
+        f'2d60105 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  8) * Dimitri Racordon @kyouko-taiga',
+        f'2d60105 AUTHORS    ({f} 2014-03-29 08:31:38 +0100  9) * Guillaume Martres @smarter',
+        f'a99773f AUTHORS.md ({f} 2024-03-20 14:13:13 +0100 10) * Julius Milan @juliusmilan',
+        f'a99773f AUTHORS.md ({f} 2024-03-20 14:13:13 +0100 11) * Torbjörn Einarsson @tobbee',
     ]
 
 
