@@ -4,14 +4,19 @@ Serialization to/from JSON, pickle, YAML and nested dictionaries.
 
 from __future__ import annotations
 
+import contextlib
 import errno
 import inspect
 import io
 import json
+import os
 import pickle
+import secrets
 import shutil
+import stat
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, override
+from typing import IO, Any, override
 
 import ruamel.yaml
 
@@ -38,6 +43,10 @@ def to_file(
     """
     Write some data to a file, can be safe (tmp file -> rename), may create a backup before any
     write operation. Return the name of the backup path or None.
+
+    A safe write goes through a temporary file of its own beside the target, removed if the write
+    fails. It writes through a symbolic link to its target, and keeps the permissions of an
+    existing target.
 
     **Example usage**
 
@@ -93,14 +102,12 @@ def to_file(
             if exc.errno != errno.ENOENT:
                 raise
             backup_path = None
-    write_path = f'{path}.tmp' if safe else path
-    with Path(write_path).open('wb' if binary else 'w') as f:
+    mode = 'wb' if binary else 'w'
+    with _open_safely(Path(path).resolve(), mode) if safe else Path(path).open(mode) as f:
         if data is not None:
             f.write(data)
         if pickle_data is not None:
             pickle.dump(pickle_data, f)
-    if safe:
-        Path(write_path).replace(path)
     return backup_path if backup else None
 
 
@@ -708,3 +715,23 @@ def _object_to_dict_item(
 
 
 __all__ = _all.diff(globals())
+
+
+@contextlib.contextmanager
+def _open_safely(target: Path, mode: str) -> Iterator[IO[Any]]:
+    """
+    Yield a new file beside *target*, moved over it on success and removed on failure.
+
+    The file takes the permissions of an existing target, or those of a plain open otherwise.
+    """
+    temporary = target.with_name(f'{target.name}.{secrets.token_hex(8)}.tmp')
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
+    try:
+        with os.fdopen(descriptor, mode) as f:
+            with contextlib.suppress(FileNotFoundError):
+                os.fchmod(descriptor, stat.S_IMODE(target.stat().st_mode))
+            yield f
+        temporary.replace(target)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
