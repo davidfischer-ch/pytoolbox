@@ -30,8 +30,10 @@ class ActionToQuerysetMixin(_ViewsMixin):
 
     @override
     def get_queryset(self) -> QuerySet:
-        """Return the queryset mapped to the current action."""
-        return self.querysets.get(self.action, self.queryset)
+        """Return a clone of the queryset mapped to the current action, else the view's queryset."""
+        if (queryset := self.querysets.get(self.action)) is None:
+            return super().get_queryset()
+        return queryset.all()
 
 
 class ActionToSerializerMixin(_ViewsMixin):
@@ -52,8 +54,10 @@ class MethodToQuerysetMixin(_ViewsMixin):
 
     @override
     def get_queryset(self) -> QuerySet:
-        """Return the queryset mapped to the current HTTP method."""
-        return self.querysets.get(self.request.method, self.queryset)
+        """Return a clone of the queryset mapped to the HTTP method, else the view's queryset."""
+        if (queryset := self.querysets.get(self.request.method)) is None:
+            return super().get_queryset()
+        return queryset.all()
 
 
 class MethodToSerializerMixin(_ViewsMixin):

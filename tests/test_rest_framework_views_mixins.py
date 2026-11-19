@@ -5,35 +5,40 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+from django.contrib.auth.models import User
+from rest_framework import viewsets
+
 from pytoolbox.rest_framework.views import mixins
 
 
 def test_action_to_queryset_mixin_matched() -> None:
-    """Returns the action-specific queryset when the action matches."""
+    """The action's queryset is returned as a fresh clone, never the shared class attribute."""
 
-    class FakeView(mixins.ActionToQuerysetMixin):
-        """Fake view with action-specific querysets."""
+    class UserViewSet(mixins.ActionToQuerysetMixin, viewsets.GenericViewSet):
+        """Viewset listing the staff."""
 
-        queryset = 'default_qs'
-        querysets = {'list': 'list_qs', 'create': 'create_qs'}
-        action = 'list'
+        queryset = User.objects.all()
+        querysets = {'list': User.objects.filter(is_staff=True)}
 
-    view = FakeView()
-    assert view.get_queryset() == 'list_qs'
+    view = UserViewSet(action='list')
+    queryset = view.get_queryset()
+    assert queryset is not UserViewSet.querysets['list']
+    assert str(queryset.query) == str(UserViewSet.querysets['list'].query)
 
 
 def test_action_to_queryset_mixin_fallback() -> None:
-    """Falls back to the default queryset for unmapped actions."""
+    """An unmapped action gets the view's queryset as a fresh clone, as DRF's get_queryset does."""
 
-    class FakeView(mixins.ActionToQuerysetMixin):
-        """Fake view with action-specific querysets."""
+    class UserViewSet(mixins.ActionToQuerysetMixin, viewsets.GenericViewSet):
+        """Viewset listing the staff."""
 
-        queryset = 'default_qs'
-        querysets = {'list': 'list_qs'}
-        action = 'retrieve'
+        queryset = User.objects.all()
+        querysets = {'list': User.objects.filter(is_staff=True)}
 
-    view = FakeView()
-    assert view.get_queryset() == 'default_qs'
+    view = UserViewSet(action='retrieve', queryset=User.objects.filter(is_active=True))
+    queryset = view.get_queryset()
+    assert queryset is not view.queryset
+    assert str(queryset.query) == str(User.objects.filter(is_active=True).query)
 
 
 def test_action_to_serializer_mixin_matched() -> None:
@@ -65,31 +70,35 @@ def test_action_to_serializer_mixin_fallback() -> None:
 
 
 def test_method_to_queryset_mixin_matched() -> None:
-    """Returns the method-specific queryset when the HTTP method matches."""
+    """The method's queryset is returned as a fresh clone, never the shared class attribute."""
 
-    class FakeView(mixins.MethodToQuerysetMixin):
-        """Fake view with method-specific querysets."""
+    class UserViewSet(mixins.MethodToQuerysetMixin, viewsets.GenericViewSet):
+        """Viewset listing the staff."""
 
-        queryset = 'default_qs'
-        querysets = {'GET': 'get_qs', 'POST': 'post_qs'}
-        request = MagicMock(method='GET')
+        queryset = User.objects.all()
+        querysets = {'GET': User.objects.filter(is_staff=True)}
 
-    view = FakeView()
-    assert view.get_queryset() == 'get_qs'
+    view = UserViewSet(request=MagicMock(method='GET'))
+    queryset = view.get_queryset()
+    assert queryset is not UserViewSet.querysets['GET']
+    assert str(queryset.query) == str(UserViewSet.querysets['GET'].query)
 
 
 def test_method_to_queryset_mixin_fallback() -> None:
-    """Falls back to the default queryset for unmapped HTTP methods."""
+    """An unmapped method gets the view's queryset as a fresh clone, as DRF's get_queryset does."""
 
-    class FakeView(mixins.MethodToQuerysetMixin):
-        """Fake view with method-specific querysets."""
+    class UserViewSet(mixins.MethodToQuerysetMixin, viewsets.GenericViewSet):
+        """Viewset listing the staff."""
 
-        queryset = 'default_qs'
-        querysets = {'GET': 'get_qs'}
-        request = MagicMock(method='DELETE')
+        queryset = User.objects.all()
+        querysets = {'GET': User.objects.filter(is_staff=True)}
 
-    view = FakeView()
-    assert view.get_queryset() == 'default_qs'
+    view = UserViewSet(
+        queryset=User.objects.filter(is_active=True), request=MagicMock(method='POST')
+    )
+    queryset = view.get_queryset()
+    assert queryset is not view.queryset
+    assert str(queryset.query) == str(User.objects.filter(is_active=True).query)
 
 
 def test_method_to_serializer_mixin_matched() -> None:
