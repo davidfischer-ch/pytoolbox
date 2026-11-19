@@ -45,7 +45,7 @@ def list_objects(
     if prefix and prefix[-1] != '/':
         prefix += '/'
     re_patterns = from_path_patterns(patterns, regex=regex)
-    for page in s3.get_paginator('list_objects').paginate(Bucket=bucket_name, Prefix=prefix):
+    for page in s3.get_paginator('list_objects_v2').paginate(Bucket=bucket_name, Prefix=prefix):
         try:
             objects = page['Contents']
         except KeyError:
