@@ -60,14 +60,14 @@ dependencies = [
     'requests',
     'ruamel.yaml',
     'setuptools',
-    'termcolor'
+    'termcolor>=3.2'
 ]
 
 [project.optional-dependencies]
-atlassian = ['jira']
+atlassian = ['jira>=3.10.4']
 aws = ['boto3']
 django = ['django>=6']
-django_datatable_view = ['django-datatable-view']
+django_datatable_view = ['django-datatable-view>=2.1.5']
 django_filter = ['django-filter']
 django_formtools = ['django-formtools']
 flask = ['flask']
