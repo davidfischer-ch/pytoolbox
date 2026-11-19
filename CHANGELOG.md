@@ -3,6 +3,161 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.13.0 (2026-11-19)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.6...14.13.0
+
+### Minor compatibility breaks
+
+Package:
+
+* Require Python 3.12, tested on 3.12, 3.13 and 3.14
+* Remove `pytoolbox.compat`: import `override` from `typing`
+* Require `termcolor` `3.2` at least
+* Require `jira` `3.10.4` at least in the `atlassian` extra
+* Require `django-datatable-view` `2.1.5` at least in the `django_datatable_view` extra
+* Require `selenium` `4` at least in the `selenium` extra
+* Replace `ezodf` and `lxml` by `odfpy` in the `pandas` extra
+
+Module `datetime`:
+
+* Raise `NotImplementedError` from `total_seconds` for an unsupported type, not `TypeError`
+
+Module `django.storage`:
+
+* Deprecate `OverwriteFileSystemStorage` and `OverwriteMixin` for Django's `allow_overwrite`
+    * Replace `OverwriteFileSystemStorage` by `FileSystemStorage` with `allow_overwrite=True`
+    * In `STORAGES`, set its `OPTIONS` to `{'allow_overwrite': True}`
+    * Drop `OverwriteMixin` from a `FileSystemStorage` subclass and pass `allow_overwrite=True`
+    * django-storages' storages overwrite by default (`file_overwrite`): drop the mixin
+
+Module `django_datatable_view.views.mixins`:
+
+* Deprecate `MultiTablesMixin` for django-datatable-view's `MultipleDatatableMixin`
+    * Base the view on `MultipleDatatableView`, or `MultipleDatatableMixin` and a template view
+    * Replace `multi_datatables` by `datatable_classes`, a dict of each name to its `Datatable`
+    * Rename each `get_<name>_queryset(queryset)` to `get_<name>_datatable_queryset()`
+    * Read each table from the context's `<name>_datatable`, not from the `datatables` list
+    * Put the labels in the template: `MultipleDatatableMixin` takes none
+* Remove `MultiTablesMixin.get_datatable_structure`, built on an API django-datatable-view removed
+
+Module `django_filter.filterset.mixins`:
+
+* Deprecate `RaiseOnUnhandledFieldClassMixin`: `FilterSet` raises on an unhandled field by default
+    * Drop the mixin from the filter set's bases
+    * Catch `AssertionError`, which `FilterSet` raises, not `NotImplementedError`
+    * Set `Meta.unknown_field_behavior` to choose another behaviour
+
+Module `filesystem`:
+
+* Raise `EEXIST` from `symlink` over a regular file, also when the source is missing
+
+Module `itertools`:
+
+* Raise `ValueError` from `chunk` for a length below 1
+
+Module `pandas`:
+
+* Read whole numbers as integers and empty cells as `NaN` in `read_ods`, as pandas does
+
+Module `private`:
+
+* Rename `_parse_kwargs_string` to `parse_kwargs_string`
+
+Module `rest_framework.metadata.mixins`:
+
+* Deprecate `ExcludeRelatedChoicesMixin`: `SimpleMetadata` omits the related choices by default
+    * Drop the mixin from the metadata class's bases
+    * For field classes added to `related_fields`, drop their `choices` in `get_field_info`
+
+Module `rest_framework.permissions`:
+
+* Remove the `permissions` attribute of `IsAuthenticatedOrTokenHasReadWriteScope`
+
+Module `rest_framework.serializers.fields`:
+
+* Deprecate `StripCharField` for DRF's `CharField`, which strips and rejects blank by default
+    * Replace `StripCharField(...)` by `serializers.CharField(...)`, with the same arguments
+
+Module `types`:
+
+* Remove `GenericType`
+
+### Features
+
+Package:
+
+* Add the `all_but_vision` extra, every extra but the vision stack
+
+Module `deprecation`:
+
+* Add `alias_renamed_methods`: a renamed overridable method stays reachable under its old name
+    * Called from a base's `__init_subclass__`, for every class of the MRO
+    * The other name forwards to the method a class defines; a class defining both is refused
+    * A class defining only the old name gets a `DeprecationWarning` at that method's line
+* Move `deprecated` here; `pytoolbox.decorators.deprecated` still imports it
+
+### Fix and enhancements
+
+Package:
+
+* Declare the `packaging` dependency, `22` at least, which `comparison` imports
+
+Module `ai.vision.utils`:
+
+* Cache the downloaded models in a directory private to the user, not in the shared `/tmp`
+
+Module `atlassian`:
+
+* Fix `JiraProject.features` failing on Jira Cloud from its second page
+
+Module `aws.s3`:
+
+* List the objects with `ListObjectsV2` in `list_objects`
+
+Module `console`:
+
+* Fix the colors `toggle_colors` sets being ignored after a first colored output
+
+Module `deprecation`:
+
+* `deprecated` warns at the decorated function's own line, and reads « <name> is deprecated »
+
+Module `django.models.metaclass`:
+
+* Fix `__all__`, misspelled, which left `ABCModelMeta` unexported
+
+Module `django.storage`:
+
+* Fix `OverwriteMixin` ignoring `max_length`: an over-long name is cut the same way at each save
+* Replace a symbolic link stored under the name in `OverwriteFileSystemStorage`, not writing through
+
+Module `django.templatetags`:
+
+* Fix `string_if_invalid` always empty: it holds the option of the first DjangoTemplates engine
+* Fix `inline` reading a file beside `STATIC_ROOT`, or out of it through a symbolic link
+* Fix the `format=` option of `naturalbitrate` and `naturalfilesize` raising `TypeError`
+
+Module `django_datatable_view.views.mixins`:
+
+* Fix `MultiTablesMixin` on django-datatable-view 2: each datatable gets its queryset and URL
+
+Module `juju`:
+
+* Write the YAML files through a temporary file, keeping their mode
+* Close the socket `get_ip` opens, and compute the address once
+
+Module `rest_framework.permissions`:
+
+* Fix `IsAuthenticatedOrTokenHasReadWriteScope` granting an OAuth2 token whatever its scope
+    * Refuse a token `OAuth2TokenMiddleware` relays: list `OAuth2Authentication` first to grant it
+
+Module `serialization`:
+
+* Write through a symbolic link and keep the target's mode in `to_file(safe=True)`
+* Use a unique temporary file in `to_file(safe=True)`, removed when the write fails
+
+
 ## v14.12.6 (2026-11-14)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.5...14.12.6
