@@ -6,7 +6,8 @@ Extra storages and mix-ins for building your own storages.
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, override
+import warnings
+from typing import TYPE_CHECKING, Any, override
 
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
@@ -42,21 +43,48 @@ class ExpressTemporaryFileMixin(_StorageMixin):
         return result
 
 
+class OverwriteFileSystemStorage(FileSystemStorage):
+    """
+    File-system storage replacing the file stored under the name of a file saved.
+
+    .. deprecated:: 14.13.0
+       Use ``FileSystemStorage(allow_overwrite=True)`` instead.
+    """
+
+    def __init__(self, *args: Any, allow_overwrite: bool = True, **kwargs: Any) -> None:
+        warnings.warn(
+            'OverwriteFileSystemStorage is deprecated; '
+            'use django.core.files.storage.FileSystemStorage(allow_overwrite=True).',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, allow_overwrite=allow_overwrite, **kwargs)
+
+
 class OverwriteMixin(_StorageMixin):
     """
-    Update get_available_name to remove any previously stored file (if any) before returning the
-    name.
+    Mix-in deleting the file stored under a name before returning the name as available.
+
+    .. deprecated:: 14.13.0
+       Use ``FileSystemStorage(allow_overwrite=True)`` instead, or django-storages'
+       ``file_overwrite``.
     """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        warnings.warn(
+            'OverwriteMixin is deprecated; use '
+            'django.core.files.storage.FileSystemStorage(allow_overwrite=True), '
+            "or django-storages' file_overwrite.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     @override
     def get_available_name(self, name: str, max_length: int | None = None) -> str:
-        """Delete any existing file at *name* and return it as available."""
+        """Delete any existing file at *name*, then return the base storage's available name."""
         self.delete(name)
-        return name
-
-
-class OverwriteFileSystemStorage(OverwriteMixin, FileSystemStorage):
-    """A file-system based storage that let overwrite files with the same name."""
+        return super().get_available_name(name, max_length=max_length)
 
 
 __all__ = _all.diff(globals())
