@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Final
 
 import pandas as pd
+import pytest
 
 from pytoolbox import pandas as pytoolbox_pandas
 
@@ -26,3 +27,9 @@ def test_read_ods_reads_the_header_at_its_row() -> None:
         pytoolbox_pandas.read_ods(str(SHEETS_ODS), 1, header_pos=1),
         pd.DataFrame({'name': ['nail', 'screw'], 'count': [120, 40], 'ratio': [0.5, 0.25]}),
     )
+
+
+def test_read_ods_reads_a_local_file_only() -> None:
+    """A URL is the name of a missing file, never fetched."""
+    with pytest.raises(FileNotFoundError):
+        pytoolbox_pandas.read_ods(SHEETS_ODS.as_uri(), 0)
