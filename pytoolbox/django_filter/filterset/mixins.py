@@ -6,11 +6,11 @@ powered filters.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, override
+import warnings
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from django.db.models import Field
-    from django_filters import Filter, FilterSet
+    from django_filters import FilterSet
 
 # The mixin completes a FilterSet; naming the base under TYPE_CHECKING states that requirement for
 # the checker only.
@@ -21,18 +21,18 @@ __all__ = ['RaiseOnUnhandledFieldClassMixin']
 
 class RaiseOnUnhandledFieldClassMixin(_FilterSetMixin):
     """
-    Raise an exception when the filter set is unable to find a suitable filter for any of the model
-    fields to filter.
+    Empty mix-in: :class:`~django_filters.FilterSet` raises on a model field no filter class
+    matches, by default (``Meta.unknown_field_behavior``).
+
+    .. deprecated:: 14.13.0
+       Use :class:`~django_filters.FilterSet` instead.
     """
 
-    @classmethod
-    @override
-    def filter_for_field(cls, f: Field, name: str, lookup_type: str = 'exact') -> Filter:
-        """Return a filter for the field, raising if none is found."""
-        value = super().filter_for_field(f, name, lookup_type)
-        if not value:
-            raise NotImplementedError(
-                f"Unable to find a suitable filter for field '{name}' of class {type(f)} "
-                f"with lookup type '{lookup_type}'",
-            )
-        return value
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        warnings.warn(
+            'RaiseOnUnhandledFieldClassMixin is deprecated; use django_filters.FilterSet, '
+            'which raises on an unhandled field by default (Meta.unknown_field_behavior).',
+            DeprecationWarning,
+            stacklevel=3,  # The subclass statement, past FilterSetMetaclass.__new__.
+        )

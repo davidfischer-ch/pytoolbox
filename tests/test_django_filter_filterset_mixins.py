@@ -4,58 +4,44 @@
 from __future__ import annotations
 
 import pytest
+from django.db import models
+from django_filters import FilterSet
 
 from pytoolbox.django_filter.filterset import mixins
 
-
-def test_raise_on_unhandled_field_class_with_value() -> None:
-    """Passes through the filter when the parent returns a non-None value."""
-
-    class Base:
-        """Base class providing filter_for_field method."""
-
-        @classmethod
-        def filter_for_field(cls, f, name, lookup_type='exact'):  # pylint:disable=unused-argument
-            """Return a filter for the given field."""
-            return 'some_filter'
-
-    class FakeFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, Base):
-        """FilterSet combining the mixin with the base implementation."""
-
-    assert FakeFilterSet.filter_for_field('field', 'name') == 'some_filter'
+pytestmark = pytest.mark.filterwarnings(
+    'ignore:RaiseOnUnhandledFieldClassMixin is deprecated:DeprecationWarning'
+)
 
 
-def test_raise_on_unhandled_field_class_without_value() -> None:
-    """Raises NotImplementedError when the parent returns None (no suitable filter)."""
+class Document(models.Model):
+    """Model with a field django-filter has no filter for."""
 
-    class Base:
-        """Base class returning None from filter_for_field."""
+    data = models.JSONField()
 
-        @classmethod
-        def filter_for_field(cls, f, name, lookup_type='exact'):  # pylint:disable=unused-argument
-            """Return None to simulate no suitable filter."""
-            return None
+    class Meta:
+        """Meta options."""
 
-    class FakeFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, Base):
-        """FilterSet that will raise an error due to unhandled field."""
-
-    with pytest.raises(NotImplementedError, match='Unable to find a suitable filter'):
-        FakeFilterSet.filter_for_field('field', 'name')
+        app_label = 'test'
 
 
-def test_raise_on_unhandled_field_class_with_lookup_type() -> None:
-    """Error message includes the lookup_type when a non-default lookup is used."""
+def test_raise_on_unhandled_field_class_rejects_an_unhandled_field() -> None:
+    """A filter set on a field with no matching filter class fails at its creation."""
+    with pytest.raises(AssertionError, match='unrecognized field type JSONField'):
 
-    class Base:
-        """Base class for testing lookup_type in error message."""
+        class DocumentFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, FilterSet):  # pylint:disable=unused-variable
+            """Filter set on the unhandled field."""
 
-        @classmethod
-        def filter_for_field(cls, f, name, lookup_type='exact'):  # pylint:disable=unused-argument
-            """Return None to trigger NotImplementedError."""
-            return None
+            class Meta:
+                """Meta options."""
 
-    class FakeFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, Base):
-        """FilterSet for testing lookup_type inclusion in error."""
+                fields = ['data']
+                model = Document
 
-    with pytest.raises(NotImplementedError, match='icontains'):
-        FakeFilterSet.filter_for_field('field', 'name', lookup_type='icontains')
+
+def test_raise_on_unhandled_field_class_subclass_is_deprecated() -> None:
+    """Subclassing RaiseOnUnhandledFieldClassMixin emits a DeprecationWarning naming the option."""
+    with pytest.warns(DeprecationWarning, match='unknown_field_behavior'):
+
+        class DocumentFilterSet(mixins.RaiseOnUnhandledFieldClassMixin, FilterSet):  # pylint:disable=unused-variable
+            """Filter set with the mixin."""
