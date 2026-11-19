@@ -3,8 +3,8 @@
 # pylint:disable=too-few-public-methods
 from __future__ import annotations
 
-import datetime
 import os
+from datetime import time, timedelta
 from unittest.mock import MagicMock, patch
 
 from django.db import models
@@ -67,14 +67,14 @@ def test_secs_to_time_none() -> None:
 def test_secs_to_time_none_defaults_to_zero() -> None:
     """None input with defaults_to_zero=True returns midnight (00:00:00)."""
     result = templatetags.secs_to_time(None, defaults_to_zero=True)
-    assert isinstance(result, datetime.time)
+    assert isinstance(result, time)
     assert result.hour == 0 and result.minute == 0 and result.second == 0
 
 
 def test_secs_to_time() -> None:
     """Seconds are converted to a time object with correct hour and minute."""
     result = templatetags.secs_to_time(3661.5)
-    assert isinstance(result, datetime.time)
+    assert isinstance(result, time)
     assert result.hour == 1
     assert result.minute == 1
 
@@ -89,7 +89,7 @@ def test_status_label() -> None:
 def test_timedelta_filter() -> None:
     """Formats seconds and timedelta objects as human-readable duration strings."""
     assert templatetags.timedelta(6316.9) == '1:45:17'
-    assert templatetags.timedelta(datetime.timedelta(days=10, hours=2)) == '10 days, 2:00:00'
+    assert templatetags.timedelta(timedelta(days=10, hours=2)) == '10 days, 2:00:00'
     assert templatetags.timedelta(None) == templatetags.string_if_invalid
 
 

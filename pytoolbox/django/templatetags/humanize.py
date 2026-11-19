@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime as dt
+from datetime import timedelta
 
 from django.utils.translation import gettext as _
 
@@ -14,7 +14,7 @@ from . import register, string_if_invalid
 
 
 @register.filter(is_safe=True)
-def duration(value: dt.timedelta | None, autoescape: bool = True) -> str:
+def duration(value: timedelta | None, autoescape: bool = True) -> str:
     """Return a human-readable duration string for the given timedelta value."""
     if value is None or value == string_if_invalid:
         return string_if_invalid

@@ -4,11 +4,11 @@ EXIF tag reading, type conversion, and cleaning utilities.
 
 from __future__ import annotations
 
-import datetime
 import re
 from collections.abc import Callable
+from datetime import datetime, time
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Literal
 
 from pytoolbox import decorators, exceptions
 from pytoolbox.datetime import str_to_datetime, str_to_time
@@ -22,7 +22,6 @@ __all__ = ['Tag', 'TagSet']
 
 # A tag holds whichever Python type its EXIF type maps to, so a number keeps its own type through
 # clean_number() instead of widening to the union of everything a tag can hold.
-_NumberT = TypeVar('_NumberT', int, Fraction)
 
 
 class Tag:
@@ -33,8 +32,8 @@ class Tag:
     date_clean_regex = re.compile(r'[:-]')
     group_to_brand_blacklist = frozenset(['aux', 'crs', 'exifEX', 'Image', 'Photo'])
     type_to_hook = {
-        datetime.datetime: 'tag_string',  # clean method will convert to a date-time
-        datetime.time: 'tag_string',  # clean method will convert to a time
+        datetime: 'tag_string',  # clean method will convert to a date-time
+        time: 'tag_string',  # clean method will convert to a time
         Fraction: 'exif_tag_rational',
         int: 'tag_long',
         list: 'tag_multiple',
@@ -44,7 +43,7 @@ class Tag:
         'Ascii': str,
         'Byte': bytes,
         'Comment': str,
-        'Date': datetime.datetime,
+        'Date': datetime,
         'LangAlt': str,
         'Long': int,
         'Rational': Fraction,
@@ -53,7 +52,7 @@ class Tag:
         'Short': int,
         'SShort': int,
         'String': str,
-        'Time': datetime.time,
+        'Time': time,
         'Undefined': bytes,
         'XmpBag': list,
         'XmpSeq': list,
@@ -128,9 +127,9 @@ class Tag:
         """Convert raw tag data to the appropriate Python type."""
         if isinstance(data, str):
             data = data.strip()
-        if self.type == datetime.time:
+        if self.type == time:
             return str_to_time(data)
-        if self.type == datetime.datetime or isinstance(data, str):
+        if self.type == datetime or isinstance(data, str):
             cleaned_data = self.date_clean_regex.sub('', data)
             for date_format in self.date_formats:
                 if date := str_to_datetime(cleaned_data, fmt=date_format, fail=False):
@@ -163,6 +162,6 @@ class TagSet:  # pylint:disable=too-few-public-methods
         self.metadata = metadata
 
     @staticmethod
-    def clean_number(number: _NumberT | None) -> _NumberT | None:
+    def clean_number[NumberT: (int, Fraction)](number: NumberT | None) -> NumberT | None:
         """Return *number* if positive, otherwise ``None``."""
         return number if number and number > 0 else None

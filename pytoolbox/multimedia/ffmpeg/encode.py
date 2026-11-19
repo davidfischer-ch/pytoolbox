@@ -4,10 +4,10 @@ Encoding progress tracking and statistics for FFmpeg.
 
 from __future__ import annotations
 
-import datetime
 import re
 import subprocess
 import time
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
@@ -26,7 +26,7 @@ __all__ = [
 class FFmpegStatistics(TypedDict):
     """One progress line of FFmpeg output, parsed into Python values."""
 
-    time: datetime.timedelta | None
+    time: timedelta | None
     frame: int
     frame_rate: float
     qscale: float | None
@@ -61,7 +61,7 @@ class EncodeState:  # pylint:disable=too-few-public-methods
 class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
     """Track and report FFmpeg encoding progress and statistics."""
 
-    default_in_duration = datetime.timedelta(seconds=0)
+    default_in_duration = timedelta(seconds=0)
     encoding_regex = ENCODING_REGEX
     ffprobe_class = ffprobe.FFprobe
     states = EncodeState
@@ -87,9 +87,9 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         self.returncode: int | None = None
 
         self.state: str = self.states.NEW
-        self.start_date: datetime.datetime | None = None
+        self.start_date: datetime | None = None
         self.start_time: float | None = None
-        self.elapsed_time: datetime.timedelta | None = None
+        self.elapsed_time: timedelta | None = None
         self.ratio: float | None = None
         self.frame: int | None = None
         self.frame_rate: float | None = None
@@ -114,10 +114,10 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         return self.start_time
 
     @property
-    def eta_time(self) -> datetime.timedelta | None:
+    def eta_time(self) -> timedelta | None:
         """Return the estimated time remaining or ``None`` if unknown."""
         if self.state in self.states.FINAL_STATES:
-            return datetime.timedelta(0)
+            return timedelta(0)
         if not self.ratio or self.elapsed_time is None:
             return None
         return multiply_time(self.elapsed_time, (1.0 - self.ratio) / self.ratio, as_delta=True)
@@ -133,7 +133,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         return self.outputs[self.out_base_index]
 
     @staticmethod
-    def get_now() -> datetime.datetime:
+    def get_now() -> datetime:
         """Return the current datetime."""
         return datetime_now(fmt=None)
 
@@ -143,8 +143,8 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         self.process = process
         self.start_date = self.get_now()
         self.start_time = time.time()
-        self.elapsed_time = datetime.timedelta(0)
-        self.output.duration = datetime.timedelta(0)
+        self.elapsed_time = timedelta(0)
+        self.output.duration = timedelta(0)
         self.frame = 0
         self._update_ratio()
         return self
@@ -152,7 +152,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
     def progress(self, chunk: str) -> EncodeStatistics:
         """Update statistics from an FFmpeg output chunk."""
         self.state = self.states.PROCESSING
-        self.elapsed_time = datetime.timedelta(seconds=time.time() - self._started_at)
+        self.elapsed_time = timedelta(seconds=time.time() - self._started_at)
         if ffmpeg_statistics := self._parse_chunk(chunk):
             self.output.duration = ffmpeg_statistics['time']
             self.frame = ffmpeg_statistics['frame']
@@ -167,7 +167,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         """Finalize statistics after encoding completes."""
         self.state = self.states.FAILURE if returncode else self.states.SUCCESS
         self.returncode = returncode
-        self.elapsed_time = datetime.timedelta(seconds=time.time() - self._started_at)
+        self.elapsed_time = timedelta(seconds=time.time() - self._started_at)
         if self.frame is not None:
             self.frame_rate = self.frame / (self.elapsed_time.total_seconds() or 0.0001)
         self.output.duration = self.ffprobe_class().get_media_duration(
@@ -193,10 +193,10 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
     @classmethod
     def _get_subclip_duration_and_size(
         cls,
-        duration: datetime.timedelta,
+        duration: timedelta,
         size: int,
         out_options: list[str],
-    ) -> tuple[datetime.timedelta, int]:
+    ) -> tuple[timedelta, int]:
         """Adjust duration and size if we only encode a sub-clip."""
         try:
             sub_duration = cls._to_time(out_options[out_options.index('-t') + 1])
@@ -205,7 +205,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         if sub_duration is None:
             return duration, size
 
-        zero = datetime.timedelta(0)
+        zero = timedelta(0)
         try:
             sub_position = cls._to_time(out_options[out_options.index('-ss') + 1]) or zero
         except (IndexError, ValueError):
@@ -234,7 +234,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
         )
 
     @staticmethod
-    def _to_time(value: str) -> datetime.timedelta | None:
+    def _to_time(value: str) -> timedelta | None:
         method = str_to_time if ':' in value else secs_to_time
         return method(value, as_delta=True)
 

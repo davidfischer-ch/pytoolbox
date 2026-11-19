@@ -8,14 +8,12 @@ import inspect
 import itertools
 import types
 from collections.abc import Callable, Generator, Iterable
-from typing import Any, Self, TypeVar, override
+from typing import Any, Self, override
 
 from . import module
 from .collections import merge_dicts
 
 _all = module.All(globals())
-
-GenericType = TypeVar('GenericType', bound=type)  # pylint:disable=invalid-name
 
 
 def get_arguments_names(function: Callable[..., Any]) -> list[str]:
@@ -114,7 +112,7 @@ def isiterable(obj: Any, *, blacklist: type[Any] | types.UnionType = bytes | str
     return isinstance(obj, Iterable) and not isinstance(obj, blacklist)
 
 
-def merge_annotations(cls: GenericType) -> GenericType:
+def merge_annotations[GenericType: type](cls: GenericType) -> GenericType:
     """
     Merge annotations defined in all bases classes (using `__mro__`) into given `cls`.
 

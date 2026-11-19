@@ -13,7 +13,7 @@ import sys
 import time
 from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any, Final, TypeAlias
+from typing import Any, Final
 
 from pytoolbox import filesystem
 from pytoolbox import subprocess as py_subprocess
@@ -23,7 +23,7 @@ from . import encode, ffprobe, miscellaneous  # pylint:disable=unused-import
 __all__ = ['FRAME_MD5_REGEX', 'FFmpeg', 'MediasArg']
 
 # One media or several, each given as a path or as an already built Media.
-MediasArg: TypeAlias = (
+type MediasArg = (
     miscellaneous.Media | Path | str | Iterable[miscellaneous.Media | Path | str] | None
 )
 
@@ -120,8 +120,7 @@ class FFmpeg:
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
             FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
-            with open(checksum_filename, encoding='utf-8') as f:
-                match = FRAME_MD5_REGEX.search(f.read())
+            match = FRAME_MD5_REGEX.search(Path(checksum_filename).read_text(encoding='utf-8'))
             return match.group() if match else None
 
     def _clean_medias_argument(self, value: MediasArg) -> list[miscellaneous.Media]:
@@ -179,7 +178,7 @@ class FFmpeg:
             if chunk is None or isinstance(chunk, str):
                 return chunk
             return chunk.decode(self.encoding)
-        except IOError as exc:
+        except OSError as exc:
             if exc.errno != errno.EAGAIN:
                 raise
         return None

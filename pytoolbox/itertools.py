@@ -35,9 +35,9 @@ def chain(*objects: Any, callback: Callable[[Any], bool] = isiterable) -> iterto
 
 def chunk(objects: Iterable, length: int, of_type: type[Any] = list) -> Generator:
     """
-    Yield successive chunks of defined `length` from `objects`. Last chunk may be smaller.
+    Yield successive chunks of `length` items from `objects`, each converted to `of_type`.
 
-    Python 3.12 introduced :func:`itertools.batched` (but without `of_type` conversion).
+    The last chunk may be smaller. A `length` below 1 raises :class:`ValueError`.
 
     **Example usage**
 
@@ -49,9 +49,7 @@ def chunk(objects: Iterable, length: int, of_type: type[Any] = list) -> Generato
     >>> list(chunk((0, 1, (2, 3)), 1, of_type=set))
     [{0}, {1}, {(2, 3)}]
     """
-    iterable = iter(objects)
-    while data := of_type(itertools.islice(iterable, 0, length)):
-        yield data
+    yield from (of_type(batch) for batch in itertools.batched(objects, length))
 
 
 def extract_single(objects: Any) -> Any:
@@ -80,15 +78,15 @@ def throttle(objects: Iterable, min_delay: float | str | Any) -> Iterator:
 
     **Example usage**
 
-    >>> import datetime
     >>> import time
+    >>> from datetime import timedelta
     >>>
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
     ...
-    >>> list(throttle(list(range(10)), datetime.timedelta(minutes=1)))
+    >>> list(throttle(list(range(10)), timedelta(minutes=1)))
     [0, 9]
     >>> list(throttle(slow_range(3), '00:00:00.2'))
     [0, 1, 2]

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import datetime
 import shutil
+from datetime import datetime
 from fractions import Fraction
 from pathlib import Path
 from typing import Final
@@ -35,7 +35,7 @@ def test_metadata_get_date_with_single_key() -> None:
     """Metadata.get_date() returns datetime from a single EXIF key."""
     metadata = exif.Metadata(path=DATA_DIRECTORY / 'Macro.jpg')
     result = metadata.get_date(keys=['Exif.Photo.DateTimeOriginal'])
-    assert result == datetime.datetime(2012, 8, 3, 17, 34, 57)
+    assert result == datetime(2012, 8, 3, 17, 34, 57)
 
 
 @requires_gexiv2
@@ -76,7 +76,7 @@ def test_metadata_on_david_jpg() -> None:
     assert metadata.image.width == 256
     assert metadata.lens.brand is None
     assert metadata.lens.model is None
-    assert metadata.photo.date == datetime.datetime(2005, 12, 19, 22, 3, 45)
+    assert metadata.photo.date == datetime(2005, 12, 19, 22, 3, 45)
     assert metadata.photo.exposure_mode is None
     assert metadata.photo.fnumber is None
     assert metadata.photo.focal_length is None
@@ -123,7 +123,7 @@ def test_metadata_on_macro_jpg() -> None:
     assert metadata.image.width == 5616
     assert metadata.lens.brand == 'Canon'
     assert metadata.lens.model == 'MP-E65mm f/2.8 1-5x Macro Photo'
-    assert metadata.photo.date == datetime.datetime(2012, 8, 3, 17, 34, 57)
+    assert metadata.photo.date == datetime(2012, 8, 3, 17, 34, 57)
     assert metadata.photo.exposure_mode is exif.ExposureMode.MANUAL
     assert metadata.photo.fnumber == Fraction(28, 5)
     assert metadata.photo.focal_length == Fraction(65, 1)

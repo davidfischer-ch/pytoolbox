@@ -5,8 +5,8 @@ Mix-ins for building your own views.
 
 from __future__ import annotations
 
-import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, override
 
 from django import forms
@@ -192,8 +192,8 @@ class TemplateResponseMixin(generic.TemplateResponseMixin):
             [self.template_name]
             if self.template_name
             else [
-                os.path.join(self.template_directory, self.action + '.html'),
-                os.path.join(self.default_template_directory, self.action + '.html'),
+                str(Path(self.template_directory, f'{self.action}.html')),
+                str(Path(self.default_template_directory, f'{self.action}.html')),
             ]
         )
 

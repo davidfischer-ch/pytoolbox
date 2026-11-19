@@ -3,10 +3,12 @@
 # pylint:disable=use-implicit-booleaness-not-comparison
 from __future__ import annotations
 
+import errno
 import sys
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from pytest import mark
 
 from pytoolbox import filesystem
@@ -117,3 +119,14 @@ def test_remove_directory_recursive(tmp_path: Path) -> None:
     (directory / 'file.txt').write_text('hello')
     assert filesystem.remove(directory, recursive=True) is True
     assert not directory.exists()
+
+
+def test_symlink_over_a_regular_file_to_a_missing_source_reports_it_exists(tmp_path: Path) -> None:
+    """A link name taken by a regular file raises EEXIST, also when the source is missing."""
+    link_name = tmp_path / 'taken'
+    link_name.write_text('a regular file')
+
+    with pytest.raises(OSError) as error:
+        filesystem.symlink(str(tmp_path / 'missing'), str(link_name))
+
+    assert error.value.errno == errno.EEXIST

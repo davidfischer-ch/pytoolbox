@@ -8,7 +8,7 @@ import difflib
 import operator as op
 import os
 from collections.abc import Callable, Iterable, Iterator
-from typing import Any, Final, TypeAlias
+from typing import Any, Final
 
 import termcolor
 from packaging.version import InvalidVersion, Version
@@ -21,6 +21,7 @@ __all__ = [
     'unified_diff',
     'VERSION_OPERATIONS',
     'Version',
+    'ParseVersionTypes',
     'compare_versions',
     'satisfy_version_constraints',
     'try_parse_version',
@@ -74,7 +75,7 @@ VERSION_OPERATIONS: Final[dict[type, dict[str, Callable[[Any, Any], bool | None]
     str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen},
 }
 
-ParseVersionTypes: TypeAlias = str | Version
+type ParseVersionTypes = str | Version
 
 
 def compare_versions(

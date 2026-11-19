@@ -6,6 +6,7 @@ Helpers for managing Juju environments, services, units, and charms.
 from __future__ import annotations
 
 import functools
+import io
 import json
 import os
 import random
@@ -14,6 +15,7 @@ import subprocess as _subprocess
 import sys
 import time
 import uuid
+from pathlib import Path
 from typing import Any, Final
 
 from . import (  # pylint:disable=reimported
@@ -34,6 +36,7 @@ _all = module.All(globals())
 CONFIG_FILENAME: Final[str] = 'config.yaml'
 METADATA_FILENAME: Final[str] = 'metadata.yaml'
 
+# [CONV-PY-PATHLIB: os.path.expanduser keeps "~" without a home, where Path.expanduser raises]
 DEFAULT_ENVIRONMENTS_FILE: Final[str] = os.path.abspath(
     os.path.expanduser('~/.juju/environments.yaml'),
 )
@@ -120,8 +123,8 @@ def juju_do(
         arguments += [str(o) for o in options]
 
     env = os.environ.copy()
-    env['HOME'] = os.path.expanduser('~/')
-    env['JUJU_HOME'] = os.path.expanduser('~/.juju')
+    env['HOME'] = str(Path('~').expanduser())
+    env['JUJU_HOME'] = str(Path('~/.juju').expanduser())
 
     if is_destroy:
         # TODO Automate yes answer to destroy-environment
@@ -148,7 +151,7 @@ def load_unit_config(config: str | dict, log: Any = None) -> dict:
         if hasattr(log, '__call__'):
             log(f'Load config from file {config}')
 
-        with open(config, encoding='utf-8') as f:
+        with Path(config).open(encoding='utf-8') as f:
             options = yaml.load(f)['options']
             config = {}
             for option in options:
@@ -165,12 +168,10 @@ def load_unit_config(config: str | dict, log: Any = None) -> dict:
 
 def save_unit_config(path: str, service: str, config: dict) -> None:
     """Write a unit's configuration to a YAML file."""
-    with open(path, 'w', encoding='utf-8') as f:
-        for option, value in config.items():
-            if isinstance(value, bool):
-                config[option] = str(value)
-        config = {service: config}
-        yaml.dump(config, f)
+    for option, value in config.items():
+        if isinstance(value, bool):
+            config[option] = str(value)
+    _write_yaml(path, {service: config})
 
 
 # --- Environments ---------------------------------------------------------------------------------
@@ -188,7 +189,7 @@ def add_environment(
 ) -> Any:
     """Register and bootstrap a new Juju environment."""
     environments_path = environments or DEFAULT_ENVIRONMENTS_FILE
-    with open(environments_path, encoding='utf-8') as f:
+    with Path(environments_path).open(encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
     if environment == 'default':
@@ -214,16 +215,14 @@ def add_environment(
 
     environments_dict['environments'][environment] = environment_dict
 
-    with open(environments_path, 'w', encoding='utf-8') as f:
-        yaml.dump(environments_dict, f)
+    _write_yaml(environments_path, environments_dict)
 
     try:
         return juju_do('bootstrap', environment)
     except RuntimeError as exc:
         if 'configuration error' in str(exc):
             del environments_dict['environments'][environment]
-            with open(environments_path, 'w', encoding='utf-8') as f:
-                yaml.dump(environments_dict, f)
+            _write_yaml(environments_path, environments_dict)
             raise ValueError(f'Cannot add environment {environment} ({exc}).') from exc
         raise
 
@@ -235,7 +234,7 @@ def get_environment(
     status_timeout: int | None = None,
 ) -> dict:
     """Return the configuration dictionary of a named environment."""
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
+    with Path(environments or DEFAULT_ENVIRONMENTS_FILE).open(encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
     environment = environments_dict['default'] if environment == 'default' else environment
@@ -256,7 +255,7 @@ def get_environments(
     status_timeout: int | None = None,
 ) -> tuple[dict[str, Any], str]:
     """Return all environments and the default environment name."""
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
+    with Path(environments or DEFAULT_ENVIRONMENTS_FILE).open(encoding='utf-8') as f:
         environments_dict = yaml.load(f)
 
     result: dict[str, Any] = {}
@@ -276,7 +275,7 @@ def get_environments(
 
 def get_environments_count(environments: str | None = None) -> int:
     """Return the number of configured environments."""
-    with open(environments or DEFAULT_ENVIRONMENTS_FILE, encoding='utf-8') as f:
+    with Path(environments or DEFAULT_ENVIRONMENTS_FILE).open(encoding='utf-8') as f:
         return len(yaml.load(f)['environments'])
 
 
@@ -285,7 +284,7 @@ def get_environments_count(environments: str | None = None) -> int:
 
 def get_unit_path(service: str, number: int, *args: str) -> str:
     """Return the filesystem path of a unit's charm directory."""
-    return os.path.join(f'/var/lib/juju/agents/unit-{service}-{number}/charm', *args)
+    return str(Path(f'/var/lib/juju/agents/unit-{service}-{number}/charm', *args))
 
 
 # --- Helpers --------------------------------------------------------------------------------------
@@ -335,11 +334,10 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
     ...     def hook_stop(self):
     ...         self.info('stop services')
     ...
-    >>> import os
-    >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-    >>> here = os.path.join(here, '../../..' if 'build/lib' in here else '..', 'tests')
-    >>> metadata = os.path.join(here, 'metadata.yaml')
-    >>> config = os.path.join(here, 'config.yaml')
+    >>> here = Path(__file__).parent.absolute()
+    >>> here = here.joinpath('../../..' if 'build/lib' in str(here) else '..', 'tests')
+    >>> metadata = str(here / 'metadata.yaml')
+    >>> config = str(here / 'config.yaml')
 
     Trigger some hooks:
 
@@ -400,7 +398,7 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
             self.env_uuid = default_os_env['JUJU_ENV_UUID']
             self.name = default_os_env['JUJU_UNIT_NAME']
             self.private_address = self.public_address = socket.getfqdn(get_ip())
-        self.directory = os.getcwd()
+        self.directory = str(Path.cwd())
         self.debug(f'Using juju {self.juju_ok}, reason: {reason}')
         self.load_metadata(metadata)
 
@@ -541,10 +539,9 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
 
         **Example usage**
 
-        >>> import os
-        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-        >>> config = os.path.join(
-        ...     here, '../../..' if 'build/lib' in here else '..', 'tests/config.yaml')
+        >>> here = Path(__file__).parent.absolute()
+        >>> tests = here.joinpath('../../..' if 'build/lib' in str(here) else '..', 'tests')
+        >>> config = str(tests / 'config.yaml')
         >>>
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hasattr(hooks.config, 'pingu') or hasattr(hooks.config, 'rabbit_password')
@@ -583,10 +580,9 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
 
         **Example usage**
 
-        >>> import os
-        >>> here = os.path.abspath(os.path.expanduser(os.path.dirname(__file__)))
-        >>> metadata = os.path.join(
-        ...     here, '../../..' if 'build/lib' in here else '..', 'tests/metadata.yaml')
+        >>> here = Path(__file__).parent.absolute()
+        >>> tests = here.joinpath('../../..' if 'build/lib' in str(here) else '..', 'tests')
+        >>> metadata = str(tests / 'metadata.yaml')
         >>> hooks = CharmHooks(None, None, DEFAULT_OS_ENV, force_disable_juju=True)
         >>> hooks.metadata
         >>> hooks.load_metadata({'ensemble': 'oscied'})
@@ -600,7 +596,7 @@ class CharmHooks:  # pylint:disable=too-many-instance-attributes,too-many-public
         """
         if isinstance(metadata, str):
             self.debug(f'Load metadata from file {metadata}')
-            with open(metadata, encoding='utf-8') as f:
+            with Path(metadata).open(encoding='utf-8') as f:
                 metadata = yaml.load(f)
         self.metadata = metadata
 
@@ -664,7 +660,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         min_timeout: int = 15,
     ) -> None:
         self.name = name
-        self.charms_path = os.path.abspath(charms_path)
+        self.charms_path = str(Path(charms_path).resolve())
         self.config = config
         self.release = release
         self.auto = auto
@@ -709,9 +705,9 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         """Symlink charms default directory to directory of current release."""
         if self.release is None:
             raise ValueError('The environment has no release to symlink to')
-        release_symlink = os.path.join(self.charms_path, self.release)
+        release_symlink = str(Path(self.charms_path, self.release))
         filesystem.remove(release_symlink)
-        filesystem.symlink(os.path.join(self.charms_path, default_path), release_symlink)
+        filesystem.symlink(str(Path(self.charms_path, default_path)), release_symlink)
 
     def sync_tools(self, all_tools: bool = True) -> Any:
         """Copy tools from the official bucket into a local environment."""
@@ -795,7 +791,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
         """Destroy the environment and optionally remove it from configuration."""
         # TODO simpler algorithm
         environments_path = environments or DEFAULT_ENVIRONMENTS_FILE
-        with open(environments_path, encoding='utf-8') as f:
+        with Path(environments_path).open(encoding='utf-8') as f:
             environments_dict = yaml.load(f)
 
         name = environments_dict['default'] if self.name == 'default' else self.name
@@ -818,8 +814,7 @@ class Environment:  # pylint:disable=too-many-instance-attributes,too-many-publi
                 raise RuntimeError(f'Environment {name} not removed, it is still alive.')
 
             del environments_dict['environments'][name]
-            with open(environments_path, 'w', encoding='utf-8') as f:
-                yaml.dump(environments_dict, f)
+            _write_yaml(environments_path, environments_dict)
         return result
 
     # Services
@@ -1417,6 +1412,16 @@ class SimulatedUnits:
             unit.tick()
             if unit.state == STOPPED:
                 del self.units[number]  # pylint: disable=unnecessary-dict-index-lookup
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _write_yaml(path: str, data: Any) -> None:
+    """Write *data* as YAML to *path* through a temporary file renamed over it."""
+    stream = io.StringIO()
+    yaml.dump(data, stream)
+    serialization.to_file(path, data=stream.getvalue().encode('utf-8'), binary=True, safe=True)
 
 
 __all__ = _all.diff(globals())

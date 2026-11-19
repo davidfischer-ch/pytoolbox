@@ -8,10 +8,10 @@ import errno
 import inspect
 import io
 import json
-import os
 import pickle
 import shutil
-from typing import Any, TypeAlias, override
+from pathlib import Path
+from typing import Any, override
 
 import ruamel.yaml
 
@@ -45,7 +45,7 @@ def to_file(
 
     >>> to_file('/tmp/to_file', data='bonjour') is None
     True
-    >>> open('/tmp/to_file').read()
+    >>> Path('/tmp/to_file').read_text()
     'bonjour'
 
     No backup is created if the destination file does not exist:
@@ -59,9 +59,9 @@ def to_file(
 
     >>> to_file('/tmp/to_file', data='ça va ?', backup=True)
     '/tmp/to_file.bkp'
-    >>> open('/tmp/to_file.bkp').read()
+    >>> Path('/tmp/to_file.bkp').read_text()
     'bonjour'
-    >>> open('/tmp/to_file').read()
+    >>> Path('/tmp/to_file').read_text()
     'ça va ?'
 
     The most secure, do a backup, write into a temporary file, and rename the temporary file to the
@@ -69,9 +69,9 @@ def to_file(
 
     >>> to_file('/tmp/to_file', data='oui et toi ?', safe=True, backup=True)
     '/tmp/to_file.bkp'
-    >>> open('/tmp/to_file.bkp').read()
+    >>> Path('/tmp/to_file.bkp').read_text()
     'ça va ?'
-    >>> open('/tmp/to_file').read()
+    >>> Path('/tmp/to_file').read_text()
     'oui et toi ?'
 
     The content of the destination is not broken if the write operation fails:
@@ -80,27 +80,27 @@ def to_file(
     Traceback (most recent call last):
         ...
     TypeError: write() argument must be str, not function
-    >>> open('/tmp/to_file').read()
+    >>> Path('/tmp/to_file').read_text()
     'oui et toi ?'
     """
     if makedirs:
-        filesystem.makedirs(os.path.dirname(path))
+        filesystem.makedirs(Path(path).parent)
     if backup:
         backup_path = f'{path}.bkp'
         try:
             shutil.copy2(path, backup_path)
-        except IOError as exc:
+        except OSError as exc:
             if exc.errno != errno.ENOENT:
                 raise
             backup_path = None
     write_path = f'{path}.tmp' if safe else path
-    with open(write_path, 'wb' if binary else 'w') as f:
+    with Path(write_path).open('wb' if binary else 'w') as f:
         if data is not None:
             f.write(data)
         if pickle_data is not None:
             pickle.dump(pickle_data, f)
     if safe:
-        os.rename(write_path, path)
+        Path(write_path).replace(path)
     return backup_path if backup else None
 
 
@@ -121,7 +121,7 @@ class PickleableObject:
     ) -> PickleableObject:
         """Return a deserialized instance of a pickleable object loaded from a file."""
         try:
-            with open(path, 'rb') as f:
+            with Path(path).open('rb') as f:
                 the_object = pickle.load(f)
         except Exception:
             if not create_if_error:
@@ -259,31 +259,29 @@ def jsonfile_to_object(
 
     Define the sample class, instantiate it and serialize it to a file:
 
-    >>> import os
-    >>>
     >>> class Point(object):
     ...     def __init__(self, name=None, x=0, y=0):
     ...         self.name = name
     ...         self.x = x
     ...         self.y = y
     >>> p1 = Point(name='My point', x=10, y=-5)
-    >>> with open('test.json', 'w', encoding='utf-8') as f:
-    ...     f.write(object_to_json(p1, include_properties=False))
+    >>> Path('test.json').write_text(object_to_json(p1, include_properties=False), encoding='utf-8')
     38
 
     Deserialize the freshly saved file:
 
     >>> p2 = jsonfile_to_object(Point, 'test.json', inspect_constructor=False)
     >>> assert p1.__dict__ == p2.__dict__
-    >>> p2 = jsonfile_to_object(Point, open('test.json'), inspect_constructor=False)
+    >>> with Path('test.json').open() as f:
+    ...     p2 = jsonfile_to_object(Point, f, inspect_constructor=False)
     >>> assert p1.__dict__ == p2.__dict__
-    >>> os.remove('test.json')
+    >>> Path('test.json').unlink()
     """
-    if isinstance(path_or_file, str):
-        f = open(path_or_file, 'r')
-    else:
-        f = path_or_file
-    return json_to_object(cls, f.read(), inspect_constructor)
+    return json_to_object(
+        cls,
+        Path(path_or_file).read_text() if isinstance(path_or_file, str) else path_or_file.read(),
+        inspect_constructor,
+    )
 
 
 class JsoneableObject:
@@ -354,7 +352,7 @@ class JsoneableObject:
         inspect_constructor: bool = True,
     ) -> JsoneableObject:
         """Return a deserialized instance of a jsoneable object loaded from a file."""
-        with open(path, encoding='utf-8') as f:
+        with Path(path).open(encoding='utf-8') as f:
             the_object = dict_to_object(cls, json.loads(f.read()), inspect_constructor)
             if store_path:
                 the_object._json_path = path  # pylint:disable=all
@@ -637,7 +635,7 @@ class SlotsToDictMixin:
 # --- YAML -----------------------------------------------------------------------------------------
 
 
-YamlDataTypes: TypeAlias = dict | list | str | None
+type YamlDataTypes = dict | list | str | None
 
 
 def get_yaml(

@@ -16,7 +16,7 @@ import threading
 import time
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import IO, Any, Literal, TypeAlias, TypedDict, overload
+from typing import IO, Any, Literal, TypedDict, overload
 
 import setuptools.archive_util
 
@@ -38,8 +38,8 @@ from shlex import quote  # noqa: E402  pylint:disable=wrong-import-order,wrong-i
 
 # Better to warn user than letting converting to string Any!
 # None will be stripped automatically
-CallArgType: TypeAlias = int | float | str | Path | None
-CallArgsType: TypeAlias = str | Iterable[CallArgType]
+type CallArgType = int | float | str | Path | None
+type CallArgsType = str | Iterable[CallArgType]
 
 
 class CallResult(TypedDict):
@@ -86,7 +86,7 @@ def read_async(fd: IO) -> str:  # pylint:disable=invalid-name
     """Read some data from a file descriptor, ignoring EAGAIN errors."""
     try:
         return fd.read()
-    except IOError as exc:
+    except OSError as exc:
         if exc.errno == errno.EAGAIN:
             return ''
         raise

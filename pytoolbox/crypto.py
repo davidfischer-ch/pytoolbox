@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import collections
 import hashlib
-import os
 import secrets
 import string
 from base64 import b64encode
@@ -137,7 +136,7 @@ def githash(
     """
     hasher = hashlib.sha1()
     if isinstance(path_or_data, Path):
-        hasher.update((f'blob {os.path.getsize(path_or_data)}\0').encode('utf-8'))
+        hasher.update((f'blob {path_or_data.stat().st_size}\0').encode())
         for data_bytes in filesystem.get_bytes(
             path_or_data,
             encoding=encoding,
@@ -152,7 +151,7 @@ def githash(
                 chunk_size=None,
             ),
         )
-        hasher.update((f'blob {len(data_bytes)}\0').encode('utf-8'))
+        hasher.update((f'blob {len(data_bytes)}\0').encode())
         hasher.update(data_bytes)
     return hasher.hexdigest()
 

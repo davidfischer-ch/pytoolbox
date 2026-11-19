@@ -4,7 +4,7 @@ Data classes for FFmpeg/FFprobe media, codec, format, and stream info.
 
 from __future__ import annotations
 
-import datetime
+from datetime import timedelta
 from pathlib import Path
 from typing import Any, override
 
@@ -348,7 +348,7 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
     """Represent a media file or pipe with its FFmpeg options."""
 
     # Attached while an encoding is tracked; neither is read from the file itself.
-    duration: datetime.timedelta | None = None
+    duration: timedelta | None = None
     frame: float | None = None
 
     __slots__ = ('_path', 'options', '_is_pipe')

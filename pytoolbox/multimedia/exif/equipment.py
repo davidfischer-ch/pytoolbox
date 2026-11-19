@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 __all__ = ['Equipement']
 
 
-class Equipement(metaclass=abc.ABCMeta):
+class Equipement(abc.ABC):
     """Abstract base for photographic equipment identified from EXIF data."""
 
     def __init__(self, metadata: Metadata) -> None:

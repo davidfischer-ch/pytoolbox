@@ -4,7 +4,7 @@ Photo-level EXIF metadata (exposure, ISO, white balance).
 
 from __future__ import annotations
 
-import datetime
+from datetime import datetime
 from fractions import Fraction
 
 from pytoolbox.enum import OrderedEnum
@@ -46,7 +46,7 @@ class Photo(TagSet):
     """Provide access to photo-level EXIF metadata."""
 
     @property
-    def date(self) -> datetime.datetime | None:
+    def date(self) -> datetime | None:
         """Return the date the photo was taken."""
         return self.metadata.get_date()
 

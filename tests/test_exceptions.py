@@ -37,7 +37,7 @@ def test_message_mixin_str() -> None:
 def test_message_mixin_str_includes_class_attributes() -> None:
     """MessageMixin uses both class attributes and instance kwargs in message."""
 
-    class NewError(exceptions.MessageMixin, IOError):
+    class NewError(exceptions.MessageMixin, OSError):
         """Test error class for attribute resolution."""
 
         message: str = 'The attribute from {my_attr}'

@@ -274,21 +274,21 @@ def test_read_async_returns_data() -> None:
 
 
 def test_read_async_eagain_returns_empty() -> None:
-    """read_async() returns empty string on EAGAIN IOError."""
+    """read_async() returns empty string on EAGAIN OSError."""
     import errno as errno_mod
 
     fd = mock.MagicMock()
-    fd.read.side_effect = IOError(errno_mod.EAGAIN, 'try again')
+    fd.read.side_effect = OSError(errno_mod.EAGAIN, 'try again')
     assert subprocess.read_async(fd) == ''
 
 
-def test_read_async_reraises_other_ioerror() -> None:
-    """read_async() re-raises IOError when errno is not EAGAIN."""
+def test_read_async_reraises_other_oserror() -> None:
+    """read_async() re-raises OSError when errno is not EAGAIN."""
     import errno as errno_mod
 
     fd = mock.MagicMock()
-    fd.read.side_effect = IOError(errno_mod.EBADF, 'bad fd')
-    with pytest.raises(IOError):
+    fd.read.side_effect = OSError(errno_mod.EBADF, 'bad fd')
+    with pytest.raises(OSError):
         subprocess.read_async(fd)
 
 

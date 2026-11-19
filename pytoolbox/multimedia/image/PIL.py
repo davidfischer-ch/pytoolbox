@@ -65,7 +65,7 @@ def open(  # pylint:disable=redefined-builtin
     image = Image.open(file_or_path)
     try:
         image.load()
-    except IOError as exc:
+    except OSError as exc:
         if 'truncated' not in str(exc):
             raise
     return image

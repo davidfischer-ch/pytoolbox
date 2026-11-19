@@ -38,7 +38,7 @@ def get_kernel_config(release: str | None = None, *, fail: bool = True) -> dict[
         content = Path(f'/boot/config-{release or os.uname().release}').read_text(encoding='utf-8')
         config = configparser.ConfigParser()
         config.read_string(f'[kernel]{content}')
-    except IOError:
+    except OSError:
         if fail:
             raise
         return {}

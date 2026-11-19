@@ -556,18 +556,18 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         delay_format = '%.0f' if self.delay_units == self.PACKETS else '%.2f'
         delay_msg = f'{delay_format % self.current_delay} {self.DELAY_NAMES[self.delay_units]}'
 
-        return (  # pylint:disable=consider-using-f-string
-            'Name  Received Buffered Maximum Dropped{0}'
-            'Media %8d%9d%8d{0}'
-            'Col   %8d%9d%8d%8d{0}'
-            'Row   %8d%9d%8d%8d{0}'
-            'Cross         %9d%8d{0}'
-            'FEC statistics, media packets :{0}'
-            'Recovered Aborted Overwritten Missing{0}'
-            '%9d%8d%12d%8d{0}'
-            'Current position (media sequence) : %s{0}'
-            'Current delay (can be set) : %s{0}'
-            'FEC matrix size (LxD) : %sx%s = %s packets'.format(os.linesep)
+        return (
+            f'Name  Received Buffered Maximum Dropped{os.linesep}'
+            f'Media %8d%9d%8d{os.linesep}'
+            f'Col   %8d%9d%8d%8d{os.linesep}'
+            f'Row   %8d%9d%8d%8d{os.linesep}'
+            f'Cross         %9d%8d{os.linesep}'
+            f'FEC statistics, media packets :{os.linesep}'
+            f'Recovered Aborted Overwritten Missing{os.linesep}'
+            f'%9d%8d%12d%8d{os.linesep}'
+            f'Current position (media sequence) : %s{os.linesep}'
+            f'Current delay (can be set) : %s{os.linesep}'
+            'FEC matrix size (LxD) : %sx%s = %s packets'
             % (
                 self.media_received,
                 len(self.medias),

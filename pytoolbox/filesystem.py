@@ -7,7 +7,6 @@ from __future__ import annotations
 import collections
 import contextlib
 import copy
-import datetime
 import errno
 import os
 import re
@@ -17,8 +16,9 @@ import time
 import uuid
 import warnings
 from collections.abc import Callable, Iterator
+from datetime import datetime
 from pathlib import Path
-from typing import Any, BinaryIO, Literal, Protocol, Self, TextIO, TypeAlias, overload
+from typing import Any, BinaryIO, Literal, Protocol, Self, TextIO, overload
 
 from . import module
 from .datetime import datetime_now
@@ -27,7 +27,7 @@ from .regex import from_path_patterns
 
 _all = module.All(globals())
 
-FindPatterns: TypeAlias = (
+type FindPatterns = (
     re.Pattern
     | str  # noqa: W504
     | list[re.Pattern]
@@ -44,7 +44,7 @@ class CopyProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
 
     def __call__(
         self,
-        start_date: datetime.datetime,
+        start_date: datetime,
         elapsed_time: float,
         eta_time: float,
         src_size: int,
@@ -62,12 +62,8 @@ class TemplateHookFunc(Protocol):  # pylint:disable=too-few-public-methods
 @contextlib.contextmanager
 def chdir(path: Path) -> Iterator[None]:
     """Set working directory then restore previous working directory value on exit."""
-    here = Path.cwd()
-    os.chdir(path)
-    try:
+    with contextlib.chdir(path):
         yield
-    finally:
-        os.chdir(here)
 
 
 def chown(
@@ -131,7 +127,7 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
 
     This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
     At the end of the copy, if the size of the destination directory is not equal to the source
-    then a `IOError` is raised.
+    then an :class:`OSError` is raised.
     """
     try:  # pylint:disable=too-many-try-statements
         start_date = datetime_now(fmt=None)
@@ -207,7 +203,7 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
         # Output directory sanity check
         if check_size:
             if (dst_size := get_size(destination_path)) != src_size:
-                raise IOError(f'Destination size does not match source ({src_size} vs {dst_size})')
+                raise OSError(f'Destination size does not match source ({src_size} vs {dst_size})')
 
         elapsed_time = time.time() - start_time
         return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
@@ -331,7 +327,7 @@ def from_template(
     jinja2: bool = False,
     pre_func: TemplateHookFunc | None = None,
     post_func: TemplateHookFunc | None = None,
-    directories: Path | list[Path] = Path('.'),
+    directories: Path | list[Path] = Path(),
 ) -> str:
     """
     Return a `template` rendered with `values` using string.format or Jinja2 as the template engine.
@@ -481,9 +477,9 @@ def makedirs(path: Path | str, *, mode: int = 0o777, parent: bool = False) -> bo
     >>>
     >>> makedirs(Path('/tmp/some/path/file.txt'), parent=True)
     True
-    >>> os.path.exists('/tmp/some/path')
+    >>> Path('/tmp/some/path').exists()
     True
-    >>> os.path.exists('/tmp/some/path/file.txt')
+    >>> Path('/tmp/some/path/file.txt').exists()
     False
     >>> shutil.rmtree('/tmp/some')
     >>>
@@ -496,7 +492,7 @@ def makedirs(path: Path | str, *, mode: int = 0o777, parent: bool = False) -> bo
     if parent:
         directory = directory.parent
     try:
-        os.makedirs(directory, mode=mode)
+        directory.mkdir(mode=mode, parents=True)
         return True
     except OSError as exc:
         # Directory exists
@@ -541,7 +537,7 @@ def remove(path: Path | str, *, recursive: bool = False) -> bool:
     """
     try:
         try:
-            os.remove(path)
+            Path(path).unlink()
             return True
         except Exception as exc:
             # Is a directory and recursion is allowed
@@ -571,7 +567,7 @@ def symlink(source: str, link_name: str) -> bool:
     >>> a = remove('/tmp/does_not_exist')
     >>> a = remove('/tmp/does_not_exist_2')
     >>> a = remove('/tmp/link_etc')
-    >>> a = remove(os.path.expanduser('~/broken_link'))
+    >>> a = remove(Path('~/broken_link').expanduser())
 
     Creating a symlink named /etc does fail - /etc already exist but does not refer to /home:
 
@@ -600,28 +596,28 @@ def symlink(source: str, link_name: str) -> bool:
     False
     >>> asserts.raises(OSError, symlink, '~/does_not_exist_2', '~/broken_link')
     >>> asserts.raises(OSError, symlink, '/home', '~/broken_link')
-    >>> os.remove('/tmp/link_etc')
-    >>> os.remove(os.path.expanduser('~/broken_link'))
+    >>> Path('/tmp/link_etc').unlink()
+    >>> Path('~/broken_link').expanduser().unlink()
     """
     try:
-        source = os.path.expanduser(source)
-        link_name = os.path.expanduser(link_name)
-        os.symlink(source, link_name)
+        source_path = Path(source).expanduser()
+        link_path = Path(link_name).expanduser()
+        link_path.symlink_to(source_path)
         return True
     except OSError as e1:  # pylint:disable=invalid-name
         # File exists
         if e1.errno == errno.EEXIST:
             try:
-                if os.path.samefile(source, link_name):
+                if source_path.samefile(link_path):
                     return False
             except OSError as e2:  # pylint:disable=invalid-name
-                # Handle broken symlink that point to same target
-                target = os.path.expanduser(os.readlink(link_name))
-                if e2.errno == errno.ENOENT:
-                    if target == source:
-                        return False
-                    raise OSError(errno.EEXIST, 'File exists')  # pylint:disable=raise-missing-from
-                raise
+                if e2.errno != errno.ENOENT:
+                    raise
+
+                # A broken symlink to the same source is already there
+                if link_path.is_symlink() and link_path.readlink().expanduser() == source_path:
+                    return False
+                raise OSError(errno.EEXIST, 'File exists') from e2
         raise  # Re-raise exception if a different error occurred
 
 
@@ -673,12 +669,11 @@ class TempStorage:
 
     As a context manager:
 
-    >>> import os
     >>> with TempStorage() as tmp:
     ...     directory = tmp.create_tmp_directory()
-    ...     os.path.isdir(directory)
+    ...     Path(directory).is_dir()
     True
-    >>> os.path.isdir(directory)
+    >>> Path(directory).is_dir()
     False
     """
 

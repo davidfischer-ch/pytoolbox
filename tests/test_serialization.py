@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import math
-import os
+from pathlib import Path
 
 import pytest
 
@@ -34,20 +34,20 @@ def test_pickleable_object() -> None:
     assert point_2.__dict__ == {'y': -3, 'x': 6, '_pickle_path': 'test.pkl', 'name': 'My point'}
     point_2.write()
     point_2.write('test2.pkl')
-    os.remove('test.pkl')
-    os.remove('test2.pkl')
+    Path('test.pkl').unlink()
+    Path('test2.pkl').unlink()
     point_2.write()
-    assert os.path.exists('test2.pkl') is False
+    assert Path('test2.pkl').exists() is False
     assert point_2._pickle_path == 'test.pkl'
-    os.remove('test.pkl')
+    Path('test.pkl').unlink()
 
     point_2.write('test2.pkl', store_path=True)
-    assert os.path.exists('test.pkl') is False
+    assert Path('test.pkl').exists() is False
     assert point_2._pickle_path == 'test2.pkl'
     del point_2._pickle_path
     with pytest.raises(ValueError):
         point_2.write()
-    os.remove('test2.pkl')
+    Path('test2.pkl').unlink()
     filesystem.remove('test3.pkl')
 
     point_3 = MyPoint.read(
@@ -65,6 +65,6 @@ def test_pickleable_object() -> None:
         'name': 'Default point',
     }
 
-    os.remove('test3.pkl')
-    with pytest.raises(IOError):
+    Path('test3.pkl').unlink()
+    with pytest.raises(OSError):
         MyPoint.read('test3.pkl')

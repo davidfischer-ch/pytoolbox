@@ -43,7 +43,7 @@ def add_fingerprint(path: Path, host: str) -> None:
     keys: bytes = subprocess.cmd(['ssh-keyscan', '-H', host])['stdout']
     with path.open('ab') as key_file:
         key_file.write(keys)
-    os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+    path.chmod(stat.S_IRUSR | stat.S_IWUSR)
 
 
 def add_key(content: str) -> None:

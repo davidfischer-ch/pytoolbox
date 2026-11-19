@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Final
 
 from pytest import raises
@@ -97,7 +98,7 @@ def test_start_agent():
     variables = ssh.start_agent()
     sock_path = variables.pop('SSH_AUTH_SOCK')
     assert int(variables.pop('SSH_AGENT_PID')) > 0
-    assert os.path.exists(sock_path), sock_path
+    assert Path(sock_path).exists(), sock_path
     assert not variables
     assert ssh.stop_agent()
 

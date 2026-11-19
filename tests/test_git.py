@@ -122,7 +122,7 @@ def test_scoped_ssh_key_with_options() -> None:
     with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
         with git.scoped_ssh_key(
-            Path('.'),
+            Path(),
             'key-data',
             options=['StrictHostKeyChecking=no'],
         ) as name:
@@ -149,7 +149,7 @@ def test_scoped_ssh_key_options_with_spaces() -> None:
     with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.return_value = {'stdout': None, 'stderr': None, 'returncode': 0}
         with git.scoped_ssh_key(
-            Path('.'),
+            Path(),
             'key-data',
             options=['ProxyCommand ssh -W %h:%p jump-host'],
         ):
@@ -173,7 +173,7 @@ def test_scoped_ssh_key_config_fails() -> None:
     with patch('pytoolbox.subprocess.cmd') as cmd:
         cmd.side_effect = _make_called_process_error()
         with pytest.raises(exceptions.CalledProcessError):
-            with git.scoped_ssh_key(Path('.'), 'x' * 200):
+            with git.scoped_ssh_key(Path(), 'x' * 200):
                 pass  # pragma: no cover
 
 

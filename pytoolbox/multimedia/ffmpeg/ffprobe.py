@@ -5,16 +5,15 @@ FFprobe wrapper for extracting media file information.
 from __future__ import annotations
 
 import collections.abc
-import datetime
 import errno
 import itertools
 import json
 import math
-import os
 import re
 import subprocess
+from datetime import time, timedelta
 from pathlib import Path
-from typing import Any, Final, Literal, TypeAlias, overload
+from typing import Any, Final, Literal, overload
 from xml.dom.minidom import Element  # nosec B408  # only the type; parsing goes via defusedxml
 
 from defusedxml import minidom
@@ -27,7 +26,7 @@ from . import miscellaneous, utils
 __all__ = ['DURATION_REGEX', 'FFprobe', 'MediaLike']
 
 # What every accessor below accepts: a Media, the path of one, or an already probed info dict.
-MediaLike: TypeAlias = 'miscellaneous.Media | Path | str | dict[str, Any]'
+type MediaLike = miscellaneous.Media | Path | str | dict[str, Any]
 
 DURATION_REGEX: Final[re.Pattern] = re.compile(
     r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S',
@@ -69,7 +68,7 @@ class FFprobe:
         *,
         as_delta: Literal[False] = False,
         fail: bool = False,
-    ) -> datetime.time | None: ...
+    ) -> time | None: ...
 
     @overload
     def get_media_duration(
@@ -78,7 +77,7 @@ class FFprobe:
         *,
         as_delta: Literal[True],
         fail: bool = False,
-    ) -> datetime.timedelta | None: ...
+    ) -> timedelta | None: ...
 
     def get_media_duration(
         self,
@@ -86,7 +85,7 @@ class FFprobe:
         *,
         as_delta: bool = False,
         fail: bool = False,
-    ) -> datetime.timedelta | datetime.time | None:
+    ) -> timedelta | time | None:
         """
         Return the duration of a media as an instance of time or None in case of error.
 
@@ -96,8 +95,8 @@ class FFprobe:
         If `media` is the path to a MPEG-DASH MPD, then duration will be parser from value of key
         *mediaPresentationDuration*.
         """
-        if isinstance(media, (str, Path)) and os.path.splitext(media)[1] == '.mpd':
-            with open(media, encoding='utf-8') as f:
+        if isinstance(media, (str, Path)) and Path(media).suffix == '.mpd':
+            with Path(media).open(encoding='utf-8') as f:
                 mpd = minidom.parse(f)
             root = mpd.firstChild
             if isinstance(root, Element) and root.nodeName == 'MPD':
@@ -118,10 +117,10 @@ class FFprobe:
                 except KeyError:
                     return None
             # ffmpeg may return this so strange value, 00:00:00.04, let it being None
-            if isinstance(duration, datetime.timedelta):
-                if duration >= datetime.timedelta(seconds=1):
+            if isinstance(duration, timedelta):
+                if duration >= timedelta(seconds=1):
                     return duration
-            elif duration is not None and duration >= datetime.time(0, 0, 1):
+            elif duration is not None and duration >= time(0, 0, 1):
                 return duration
         return None
 

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest import mock
 
 import pytest
 
-from pytoolbox import juju
+from pytoolbox import juju, serialization
 from pytoolbox.juju import ERROR, PENDING, STARTED
 
 ADD_UNIT = ['juju', 'add-unit', '--environment', 'maas']
@@ -75,3 +76,16 @@ def test_environment_ensure_num_units() -> None:
                 mock.call([*DESTROY_SERVICE, 'my_mysql'], **kwargs),
             ]
         )
+
+
+def test_save_unit_config_replaces_the_file_with_the_unit_configuration(tmp_path: Path) -> None:
+    """The unit's configuration lands under its service, with no temporary file left behind."""
+    path = tmp_path / 'config.yaml'
+    path.write_text('stale: true\n', encoding='utf-8')
+
+    juju.save_unit_config(str(path), 'mongodb', {'replica': True, 'port': 27017})
+
+    assert serialization.get_yaml().load(path.read_text(encoding='utf-8')) == {
+        'mongodb': {'replica': 'True', 'port': 27017},
+    }
+    assert [p.name for p in tmp_path.iterdir()] == ['config.yaml']

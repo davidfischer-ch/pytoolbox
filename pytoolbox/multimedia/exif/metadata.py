@@ -4,8 +4,8 @@ High-level EXIF metadata access wrapping GExiv2.
 
 from __future__ import annotations
 
-import datetime
 from collections.abc import Iterable
+from datetime import datetime
 from pathlib import Path
 
 from pytoolbox import exceptions
@@ -70,11 +70,11 @@ class Metadata:
     def get_date(
         self,
         keys: Iterable[str] | str = ('Exif.Photo.DateTimeOriginal', 'Exif.Image.DateTime'),
-    ) -> datetime.datetime | None:
+    ) -> datetime | None:
         """Return the first valid date found among the given EXIF keys."""
         for key in chain(keys):
             date = self[key].data
-            if isinstance(date, datetime.datetime):
+            if isinstance(date, datetime):
                 return date
         return None
 

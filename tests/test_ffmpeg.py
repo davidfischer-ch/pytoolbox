@@ -3,10 +3,10 @@
 # pylint:disable=protected-access,use-implicit-booleaness-not-comparison,too-few-public-methods
 from __future__ import annotations
 
-import datetime
 import json
 import shutil
 import uuid
+from datetime import timedelta
 from pathlib import Path
 from typing import Any, Final
 
@@ -87,16 +87,16 @@ def test_media(tmp_path: Path) -> None:
 
 def test_statistics_compute_ratio(statistics: ffmpeg.EncodeStatistics) -> None:
     """_compute_ratio() returns correct ratio based on input/output duration."""
-    statistics.input.duration = datetime.timedelta(seconds=0)
+    statistics.input.duration = timedelta(seconds=0)
     statistics.output.duration = None
     assert statistics._compute_ratio() is None
-    statistics.input.duration = datetime.timedelta(seconds=0)
-    statistics.output.duration = datetime.timedelta(0)
+    statistics.input.duration = timedelta(seconds=0)
+    statistics.output.duration = timedelta(0)
     assert statistics._compute_ratio() is None
-    statistics.input.duration = datetime.timedelta(seconds=1)
+    statistics.input.duration = timedelta(seconds=1)
     assert statistics._compute_ratio() == 0.0
-    statistics.input.duration = datetime.timedelta(seconds=60)
-    statistics.output.duration = datetime.timedelta(seconds=30)
+    statistics.input.duration = timedelta(seconds=60)
+    statistics.output.duration = timedelta(seconds=30)
     assert statistics._compute_ratio() == 0.5
 
 
@@ -105,8 +105,8 @@ def test_statistics_compute_ratio_frame_based(
 ) -> None:
     """_compute_ratio() uses frame counts when available."""
     assert frame_based_statistics.input.frame > 0
-    frame_based_statistics.input.duration = datetime.timedelta(seconds=60)
-    frame_based_statistics.output.duration = datetime.timedelta(seconds=30)
+    frame_based_statistics.input.duration = timedelta(seconds=60)
+    frame_based_statistics.output.duration = timedelta(seconds=30)
     frame_based_statistics.frame, frame_based_statistics.input.frame = 0, 100
     assert frame_based_statistics._compute_ratio() == 0.0
     frame_based_statistics.frame = 60
@@ -116,16 +116,16 @@ def test_statistics_compute_ratio_frame_based(
 
 def test_statistics_eta_time(statistics: ffmpeg.EncodeStatistics) -> None:
     """eta_time calculates remaining time based on elapsed and ratio."""
-    statistics.elapsed_time = datetime.timedelta(seconds=60)
+    statistics.elapsed_time = timedelta(seconds=60)
     assert statistics.eta_time is None
     statistics.ratio = 0.0
     assert statistics.eta_time is None
     statistics.ratio = 0.2
-    assert statistics.eta_time == datetime.timedelta(seconds=240)
+    assert statistics.eta_time == timedelta(seconds=240)
     statistics.ratio = 0.5
-    assert statistics.eta_time == datetime.timedelta(seconds=60)
+    assert statistics.eta_time == timedelta(seconds=60)
     statistics.ratio = 1.0
-    assert statistics.eta_time == datetime.timedelta(0)
+    assert statistics.eta_time == timedelta(0)
 
 
 def test_statistics_parse_chunk(statistics: ffmpeg.EncodeStatistics) -> None:
@@ -138,7 +138,7 @@ def test_statistics_parse_chunk(statistics: ffmpeg.EncodeStatistics) -> None:
         'frame_rate': 0.0,
         'qscale': -1.0,
         'size': 34623 * 1024,
-        'time': datetime.timedelta(minutes=1, seconds=25.89),
+        'time': timedelta(minutes=1, seconds=25.89),
         'bit_rate': 3302300,
     }
 
@@ -147,11 +147,11 @@ def test_statistics_subclip_duration_and_size(statistics: ffmpeg.EncodeStatistic
     """_get_subclip_duration_and_size() calculates duration/size from ffmpeg args."""
     subclip = statistics._get_subclip_duration_and_size
     size = 512 * 1024
-    duration = datetime.timedelta(hours=1, minutes=30, seconds=36.5)
-    sub_dur_1 = datetime.timedelta(seconds=3610.2)
-    sub_dur_2 = datetime.timedelta(hours=1, minutes=20, seconds=15.8)
-    sub_dur_3 = datetime.timedelta(minutes=40, seconds=36.3)
-    sub_dur_4 = datetime.timedelta(0)
+    duration = timedelta(hours=1, minutes=30, seconds=36.5)
+    sub_dur_1 = timedelta(seconds=3610.2)
+    sub_dur_2 = timedelta(hours=1, minutes=20, seconds=15.8)
+    sub_dur_3 = timedelta(minutes=40, seconds=36.3)
+    sub_dur_4 = timedelta(0)
     assert subclip(duration, size, []) == (duration, size)
     assert subclip(duration, size, ['-t']) == (duration, size)
     assert subclip(duration, size, ['-t', '-t']) == (duration, size)
@@ -166,7 +166,7 @@ def test_statistics_subclip_duration_and_size(statistics: ffmpeg.EncodeStatistic
 def test_statistics_new_properties(statistics: ffmpeg.EncodeStatistics) -> None:
     """EncodeStatistics in NEW state has correct initial property values."""
     assert statistics.state == statistics.states.NEW
-    assert isinstance(statistics.input.duration, datetime.timedelta)
+    assert isinstance(statistics.input.duration, timedelta)
     assert statistics.eta_time is None
     assert statistics.input == statistics.inputs[0]
     assert statistics.output == statistics.outputs[0]
@@ -178,7 +178,7 @@ def test_statistics_started_properties(statistics: ffmpeg.EncodeStatistics) -> N
     """EncodeStatistics in STARTED state has output duration set to zero."""
     statistics.start('process')
     assert statistics.state == statistics.states.STARTED
-    assert statistics.output.duration == datetime.timedelta(0)
+    assert statistics.output.duration == timedelta(0)
     assert statistics.eta_time is None
     assert statistics.ratio == 0.0
 
@@ -191,7 +191,7 @@ def test_statistics_success_properties(statistics: ffmpeg.EncodeStatistics) -> N
     statistics.end(0)
     assert statistics.state == statistics.states.SUCCESS
     assert statistics.output.duration == statistics.input.duration
-    assert statistics.eta_time == datetime.timedelta(0)
+    assert statistics.eta_time == timedelta(0)
     assert statistics.ratio == 1.0
     assert statistics.output._size is None
 
@@ -365,16 +365,14 @@ def test_ffprobe_get_media_duration(
 
     # Bad file format
     txt_file = tmp_path / 'test.txt'
-    with open(txt_file, 'w', encoding='utf-8') as f:
-        f.write('Hey, I am not a MPD nor a média')
+    txt_file.write_text('Hey, I am not a MPD nor a média', encoding='utf-8')
     assert probe.get_media_duration(txt_file) is None
 
     # A MPEG-DASH MPD
     mpd_file = tmp_path / 'test.mpd'
-    with open(mpd_file, 'w', encoding='utf-8') as f:
-        f.write(MPD_TEST)
+    mpd_file.write_text(MPD_TEST, encoding='utf-8')
     assert probe.get_media_duration(mpd_file).strftime('%H:%M:%S.%f') == '00:06:07.830000'
-    assert probe.get_media_duration(mpd_file, as_delta=True) == datetime.timedelta(0, 367, 830000)
+    assert probe.get_media_duration(mpd_file, as_delta=True) == timedelta(0, 367, 830000)
 
     # A MP4
     assert probe.get_media_duration(small_mp4).strftime('%H:%M:%S') == '00:00:05'

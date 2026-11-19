@@ -264,7 +264,7 @@ def valid_uri(
         try:
             conn.request('HEAD', url.path)
             return conn.getresponse().status != 404
-        except socket.error as exc:
+        except OSError as exc:
             # Resource does not exist
             if (
                 isinstance(exc, socket.timeout)
@@ -308,7 +308,7 @@ def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool
     if value is None:
         return none_allowed
     try:
-        uuid.UUID('{{{0}}}'.format(value))  # pylint:disable=consider-using-f-string
+        uuid.UUID(f'{{{value}}}')
     except ValueError:
         if not objectid_allowed:
             return False

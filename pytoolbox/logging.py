@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Final, Literal, Protocol, TextIO, TypeAlias, cast, override
+from typing import Any, Final, Literal, Protocol, TextIO, cast, override
 
 from .collections import merge_dicts
 
@@ -42,7 +42,7 @@ DEBUG: Final[int] = logging.DEBUG
 NOTSET: Final[int] = logging.NOTSET
 
 # Terminal colors (termcolor)
-Color: TypeAlias = Literal[
+type Color = Literal[
     'black',
     'grey',
     'red',
@@ -89,7 +89,7 @@ class BasicFuncLogger(logging.Logger):
         self._log_func(msg)
 
 
-LoggerType: TypeAlias = BasicLoggerFunc | logging.Logger | str | None
+type LoggerType = BasicLoggerFunc | logging.Logger | str | None
 Logger = logging.Logger
 LogRecord = logging.LogRecord
 

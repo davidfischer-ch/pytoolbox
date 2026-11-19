@@ -11,7 +11,7 @@ import stat
 import tempfile
 from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import Literal
 
 from . import exceptions, humanize, logging, subprocess
 from .subprocess import CallArgType
@@ -28,7 +28,7 @@ __all__ = [
     'scoped_ssh_key',
 ]
 
-RefKind: TypeAlias = Literal['branch', 'commit']
+type RefKind = Literal['branch', 'commit']
 
 
 def blame(file_path: Path) -> list[str]:
@@ -119,7 +119,7 @@ def scoped_ssh_key(
 ) -> Iterator[str]:
     """Load an SSH key (content is the private key)."""
     with tempfile.NamedTemporaryFile('w') as key_file:
-        os.chmod(key_file.name, stat.S_IRUSR)
+        Path(key_file.name).chmod(stat.S_IRUSR)
         key_file.write(content + os.linesep)
         key_file.flush()
         try:

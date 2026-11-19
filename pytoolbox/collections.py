@@ -7,15 +7,12 @@ from __future__ import annotations
 import collections
 import math
 from collections.abc import Iterable, Mapping
-from typing import Any, TypeVar, override
+from typing import Any, override
 
 from . import module
 from .datetime import TimeValue, total_seconds
 
 _all = module.All(globals())
-
-_K = TypeVar('_K')
-_V = TypeVar('_V')
 
 
 class EventsTable:
@@ -198,7 +195,7 @@ def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dic
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
-def merge_dicts(*dicts: Mapping[_K, _V]) -> dict[_K, _V]:
+def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
     """
     Return a dictionary from multiple dictionaries.
 

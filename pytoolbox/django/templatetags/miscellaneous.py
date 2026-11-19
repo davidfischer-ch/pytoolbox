@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import collections.abc
-import datetime
 import os
 import re
+from datetime import time
+from datetime import timedelta as dt_timedelta
 from pathlib import Path
 from typing import Any, Final, override
 
@@ -130,7 +131,7 @@ def rst_title(value: Any, level: Any) -> str:
 
 
 @register.filter(is_safe=True)
-def secs_to_time(value: float | None, defaults_to_zero: bool = False) -> datetime.time | str:
+def secs_to_time(value: float | None, defaults_to_zero: bool = False) -> time | str:
     """
     Return an instance of time, taking value as the number of seconds + microseconds
     (e.g. 10.3 = 10s 3000us).
@@ -171,7 +172,7 @@ def status_label(value: str, *, autoescape: bool | None = None, default: str = '
 
 
 @register.filter(is_safe=True)
-def timedelta(value: datetime.timedelta | float | None, digits: int = 0) -> str:
+def timedelta(value: dt_timedelta | float | None, digits: int = 0) -> str:
     """
     Return a string with representation of total seconds given timedelta or a number.
 
@@ -187,8 +188,8 @@ def timedelta(value: datetime.timedelta | float | None, digits: int = 0) -> str:
     """
     if value is None or value == string_if_invalid:
         return string_if_invalid
-    seconds = value.total_seconds() if isinstance(value, datetime.timedelta) else float(value)
-    return force_str(datetime.timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
+    seconds = value.total_seconds() if isinstance(value, dt_timedelta) else float(value)
+    return force_str(dt_timedelta(seconds=round(seconds, digits))).replace('days', _('days'))
 
 
 @register.filter
@@ -217,7 +218,7 @@ class StaticPathNode(StaticNode):
     @override
     def handle_simple(cls, path: str) -> str:
         """Return the absolute filesystem path for a static file."""
-        return os.path.join(PrefixNode.handle_simple('STATIC_ROOT'), path)
+        return str(Path(PrefixNode.handle_simple('STATIC_ROOT'), path))
 
 
 @register.tag('static_abspath')

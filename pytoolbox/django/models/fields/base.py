@@ -5,8 +5,8 @@ Extra fields for your models.
 from __future__ import annotations
 
 import math
-import os
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any, ClassVar, override
 
 from django.conf import settings
@@ -158,7 +158,7 @@ class FieldFile(files.FieldFile):
     @property
     def basename(self) -> str | None:
         """Return the base name of the file or ``None`` if empty."""
-        return os.path.basename(self.name) if self and self.name else None
+        return Path(self.name).name if self and self.name else None
 
     @basename.setter
     def basename(self, value: str) -> None:
@@ -166,7 +166,7 @@ class FieldFile(files.FieldFile):
         upload_to = self.field.upload_to
         if not callable(upload_to):
             raise TypeError(f'Field {self.field.name} has no upload_to callable')
-        self.name = str(upload_to(self.instance, os.path.basename(value)))
+        self.name = str(upload_to(self.instance, Path(value).name))
         setattr(self.instance, self.field.name, self.name)
 
     @property

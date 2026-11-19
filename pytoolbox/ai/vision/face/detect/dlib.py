@@ -22,6 +22,7 @@ from __future__ import annotations
 import bz2
 import tempfile
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Final
 
 import cv2
@@ -265,7 +266,7 @@ class DlibFaceDetector:
         predictor = utils.load_to_file(predictor)
         if predictor.endswith('.bz2'):
             decompressor = bz2.BZ2Decompressor()
-            with open(predictor, 'rb') as source, tempfile.NamedTemporaryFile('wb') as target:
+            with Path(predictor).open('rb') as source, tempfile.NamedTemporaryFile('wb') as target:
                 target.write(decompressor.decompress(source.read()))
                 return dlib.shape_predictor(target.name)  # pylint:disable=no-member
         else:

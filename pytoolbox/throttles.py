@@ -18,12 +18,12 @@ class TimeThrottle:
     """
     Time based throttling class.
 
-    >>> import datetime
+    >>> from datetime import timedelta
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
-    >>> t1, t2 = (TimeThrottle(t) for t in (datetime.timedelta(minutes=1), 0.2))
+    >>> t1, t2 = (TimeThrottle(t) for t in (timedelta(minutes=1), 0.2))
     >>> list(t1.throttle_iterable((i, i) for i in range(10)))
     [(0, 0), (9, 9)]
     >>> list(t2.throttle_iterable(slow_range(3)))
@@ -74,12 +74,12 @@ class TimeAndRatioThrottle(TimeThrottle):
     """
     Time and ratio based throttling class.
 
-    >>> import datetime
+    >>> from datetime import timedelta
     >>> def slow_range(*args):
     ...     for i in range(*args):
     ...         time.sleep(0.5)
     ...         yield i
-    >>> t1, t2 = (TimeAndRatioThrottle(0.3, t, 10*t) for t in (datetime.timedelta(minutes=1), 0.4))
+    >>> t1, t2 = (TimeAndRatioThrottle(0.3, t, 10*t) for t in (timedelta(minutes=1), 0.4))
     >>> list(t1.throttle_iterable(list(range(9)), lambda i: [i/9]))
     [0, 8]
     >>> list(t2.throttle_iterable(slow_range(9), lambda i: [i/9]))
