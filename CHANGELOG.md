@@ -3,6 +3,19 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v14.13.1 (2026-11-19)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.13.0...14.13.1
+
+### Fix and enhancements
+
+Package:
+
+* Ship `pytoolbox` alone in the wheel, which carried a stale `build/` tree beside it
+    * And `docs/source/conf.py`, and `pytoolbox.compat`, removed in 14.13.0
+* Require `setuptools` `61` to build
+
+
 ## v14.13.0 (2026-11-19)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.12.6...14.13.0
