@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import time
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, override
 
 from django.core.files import File
@@ -60,6 +61,17 @@ class OverwriteFileSystemStorage(FileSystemStorage):
         )
         super().__init__(*args, allow_overwrite=allow_overwrite, **kwargs)
 
+    @override
+    def get_available_name(self, name: str, max_length: int | None = None) -> str:
+        """
+        Return the base storage's available name, the file or symbolic link stored under it deleted.
+
+        Deleting it, a link included, makes the save create a new file instead of writing through.
+        """
+        name = super().get_available_name(name, max_length=max_length)
+        Path(self.path(name)).unlink(missing_ok=True)
+        return name
+
 
 class OverwriteMixin(_StorageMixin):
     """
@@ -81,10 +93,21 @@ class OverwriteMixin(_StorageMixin):
         )
 
     @override
+    def get_alternative_name(self, file_root: str, file_ext: str) -> str:
+        """Return the name itself, to be cut by the base storage until it fits."""
+        return f'{file_root}{file_ext}'
+
+    @override
     def get_available_name(self, name: str, max_length: int | None = None) -> str:
-        """Delete any existing file at *name*, then return the base storage's available name."""
+        """Return *name*, cut to *max_length* with its extension kept, its stored file deleted."""
+        name = super().get_available_name(name, max_length=max_length)
         self.delete(name)
-        return super().get_available_name(name, max_length=max_length)
+        return name
+
+    @override
+    def is_name_available(self, name: str, max_length: int | None = None) -> bool:
+        """Return whether *name* fits *max_length*, a stored file being replaced."""
+        return not (max_length and len(name) > max_length)
 
 
 __all__ = _all.diff(globals())
