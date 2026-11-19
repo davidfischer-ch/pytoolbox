@@ -13,7 +13,8 @@ from django.forms import fields
 
 from pytoolbox import module
 
-from . import utils, widgets
+from . import widgets
+from .utils import update_widget_attributes
 
 # Each mixin below completes a Django form and reads its attributes (`fields`, `instance`,
 # `cleaned_data`, ...); naming the base under TYPE_CHECKING states that for the checker only.
@@ -177,12 +178,12 @@ class UpdateWidgetAttributeMixin(_FormsMixin):
                 field.widget = widget_class()
             # May update widget attributes with common attributes
             if self.widgets_common_attrs:
-                utils.update_widget_attributes(field.widget, self.widgets_common_attrs)
+                update_widget_attributes(field.widget, self.widgets_common_attrs)
             # May update widget attributes with rules-based attributes
             if updates and updates[1]:
                 attrs = updates[1]
                 assert isinstance(attrs, dict)  # noqa: S101
-                utils.update_widget_attributes(field.widget, attrs)
+                update_widget_attributes(field.widget, attrs)
         try:
             self._meta.model.init_form(self)
         except AttributeError:

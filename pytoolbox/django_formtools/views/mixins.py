@@ -101,7 +101,13 @@ class SerializeStepInstanceMixin(_WizardMixin):
     # WizardView "Standard Methods"
 
     @override
-    def get_form(self, step: str | None = None, *args: Any, **kwargs: Any) -> Form:
+    # [keyword-arg-before-vararg: mirrors WizardView.get_form(step=None, data=None, files=None)]
+    def get_form(  # pylint:disable=keyword-arg-before-vararg
+        self,
+        step: str | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Form:
         """Return the form for the step, using serialized data if available."""
         if step is None:
             step = self.steps.current

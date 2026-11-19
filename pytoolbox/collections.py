@@ -165,7 +165,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         if fill and self_list:
             previous = None
             for index, _ in enumerate(self_list):
-                if self_list[index] is None:  # pylint:disable=unnecessary-list-index-lookup
+                if self_list[index] is None:
                     self_list[index] = previous
                 else:
                     previous = self_list[index]

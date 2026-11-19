@@ -123,7 +123,7 @@ class PickleableObject:
         try:
             with open(path, 'rb') as f:
                 the_object = pickle.load(f)
-        except Exception:  # pylint:disable=broad-except
+        except Exception:
             if not create_if_error:
                 raise
             the_object = cls(**kwargs)

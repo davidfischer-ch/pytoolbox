@@ -1,7 +1,6 @@
 """
 Extra fields for your models.
 """
-# pylint: disable=too-few-public-methods
 
 from __future__ import annotations
 
@@ -136,7 +135,7 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
     @override
     def deconstruct(self) -> tuple[str, str, list[Any], dict[str, Any]]:
         """Reconstruct with ``max_value`` as the sole positional argument."""
-        name, path, args, kwargs = super().deconstruct()
+        name, path, _, kwargs = super().deconstruct()
         kwargs.pop('decimal_places', None)
         kwargs.pop('max_digits', None)
         kwargs.pop('validators', None)

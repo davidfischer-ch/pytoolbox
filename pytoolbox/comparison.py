@@ -11,13 +11,8 @@ from collections.abc import Callable, Iterable, Iterator
 from typing import Any, Final, TypeAlias
 
 import termcolor
-from packaging.version import (
-    InvalidVersion,
-    Version,
-)
-from packaging.version import (  # pylint:disable=ungrouped-imports
-    parse as _parse_version,
-)
+from packaging.version import InvalidVersion, Version
+from packaging.version import parse as _parse_version
 
 from .types import get_slots
 

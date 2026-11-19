@@ -145,7 +145,8 @@ class QueriesMixin(_TestMixin):
     """Provide assertions for checking the number of database queries."""
 
     @overload
-    def assertNumQueriesIn(  # noqa: N802
+    # [keyword-arg-before-vararg: mirrors Django's assertNumQueries(num, func=None, *args)]
+    def assertNumQueriesIn(  # noqa: N802  # pylint:disable=keyword-arg-before-vararg
         self,
         min_queries: int,
         max_queries: int,
@@ -164,7 +165,8 @@ class QueriesMixin(_TestMixin):
         **kwargs: Any,
     ) -> None: ...
 
-    def assertNumQueriesIn(  # noqa: N802
+    # [keyword-arg-before-vararg: mirrors Django's assertNumQueries(num, func=None, *args)]
+    def assertNumQueriesIn(  # noqa: N802  # pylint:disable=keyword-arg-before-vararg
         self,
         min_queries: int,
         max_queries: int,
@@ -213,7 +215,7 @@ class UrlMixin(_TestMixin):
 class RestAPIMixin(UrlMixin):
     """Convenience methods for testing REST API endpoints."""
 
-    def _call(
+    def _call(  # pylint:disable=too-many-arguments
         self,
         method: str,
         url: str,

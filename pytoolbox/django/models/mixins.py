@@ -41,7 +41,7 @@ from django.db.utils import IntegrityError
 from django.utils.functional import cached_property
 
 from pytoolbox import exceptions as py_exceptions
-from pytoolbox import itertools as py_itertools  # pylint:disable=reimported
+from pytoolbox import itertools as py_itertools
 from pytoolbox import module
 from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
@@ -427,7 +427,7 @@ class UpdatePreconditionsMixin(_ModelMixin):
     # Stashed by pop_preconditions() and consumed by apply_preconditions().
     _preconditions: tuple[dict[str, Any], dict[str, Any]]
 
-    def apply_preconditions(  # pylint:disable=too-many-arguments
+    def apply_preconditions(
         self,
         base_qs: QuerySet,
         using: str | None,
@@ -482,13 +482,13 @@ class UpdatePreconditionsMixin(_ModelMixin):
                 update_fields=update_fields,
                 **kwargs,
             )
-        except ObjectNotUpdated:
+        except ObjectNotUpdated as exc:
             if has_preconditions:
-                raise self.precondition_error_class()
+                raise self.precondition_error_class() from exc
             raise
 
     @override
-    def _do_update(  # pylint:disable=too-many-arguments
+    def _do_update(
         self,
         base_qs: QuerySet,
         using: str | None,

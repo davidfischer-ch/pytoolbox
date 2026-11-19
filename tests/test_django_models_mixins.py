@@ -68,7 +68,7 @@ def test_validate_on_save_mixin_calls_full_clean() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -97,7 +97,7 @@ def test_validate_on_save_mixin_leaves_deferred_fields_out() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -122,7 +122,7 @@ def test_validate_on_save_mixin_skips_when_disabled() -> None:
     class Base:
         """Base class with save method."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -146,7 +146,7 @@ def test_validate_on_save_mixin_skips_via_kwarg() -> None:
     class Base:
         """Base class with save method."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.ValidateOnSaveMixin, Base):
@@ -173,7 +173,7 @@ def test_always_update_fields_mixin() -> None:
     class Base:
         """Base class with save method."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
             saved_kwargs.update(kwargs)
 
@@ -195,7 +195,7 @@ def test_always_update_fields_mixin_no_update_fields() -> None:
     class Base:
         """Base class with save method."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
             saved_kwargs.update(kwargs)
 
@@ -216,7 +216,7 @@ def test_always_update_fields_mixin_force_update() -> None:
     class Base:
         """Base class with save method."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
             saved_kwargs.update(kwargs)
 
@@ -240,7 +240,7 @@ def test_auto_force_insert_mixin() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
             saved_kwargs.update(kwargs)
 
@@ -266,7 +266,7 @@ def test_auto_force_insert_mixin_explicit_override() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
             saved_kwargs.update(kwargs)
 
@@ -292,7 +292,7 @@ def test_call_fields_pre_save_mixin() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.CallFieldsPreSaveMixin, Base):
@@ -320,7 +320,7 @@ def test_call_fields_pre_save_mixin_skips_generated_fields() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.CallFieldsPreSaveMixin, Base):
@@ -347,7 +347,7 @@ def test_call_fields_pre_save_mixin_skips_deferred_fields() -> None:
     class Base:
         """Test class."""
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
 
     class TestObj(mixins.CallFieldsPreSaveMixin, Base):
@@ -467,7 +467,7 @@ def _make_auto_update_obj(adding=False):
             field_status = MagicMock(attname='status')
             self._meta.fields = [field_name, field_status]
 
-        def save(self, *args, **kwargs):  # pylint:disable=unused-argument
+        def save(self, *args, **kwargs):
             """Save method implementation."""
             saved_kwargs.update(kwargs)
 

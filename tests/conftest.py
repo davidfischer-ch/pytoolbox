@@ -164,7 +164,7 @@ def statistics(  # pylint:disable=redefined-outer-name
 
 
 @pytest.fixture(scope='function')
-def frame_based_statistics(  # pylint:disable=redefined-outer-name,too-few-public-methods
+def frame_based_statistics(  # pylint:disable=redefined-outer-name
     small_mp4: Path,
     tmp_path: Path,
 ) -> StaticEncodeStatisticsWithFrameBaseRatio:

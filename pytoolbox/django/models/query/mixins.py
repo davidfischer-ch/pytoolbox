@@ -57,14 +57,6 @@ class AtomicGetRestoreOrCreateMixin(_QueryMixin):
 
     savepoint: ClassVar[bool] = False
 
-    if TYPE_CHECKING:
-        # Supplied by the soft-delete query set this mixin is combined with.
-        def get_restore_or_create(  # noqa: D102
-            self,
-            *args: Any,
-            **kwargs: Any,
-        ) -> tuple[Any, bool]: ...
-
     def get_restore_or_create(self, *args: Any, **kwargs: Any) -> tuple[models.Model, bool]:
         """Wrap ``get_restore_or_create`` in an atomic transaction block."""
         with transaction.atomic(savepoint=self.savepoint):
