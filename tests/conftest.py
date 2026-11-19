@@ -113,6 +113,7 @@ def pytest_configure(config):  # pylint:disable=unused-argument
             INSTALLED_APPS=[
                 'django.contrib.contenttypes',
                 'django.contrib.auth',
+                'oauth2_provider',
                 'rest_framework',
             ],
             TEMPLATES=[
