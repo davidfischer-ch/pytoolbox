@@ -11,11 +11,9 @@ import json
 import os
 import pickle
 import shutil
-from typing import Any, TypeAlias
+from typing import Any, TypeAlias, override
 
 import ruamel.yaml
-
-from pytoolbox.compat import override
 
 from . import filesystem, module
 from .private import ObjectId

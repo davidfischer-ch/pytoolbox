@@ -6,9 +6,7 @@ powered views.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
-
-from pytoolbox.compat import override
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 if TYPE_CHECKING:
     from datatableview.views import DatatableView

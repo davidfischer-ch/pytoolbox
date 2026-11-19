@@ -6,13 +6,12 @@ Extra storages and mix-ins for building your own storages.
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 
 from pytoolbox import logging, module
-from pytoolbox.compat import override
 
 # Both mixins complete a Storage and call into it; naming the base under TYPE_CHECKING states that
 # requirement for the checker only.

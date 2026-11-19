@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 import os
 from collections.abc import Sequence
-from typing import Any, ClassVar
+from typing import Any, ClassVar, override
 
 from django.conf import settings
 from django.core import validators as dj_validators
@@ -18,7 +18,6 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from pytoolbox import module
-from pytoolbox.compat import override
 from pytoolbox.django.core import validators
 
 from . import mixins

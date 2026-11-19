@@ -6,9 +6,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Final
-
-from pytoolbox.compat import override
+from typing import Any, Final, override
 
 from .ffmpeg import FFmpeg
 

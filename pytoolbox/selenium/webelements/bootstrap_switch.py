@@ -4,9 +4,8 @@ Web element mixin for Bootstrap Switch components.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, override
 
-from pytoolbox.compat import override
 from pytoolbox.selenium import Keys, common
 
 if TYPE_CHECKING:

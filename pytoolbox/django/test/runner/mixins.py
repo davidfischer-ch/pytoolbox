@@ -6,12 +6,10 @@ Mix-ins for building your own test runners.
 from __future__ import annotations
 
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from django.conf import settings
 from django.test.runner import DiscoverRunner
-
-from pytoolbox.compat import override
 
 # Each mixin below completes a test runner; naming the base under TYPE_CHECKING states that
 # requirement for the checker only.

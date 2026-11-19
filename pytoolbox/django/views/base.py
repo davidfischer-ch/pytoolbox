@@ -5,12 +5,10 @@ Extra views.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.views.generic.edit import DeleteView
-
-from pytoolbox.compat import override
 
 __all__ = ['CancellableDeleteView']
 

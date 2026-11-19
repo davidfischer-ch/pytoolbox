@@ -6,12 +6,11 @@ powered views.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse
 
-from pytoolbox.compat import override
 from pytoolbox.django import forms
 
 if TYPE_CHECKING:

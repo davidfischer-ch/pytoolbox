@@ -5,14 +5,13 @@ Mix-ins for building your own forms.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from django import forms
 from django.db import models
 from django.forms import fields
 
 from pytoolbox import module
-from pytoolbox.compat import override
 
 from . import utils, widgets
 

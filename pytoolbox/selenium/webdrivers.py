@@ -4,11 +4,9 @@ Custom Selenium WebDriver subclasses with element specialization.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from selenium import webdriver
-
-from pytoolbox.compat import override
 
 from . import common, select, webelements
 
@@ -26,7 +24,7 @@ class Firefox(common.FindMixin, webdriver.Firefox):
     @override
     def _wrap_value(self, value: Any) -> Any:
         if isinstance(value, tuple(self.web_element_classes.values())):
-            return {'ELEMENT': value.id, 'element-6066-11e4-a52e-4f735466cecf': value.id}
+            return {'element-6066-11e4-a52e-4f735466cecf': value.id}
         return super()._wrap_value(value)
 
     @override

@@ -4,9 +4,7 @@ Mixin for Selenium-based live test cases.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
-
-from pytoolbox.compat import override
+from typing import TYPE_CHECKING, ClassVar, override
 
 from . import client  # pylint:disable=unused-import
 

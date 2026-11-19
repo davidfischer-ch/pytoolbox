@@ -9,9 +9,7 @@ import io
 import traceback
 from collections.abc import Callable
 from pathlib import Path
-from typing import Annotated, Any
-
-from pytoolbox.compat import override
+from typing import Annotated, Any, override
 
 from . import module
 

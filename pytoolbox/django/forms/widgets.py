@@ -5,13 +5,11 @@ Extra widgets for your forms.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from django.forms import widgets
 from django.forms.renderers import BaseRenderer
 from django.utils.safestring import SafeString, mark_safe
-
-from pytoolbox.compat import override
 
 __all__ = ['CalendarDateInput', 'ClockTimeInput']
 

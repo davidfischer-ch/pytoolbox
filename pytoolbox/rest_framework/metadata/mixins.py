@@ -8,12 +8,10 @@ Mix-ins for building your own
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 from rest_framework import serializers
 from rest_framework.metadata import SimpleMetadata
-
-from pytoolbox.compat import override
 
 __all__ = ['ExcludeRelatedChoicesMixin']
 

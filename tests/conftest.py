@@ -67,7 +67,7 @@ class DownloadStaticFFmpegMixin:  # pylint:disable=too-few-public-methods
             print('Downloaded ffmpeg static binary')
         if downloaded or not executable.exists():
             with tarfile.open(archive) as f:
-                f.extractall(directory)
+                f.extractall(directory, filter='data')
             print('Extracted ffmpeg static binary')
         if not executable.exists():
             raise RuntimeError(f'Executable {executable} not found.')

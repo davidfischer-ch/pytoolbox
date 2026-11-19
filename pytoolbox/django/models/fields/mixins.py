@@ -6,11 +6,10 @@ Mix-ins for building your own models fields.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, ClassVar, Final
+from typing import TYPE_CHECKING, Any, ClassVar, Final, override
 
 from django.db import models
 
-from pytoolbox.compat import override
 from pytoolbox.django.core import validators
 
 # Each mixin below completes a model field and reads its attributes (`attname`, `null`, `pre_save`,

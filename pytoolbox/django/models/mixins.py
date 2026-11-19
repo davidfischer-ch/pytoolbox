@@ -29,10 +29,10 @@ import collections
 import itertools
 import re
 from collections.abc import Collection, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
-from django.core.exceptions import ValidationError
-from django.db import DatabaseError, models
+from django.core.exceptions import ObjectNotUpdated, ValidationError
+from django.db import models
 from django.db.models import QuerySet
 from django.db.models import options as meta_module
 from django.db.models.base import ModelBase
@@ -43,19 +43,10 @@ from django.utils.functional import cached_property
 from pytoolbox import exceptions as py_exceptions
 from pytoolbox import itertools as py_itertools  # pylint:disable=reimported
 from pytoolbox import module
-from pytoolbox.compat import override
 from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
 
 from . import utils
-
-try:
-    _ModelNotUpdated: type[Exception] = models.Model.NotUpdated
-except AttributeError:
-
-    class _ModelNotUpdated(Exception):  # noqa: N818  # mirrors Django's Model.NotUpdated
-        """Sentinel: Django < 6 does not raise Model.NotUpdated."""
-
 
 # Every mixin below completes a Model and reads its attributes (`pk`, `_meta`, `save`, ...). Naming
 # Model as the base under TYPE_CHECKING states that requirement for the checker while leaving the
@@ -491,12 +482,8 @@ class UpdatePreconditionsMixin(_ModelMixin):
                 update_fields=update_fields,
                 **kwargs,
             )
-        except _ModelNotUpdated:
+        except ObjectNotUpdated:
             if has_preconditions:
-                raise self.precondition_error_class()
-            raise
-        except DatabaseError as exc:
-            if has_preconditions and 'did not affect' in str(exc):
                 raise self.precondition_error_class()
             raise
 

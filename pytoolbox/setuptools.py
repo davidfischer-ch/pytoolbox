@@ -5,10 +5,9 @@ Setuptools command extensions.
 from __future__ import annotations
 
 import sys
+from typing import override
 
 import setuptools
-
-from pytoolbox.compat import override
 
 
 class Disabled(setuptools.Command):  # pylint:disable=duplicate-code

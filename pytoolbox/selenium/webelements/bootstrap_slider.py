@@ -4,9 +4,8 @@ Web element mixin for Bootstrap Slider components.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
-from pytoolbox.compat import override
 from pytoolbox.selenium import Keys, common
 
 if TYPE_CHECKING:

@@ -83,22 +83,15 @@ def _nen(a: object, b: object) -> bool | None:  # pylint:disable=invalid-name
     return False if a == b else None
 
 
-# Keyed by the parsed-version type, so that a Version and a LegacyVersion each get their own
-# operator table.
+# Keyed by the parsed-version type, to give a Version and an unparsable version string each their
+# own operator table.
 # pylint:disable=consider-using-namedtuple-or-dataclass
 VERSION_OPERATIONS: Final[dict[type, dict[str, Callable[[Any, Any], bool | None] | None]]] = {
     Version: {'<': op.lt, '<=': op.le, '==': op.eq, '!=': op.ne, '>=': op.ge, '>': op.gt},
     str: {'<': _nen, '<=': _eqn, '==': op.eq, '!=': op.ne, '>=': _eqn, '>': _nen},
 }
 
-
-try:
-    from packaging.version import LegacyVersion  # type: ignore[attr-defined]
-
-    VERSION_OPERATIONS[LegacyVersion] = VERSION_OPERATIONS[str]
-    ParseVersionTypes: TypeAlias = str | Version | LegacyVersion
-except ImportError:
-    ParseVersionTypes: TypeAlias = str | Version  # type: ignore[misc, no-redef]
+ParseVersionTypes: TypeAlias = str | Version
 
 
 def compare_versions(
@@ -112,7 +105,7 @@ def compare_versions(
     if type(version_a) is type(version_b):
         operation = VERSION_OPERATIONS[type(version_a)][operator]
         return operation(version_a, version_b) if operation else None
-    return None  # Will not try to compare Version to LegacyVersion
+    return None  # Will not compare a Version to an unparsable version string
 
 
 def satisfy_version_constraints(

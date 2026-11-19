@@ -354,7 +354,7 @@ def test_logged_cookie_mixin_authenticated() -> None:
     view = View()
     view.request.user.is_authenticated = True
     response = view.post()
-    response.set_cookie.assert_called_once_with('logged', True)
+    response.set_cookie.assert_called_once_with('logged', 'True')
 
 
 def test_logged_cookie_mixin_unauthenticated() -> None:
@@ -375,7 +375,7 @@ def test_logged_cookie_mixin_unauthenticated() -> None:
     view = View()
     view.request.user.is_authenticated = False
     response = view.post()
-    response.set_cookie.assert_called_once_with('logged', False)
+    response.set_cookie.assert_called_once_with('logged', 'False')
 
 
 # --- RedirectMixin --------------------------------------------------------------------------------

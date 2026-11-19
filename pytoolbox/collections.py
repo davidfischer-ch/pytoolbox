@@ -7,9 +7,7 @@ from __future__ import annotations
 import collections
 import math
 from collections.abc import Iterable, Mapping
-from typing import Any, TypeVar
-
-from pytoolbox.compat import override
+from typing import Any, TypeVar, override
 
 from . import module
 from .datetime import TimeValue, total_seconds

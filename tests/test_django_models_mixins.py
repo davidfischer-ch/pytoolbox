@@ -6,7 +6,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectNotUpdated, ValidationError
 from django.db import DatabaseError, models
 from django.db.models.fields.files import FileField
 from django.db.utils import IntegrityError
@@ -871,15 +871,15 @@ def test_state_precondition_skipped_when_every_state_may_transit() -> None:
     assert obj._preconditions == ({}, {})
 
 
-def test_update_preconditions_save_catches_database_error() -> None:
-    """Save raises precondition error when DB error contains 'did not affect'."""
+def test_update_preconditions_save_catches_not_updated() -> None:
+    """Save raises precondition error when Django reports the update affected no rows."""
 
     class Base:
         """Test class."""
 
         def save(self, *args, **kwargs):
             """Test method."""
-            raise DatabaseError('did not affect any rows')
+            raise ObjectNotUpdated('Forced update did not affect any rows.')
 
     class TestObj(mixins.UpdatePreconditionsMixin, Base):
         """Test object with UpdatePreconditionsMixin."""
@@ -890,7 +890,7 @@ def test_update_preconditions_save_catches_database_error() -> None:
 
 
 def test_update_preconditions_save_reraises_unrelated() -> None:
-    """Save re-raises DatabaseError that does not match 'did not affect'."""
+    """Save re-raises a DatabaseError other than Django's ObjectNotUpdated."""
 
     class Base:
         """Test class."""

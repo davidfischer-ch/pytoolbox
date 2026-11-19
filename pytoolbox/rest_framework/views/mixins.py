@@ -5,7 +5,7 @@ Mix-ins for building your own Django REST Framework powered API views.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 from django.contrib.auth.views import redirect_to_login
 from django.db.models import QuerySet
@@ -15,7 +15,6 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from pytoolbox import module
-from pytoolbox.compat import override
 
 # Each mixin below completes a DRF generic view and reads its attributes (`action`, `request`,
 # `get_queryset`, ...); naming the base under TYPE_CHECKING states that for the checker only.
@@ -83,8 +82,7 @@ class RedirectToLoginMixin(_ViewsMixin):
     ) -> Response:
         """Redirect to login if the user is unauthenticated and using a browser."""
         api_response = super().finalize_response(request, response, *args, **kwargs)
-        logged = request.user.is_authenticated
-        if not (logged if isinstance(logged, bool) else logged()) and isinstance(
+        if not request.user.is_authenticated and isinstance(
             api_response.accepted_renderer, self.redirected_classes
         ):
             redirection = redirect_to_login(request.path)

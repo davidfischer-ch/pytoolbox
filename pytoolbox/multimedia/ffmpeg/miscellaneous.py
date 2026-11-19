@@ -6,10 +6,9 @@ from __future__ import annotations
 
 import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, override
 
 from pytoolbox import comparison, filesystem, validation
-from pytoolbox.compat import override
 from pytoolbox.subprocess import CallArgsType, to_args_list
 from pytoolbox.types import get_slots
 

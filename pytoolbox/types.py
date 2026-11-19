@@ -8,9 +8,7 @@ import inspect
 import itertools
 import types
 from collections.abc import Callable, Generator, Iterable
-from typing import Any, Self, TypeVar
-
-from pytoolbox.compat import override
+from typing import Any, Self, TypeVar, override
 
 from . import module
 from .collections import merge_dicts

@@ -7,11 +7,10 @@ Extra `fields <http://www.django-rest-framework.org/api-guide/fields/>`_ for bui
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from rest_framework import serializers
 
-from pytoolbox.compat import override
 from pytoolbox.django.core.validators import EmptyValidator
 
 __all__ = ['StripCharField']

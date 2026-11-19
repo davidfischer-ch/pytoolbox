@@ -4,14 +4,12 @@ Extra permission policies for building your own Django REST Framework powered AP
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework.views import APIView
-
-from pytoolbox.compat import override
 
 __all__ = ['IsAuthenticatedOrTokenHasReadWriteScope']
 

@@ -8,7 +8,7 @@ import datetime
 import os
 import re
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, override
 
 from django.conf import settings
 from django.template.defaultfilters import stringfilter
@@ -18,7 +18,6 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext as _
 
-from pytoolbox.compat import override
 from pytoolbox.datetime import secs_to_time as _secs_to_time
 from pytoolbox.django.core import constants
 
@@ -41,19 +40,10 @@ from . import register, string_if_invalid
 #        not, EscapeBytes/Text
 # [2]: esc = conditional_escape if autoescape else lambda x: x
 
-try:
-    from django.template.defaulttags import (
-        include_is_allowed as _include_is_allowed,  # pyrefly: ignore[missing-module-attribute]
-    )
-except ImportError:
 
-    def _include_is_allowed(filepath: str) -> bool:
-        """
-        Return whether including `filepath` is allowed (removed since Django 1.10).
-
-        See commit 04ee4059d71dbc6aa029907e251360eaf00e11bb#diff-45fa5fdd90e8a31a18a1e55ec2f94fa3
-        """
-        return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
+def _include_is_allowed(filepath: str) -> bool:
+    """Return whether including ``filepath`` is allowed."""
+    return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
 
 
 NUMERIC_TEST: Final[re.Pattern[str]] = re.compile(r'^\d+$')

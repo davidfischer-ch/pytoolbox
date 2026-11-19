@@ -43,18 +43,19 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Programming Language :: Python :: Implementation :: CPython',
     'Programming Language :: Python :: Implementation :: PyPy',
     'Topic :: Software Development :: Libraries :: Python Modules'
 ]
 
-requires-python = '>=3.11'
+requires-python = '>=3.12'
 dependencies = [
     'python-magic-bin; sys_platform == "win32"',
     'python-magic; sys_platform != "win32"',
     'cryptography',
     'defusedxml',
-    'typing_extensions; python_version < "3.12"',
+    'packaging>=22',
     'tzdata',
     'requests',
     'ruamel.yaml',
@@ -86,7 +87,7 @@ rest_framework = [
     'django-oauth-toolkit',
     'djangorestframework>=3'
 ]
-selenium = ['selenium']
+selenium = ['selenium>=4']
 smpte2022 = ['fastxor']
 vision = [
     'dlib',
@@ -96,9 +97,10 @@ vision = [
     'tensorflow'
 ]
 voluptuous = ['voluptuous']
-all = [
-    'pytoolbox[atlassian,aws,django,django_datatable_view,django_filter,django_formtools,flask,imaging,jinja2,mongodb,network,pandas,rest_framework,selenium,smpte2022,vision,voluptuous]'
+all_but_vision = [
+    'pytoolbox[atlassian,aws,django,django_datatable_view,django_filter,django_formtools,flask,imaging,jinja2,mongodb,network,pandas,rest_framework,selenium,smpte2022,voluptuous]'
 ]
+all = ['pytoolbox[all_but_vision,vision]']
 doc = [
     'sphinx>=7.2.6',
     'sphinx-rtd-theme>=2.0.0'
@@ -199,7 +201,7 @@ missing-override-decorator = 'error'
 
 [tool.pylint.main]
 jobs = 0
-py-version = '3.11'
+py-version = '3.12'
 ignored-modules = ['gi', 'gi.repository']
 load-plugins = [
     'pylint.extensions.bad_builtin',

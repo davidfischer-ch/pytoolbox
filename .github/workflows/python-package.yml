@@ -13,7 +13,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
+        extras: ["all,test"]
+        pytest-args: [""]
+        # The vision extra's dependencies have no 3.14 wheels yet: that job installs every other
+        # extra, and leaves the modules needing vision out of the run.
+        exclude:
+          - python-version: "3.14"
+        include:
+          - python-version: "3.14"
+            extras: "all_but_vision,test"
+            pytest-args: "--ignore=pytoolbox/ai"
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -29,7 +39,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install -U pip setuptools wheel
-        pip install -U -e .[all,test]
+        pip install -U -e .[${{ matrix.extras }}]
         pip freeze
     - name: Debug env
       run: |
@@ -39,7 +49,7 @@ jobs:
         pyrefly check
     - name: Test with pytest
       run: |
-        python -m pytest -vvvv
+        python -m pytest -vvvv ${{ matrix.pytest-args }}
     - name: Coveralls
       uses: coverallsapp/github-action@v2
 

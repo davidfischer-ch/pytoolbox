@@ -6,9 +6,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Generator, Iterable
-from typing import Any
-
-from pytoolbox.compat import override
+from typing import Any, override
 
 from .datetime import total_seconds
 from .types import Missing

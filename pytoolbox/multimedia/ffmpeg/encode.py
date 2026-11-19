@@ -8,9 +8,8 @@ import datetime
 import re
 import subprocess
 import time
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
-from pytoolbox.compat import override
 from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to_time, time_ratio
 
 from . import ffprobe, miscellaneous, utils

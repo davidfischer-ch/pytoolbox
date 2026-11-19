@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 from django import forms
 from django.contrib import messages
@@ -19,7 +19,6 @@ from django.views.generic import base as generic
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 
 from pytoolbox import module
-from pytoolbox.compat import override
 from pytoolbox.django.core import exceptions
 from pytoolbox.django.forms import mixins as forms_mixins
 from pytoolbox.django.models import utils
@@ -160,10 +159,7 @@ class LoggedCookieMixin(_ViewsMixin):
     def post(self, *args: Any, **kwargs: Any) -> HttpResponse:
         """Set a ``logged`` cookie reflecting the user's authentication state."""
         response = super().post(*args, **kwargs)
-        logged = self.request.user.is_authenticated
-        # Django types the value as a string but stringifies whatever it is given.
-        value = logged if isinstance(logged, bool) else logged()
-        response.set_cookie('logged', value)  # pyrefly: ignore[bad-argument-type]
+        response.set_cookie('logged', str(self.request.user.is_authenticated))
         return response
 
 

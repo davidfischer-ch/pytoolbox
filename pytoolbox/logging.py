@@ -7,9 +7,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Final, Literal, Protocol, TextIO, TypeAlias, cast
-
-from pytoolbox.compat import override
+from typing import Any, Final, Literal, Protocol, TextIO, TypeAlias, cast, override
 
 from .collections import merge_dicts
 

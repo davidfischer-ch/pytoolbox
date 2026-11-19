@@ -5,12 +5,11 @@ Custom signal classes for Django.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, override
 
 from django import dispatch as _dispatch
 from django.db import models
 
-from pytoolbox.compat import override
 from pytoolbox.django.models import utils as _utils
 
 __all__ = ['InstanceSignal', 'post_state_transition']

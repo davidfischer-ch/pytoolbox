@@ -7,12 +7,11 @@ import functools
 import inspect
 import warnings
 from importlib import machinery
-from typing import Any
+from typing import Any, override
 
 import pytest
 
 from pytoolbox import deprecation
-from pytoolbox.compat import override
 
 
 class Base:

@@ -4,9 +4,7 @@ Camera equipment representation extracted from EXIF metadata.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pytoolbox.compat import override
+from typing import TYPE_CHECKING, override
 
 from .brand import Brand
 from .equipment import Equipement

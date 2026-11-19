@@ -6,9 +6,7 @@ powered filters.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pytoolbox.compat import override
+from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
     from django.db.models import Field

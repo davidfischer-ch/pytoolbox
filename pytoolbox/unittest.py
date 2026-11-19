@@ -15,9 +15,7 @@ import time
 import unittest
 from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, cast
-
-from pytoolbox.compat import override
+from typing import TYPE_CHECKING, Any, Protocol, cast, override
 
 from . import module
 from .multimedia import ffmpeg

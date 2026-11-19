@@ -5,13 +5,11 @@ Selenium live test client for interacting with a running server.
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, override
 from urllib.parse import urljoin
 
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support import ui
-
-from pytoolbox.compat import override
 
 from . import common, exceptions, webdrivers
 

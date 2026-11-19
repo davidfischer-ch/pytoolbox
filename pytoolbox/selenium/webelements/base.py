@@ -4,11 +4,10 @@ Base :class:`WebElement` with automatic component specialization.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any, ClassVar, override
 
 from selenium.webdriver.remote import webelement
 
-from pytoolbox.compat import override
 from pytoolbox.selenium import common, exceptions
 
 __all__ = ['WebElement']
