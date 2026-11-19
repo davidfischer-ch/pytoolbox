@@ -43,6 +43,6 @@ read a
 #git push || error 'Unable to push to GitHub' 1
 #git tag "$version" && git push origin "$version" || error 'Unable to add release tag' 2
 
-rm -rf dist/ 2>/dev/null
-python3 setup.py sdist bdist_wheel || error 'Unable to build for Python 3' 4
+rm -rf build/ dist/ 2>/dev/null
+python3 -m build || error 'Unable to build for Python 3' 4
 twine upload dist/* --skip-existing || error 'Unable to upload to PyPI' 5

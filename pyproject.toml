@@ -2,7 +2,7 @@
 # https://iscinumpy.dev/post/bound-version-constraints/
 
 [build-system]
-requires = ['setuptools>=41', 'wheel']
+requires = ['setuptools>=61', 'wheel']
 build-backend = 'setuptools.build_meta'
 
 [project]
@@ -127,7 +127,8 @@ homepage   = 'https://github.com/davidfischer-ch/pytoolbox'
 repository = 'https://github.com/davidfischer-ch/pytoolbox'
 
 [tool.setuptools.packages.find]
-exclude = ['tests']
+# Ship pytoolbox alone: pyproject discovery includes every directory as a namespace package.
+include = ['pytoolbox', 'pytoolbox.*']
 
 [tool.setuptools.package-data]
 pytoolbox = ['py.typed']
