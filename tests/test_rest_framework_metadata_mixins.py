@@ -27,6 +27,22 @@ def test_exclude_related_choices_omits_the_choices_of_a_related_field(field) -> 
     assert 'choices' not in _metadata().get_field_info(field)
 
 
+def test_exclude_related_choices_omits_the_choices_of_a_field_class_a_subclass_adds() -> None:
+    """A field class added to related_fields by a subclass has its choices hidden too."""
+
+    class Metadata(mixins.ExcludeRelatedChoicesMixin, SimpleMetadata):
+        """Metadata hiding the choices of choice fields as well."""
+
+        related_fields = (
+            serializers.RelatedField,
+            serializers.ManyRelatedField,
+            serializers.ChoiceField,
+        )
+
+    field = serializers.ChoiceField(choices=['alice', 'bob'])
+    assert 'choices' not in Metadata().get_field_info(field)
+
+
 def test_exclude_related_choices_subclass_is_deprecated() -> None:
     """Subclassing ExcludeRelatedChoicesMixin emits a DeprecationWarning naming its replacement."""
     with pytest.warns(DeprecationWarning, match='SimpleMetadata'):
