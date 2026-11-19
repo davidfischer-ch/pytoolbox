@@ -197,6 +197,7 @@ class SmartJSONEncoderV2(json.JSONEncoder):
         return attributes
 
 
+# [CONV-PY-ALPHA-ORDER: each conversion before its inverse]
 def object_to_json(obj: Any, include_properties: bool, **kwargs: Any) -> str:
     """
     Serialize an :class:`object` to a JSON string.
@@ -409,6 +410,7 @@ class JsoneableObject:
 # --- Object <-> Dictionary ------------------------------------------------------------------------
 
 
+# [CONV-PY-ALPHA-ORDER: each conversion before its inverse]
 def object_to_dict(
     obj: Any,
     schema: dict[str, Any] | list[Any],
@@ -576,42 +578,6 @@ def object_to_dict(
     )
 
 
-def _object_to_dict_item(
-    obj: Any,
-    schema: dict[str, Any],
-    *,
-    depth: int = 0,
-    callback: Any = lambda o, s, d: (o, s),
-    iterable_callback: Any = lambda o, s, d: list,
-) -> dict[str, Any] | None:
-    if obj is None:
-        return None
-
-    obj_dict = {}
-    obj, schema = callback(obj, schema, depth)
-
-    for key, value in list(schema.items()):
-        # Direct access to object
-        if isinstance(value, str):
-            obj_dict[key] = getattr(obj, value)
-        elif callable(value):
-            obj_dict[key] = value(obj)
-
-        # Nested object(s)
-        elif isinstance(value, (dict, list)):
-            obj_dict[key] = object_to_dict(
-                getattr(obj, key),
-                schema[key],
-                depth=depth + 1,
-                callback=callback,
-                iterable_callback=iterable_callback,
-            )
-        else:
-            raise NotImplementedError(f'Key {repr(key)} with value {repr(value)}')
-
-    return obj_dict
-
-
 def dict_to_object(cls: type[Any], the_dict: dict[str, Any], inspect_constructor: bool) -> Any:
     """
     Convert a python dictionary to an instance of a class.
@@ -702,6 +668,45 @@ def to_yaml(yaml: ruamel.yaml.YAML, data: YamlDataTypes) -> str:
         yaml.dump(data, stream)
         content = stream.getvalue()
     return content
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _object_to_dict_item(
+    obj: Any,
+    schema: dict[str, Any],
+    *,
+    depth: int = 0,
+    callback: Any = lambda o, s, d: (o, s),
+    iterable_callback: Any = lambda o, s, d: list,
+) -> dict[str, Any] | None:
+    if obj is None:
+        return None
+
+    obj_dict = {}
+    obj, schema = callback(obj, schema, depth)
+
+    for key, value in list(schema.items()):
+        # Direct access to object
+        if isinstance(value, str):
+            obj_dict[key] = getattr(obj, value)
+        elif callable(value):
+            obj_dict[key] = value(obj)
+
+        # Nested object(s)
+        elif isinstance(value, (dict, list)):
+            obj_dict[key] = object_to_dict(
+                getattr(obj, key),
+                schema[key],
+                depth=depth + 1,
+                callback=callback,
+                iterable_callback=iterable_callback,
+            )
+        else:
+            raise NotImplementedError(f'Key {repr(key)} with value {repr(value)}')
+
+    return obj_dict
 
 
 __all__ = _all.diff(globals())

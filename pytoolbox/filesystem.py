@@ -104,15 +104,6 @@ def chown(
         _chown(path, uid, gid)
 
 
-def _chown(path: Path, uid: int, gid: int) -> None:
-    """Call ``os.chown``, silencing ``FileNotFoundError`` on broken symlinks."""
-    try:
-        os.chown(path, uid, gid)
-    except FileNotFoundError:
-        if not path.is_symlink():
-            raise
-
-
 def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     source_path: Path,
     destination_path: Path,
@@ -168,8 +159,8 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             makedirs(dst_path, parent=True)
 
             # Initialize block-based copy
-            src_file = src_path.open('rb')  # pylint: disable=consider-using-with
-            dst_file = dst_path.open('wb')  # pylint: disable=consider-using-with
+            src_file = src_path.open('rb')
+            dst_file = dst_path.open('wb')
 
             # Block-based copy loop
             prev_ratio: float = 0
@@ -226,6 +217,38 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
         raise
 
 
+def file_mime(path: Path, *, mime: bool = True) -> str | None:
+    """
+    Return file mime type.
+
+    **Example usage**
+
+    >>> from pathlib import Path
+    >>>
+    >>> directory = Path(__file__).resolve().parent
+    >>>
+    >>> file_mime(directory / '../pyproject.toml')
+    'text/plain'
+    >>> file_mime(directory / 'filesystem.py') in ('text/plain', 'text/x-python')
+    True
+    >>> file_mime('missing-file') is None
+    True
+    """
+    try:
+        import magic
+    except ImportError as exc:
+        warnings.warn(
+            f'file_mime() requires python-magic / libmagic: {exc}',
+            ImportWarning,
+            stacklevel=2,
+        )
+        return None
+    try:
+        return magic.from_file(str(path), mime=mime)
+    except OSError:
+        return None
+
+
 def find_recursive(
     directory: Path,
     patterns: FindPatterns,
@@ -278,38 +301,6 @@ def find_recursive(
             file_path = dir_path / filename
             if any(p.match(str(file_path)) for p in patterns):
                 yield file_path
-
-
-def file_mime(path: Path, *, mime: bool = True) -> str | None:
-    """
-    Return file mime type.
-
-    **Example usage**
-
-    >>> from pathlib import Path
-    >>>
-    >>> directory = Path(__file__).resolve().parent
-    >>>
-    >>> file_mime(directory / '../pyproject.toml')
-    'text/plain'
-    >>> file_mime(directory / 'filesystem.py') in ('text/plain', 'text/x-python')
-    True
-    >>> file_mime('missing-file') is None
-    True
-    """
-    try:
-        import magic
-    except ImportError as exc:
-        warnings.warn(
-            f'file_mime() requires python-magic / libmagic: {exc}',
-            ImportWarning,
-            stacklevel=2,
-        )
-        return None
-    try:
-        return magic.from_file(str(path), mime=mime)
-    except OSError:
-        return None
 
 
 def first_that_exist(*paths: Path) -> Path | None:
@@ -634,26 +625,6 @@ def symlink(source: str, link_name: str) -> bool:
         raise  # Re-raise exception if a different error occurred
 
 
-def to_user_id(user: int | str | None) -> int:
-    """
-    Return user ID.
-
-    **Example usage**
-
-    >>> to_user_id('root')
-    0
-    >>> to_user_id(0)
-    0
-    >>> to_user_id(None)
-    -1
-    """
-    if isinstance(user, str):
-        import pwd  # pylint:disable=import-outside-toplevel
-
-        return pwd.getpwnam(user).pw_uid
-    return -1 if user is None else user
-
-
 def to_group_id(group: int | str | None) -> int:
     """
     Return group ID.
@@ -672,6 +643,26 @@ def to_group_id(group: int | str | None) -> int:
 
         return grp.getgrnam(group).gr_gid
     return -1 if group is None else group
+
+
+def to_user_id(user: int | str | None) -> int:
+    """
+    Return user ID.
+
+    **Example usage**
+
+    >>> to_user_id('root')
+    0
+    >>> to_user_id(0)
+    0
+    >>> to_user_id(None)
+    -1
+    """
+    if isinstance(user, str):
+        import pwd  # pylint:disable=import-outside-toplevel
+
+        return pwd.getpwnam(user).pw_uid
+    return -1 if user is None else user
 
 
 class TempStorage:
@@ -817,7 +808,7 @@ class TempStorage:
         chown(path, user, group)
 
         if return_file:
-            f = path.open(mode, encoding=encoding)  # pylint: disable=consider-using-with
+            f = path.open(mode, encoding=encoding)
             return f  # type: ignore[return-value]
 
         return path
@@ -887,6 +878,18 @@ class TempStorage:
         """
         for key in self._paths_by_key.copy().keys():
             self.remove_by_key(key)
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _chown(path: Path, uid: int, gid: int) -> None:
+    """Call ``os.chown``, silencing ``FileNotFoundError`` on broken symlinks."""
+    try:
+        os.chown(path, uid, gid)
+    except FileNotFoundError:
+        if not path.is_symlink():
+            raise
 
 
 __all__ = _all.diff(globals())

@@ -8,7 +8,7 @@ import abc
 
 from django.db import models
 
-_all__ = ['ABCModelMeta']
+__all__ = ['ABCModelMeta']
 
 
 class ABCModelMeta(abc.ABCMeta, type(models.Model)):
@@ -17,9 +17,10 @@ class ABCModelMeta(abc.ABCMeta, type(models.Model)):
 
     **Example usage**
 
-    >> class AbstractModel(models.Model):
-    .. __metaclass__ = AbstractModelMeta
-    ..
-    .. class Meta:
-    ..     abstract = True
+    >>> class Named(models.Model, metaclass=ABCModelMeta):
+    ...     class Meta:
+    ...         abstract = True
+    ...
+    ...     @abc.abstractmethod
+    ...     def get_name(self) -> str: ...
     """

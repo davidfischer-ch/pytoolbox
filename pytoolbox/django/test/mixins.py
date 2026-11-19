@@ -43,38 +43,6 @@ _TestMixin = TransactionTestCase if TYPE_CHECKING else object
 _all = module.All(globals())
 
 
-class _AssertNumQueriesInContext(CaptureQueriesContext):
-    def __init__(
-        self,
-        test_case: TransactionTestCase,
-        min_queries: int,
-        max_queries: int,
-        connection: BaseDatabaseWrapper,
-    ) -> None:
-        self.test_case = test_case
-        self.min_queries = min_queries
-        self.max_queries = max_queries
-        super().__init__(connection)
-
-    @override
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
-        super().__exit__(exc_type, exc_value, traceback)
-        if exc_type is None:
-            executed = len(self)
-            self.test_case.assertTrue(
-                self.min_queries <= executed <= self.max_queries,
-                f'{executed} queries executed, expected between '
-                f'{self.min_queries} and {self.max_queries}{os.linesep}'
-                f'Captured queries were:{os.linesep}'
-                f'{os.linesep.join(query["sql"] for query in self.captured_queries)}',
-            )
-
-
 class ClearSiteCacheMixin(_TestMixin):
     """Clear the :class:`~django.contrib.sites.models.Site` cache before each test."""
 
@@ -265,6 +233,41 @@ class RestAPIMixin(UrlMixin):
     def put(self, url: str, data: object, status: int = 200, **kwargs: Any) -> _RestResponse:
         """Send a PUT request and assert the response status."""
         return self._call('put', url, data, status, **kwargs)
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+class _AssertNumQueriesInContext(CaptureQueriesContext):
+    def __init__(
+        self,
+        test_case: TransactionTestCase,
+        min_queries: int,
+        max_queries: int,
+        connection: BaseDatabaseWrapper,
+    ) -> None:
+        self.test_case = test_case
+        self.min_queries = min_queries
+        self.max_queries = max_queries
+        super().__init__(connection)
+
+    @override
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        super().__exit__(exc_type, exc_value, traceback)
+        if exc_type is None:
+            executed = len(self)
+            self.test_case.assertTrue(
+                self.min_queries <= executed <= self.max_queries,
+                f'{executed} queries executed, expected between '
+                f'{self.min_queries} and {self.max_queries}{os.linesep}'
+                f'Captured queries were:{os.linesep}'
+                f'{os.linesep.join(query["sql"] for query in self.captured_queries)}',
+            )
 
 
 __all__ = _all.diff(globals())

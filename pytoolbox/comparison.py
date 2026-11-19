@@ -55,18 +55,6 @@ def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) ->
     return os.linesep.join(_colorize(diff) if colorize else diff)
 
 
-def _colorize(diff: Iterable[str]) -> Iterator[str]:
-    for line in diff:
-        if line.startswith('+'):
-            yield termcolor.colored(line, 'green')
-        elif line.startswith('-'):
-            yield termcolor.colored(line, 'red')
-        elif line.startswith('^'):
-            yield termcolor.colored(line, 'blue')
-        else:
-            yield line
-
-
 # --- Versions -------------------------------------------------------------------------------------
 
 
@@ -136,3 +124,18 @@ def try_parse_version(version: str) -> ParseVersionTypes:
         return _parse_version(version)
     except InvalidVersion:
         return version
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _colorize(diff: Iterable[str]) -> Iterator[str]:
+    for line in diff:
+        if line.startswith('+'):
+            yield termcolor.colored(line, 'green')
+        elif line.startswith('-'):
+            yield termcolor.colored(line, 'red')
+        elif line.startswith('^'):
+            yield termcolor.colored(line, 'blue')
+        else:
+            yield line

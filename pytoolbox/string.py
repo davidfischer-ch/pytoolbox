@@ -36,32 +36,6 @@ def dash_to_camel(string: str) -> str:
     return _to_camel(string, '-')
 
 
-def snake_to_camel(string: str) -> str:
-    """Convert snake_case to camelCase."""
-    return _to_camel(string, '_')
-
-
-def _to_camel(string: str, separator: str) -> str:
-    components = string.split(separator)
-    preffix = suffix = ''
-    if components[0] == '':
-        components = components[1:]
-        preffix = separator
-    if components[-1] == '':
-        components = components[:-1]
-        suffix = separator
-    if len(components) > 1:
-        camel_case_string = components[0].lower()
-        for component in components[1:]:
-            if component.isupper() or component.istitle():
-                camel_case_string += component
-            else:
-                camel_case_string += component.title()
-    else:
-        camel_case_string = components[0]
-    return preffix + camel_case_string + suffix
-
-
 def filterjoin(
     items: Iterable[Any],
     sep: str = ' ',
@@ -72,6 +46,11 @@ def filterjoin(
     and filter the items using the `keep` function.
     """
     return sep.join(str(i) for i in items if keep(i))
+
+
+def snake_to_camel(string: str) -> str:
+    """Convert snake_case to camelCase."""
+    return _to_camel(string, '_')
 
 
 def to_lines(
@@ -145,6 +124,30 @@ def to_lines(
             lines.append(start)
         lines[-1] += item_str
     return os.linesep.join(lines)
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _to_camel(string: str, separator: str) -> str:
+    components = string.split(separator)
+    preffix = suffix = ''
+    if components[0] == '':
+        components = components[1:]
+        preffix = separator
+    if components[-1] == '':
+        components = components[:-1]
+        suffix = separator
+    if len(components) > 1:
+        camel_case_string = components[0].lower()
+        for component in components[1:]:
+            if component.isupper() or component.istitle():
+                camel_case_string += component
+            else:
+                camel_case_string += component.title()
+    else:
+        camel_case_string = components[0]
+    return preffix + camel_case_string + suffix
 
 
 __all__ = _all.diff(globals())

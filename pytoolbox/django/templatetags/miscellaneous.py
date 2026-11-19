@@ -41,11 +41,6 @@ from . import register, string_if_invalid
 # [2]: esc = conditional_escape if autoescape else lambda x: x
 
 
-def _include_is_allowed(filepath: str) -> bool:
-    """Return whether including ``filepath`` is allowed."""
-    return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
-
-
 NUMERIC_TEST: Final[re.Pattern[str]] = re.compile(r'^\d+$')
 LABEL_TO_CLASS: Final[dict[str, str]] = {
     'ERROR': 'label-important',
@@ -243,3 +238,11 @@ def static_abspath(parser, token):
 
     """
     return StaticPathNode.handle_token(parser, token)
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _include_is_allowed(filepath: str) -> bool:
+    """Return whether including ``filepath`` is allowed."""
+    return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)

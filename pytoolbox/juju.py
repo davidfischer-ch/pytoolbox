@@ -5,6 +5,7 @@ Helpers for managing Juju environments, services, units, and charms.
 
 from __future__ import annotations
 
+import functools
 import json
 import os
 import random
@@ -290,18 +291,12 @@ def get_unit_path(service: str, number: int, *args: str) -> str:
 # --- Helpers --------------------------------------------------------------------------------------
 
 
-__get_ip = None  # pylint:disable=invalid-name
-
-
+@functools.cache
 def get_ip() -> str:
     """Return the local machine's IP address (cached)."""
-    global __get_ip  # pylint:disable=global-statement,invalid-name
-    if __get_ip is None:
-        host = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as host:
         host.connect(('8.8.8.8', 80))
-        __get_ip = host.getsockname()[0]
-        host.close()
-    return __get_ip
+        return host.getsockname()[0]
 
 
 class CharmConfig:  # pylint:disable=too-few-public-methods

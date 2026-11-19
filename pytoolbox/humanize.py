@@ -60,6 +60,22 @@ WEIGHT_PATTERN: Final[re.Pattern] = re.compile(
 )
 
 
+def natural_int_key(text: str) -> list[int | str]:
+    """
+    Sort collections containing textual numbers in a more intuitive way.
+
+    Use as the key argument for :func:`list.sort` or :func:`sorted`.
+
+    **Example usage**
+
+    >>> sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'])
+    ['a1', 'a10', 'a19', 'a26', 'a3', 'a4', 'b12', 'b2']
+    >>> sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'], key=natural_int_key)
+    ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12']
+    """
+    return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
+
+
 def naturalbitrate(
     bps: int | float,
     fmt: str = '{sign}{value:.3g} {unit}',
@@ -154,7 +170,7 @@ def naturalfrequency(
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
     units: list[str] | tuple[str, ...] = DEFAULT_FREQUENCY_UNITS,
-) -> str:  # pylint:disable=dangerous-default-value
+) -> str:
     """
     Return a human readable representation of a frequency taking `hertz` as the frequency in Hz.
 
@@ -190,7 +206,7 @@ def naturalweight(
     fmt: str = '{sign}{value:.3g} {unit}',
     scale: int | None = None,
     units: list[str] | tuple[str, ...] = DEFAULT_WEIGHT_UNITS,
-) -> str:  # pylint:disable=dangerous-default-value
+) -> str:
     """
     Return a human readable representation of a weight in `grams`.
 
@@ -219,22 +235,6 @@ def naturalweight(
     '502.46 T'
     """
     return _natural_number(grams, base=1000, fmt=fmt, scale=scale, units=units)
-
-
-def natural_int_key(text: str) -> list[int | str]:
-    """
-    Sort collections containing textual numbers in a more intuitive way.
-
-    Use as the key argument for :func:`list.sort` or :func:`sorted`.
-
-    **Example usage**
-
-    >>> sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'])
-    ['a1', 'a10', 'a19', 'a26', 'a3', 'a4', 'b12', 'b2']
-    >>> sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'], key=natural_int_key)
-    ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12']
-    """
-    return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
 
 
 def parse_bitrate(
@@ -417,6 +417,9 @@ def pluralize(number: int | float, singular: str, plural: str) -> str:
     'item'
     """
     return singular if abs(number) == 1 else plural
+
+
+# --- Internals ------------------------------------------------------------------------------------
 
 
 def _natural_number(

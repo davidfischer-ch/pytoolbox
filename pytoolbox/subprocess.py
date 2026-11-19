@@ -74,6 +74,24 @@ def kill(process: Popen) -> None:
             raise
 
 
+# http://stackoverflow.com/a/7730201/190597
+def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
+    """Add the O_NONBLOCK flag to a file descriptor. No-op on Windows."""
+    if hasattr(os, 'set_blocking'):
+        os.set_blocking(fd if isinstance(fd, int) else fd.fileno(), False)
+
+
+# http://stackoverflow.com/a/7730201/190597
+def read_async(fd: IO) -> str:  # pylint:disable=invalid-name
+    """Read some data from a file descriptor, ignoring EAGAIN errors."""
+    try:
+        return fd.read()
+    except IOError as exc:
+        if exc.errno == errno.EAGAIN:
+            return ''
+        raise
+
+
 def su(user: str | int, group: str | int) -> Callable[..., Any]:  # pylint:disable=invalid-name
     """
     Return a function to change current user/group id. Is a no-op on Windows.
@@ -98,24 +116,6 @@ def su(user: str | int, group: str | int) -> Callable[..., Any]:  # pylint:disab
             return
 
     return set_ids
-
-
-# http://stackoverflow.com/a/7730201/190597
-def make_async(fd: IO | int) -> None:  # pylint:disable=invalid-name
-    """Add the O_NONBLOCK flag to a file descriptor. No-op on Windows."""
-    if hasattr(os, 'set_blocking'):
-        os.set_blocking(fd if isinstance(fd, int) else fd.fileno(), False)
-
-
-# http://stackoverflow.com/a/7730201/190597
-def read_async(fd: IO) -> str:  # pylint:disable=invalid-name
-    """Read some data from a file descriptor, ignoring EAGAIN errors."""
-    try:
-        return fd.read()
-    except IOError as exc:
-        if exc.errno == errno.EAGAIN:
-            return ''
-        raise
 
 
 def to_args_list(args: CallArgsType | None) -> list[str]:
@@ -152,16 +152,6 @@ def raw_cmd(arguments: CallArgsType, *, shell: bool = False, **kwargs) -> Popen:
     return process
 
 
-# thanks http://stackoverflow.com/questions/1191374$
-def _communicate_with_timeout(  # pylint:disable=redefined-builtin
-    *,
-    data: dict[str, Any],
-    process: Popen,
-    input: str | None,
-) -> None:
-    data['stdout'], data['stderr'] = process.communicate(input=input)
-
-
 @overload
 def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
@@ -173,7 +163,7 @@ def cmd(  # pylint:disable=too-many-arguments
     communicate: Literal[False],
     timeout: float | None = ...,
     fail: bool = ...,
-    log: LoggerType = ...,  # pylint:disable=redefined-outer-name
+    log: LoggerType = ...,
     tries: int = ...,
     delay_min: float = ...,
     delay_max: float = ...,
@@ -193,7 +183,7 @@ def cmd(  # pylint:disable=too-many-arguments
     communicate: bool = ...,
     timeout: float | None = ...,
     fail: bool = ...,
-    log: LoggerType = ...,  # pylint:disable=redefined-outer-name
+    log: LoggerType = ...,
     tries: int = ...,
     delay_min: float = ...,
     delay_max: float = ...,
@@ -213,7 +203,7 @@ def cmd(  # pylint:disable=too-many-arguments
     communicate: Literal[True] = ...,
     timeout: float | None = ...,
     fail: bool = ...,
-    log: LoggerType = ...,  # pylint:disable=redefined-outer-name
+    log: LoggerType = ...,
     tries: int = ...,
     delay_min: float = ...,
     delay_max: float = ...,
@@ -232,7 +222,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     communicate: bool = True,
     timeout: float | None = None,
     fail: bool = True,
-    log: LoggerType = None,  # pylint:disable=redefined-outer-name
+    log: LoggerType = None,
     tries: int = 1,
     delay_min: float = 5,
     delay_max: float = 10,
@@ -484,6 +474,19 @@ def screen_list(name: str | None = None, **kwargs) -> list[str]:
     """Return a list containing all instances of screen, optionally filtered by `name`."""
     screens = cmd(['screen', '-ls', name], fail=False, **kwargs)['stdout']
     return re.findall(r'\s+(\d+.\S+)\s+\(.*\).*', (screens or b'').decode('utf-8'))
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+# Thanks http://stackoverflow.com/questions/1191374
+def _communicate_with_timeout(  # pylint:disable=redefined-builtin
+    *,
+    data: dict[str, Any],
+    process: Popen,
+    input: str | None,
+) -> None:
+    data['stdout'], data['stderr'] = process.communicate(input=input)
 
 
 __all__ = _all.diff(globals())

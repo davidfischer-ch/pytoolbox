@@ -16,16 +16,6 @@ from pytoolbox.django.core import validators
 # ...); naming the base under TYPE_CHECKING states that for the checker only.
 _FieldMixin = models.Field if TYPE_CHECKING else object
 
-#: The attribute :meth:`~django.db.models.Field.__init__` stores an option under, where it is not
-#: the option's own name.
-_OPTION_ATTRIBUTES: Final[dict[str, str]] = {
-    'db_tablespace': '_db_tablespace',
-    'error_messages': '_error_messages',
-    'unique': '_unique',
-    'validators': '_validators',
-    'verbose_name': '_verbose_name',
-}
-
 __all__ = ['LowerCaseMixin', 'OptionsMixin', 'StripMixin']
 
 
@@ -93,3 +83,17 @@ class StripMixin(_FieldMixin):
             value = value.strip()
             setattr(model_instance, self.attname, value)
         return value
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+#: The attribute :meth:`~django.db.models.Field.__init__` stores an option under, where it is not
+#: the option's own name.
+_OPTION_ATTRIBUTES: Final[dict[str, str]] = {
+    'db_tablespace': '_db_tablespace',
+    'error_messages': '_error_messages',
+    'unique': '_unique',
+    'validators': '_validators',
+    'verbose_name': '_verbose_name',
+}

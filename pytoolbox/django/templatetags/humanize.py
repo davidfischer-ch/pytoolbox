@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from pytoolbox import humanize
 from pytoolbox.datetime import timedelta_to_time
-from pytoolbox.private import _parse_kwargs_string
+from pytoolbox.private import parse_kwargs_string
 
 from . import register, string_if_invalid
 
@@ -48,7 +48,7 @@ def naturalbitrate(bps: float | None, kwargs_string: str | None = None) -> str:
         return string_if_invalid
     return humanize.naturalbitrate(
         bps,
-        **_parse_kwargs_string(
+        **parse_kwargs_string(
             kwargs_string,
             format=str,
             scale=int,
@@ -76,7 +76,7 @@ def naturalfilesize(the_bytes: float | None, kwargs_string: str | None = None) -
         return string_if_invalid
     return humanize.naturalfilesize(
         the_bytes,
-        **_parse_kwargs_string(
+        **parse_kwargs_string(
             kwargs_string,
             format=str,
             scale=int,
