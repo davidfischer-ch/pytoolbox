@@ -90,3 +90,17 @@ def test_save_unit_config_replaces_the_file_with_the_unit_configuration(tmp_path
         'mongodb': {'replica': 'True', 'port': 27017},
     }
     assert [p.name for p in tmp_path.iterdir()] == ['config.yaml']
+
+
+def test_juju_do_runs_without_a_home_directory(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A process with no home directory still runs juju, its home left unexpanded."""
+    monkeypatch.delenv('HOME', raising=False)
+    with (
+        mock.patch('pwd.getpwuid', side_effect=KeyError),
+        mock.patch('pytoolbox.subprocess.cmd') as cmd,
+    ):
+        cmd.return_value = {'stdout': '{}', 'stderr': '', 'returncode': 0}
+        assert juju.juju_do('status') == {}
+
+    environment = cmd.call_args.kwargs['env']
+    assert (environment['HOME'], environment['JUJU_HOME']) == ('~/', '~/.juju')

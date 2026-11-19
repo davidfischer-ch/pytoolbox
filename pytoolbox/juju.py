@@ -123,8 +123,9 @@ def juju_do(
         arguments += [str(o) for o in options]
 
     env = os.environ.copy()
-    env['HOME'] = str(Path('~').expanduser())
-    env['JUJU_HOME'] = str(Path('~/.juju').expanduser())
+    # [CONV-PY-PATHLIB: os.path.expanduser keeps "~" without a home, where Path.expanduser raises]
+    env['HOME'] = os.path.expanduser('~/')
+    env['JUJU_HOME'] = os.path.expanduser('~/.juju')
 
     if is_destroy:
         # TODO Automate yes answer to destroy-environment
