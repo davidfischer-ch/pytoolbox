@@ -25,7 +25,6 @@ djangorestframework==3.17.2
 dlib==20.0.0
 dnspython==2.8.0
 docutils==0.22.4
-ezodf==0.3.2
 fastxor==0.1.6
 filelock==3.25.1
 Flask==3.1.3
@@ -47,7 +46,6 @@ jwcrypto==1.5.6
 keras==3.15.0
 libclang==18.1.1
 librt==0.8.1
-lxml==6.1.0
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mccabe==0.7.0
@@ -58,6 +56,7 @@ mypy_extensions==1.1.0
 namex==0.1.0
 numpy==2.4.3
 oauthlib==3.3.1
+odfpy==1.4.1
 opencv-python==4.13.0.92
 opt_einsum==3.4.0
 optree==0.19.0

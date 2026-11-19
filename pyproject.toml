@@ -79,8 +79,7 @@ jinja2 = ['jinja2']
 mongodb = ['pymongo']
 network = ['tldextract']
 pandas = [
-    'ezodf',
-    'lxml',
+    'odfpy>=1.4.1',
     'pandas'
 ]
 rest_framework = [
