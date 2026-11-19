@@ -24,15 +24,15 @@ def test_hash() -> None:
 
 
 def test_eq() -> None:
-    """Equal members compare as equal."""
-    assert Priority.LOW == Priority.LOW
+    """A member compares equal to itself, looked up by value."""
+    assert Priority(1) == Priority.LOW
     assert Priority.LOW != Priority.HIGH
 
 
 def test_ne() -> None:
-    """Unequal members compare as not equal."""
+    """`!=` holds between unequal members only."""
     assert Priority.LOW != Priority.HIGH
-    assert Priority.LOW == Priority.LOW
+    assert (Priority(1) != Priority.LOW) is False
 
 
 def test_lt() -> None:
@@ -43,7 +43,7 @@ def test_lt() -> None:
 
 def test_le() -> None:
     """Less-than-or-equal compares by value."""
-    assert Priority.LOW <= Priority.LOW
+    assert Priority(1) <= Priority.LOW
     assert Priority.LOW <= Priority.MEDIUM
     assert Priority.HIGH > Priority.LOW
 
@@ -56,7 +56,7 @@ def test_gt() -> None:
 
 def test_ge() -> None:
     """Greater-than-or-equal compares by value."""
-    assert Priority.HIGH >= Priority.HIGH
+    assert Priority(3) >= Priority.HIGH
     assert Priority.HIGH >= Priority.MEDIUM
     assert Priority.LOW < Priority.MEDIUM
 

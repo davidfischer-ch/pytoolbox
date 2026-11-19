@@ -113,20 +113,25 @@ def from_path_patterns(
     Return patterns compiled to regular expressions, if necessary.
 
     If `regex` is set to False, then any string pattern will be converted from the unix-style
-    wildcard to the regular expression equivalent using :func:`fnatmch.translate`.
+    wildcard to the regular expression equivalent using :func:`fnmatch.translate`.
 
     **Example usage**
 
     >>> from pytoolbox.unittest import asserts
+    >>> [pattern] = from_path_patterns('*.txt')
     >>> asserts.list_equal(
-    ...     [r.pattern for r in from_path_patterns('*.txt')],
-    ...     ['(?s:.*\\.txt)\\Z'])
+    ...     [bool(pattern.match(path)) for path in ('a.txt', 'dir/a.txt', 'a.txt.bak', 'a.md')],
+    ...     [True, True, False, False])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns(['text', 'something*'], regex=True)],
     ...     ['text', 'something*'])
+    >>> compiled = re.compile('a?c')
+    >>> kept, translated = from_path_patterns([compiled, 'fo?'])
+    >>> kept is compiled
+    True
     >>> asserts.list_equal(
-    ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'fo?'])],
-    ...     ['a?c', '(?s:fo.)\\Z'])
+    ...     [bool(translated.match(path)) for path in ('foo', 'fo', 'fooo')],
+    ...     [True, False, False])
     >>> asserts.list_equal(
     ...     [r.pattern for r in from_path_patterns([re.compile('a?c'), 'foo?'], regex=True)],
     ...     ['a?c', 'foo?'])

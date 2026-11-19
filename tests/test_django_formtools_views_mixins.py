@@ -1,6 +1,6 @@
 """Tests for the django_formtools.views.mixins module."""
 
-# pylint:disable=too-few-public-methods
+# pylint:disable=too-few-public-methods,use-implicit-booleaness-not-comparison
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
