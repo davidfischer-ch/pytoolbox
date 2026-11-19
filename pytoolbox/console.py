@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from typing import Any, TextIO
 
+import termcolor
+
 __all__ = [
     'confirm',
     'choice',
@@ -202,15 +204,18 @@ def toggle_colors(
     enable_vars: list[str] | tuple[str, ...] = ('FORCE_COLOR',),
 ) -> dict[str, str]:
     """
-    Return `env` (defaulting to `os.environ`) updated to enable or disable colors.
+    Return ``env`` (defaulting to ``os.environ``) updated to enable or disable colors.
+
+    Clear termcolor's cached ``can_colorize`` result, recomputed from the environment at its next
+    colored output.
 
     Reference: https://github.com/termcolor/termcolor/blob/main/src/termcolor/termcolor.py
 
     **Example usage**
 
-        >> os.environ = toggle_colors(colorize=True)
-
-    Then colors are guaranteed!
+        >> colored_env = toggle_colors(colorize=True)
+        >> os.environ.clear()
+        >> os.environ.update(colored_env)
     """
     env = {
         k: v
@@ -221,4 +226,5 @@ def toggle_colors(
         env[enable_vars[0]] = 'yes'
     else:
         env[disable_vars[0]] = 'yes'
+    termcolor.can_colorize.cache_clear()
     return env

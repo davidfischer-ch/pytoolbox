@@ -23,15 +23,22 @@ def test_toggle_colors() -> None:
 def test_disable_colors_with_termcolor() -> None:
     """NO_COLOR environment variable makes termcolor output plain text."""
     with patch.dict(os.environ, console.toggle_colors(colorize=False), clear=True):
-        termcolor.can_colorize.cache_clear()
         assert termcolor.colored('test', 'green') == 'test'
 
 
 def test_enable_colors_with_termcolor() -> None:
     """FORCE_COLOR environment variable makes termcolor emit ANSI escape codes."""
     with patch.dict(os.environ, console.toggle_colors(colorize=True), clear=True):
-        termcolor.can_colorize.cache_clear()
         assert termcolor.colored('test', 'green') == '\x1b[32mtest\x1b[0m'
+
+
+def test_toggle_colors_applies_after_a_colored_output() -> None:
+    """Termcolor follows the colors last toggled, also after it colored an output."""
+    termcolor.can_colorize.cache_clear()
+    with patch.dict(os.environ, console.toggle_colors(colorize=False), clear=True):
+        assert termcolor.colored('test', 'green') == 'test'
+        with patch.dict(os.environ, console.toggle_colors(colorize=True), clear=True):
+            assert termcolor.colored('test', 'green') == '\x1b[32mtest\x1b[0m'
 
 
 # --- confirm --------------------------------------------------------------------------------------
