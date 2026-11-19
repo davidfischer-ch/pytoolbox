@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 from django.utils.translation import gettext as _
 
@@ -48,7 +49,7 @@ def naturalbitrate(bps: float | None, kwargs_string: str | None = None) -> str:
         return string_if_invalid
     return humanize.naturalbitrate(
         bps,
-        **parse_kwargs_string(
+        **_parse_options(
             kwargs_string,
             format=str,
             scale=int,
@@ -76,10 +77,21 @@ def naturalfilesize(the_bytes: float | None, kwargs_string: str | None = None) -
         return string_if_invalid
     return humanize.naturalfilesize(
         the_bytes,
-        **parse_kwargs_string(
+        **_parse_options(
             kwargs_string,
             format=str,
             scale=int,
             system=str,
         ),
     )
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _parse_options(kwargs_string: str | None, **types: type[Any]) -> dict[str, Any]:
+    """Return the options of a filter, its documented ``format`` passed on as ``fmt``."""
+    return {
+        'fmt' if key == 'format' else key: value
+        for key, value in parse_kwargs_string(kwargs_string, **types).items()
+    }

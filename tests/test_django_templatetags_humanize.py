@@ -44,3 +44,11 @@ def test_naturalfilesize() -> None:
     """Converts bytes to human-readable file size, None returns invalid string."""
     assert '15.7 MB' in templatetags.naturalfilesize(16487211.33)
     assert templatetags.naturalfilesize(None) == templatetags.string_if_invalid
+
+
+def test_naturalbitrate_and_naturalfilesize_take_the_documented_format() -> None:
+    """The ``format=`` option the filters document reaches the formatting."""
+    assert templatetags.naturalbitrate(16487211.33, 'format={value:.0f} {unit}') == '16 Mb/s'
+    assert templatetags.naturalfilesize(16487211.33, 'format={value:.0f} {unit}; system=gnu') == (
+        '16 M'
+    )
