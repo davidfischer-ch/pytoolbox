@@ -39,20 +39,13 @@ class JiraProject:
     @property
     def features(self) -> ValuesView:
         """Return all issues of the configured feature type."""
-        count: int | None = None
-        issues: dict[str, Any] = {}
-        while count != len(issues):
-            count = len(issues)
-            issues.update(
-                {
-                    i.id: i
-                    for i in self.jira.search_issues(
-                        f'project={self.project} AND issuetype="{self.feature_type}"',
-                        startAt=count,
-                    )
-                }
+        return {
+            issue.id: issue
+            for issue in self.jira.search_issues(
+                f'project={self.project} AND issuetype="{self.feature_type}"',
+                maxResults=False,
             )
-        return issues.values()
+        }.values()
 
     @property
     def jira(self) -> JIRA:
