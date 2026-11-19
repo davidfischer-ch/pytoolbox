@@ -4,19 +4,22 @@ from __future__ import annotations
 
 from django import template
 from django.conf import settings
+from django.template.backends.django import DjangoTemplates
+from django.utils.module_loading import import_string
 
 from pytoolbox import module
 
 _all = module.All(globals())
 
-string_if_invalid = ''  # Official default value
-try:  # Django >= 1.8
-    string_if_invalid = settings.TEMPLATES['OPTIONS']['string_if_invalid']
-except (KeyError, TypeError):
-    try:  # Django < 1.8
-        string_if_invalid = settings.TEMPLATE_STRING_IF_INVALID
-    except AttributeError:
-        pass  # Use default
+# The option of the first DjangoTemplates engine, else Django's default.
+string_if_invalid: str = next(
+    (
+        engine.get('OPTIONS', {}).get('string_if_invalid', '')
+        for engine in settings.TEMPLATES
+        if issubclass(import_string(engine['BACKEND']), DjangoTemplates)
+    ),
+    '',
+)
 
 register = template.Library()
 
