@@ -82,11 +82,11 @@ def getattribute(value: Any, attribute: Any) -> Any:
 @register.filter(needs_autoescape=True, safe=True)  # pyrefly: ignore[no-matching-overload]
 @stringfilter
 def inline(filepath: str, msg: bool = True, *, autoescape: bool = True) -> str:
-    """Inline the contents of a static file into the template output."""
+    """Inline the content of a file in ``STATIC_ROOT``, its symbolic links resolved."""
     if filepath is None or filepath == string_if_invalid:
         return string_if_invalid
-    if _include_is_allowed(filepath):
-        return Path(filepath).read_text(encoding='utf-8')
+    if (path := Path(filepath).resolve()).is_relative_to(Path(settings.STATIC_ROOT).resolve()):
+        return path.read_text(encoding='utf-8')
     if settings.DEBUG and msg:
         filepath_escaped = conditional_escape(filepath) if autoescape else filepath
         return _("[Didn't have permission to include file {0}]").format(filepath_escaped)
@@ -239,11 +239,3 @@ def static_abspath(parser, token):
 
     """
     return StaticPathNode.handle_token(parser, token)
-
-
-# --- Internals ------------------------------------------------------------------------------------
-
-
-def _include_is_allowed(filepath: str) -> bool:
-    """Return whether including ``filepath`` is allowed."""
-    return os.path.abspath(filepath).startswith(settings.STATIC_ROOT)
