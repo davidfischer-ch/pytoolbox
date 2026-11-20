@@ -15,7 +15,7 @@ from pytoolbox.datetime import datetime_now, multiply_time, secs_to_time, str_to
 from . import ffprobe, miscellaneous, utils
 
 __all__ = [
-    'ENCODING_REGEX',
+    'ENCODING_PATTERN',
     'EncodeState',
     'EncodeStatistics',
     'FFmpegStatistics',
@@ -34,7 +34,7 @@ class FFmpegStatistics(TypedDict):
     bit_rate: int | None
 
 
-ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
+ENCODING_PATTERN: Final[re.Pattern[str]] = re.compile(
     # frame= 2071 fps=  0 q=-1.0 size=   34623kB time=00:01:25.89 bitrate=3302.3kbits/s
     r'frame=\s*(?P<frame>\d+)\s+'
     r'fps=\s*(?P<frame_rate>\d+\.?\d*)\s+'
@@ -62,7 +62,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
     """Track and report FFmpeg encoding progress and statistics."""
 
     default_in_duration = timedelta(seconds=0)
-    encoding_regex = ENCODING_REGEX
+    encoding_pattern = ENCODING_PATTERN
     ffprobe_class = ffprobe.FFprobe
     states = EncodeState
 
@@ -216,7 +216,7 @@ class EncodeStatistics:  # pylint:disable=too-many-instance-attributes
 
     def _parse_chunk(self, chunk: str) -> FFmpegStatistics | None:
         self.process_output += chunk
-        if not (match := self.encoding_regex.match(chunk.strip())):
+        if not (match := self.encoding_pattern.match(chunk.strip())):
             return None
         raw = match.groupdict()
         try:

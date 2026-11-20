@@ -23,12 +23,12 @@ from pytoolbox.datetime import parts_to_time, secs_to_time
 
 from . import miscellaneous, utils
 
-__all__ = ['DURATION_REGEX', 'FFprobe', 'MediaLike']
+__all__ = ['DURATION_PATTERN', 'FFprobe', 'MediaLike']
 
 # What every accessor below accepts: a Media, the path of one, or an already probed info dict.
 type MediaLike = miscellaneous.Media | Path | str | dict[str, Any]
 
-DURATION_REGEX: Final[re.Pattern] = re.compile(
+DURATION_PATTERN: Final[re.Pattern] = re.compile(
     r'PT(?P<hours>\d+)H(?P<minutes>\d+)M(?P<seconds>[^S]+)S',
 )
 
@@ -37,7 +37,7 @@ class FFprobe:
     """Probe media files for format, streams, and duration information."""
 
     executable: Path = Path('ffprobe')
-    duration_regex: re.Pattern = DURATION_REGEX
+    duration_pattern: re.Pattern = DURATION_PATTERN
     format_class: type[miscellaneous.Format] | None = None
     media_class: type[miscellaneous.Media] = miscellaneous.Media
     stream_classes: dict[str, type[miscellaneous.Stream] | None] = {
@@ -56,10 +56,9 @@ class FFprobe:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             universal_newlines=True,
+            errors='replace',
         )
-        process.wait()
-        assert process.stdout is not None  # noqa: S101  # opened with stdout=PIPE just above
-        return process.stdout.read()
+        return process.communicate()[0]
 
     @overload
     def get_media_duration(
@@ -89,8 +88,8 @@ class FFprobe:
         """
         Return the duration of a media as an instance of time or None in case of error.
 
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
 
         If `media` is the path to a MPEG-DASH MPD, then duration will be parser from value of key
         *mediaPresentationDuration*.
@@ -100,7 +99,7 @@ class FFprobe:
                 mpd = minidom.parse(f)
             root = mpd.firstChild
             if isinstance(root, Element) and root.nodeName == 'MPD':
-                match = self.duration_regex.search(
+                match = self.duration_pattern.search(
                     root.getAttribute('mediaPresentationDuration'),
                 )
                 if match is not None:
@@ -138,7 +137,7 @@ class FFprobe:
     def get_media_info(self, media: MediaLike, *, fail: bool = False) -> dict[str, Any] | None:
         """
         Return a Python dictionary containing information about the media or None in case of error.
-        Set `media` to an instance of `self.media_class` or a path.
+        Set `media` to an instance of ``self.media_class`` or a path.
         If `media` is a Python dictionary, then it is returned.
         """
         if isinstance(media, dict):
@@ -158,9 +157,9 @@ class FFprobe:
                         'json',
                         '-show_format',
                         '-show_streams',
-                        media.path,
+                        media.path_argument,
                     ]
-                ).decode('utf-8'),
+                ).decode('utf-8', errors='replace'),
             )
         except OSError as exc:
             # Executable does not exist
@@ -195,8 +194,8 @@ class FFprobe:
     ) -> miscellaneous.Format | dict[str, Any] | None:
         """
         Return information about the container (and file) or None in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
         """
         info = self.get_media_info(media, fail=fail)
         if info is None:
@@ -220,27 +219,20 @@ class FFprobe:
     ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the media streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
+
+        A stream of a type missing from ``stream_classes`` (data, attachment) is kept as a dict.
         """
         info = self.get_media_info(media, fail=fail)
         if info is None:
             return []
         try:
-            raw_streams = (s for s in info['streams'] if condition(s))
+            return [self._to_stream(stream) for stream in info['streams'] if condition(stream)]
         except Exception:  # pylint:disable=broad-except
             if fail:
                 raise
             return []
-        streams: list[miscellaneous.Stream | dict[str, Any]] = []
-        for stream in raw_streams:
-            stream_class = self.stream_classes[stream['codec_type']]
-            streams.append(
-                stream_class(stream)
-                if stream_class and not isinstance(stream, stream_class)
-                else stream,
-            )
-        return streams
 
     def get_audio_streams(
         self,
@@ -250,12 +242,12 @@ class FFprobe:
     ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the audio streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
         """
         return self.get_media_streams(
             media,
-            condition=lambda s: s['codec_type'] == 'audio',
+            condition=lambda s: s.get('codec_type') == 'audio',
             fail=fail,
         )
 
@@ -267,12 +259,12 @@ class FFprobe:
     ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the subtitle streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
         """
         return self.get_media_streams(
             media,
-            condition=lambda s: s['codec_type'] == 'subtitle',
+            condition=lambda s: s.get('codec_type') == 'subtitle',
             fail=fail,
         )
 
@@ -284,12 +276,12 @@ class FFprobe:
     ) -> list[miscellaneous.Stream | dict[str, Any]]:
         """
         Return a list with the video streams of `media` or [] in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
         """
         return self.get_media_streams(
             media,
-            condition=lambda s: s['codec_type'] == 'video',
+            condition=lambda s: s.get('codec_type') == 'video',
             fail=fail,
         )
 
@@ -320,8 +312,8 @@ class FFprobe:
     ) -> float | None:
         """
         Return the frame rate of the video stream at `index` in `media` or None in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
         """
         try:
             stream = self.get_video_streams(media)[index]
@@ -360,8 +352,8 @@ class FFprobe:
     ) -> list[int] | None:
         """
         Return [width, height] of the video stream at `index` in `media` or None in case of error.
-        Set `media` to an instance of `self.media_class`, a path or the output of
-        `get_media_info()`.
+        Set `media` to an instance of ``self.media_class``, a path or the output of
+        :meth:`get_media_info`.
         """
         try:
             stream = self.get_video_streams(media)[index]
@@ -384,3 +376,10 @@ class FFprobe:
         if isinstance(media, (Path, str)):
             return self.media_class(media)
         raise TypeError(f'Cannot build a media out of {media!r}')
+
+    def _to_stream(self, stream: dict[str, Any]) -> miscellaneous.Stream | dict[str, Any]:
+        """Return *stream* as an instance of its class in ``stream_classes``, if it has one."""
+        stream_class = self.stream_classes.get(stream.get('codec_type', ''))
+        if stream_class and not isinstance(stream, stream_class):
+            return stream_class(stream)
+        return stream

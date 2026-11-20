@@ -3,8 +3,12 @@
 # pylint:disable=protected-access,use-implicit-booleaness-not-comparison,too-few-public-methods
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import shutil
+import subprocess
+import sys
+import textwrap
 import uuid
 from datetime import timedelta
 from pathlib import Path
@@ -48,6 +52,7 @@ def test_to_size() -> None:
     assert ffmpeg.to_size('231.5kB') == 237056
     assert ffmpeg.to_size('3302.3MB') == 3462712524
     assert ffmpeg.to_size('1935.9KB') == 1982361
+    assert ffmpeg.to_size('N/A') is None
 
 
 def test_media(tmp_path: Path) -> None:
@@ -83,6 +88,19 @@ def test_media(tmp_path: Path) -> None:
     assert media.create_directory() is False
     media_path.write_text('This is a text file.', encoding='utf-8')
     assert media.size == 20
+
+
+def test_media_to_args_of_a_relative_path() -> None:
+    """A relative path reaches FFmpeg as a file, never as an option or a protocol."""
+    assert ffmpeg.Media('-y.mp4').to_args(is_input=False) == ['./-y.mp4']
+    assert ffmpeg.Media('concat:a.ts|b.ts', '-f mpegts').to_args(is_input=True) == [
+        '-f',
+        'mpegts',
+        '-i',
+        './concat:a.ts|b.ts',
+    ]
+    assert ffmpeg.Media('/media/output.mp4').to_args(is_input=False) == ['/media/output.mp4']
+    assert ffmpeg.Media('pipe:1').to_args(is_input=False) == ['pipe:1']
 
 
 def test_statistics_compute_ratio(statistics: ffmpeg.EncodeStatistics) -> None:
@@ -143,6 +161,20 @@ def test_statistics_parse_chunk(statistics: ffmpeg.EncodeStatistics) -> None:
     }
 
 
+def test_statistics_parse_chunk_size_not_available(statistics: ffmpeg.EncodeStatistics) -> None:
+    """An output without a size (null muxer, first pass) keeps the progress line's statistics."""
+    assert statistics._parse_chunk(
+        'frame=  250 fps=0.0 q=-0.0 size=N/A time=00:00:10.00 bitrate=N/A speed= 500x',
+    ) == {
+        'frame': 250,
+        'frame_rate': 0.0,
+        'qscale': -0.0,
+        'size': None,
+        'time': timedelta(seconds=10),
+        'bit_rate': None,
+    }
+
+
 def test_statistics_subclip_duration_and_size(statistics: ffmpeg.EncodeStatistics) -> None:
     """_get_subclip_duration_and_size() calculates duration/size from ffmpeg args."""
     subclip = statistics._get_subclip_duration_and_size
@@ -196,6 +228,19 @@ def test_statistics_success_properties(statistics: ffmpeg.EncodeStatistics) -> N
     assert statistics.output._size is None
 
 
+def test_ffmpeg_call_output_not_utf8(tmp_path: Path) -> None:
+    """The log of a process started by a call is text even where it is not valid UTF-8."""
+    executable = _write_executable(
+        tmp_path / 'ffmpeg',
+        r"""
+        import os
+
+        os.write(2, b'Caf\xe9\n')
+        """,
+    )
+    assert ffmpeg.FFmpeg(executable)('-version').communicate() == (None, 'Caf\ufffd\n')
+
+
 def test_ffmpeg_clean_medias_argument() -> None:
     """_clean_medias_argument() normalizes input to a list of Media objects."""
     clean = ffmpeg.FFmpeg()._clean_medias_argument
@@ -246,6 +291,30 @@ def test_ffmpeg_encode(
     assert results[-1].state == ffmpeg.EncodeState.FAILURE
 
 
+def test_ffmpeg_encode_output_not_utf8(
+    static_ffmpeg: type[ffmpeg.FFmpeg],
+    small_mp4: Path,
+    tmp_path: Path,
+) -> None:
+    """Output that is not valid UTF-8, or a character split between two reads, keeps encoding."""
+    encoder = static_ffmpeg(chunk_read_timeout=0.1, encode_poll_delay=0.1)
+    encoder.executable = _write_executable(
+        tmp_path / 'ffmpeg',
+        r"""
+        import os
+        import time
+
+        os.write(2, b'title : Caf\xe9\n')
+        os.write(2, b'title : Caf\xc3')
+        time.sleep(0.3)
+        os.write(2, b'\xa9 au lait\n')
+        """,
+    )
+    results = list(encoder.encode(small_mp4, tmp_path / 'output.mp4'))
+    assert results[-1].state == ffmpeg.EncodeState.SUCCESS
+    assert results[-1].process_output == 'title : Caf\ufffd\ntitle : Café au lait\n'
+
+
 def test_ffmpeg_get_arguments() -> None:
     """_get_arguments() builds correct ffmpeg command-line arguments."""
     get = ffmpeg.FFmpeg()._get_arguments
@@ -263,10 +332,18 @@ def test_ffmpeg_get_arguments() -> None:
         '-vf',
         'yadif=0.-1:0, scale=trunc(iw/2)*2:trunc(ih/2)*2',
     ]
-    assert args == [executable, '-y', *in_options, '-i', 'input.mp4', *out_options, 'output.mkv']
+    assert args == [
+        executable,
+        '-y',
+        *in_options,
+        '-i',
+        './input.mp4',
+        *out_options,
+        './output.mkv',
+    ]
 
     args, _, outputs, in_options, out_options = get('input.mp4', None, in_o_str)
-    assert args == [executable, '-y', *in_options, '-i', 'input.mp4']
+    assert args == [executable, '-y', *in_options, '-i', './input.mp4']
     assert outputs == []
 
     # Using instances of Media (the newest API, greater flexibility)
@@ -284,13 +361,60 @@ def test_ffmpeg_get_arguments() -> None:
         '-f',
         'mp4',
         '-i',
-        'in',
+        './in',
         '-acodec',
         'copy',
         '-vcodec',
         'copy',
-        'out.mkv',
+        './out.mkv',
     ]
+
+
+def test_ffmpeg_get_frames_md5_checksum_covers_every_frame(
+    monkeypatch: pytest.MonkeyPatch,
+    static_ffmpeg: type[ffmpeg.FFmpeg],
+    tmp_path: Path,
+) -> None:
+    """Two medias sharing their first frame but not the next ones have different checksums."""
+    executable = static_ffmpeg().executable
+    monkeypatch.setattr(ffmpeg.FFmpeg, 'executable', executable)
+    still = 'color=c=black:s=16x16:r=5:d=1'
+    changing = rf'{still},drawbox=c=white:t=fill:enable=gte(n\,1)'
+    checksums: set[str | None] = set()
+    for name, video_filter in ('still.mkv', still), ('changing.mkv', changing):
+        subprocess.run(
+            [executable, '-v', 'error', '-f', 'lavfi', '-i', video_filter, tmp_path / name],
+            check=True,
+        )
+        checksums.add(ffmpeg.FFmpeg.get_frames_md5_checksum(tmp_path / name))
+    assert len(checksums) == 2
+    assert None not in checksums
+
+
+def test_ffmpeg_get_frames_md5_checksum_drains_the_log(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """
+    A log longer than the pipe buffer cannot block FFmpeg while get_frames_md5_checksum() waits on
+    the process.
+    """
+    executable = _write_executable(
+        tmp_path / 'ffmpeg',
+        f"""
+        import pathlib
+        import signal
+        import sys
+
+        signal.alarm(10)  # Ends a blocked stand-in, to keep a failing run from hanging.
+        sys.stderr.write('frame=1 fps=0.0\\n' * 16_384)
+        pathlib.Path(sys.argv[-1]).write_text('MD5={'0' * 32}\\n', encoding='utf-8')
+        """,
+    )
+    monkeypatch.setattr(ffmpeg.FFmpeg, 'executable', executable)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(ffmpeg.FFmpeg.get_frames_md5_checksum, tmp_path / 'input.mkv')
+        assert future.result(timeout=5) == '0' * 32
 
 
 def test_ffmpeg_get_process(static_ffmpeg: type[ffmpeg.FFmpeg]) -> None:
@@ -331,6 +455,23 @@ def test_ffmpeg_kill_process_handle_missing(
     with pytest.raises(SomeError):
         list(encoder.encode(small_mp4, tmp_path / 'out.mp4', out_options='-c:a copy -c:v copy'))
     assert filesystem.remove(tmp_path / 'out.mp4') is True
+
+
+def test_ffprobe_call_drains_the_output(tmp_path: Path) -> None:
+    """An output longer than the pipe buffer is returned whole, as text even where not UTF-8."""
+    executable = _write_executable(
+        tmp_path / 'ffprobe',
+        r"""
+        import signal
+        import sys
+
+        signal.alarm(10)  # Ends a blocked stand-in, to keep a failing run from hanging.
+        sys.stdout.buffer.write(b'Caf\xe9\n' * 16_384)
+        """,
+    )
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(ffmpeg.FFprobe(executable), '-version')
+        assert future.result(timeout=5) == 'Caf\ufffd\n' * 16_384
 
 
 def test_ffprobe_get_audio_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
@@ -409,6 +550,57 @@ def test_ffprobe_get_media_info_errors_handling(static_ffmpeg: type[ffmpeg.FFmpe
         probe.get_media_info('another.mp4', fail=False)
 
 
+def test_ffprobe_get_media_info_of_a_name_like_an_option(
+    monkeypatch: pytest.MonkeyPatch,
+    static_ffmpeg: type[ffmpeg.FFmpeg],
+    small_mp4: Path,
+    tmp_path: Path,
+) -> None:
+    """A media named like an option, in the working directory, is probed as a file."""
+    monkeypatch.chdir(tmp_path)
+    shutil.copy(small_mp4, tmp_path / '-version.mp4')
+    info = static_ffmpeg.ffprobe_class().get_media_info('-version.mp4', fail=True)
+    assert info['format']['format_name'] == SMALL_MP4_MEDIA_INFOS['format']['format_name']
+
+
+def test_ffprobe_get_media_info_output_not_utf8(tmp_path: Path) -> None:
+    """A tag that is not valid UTF-8 keeps the information of the media."""
+    executable = _write_executable(
+        tmp_path / 'ffprobe',
+        r"""
+        import sys
+
+        sys.stdout.buffer.write(b'{"format": {"tags": {"title": "Caf\xe9"}}}')
+        """,
+    )
+    assert ffmpeg.FFprobe(executable).get_media_info('input.mkv') == {
+        'format': {'tags': {'title': 'Caf\ufffd'}},
+    }
+
+
+def test_ffprobe_get_media_streams_errors_handling() -> None:
+    """A stream that does not convert makes an empty list, or raises if asked to."""
+    probe = ffmpeg.FFprobe()
+    probe.stream_classes = {'audio': None, 'subtitle': None, 'video': ffmpeg.VideoStream}
+    info = {'streams': [{'codec_type': 'video', 'width': 'wide'}]}
+    assert probe.get_media_streams(info) == []
+    with pytest.raises(ValueError):
+        probe.get_media_streams(info, fail=True)
+
+
+def test_ffprobe_get_media_streams_of_any_type() -> None:
+    """A stream neither audio, subtitle nor video, or of no type, is listed and never fails."""
+    probe = ffmpeg.FFprobe()
+    probe.stream_classes = {'audio': None, 'subtitle': None, 'video': ffmpeg.VideoStream}
+    video, data, untyped = {'codec_type': 'video'}, {'codec_type': 'data'}, {'index': 2}
+    info = {'streams': [video, data, untyped]}
+    streams = probe.get_media_streams(info, fail=True)
+    assert [type(stream) for stream in streams] == [ffmpeg.VideoStream, dict, dict]
+    assert streams[1:] == [data, untyped]
+    assert probe.get_audio_streams(info, fail=True) == []
+    assert len(probe.get_video_streams(info, fail=True)) == 1
+
+
 def test_ffprobe_get_video_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
     """FFprobe.get_video_streams() returns video stream info as dict or VideoStream."""
     probe = static_ffmpeg.ffprobe_class()
@@ -442,3 +634,13 @@ def test_ffprobe_get_video_resolution(static_ffmpeg: type[ffmpeg.FFmpeg], small_
     assert probe.get_video_resolution(small_mp4) == [560, 320]
     assert probe.get_video_resolution(small_mp4, index=1) is None
     assert probe.get_video_resolution(small_mp4)[ffmpeg.HEIGHT] == 320
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _write_executable(path: Path, script: str) -> Path:
+    """Write *script* as a Python program at *path*, to stand in for FFmpeg or FFprobe."""
+    path.write_text(f'#!{sys.executable}\n{textwrap.dedent(script)}', encoding='utf-8')
+    path.chmod(0o755)
+    return path

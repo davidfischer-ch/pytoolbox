@@ -4,6 +4,7 @@ FFmpeg process wrapper for media encoding with progress tracking.
 
 from __future__ import annotations
 
+import codecs
 import errno
 import itertools
 import re
@@ -21,14 +22,14 @@ from pytoolbox import subprocess as py_subprocess
 from . import ffprobe, miscellaneous
 from .encode import EncodeStatistics
 
-__all__ = ['FRAME_MD5_REGEX', 'FFmpeg', 'MediasArg']
+__all__ = ['FRAME_MD5_PATTERN', 'FFmpeg', 'MediasArg']
 
 # One media or several, each given as a path or as an already built Media.
 type MediasArg = (
     miscellaneous.Media | Path | str | Iterable[miscellaneous.Media | Path | str] | None
 )
 
-FRAME_MD5_REGEX: Final[re.Pattern] = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
+FRAME_MD5_PATTERN: Final[re.Pattern] = re.compile(r'[a-z0-9]{32}', re.MULTILINE)
 
 
 class FFmpeg:
@@ -56,11 +57,12 @@ class FFmpeg:
         self.ffprobe = self.ffprobe_class()
 
     def __call__(self, *arguments: Path | float | int | str | None) -> Any:
-        """Call FFmpeg with given arguments (connect stderr to a PIPE)."""
+        """Call FFmpeg with given arguments (connect stderr to a PIPE, decoded with replacement)."""
         return py_subprocess.raw_cmd(
             itertools.chain([self.executable], arguments),
             stderr=subprocess.PIPE,
             universal_newlines=True,
+            errors='replace',
         )
 
     def encode(
@@ -99,10 +101,11 @@ class FFmpeg:
         )
 
         process = self._get_process(arguments, **(process_kwargs or {}))
+        decoder = codecs.getincrementaldecoder(self.encoding)(errors='replace')
         try:  # pylint:disable=too-many-try-statements
             yield statistics.start(process)
             while True:
-                chunk = self._get_chunk(process)
+                chunk = self._get_chunk(process, decoder)
                 yield statistics.progress(chunk or '')
                 if process_poll:
                     if (returncode := process.poll()) is not None:
@@ -117,11 +120,21 @@ class FFmpeg:
 
     @staticmethod
     def get_frames_md5_checksum(filename: Path) -> str | None:
-        """Return the MD5 checksum of all frames in *filename*."""
+        """Return the MD5 checksum of all frames in *filename*, ``None`` if FFmpeg fails."""
         with filesystem.TempStorage() as tmp:
             checksum_filename = tmp.create_tmp_file(return_file=False)
-            FFmpeg()('-y', '-i', filename, '-f', 'framemd5', checksum_filename).wait()
-            match = FRAME_MD5_REGEX.search(Path(checksum_filename).read_text(encoding='utf-8'))
+            process = FFmpeg()(
+                '-y',
+                *miscellaneous.Media(filename).to_args(is_input=True),
+                '-f',
+                'md5',
+                checksum_filename,
+            )
+            process.communicate()
+            if process.returncode:
+                return None
+
+            match = FRAME_MD5_PATTERN.search(Path(checksum_filename).read_text(encoding='utf-8'))
             return match.group() if match else None
 
     def _clean_medias_argument(self, value: MediasArg) -> list[miscellaneous.Media]:
@@ -169,7 +182,16 @@ class FFmpeg:
             args.extend(output.to_args(is_input=False))
         return args, inputs, outputs, in_options, out_options
 
-    def _get_chunk(self, process: subprocess.Popen) -> str | None:
+    def _get_chunk(
+        self,
+        process: subprocess.Popen,
+        decoder: codecs.IncrementalDecoder,
+    ) -> str | None:
+        """
+        Return the output FFmpeg wrote since the last read, ``None`` if there is none.
+
+        *decoder* keeps a character split between two reads for the next one.
+        """
         if process.stderr is None:
             return None
         if sys.platform != 'win32':
@@ -178,7 +200,7 @@ class FFmpeg:
             chunk = process.stderr.read()
             if chunk is None or isinstance(chunk, str):
                 return chunk
-            return chunk.decode(self.encoding)
+            return decoder.decode(chunk)
         except OSError as exc:
             if exc.errno != errno.EAGAIN:
                 raise

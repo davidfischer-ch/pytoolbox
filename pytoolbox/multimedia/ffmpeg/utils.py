@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Final
 
 __all__ = [
-    'BIT_RATE_REGEX',
+    'BIT_RATE_PATTERN',
     'BIT_RATE_COEFFICIENT_FOR_UNIT',
-    'PIPE_REGEX',
-    'SIZE_REGEX',
+    'PIPE_PATTERN',
+    'SIZE_PATTERN',
     'SIZE_COEFFICIENT_FOR_UNIT',
     'WIDTH',
     'HEIGHT',
@@ -22,15 +22,15 @@ __all__ = [
     'to_size',
 ]
 
-BIT_RATE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
+BIT_RATE_PATTERN: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-z]+)/s$')
 BIT_RATE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
     'b': 1,
     'k': 1000,
     'm': 1000**2,
     'g': 1000**3,
 }
-PIPE_REGEX: Final[re.Pattern] = re.compile(r'^-$|^pipe:\d+$')
-SIZE_REGEX: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
+PIPE_PATTERN: Final[re.Pattern] = re.compile(r'^-$|^pipe:\d+$')
+SIZE_PATTERN: Final[re.Pattern] = re.compile(r'^(?P<value>\d+\.?\d*)(?P<units>[a-zA-Z]+)$')
 SIZE_COEFFICIENT_FOR_UNIT: Final[dict[str, int]] = {
     'b': 1,
     'k': 1024,
@@ -44,12 +44,12 @@ HEIGHT: Final[int] = 1
 
 def is_pipe(path: Path | str) -> bool:
     """Return ``True`` if *path* refers to a pipe (e.g. ``-`` or ``pipe:0``)."""
-    return isinstance(path, str) and bool(PIPE_REGEX.match(path))
+    return isinstance(path, str) and bool(PIPE_PATTERN.match(path))
 
 
 def to_bit_rate(bit_rate: str) -> int | None:
     """Parse a bit rate string (e.g. ``'3302.3kbits/s'``) to an integer."""
-    if match := BIT_RATE_REGEX.match(bit_rate):
+    if match := BIT_RATE_PATTERN.match(bit_rate):
         data = match.groupdict()
         return int(float(data['value']) * BIT_RATE_COEFFICIENT_FOR_UNIT[data['units'][0]])
     if bit_rate == 'N/A':
@@ -68,9 +68,11 @@ def to_frame_rate(frame_rate: float | str) -> float | None:
     return float(frame_rate)
 
 
-def to_size(size: str) -> int:
-    """Parse a size string (e.g. ``'34623kB'``) to bytes as an integer."""
-    if match := SIZE_REGEX.match(size):
+def to_size(size: str) -> int | None:
+    """Parse a size string (e.g. ``'34623kB'``) to bytes as an integer, ``None`` for ``'N/A'``."""
+    if match := SIZE_PATTERN.match(size):
         data = match.groupdict()
         return int(float(data['value']) * SIZE_COEFFICIENT_FOR_UNIT[data['units'][0].lower()])
+    if size == 'N/A':
+        return None
     raise ValueError(size)

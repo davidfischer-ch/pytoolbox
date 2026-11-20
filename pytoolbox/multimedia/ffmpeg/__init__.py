@@ -5,13 +5,13 @@ FFmpeg and FFprobe wrappers for media encoding and inspection.
 from __future__ import annotations
 
 from .encode import (  # noqa: F401
-    ENCODING_REGEX,
+    ENCODING_PATTERN,
     EncodeState,
     EncodeStatistics,
     FrameBasedRatioMixin,
 )
-from .ffmpeg import FRAME_MD5_REGEX, FFmpeg  # noqa: F401
-from .ffprobe import DURATION_REGEX, FFprobe  # noqa: F401
+from .ffmpeg import FRAME_MD5_PATTERN, FFmpeg  # noqa: F401
+from .ffprobe import DURATION_PATTERN, FFprobe  # noqa: F401
 from .miscellaneous import (  # noqa: F401
     AudioStream,
     BaseInfo,
@@ -24,11 +24,11 @@ from .miscellaneous import (  # noqa: F401
 )
 from .utils import (  # noqa: F401
     BIT_RATE_COEFFICIENT_FOR_UNIT,
-    BIT_RATE_REGEX,
+    BIT_RATE_PATTERN,
     HEIGHT,
-    PIPE_REGEX,
+    PIPE_PATTERN,
     SIZE_COEFFICIENT_FOR_UNIT,
-    SIZE_REGEX,
+    SIZE_PATTERN,
     WIDTH,
     is_pipe,
     to_bit_rate,

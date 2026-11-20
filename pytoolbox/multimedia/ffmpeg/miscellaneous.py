@@ -382,6 +382,16 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
         return self._path
 
     @property
+    def path_argument(self) -> str:
+        """
+        Return the path as given to FFmpeg: a relative path starts with ``./``, to be read as a
+        file and never as an option (``-y.mp4``) or a protocol (``concat:a.ts|b.ts``).
+        """
+        if self.is_pipe or Path(self.path).is_absolute():
+            return str(self.path)
+        return f'./{self.path}'
+
+    @property
     def size(self) -> int:
         """Return the file size in bytes, or ``0`` for pipes."""
         if self._size is not None:
@@ -408,4 +418,4 @@ class Media(validation.CleanAttributesMixin, comparison.SlotsEqualityMixin):
 
     def to_args(self, is_input: bool) -> list[str]:
         """Return FFmpeg command-line arguments for this media."""
-        return self.options + (['-i', str(self.path)] if is_input else [str(self.path)])
+        return self.options + (['-i', self.path_argument] if is_input else [self.path_argument])
