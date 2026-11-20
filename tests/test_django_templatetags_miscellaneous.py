@@ -130,7 +130,7 @@ def test_verbose_name() -> None:
 
 
 def test_verbose_name_plural() -> None:
-    """Documents current behavior: uses verbose_name instead of verbose_name_plural (bug)."""
+    """Returns the model's plural verbose name."""
 
     class MyModel(models.Model):
         """Test model class."""
@@ -143,8 +143,5 @@ def test_verbose_name_plural() -> None:
             verbose_name_plural = 'my models'
 
     instance = MyModel.__new__(MyModel)
-    result = templatetags.verbose_name_plural(instance)
-    # Note: verbose_name_plural currently has a bug - it uses verbose_name instead of
-    # verbose_name_plural. This test documents the current behavior.
-    assert result == 'my model'
+    assert templatetags.verbose_name_plural(instance) == 'my models'
     assert templatetags.verbose_name_plural(None) == templatetags.string_if_invalid
