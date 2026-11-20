@@ -7,7 +7,9 @@ import copy
 import inspect
 import json
 import pickle
+import tomllib
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, override
 from unittest.mock import MagicMock, patch
 
@@ -24,6 +26,7 @@ from django.db.models import QuerySet, functions
 from django.db.utils import IntegrityError
 from django.template import Context, Template
 from django.test.utils import CaptureQueriesContext
+from packaging.requirements import Requirement
 
 from pytoolbox import states
 from pytoolbox.django import signals
@@ -761,6 +764,15 @@ def test_django_asave_still_runs_save() -> None:
         'using',
         'update_fields',
     ]
+
+
+def test_the_django_extra_requires_the_django_the_module_needs() -> None:
+    """The ``django`` extra admits no Django before 6.1, the first defining ``fetch_many``."""
+    project = tomllib.loads(
+        (Path(__file__).parents[1] / 'pyproject.toml').read_text(encoding='utf-8'),
+    )['project']
+    (requirement,) = [Requirement(r) for r in project['optional-dependencies']['django']]
+    assert not requirement.specifier.contains('6.0.99')
 
 
 # --- BatteriesIncludedModelMixin: preconditions ---------------------------------------------------
