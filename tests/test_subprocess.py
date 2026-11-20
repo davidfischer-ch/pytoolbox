@@ -599,6 +599,14 @@ def test_rsync_with_options() -> None:
         assert '--verbose' in call_args
 
 
+def test_rsync_passes_the_paths_after_the_options_end() -> None:
+    """A path starting with - is passed after --, never read by rsync as an option."""
+    with patch.object(subprocess, 'cmd') as mock_cmd:
+        subprocess.rsync(Path('--remove-source-files'), Path('-n'), extra_args=['--verbose'])
+
+    assert mock_cmd.call_args[0][0][-4:] == ['--verbose', '--', '--remove-source-files', '-n']
+
+
 def test_rsync_dir_appends_separator() -> None:
     """rsync() appends os.sep when source/dest are directories."""
     src = MagicMock(spec=Path)

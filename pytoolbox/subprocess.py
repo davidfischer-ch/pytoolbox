@@ -418,7 +418,11 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
     extra_args: Iterable[CallArgType] | None = None,
     **kwargs,
 ) -> CallResult:
-    """Execute the famous rsync remote (or local) synchronization tool."""
+    """
+    Execute the famous rsync remote (or local) synchronization tool.
+
+    The source and the destination are passed after ``--``, never read as options.
+    """
     source_string = str(source)
     if source.is_dir() or source_is_dir:
         source_string += os.sep
@@ -449,7 +453,7 @@ def rsync(  # pylint:disable=too-many-arguments,too-many-locals
         command += ['--exclude=.svn', '--exclude=.git']
     if extra_args is not None:
         command.extend(extra_args)
-    command += [source_string, destination_string]
+    command += ['--', source_string, destination_string]
 
     return cmd([c for c in command if c], **kwargs)
 
