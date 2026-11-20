@@ -5,6 +5,9 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+from django import forms
+from formtools.wizard.views import SessionWizardView
+
 from pytoolbox.django_formtools.views import mixins
 
 
@@ -193,7 +196,8 @@ def test_serialize_step_instance_mixin_get_form() -> None:
     class Base:
         """Test class."""
 
-        def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
+        # pylint:disable-next=unused-argument,keyword-arg-before-vararg
+        def get_form(self, step=None, *args, **kwargs):
             """Get form implementation."""
             return sentinel_form
 
@@ -215,6 +219,31 @@ def test_serialize_step_instance_mixin_get_form() -> None:
     assert result is sentinel_form
 
 
+def test_serialize_step_instance_mixin_get_form_leaves_the_other_requests_form() -> None:
+    """A step served from its serialized instance keeps the step's own form for other sessions."""
+
+    class NameForm(forms.Form):
+        """Test form class."""
+
+    # pylint:disable-next=abstract-method
+    class Wizard(mixins.SerializeStepInstanceMixin, SessionWizardView):
+        """Test wizard class."""
+
+        form_list = [NameForm]
+
+    initkwargs = Wizard.as_view().view_initkwargs
+    serialized_request_view = Wizard(**initkwargs)
+    serialized_request_view.storage = MagicMock(
+        extra_data={'serialized-instances': {'0': {'app_label': 'auth', 'model': 'user', 'pk': 1}}},
+    )
+    other_request_view = Wizard(**initkwargs)
+    other_request_view.storage = MagicMock(extra_data={})
+
+    serialized_request_view.get_form('0')
+
+    assert isinstance(other_request_view.get_form('0'), NameForm)
+
+
 def test_serialize_step_instance_mixin_get_form_no_serialized() -> None:
     """get_form() leaves form_list unchanged for steps without serialized data."""
     sentinel_form = MagicMock()
@@ -222,7 +251,8 @@ def test_serialize_step_instance_mixin_get_form_no_serialized() -> None:
     class Base:
         """Test class."""
 
-        def get_form(self, step=None, *args, **kwargs):  # pylint:disable=unused-argument,keyword-arg-before-vararg
+        # pylint:disable-next=unused-argument,keyword-arg-before-vararg
+        def get_form(self, step=None, *args, **kwargs):
             """Get form implementation."""
             return sentinel_form
 

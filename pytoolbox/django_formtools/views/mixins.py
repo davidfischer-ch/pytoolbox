@@ -118,9 +118,10 @@ class SerializeStepInstanceMixin(_WizardMixin):
         if step is None:
             step = self.steps.current
         if step in self.serialized_instances:
-            # WizardView builds form_list before dispatching a step.
+            # A copy owned by this request: as_view() hands the same form_list to every request.
+            # WizardView builds form_list, a dict, before dispatching a step.
             form_list: dict[str, Any] = self.form_list
-            form_list[step] = self.serialized_instance_form_class
+            self.form_list = form_list | {step: self.serialized_instance_form_class}
         return super().get_form(step, *args, **kwargs)
 
     @override
