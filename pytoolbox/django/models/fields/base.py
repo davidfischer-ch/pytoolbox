@@ -124,7 +124,7 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
         self.max_value: int = max_value
         super().__init__(
             decimal_places=decimal_places,
-            max_digits=int(math.log10(max_value)) + 3,
+            max_digits=int(math.log10(max_value)) + 1 + decimal_places,
             validators=[
                 dj_validators.MinValueValidator(0),
                 dj_validators.MaxValueValidator(max_value),
@@ -134,9 +134,8 @@ class MoneyField(mixins.OptionsMixin, models.DecimalField):
 
     @override
     def deconstruct(self) -> tuple[str, str, list[Any], dict[str, Any]]:
-        """Reconstruct with ``max_value`` as the sole positional argument."""
+        """Reconstruct from ``max_value`` and ``decimal_places``, which set the other options."""
         name, path, _, kwargs = super().deconstruct()
-        kwargs.pop('decimal_places', None)
         kwargs.pop('max_digits', None)
         kwargs.pop('validators', None)
         return name, path, [self.max_value], kwargs
