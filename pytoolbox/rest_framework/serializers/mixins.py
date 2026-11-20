@@ -36,8 +36,14 @@ class BaseModelMixin(_SerializersMixin):
 
 class FromPrivateKeyMixin(_SerializersMixin):
     """
-    Allow to provide the PK of the model to retrieve it instead of creating a new instance with
-    fields from data.
+    A serializer that retrieves the instance by its PK, instead of creating one from the fields.
+
+    .. warning::
+
+        The PK is looked up in the whole table, through ``Meta.model.objects``, whoever the caller
+        is. On rows owned by users, check that the caller may use the instance before linking it
+        to another object or returning it, or override :meth:`to_internal_value` to scope the
+        lookup.
     """
 
     default_error_messages = {
