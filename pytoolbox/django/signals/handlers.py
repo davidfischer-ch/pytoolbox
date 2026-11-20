@@ -69,7 +69,7 @@ def clean_files_delete_handler(instance: models.Model, signal: object, **kwargs:
     Simply use ``post_delete.connect(clean_files_delete_handler, sender=<your_model_class>)``
 
     .. warning::
-        This function remove the file without worrying about any other instance using this file !
+        This function removes the file without worrying about any other instance using this file !
 
     .. note::
         Project `django-cleanup <https://github.com/un1t/django-cleanup>`_

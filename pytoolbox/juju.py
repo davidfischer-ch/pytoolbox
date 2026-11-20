@@ -104,8 +104,8 @@ def juju_do(
 
     We need a way to confirm our choice
     ``cmd('juju status --environment %s' % environment, cli_input='yes\n')``
-    seem to not work as expected. This happens the first time (and only the first time)
-    juju connect to a freshly deployed environment.
+    seems to not work as expected. This happens the first time (and only the first time)
+    juju connects to a freshly deployed environment.
 
     Solution : http://askubuntu.com/questions/123072/ssh-automatically-accept-keys::
 
