@@ -111,6 +111,7 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constants >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     ER_PAYLOAD_TYPE = 'RTP Header : Payload type must be set to 96'
+    ER_HEADER_LENGTH = 'SMPTE 2022-1 Header : Bad header length'
     ER_EXTENDED = 'SMPTE 2022-1 Header : Extended must be set to one'
     ER_MASK = 'SMPTE 2022-1 Header : Mask must be set to zero'
     ER_N = 'SMPTE 2022-1 Header : N must be set to zero'
@@ -184,6 +185,8 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
             errors.append(self.ER_INDEX)
         if self.payload_size == 0:
             errors.append(self.ER_PAYLOAD)
+        if self.offset < 1:
+            errors.append(self.ER_OFFSET)
         if self.L < 1 or self.L > 50:
             errors.append(self.ER_L)
         if self.D is not None:
@@ -351,6 +354,9 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
             if packet.payload_type != RtpPacket.DYNAMIC_PT:
                 self._errors.append(self.ER_PAYLOAD_TYPE)
                 return
+            if packet.payload_size < self.HEADER_LENGTH:
+                self._errors.append(self.ER_HEADER_LENGTH)
+                return
             self.snbase = (packet.payload[15] * 256 + packet.payload[0]) * 256 + packet.payload[1]
             self.length_recovery = packet.payload[2] * 256 + packet.payload[3]
             self.extended = (packet.payload[4] & self.E_MASK) != 0
@@ -375,7 +381,6 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
             #     return
             self.offset = packet.payload[13]
             self.na = packet.payload[14]
-            self.snbase += packet.payload[15] << 16
             # And finally ... The payload !
             self.payload_recovery = packet.payload[self.HEADER_LENGTH :]
 
@@ -561,9 +566,7 @@ class FecPacket:  # pylint:disable=too-many-instance-attributes
 
     def compute_j(self, media_sequence: int) -> int | None:
         """Return the index *j* for *media_sequence* within this FEC packet."""
-        if (delta := media_sequence - self.snbase) < 0:
-            delta += RtpPacket.S_MASK + 1
-        if delta % self.offset != 0:
+        if (delta := (media_sequence - self.snbase) & RtpPacket.S_MASK) % self.offset != 0:
             return None
         return int(delta / self.offset)
 
