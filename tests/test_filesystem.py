@@ -255,6 +255,55 @@ def test_copy_recursive_missing(tmp_path: Path) -> None:
     assert list(filesystem.find_recursive(tmp_path / 'target', '*')) == []
 
 
+def test_open_safely_replaces_the_target_only_on_success(tmp_path: Path) -> None:
+    """The target changes only once the write succeeds; a failed one leaves nothing beside it."""
+    target = tmp_path / 'data.bin'
+    target.write_bytes(b'old')
+
+    with pytest.raises(RuntimeError), filesystem.open_safely(target) as f:
+        f.write(b'partial')
+        raise RuntimeError('write failed')
+
+    assert target.read_bytes() == b'old'
+    assert list(tmp_path.iterdir()) == [target]
+
+    with filesystem.open_safely(target) as f:
+        f.write(b'new')
+        assert target.read_bytes() == b'old'
+
+    assert target.read_bytes() == b'new'
+    assert list(tmp_path.iterdir()) == [target]
+
+
+@mark.skipif(not Path('/proc/self/fd').is_dir(), reason='lists open descriptors through /proc')
+def test_open_safely_refusing_a_mode_leaves_no_descriptor_nor_file(tmp_path: Path) -> None:
+    """An invalid mode raises, with no descriptor left open and no file beside the target."""
+    target = tmp_path / 'data.bin'
+    descriptors = len(list(Path('/proc/self/fd').iterdir()))
+
+    with pytest.raises(ValueError), filesystem.open_safely(target, 'wz'):
+        pass
+
+    assert len(list(Path('/proc/self/fd').iterdir())) == descriptors
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_open_safely_keeps_the_mode_of_the_target(tmp_path: Path) -> None:
+    """A private target stays private once rewritten, whatever mode the umask gives a new file."""
+    target = tmp_path / 'secret.bin'
+    target.write_bytes(b'old')
+    target.chmod(0o600)
+    previous_umask = os.umask(0o022)
+    try:
+        with filesystem.open_safely(target) as f:
+            f.write(b'new')
+    finally:
+        os.umask(previous_umask)
+
+    assert target.read_bytes() == b'new'
+    assert stat.S_IMODE(target.stat().st_mode) == 0o600
+
+
 def test_remove_directory_recursive(tmp_path: Path) -> None:
     """remove() with recursive=True should handle directories."""
     directory = tmp_path / 'subdir'

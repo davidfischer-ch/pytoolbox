@@ -10,7 +10,9 @@ import copy
 import errno
 import os
 import re
+import secrets
 import shutil
+import stat
 import tempfile
 import time
 import uuid
@@ -18,7 +20,7 @@ import warnings
 from collections.abc import Callable, Iterator
 from datetime import datetime
 from pathlib import Path
-from typing import Any, BinaryIO, Literal, Protocol, Self, TextIO, overload
+from typing import IO, Any, BinaryIO, Literal, Protocol, Self, TextIO, overload
 
 from . import module
 from .datetime import datetime_now
@@ -525,6 +527,27 @@ def makedirs(path: Path | str, *, mode: int = 0o777, parent: bool = False) -> bo
         if exc.errno == errno.EEXIST and directory.is_dir():
             return False
         raise  # Re-raise exception if a different error occurred
+
+
+@contextlib.contextmanager
+def open_safely(target: Path, mode: str = 'wb') -> Iterator[IO[Any]]:
+    """
+    Yield a file open in `mode` beside `target`, moved over it on success, removed on failure.
+
+    The file has a name of its own and takes the permissions of an existing target, or those of a
+    plain :func:`open` otherwise. A symbolic link at `target` is replaced, never written through:
+    resolve `target` first to write to the link's target.
+    """
+    temporary = target.with_name(f'{target.name}.{secrets.token_hex(8)}.tmp')
+    try:
+        with temporary.open(mode.replace('w', 'x', 1)) as f:
+            with contextlib.suppress(FileNotFoundError):
+                os.fchmod(f.fileno(), stat.S_IMODE(target.stat().st_mode))
+            yield f
+        temporary.replace(target)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def remove(path: Path | str, *, recursive: bool = False) -> bool:
