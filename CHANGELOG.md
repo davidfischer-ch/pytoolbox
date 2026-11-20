@@ -3,6 +3,248 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v15.0.0 (2026-11-20)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.13.1...15.0.0
+
+### Major compatibility breaks
+
+Package:
+
+* Rename the module constants `*_REGEX` to `*_PATTERN`, and the class attributes `*_regex` to `*_pattern`, with no alias: see Migrations
+
+Module `django.models.mixins`:
+
+* Merge the model mixins into `BatteriesIncludedModelMixin`, one `save()` set up by class attributes
+    * Replace `AutoForceInsertMixin`, `AutoRemovePKFromUpdateFieldsMixin`, `AutoUpdateFieldsMixin`, `CallFieldsPreSaveMixin`, `PublicMetaMixin`, `RelatedModelMixin`, `ReloadMixin` and `ValidateOnSaveMixin` by `BatteriesIncludedModelMixin`
+    * Replace `StateTransitionEventsMixin`, `StateTransitionPreconditionMixin` and `UpdatePreconditionsMixin` by `BatteriesIncludedModelMixin`, a state machine on a model declaring `states`
+    * Set `track_update_fields = False` to save every field, in place of leaving `AutoUpdateFieldsMixin` out
+    * Set `always_update_fields` to the fields each save limited by `update_fields` writes, in place of `AlwaysUpdateFieldsMixin`
+    * Set `default_force_update = False` to keep the update of a row read from the database unforced: `True` by default
+    * Override `get_preconditions` to add preconditions, in place of `pop_preconditions`
+    * Put `BetterUniquenessErrorsMixin` between `BatteriesIncludedModelMixin` and `Model` in the bases
+* Return `Preconditions` from `get_preconditions`, a frozen dataclass of `pre_excludes` and `pre_filters`, in place of a tuple
+    * Name the hook's parameters `pre_excludes` and `pre_filters`, as the save's
+* Make `fail` and `noop_skip` keyword-only in `can_transit_to` and `check_state_in`
+* Raise `TypeError` from `can_transit_to` on a model declaring no states
+* Validate before the fields' `pre_save`, which commits an upload: a save failing its validation stores no file
+* Validate only the fields a save limited to some fields writes, `Model.clean()` and the checks on those fields included
+* Guard a transition with a filter on the states leading into the state written, never an exclusion: a stored state `states` does not declare, or NULL, moves into no state
+* Add `filter_queryset` and `has_lookups` to `Preconditions`
+* Raise `precondition_error_class` from any update failing its preconditions, which a save not forcing the update turned into an insert when no row matched
+* Remove `FasterValidateOnSaveMixin` and `SaveInstanceFilesMixin`
+* Remove `apply_preconditions` and `on_post_state_transition`
+* Guard with the state's transitions only an update writing `state`, not every save
+* Send `post_state_transition` only for a save writing a `state` other than `previous_state`, its `update_fields` a `frozenset`
+* Set `previous_state` to `Missing` while a deferred `state` is unread, and to the `state` read when it loads
+
+Module `django.views.base`:
+
+* Answer 404 from `CancellableDeleteView` for a primary key outside its queryset
+
+Module `filesystem`:
+
+* Remove on a failed `copy_recursive` only the files it wrote and the directories it made, never the whole destination
+* Refuse in `copy_recursive` a symbolic link to a directory in the destination (`ELOOP`), unless `follow_symlinks` is set
+* Create the `TempStorage` paths exclusively, private to their owner: an existing path raises `FileExistsError`
+
+Module `multimedia.ffmpeg.ffprobe`:
+
+* Make `FFprobe.stream_classes` a read-only mapping, which every instance shared: assign a new mapping to a subclass or an instance instead of changing an entry
+
+Module `network.smpte2022.receiver`:
+
+* Remove `FecReceiver.ER_GET_COL_CASCADE` and `ER_GET_ROW_CASCADE`
+
+Module `ssh`:
+
+* Raise `ValueError` from `ssh()` on an empty host
+
+Module `subprocess`:
+
+* Type `CallResult.returncode` as `int | None`, `None` for a process `cmd(communicate=False)` left running
+
+Module `validation`:
+
+* Match the whole value in `valid_email` and `valid_filename`, refusing a valid prefix followed by more
+
+### Migrations
+
+Renamed constants, the old name removed:
+
+| Old name            | New name              | Module                                                                  |
+|---------------------|-----------------------|-------------------------------------------------------------------------|
+| `AGENT_START_REGEX` | `AGENT_START_PATTERN` | `ssh`                                                                   |
+| `ALL_CAP_REGEX`     | `ALL_CAP_PATTERN`     | `string`                                                                |
+| `BIT_RATE_REGEX`    | `BIT_RATE_PATTERN`    | `multimedia.ffmpeg.utils`, re-exported by `multimedia.ffmpeg`           |
+| `DEFFERED_REGEX`    | `DEFERRED_PATTERN`    | `django.core.constants`                                                 |
+| `DIGIT_REGEX`       | `DIGIT_PATTERN`       | `humanize`                                                              |
+| `DURATION_REGEX`    | `DURATION_PATTERN`    | `multimedia.ffmpeg.ffprobe`, re-exported by `multimedia.ffmpeg`         |
+| `ENCODING_REGEX`    | `ENCODING_PATTERN`    | `multimedia.ffmpeg.encode`, re-exported by `multimedia.ffmpeg`          |
+| `ENCODING_REGEX`    | `ENCODING_PATTERN`    | `multimedia.x264`                                                       |
+| `FIRST_CAP_REGEX`   | `FIRST_CAP_PATTERN`   | `string`                                                                |
+| `FRAME_MD5_REGEX`   | `FRAME_MD5_PATTERN`   | `multimedia.ffmpeg.ffmpeg`, re-exported by `multimedia.ffmpeg`          |
+| `PIPE_REGEX`        | `PIPE_PATTERN`        | `multimedia.ffmpeg.utils`, re-exported by `multimedia.ffmpeg`           |
+| `SIZE_REGEX`        | `SIZE_PATTERN`        | `multimedia.ffmpeg.utils`, re-exported by `multimedia.ffmpeg`           |
+
+Renamed class attributes, the old name removed; a subclass overriding one renames it too:
+
+| Old name                          | New name                            | Module                      |
+|-----------------------------------|-------------------------------------|-----------------------------|
+| `EncodeStatistics.encoding_regex` | `EncodeStatistics.encoding_pattern` | `multimedia.ffmpeg.encode`  |
+| `FFprobe.duration_regex`          | `FFprobe.duration_pattern`          | `multimedia.ffmpeg.ffprobe` |
+| `TagSet.date_clean_regex`         | `TagSet.date_clean_pattern`         | `multimedia.exif.tag`       |
+
+### Features
+
+Module `comparison`:
+
+* Add `is_equal`, an equality that is an identity or an `==` returning `True`, counting an element-by-element comparison as a difference instead of raising
+
+Module `django.models.mixins`:
+
+* Add `get_validation_kwargs` to `BatteriesIncludedModelMixin`, the keyword arguments of the validation on save, to override for a validation depending on the model or the save
+* Add `get_update_fields`, the fields a save writes, to override for fields written together
+* Add `on_state_transition`, called before the validation of a save writing a new `state`, an insert with a state included (`previous_state` None): the fields it assigns are validated and written by that save, a save limited by `update_fields` included
+
+Module `enum`:
+
+* Add `find_member`, the member of an enum holding a value, or `None` if none does
+
+Module `filesystem`:
+
+* Add `open_safely`, a file written beside its target and moved over it on success, keeping its permissions
+
+### Fix and enhancements
+
+Package:
+
+* Build the docs from the package with its `all_but_vision` and `doc` extras, the vision libraries mocked, in place of 127 pinned requirements
+* Require `sphinx` `9.1` and `sphinx-rtd-theme` `3.1` in the `doc` extra, below their next major
+
+Module `django.forms.mixins`:
+
+* Raise the `AttributeError` raised inside a model's `clean_form` or `init_form`, which the form swallowed
+* Set `created_by` on a new instance only, not on the edit of a row whose creator is empty
+
+Module `django.models.fields`:
+
+* Keep the `decimal_places` of a `MoneyField` in its migrations, and size its digits for them
+
+Module `django.models.mixins`:
+
+* Keep the fields assigned but left out of a save limited by `update_fields`, for the next save to write
+* Leave a deferred `state` unread when loading a row, which cost one query per row
+* Send no `post_state_transition` for a save writing no field
+* Leave a field reloaded, or deferred then loaded, out of the next save, which wrote it back over a concurrent change
+* Send `post_state_transition` once when a receiver saves the instance again, `previous_state` updated first
+* Write the fields the model's `clean()` assigns, which a tracked save left out
+* Count as assigned only the fields whose value a validation changed, for any `full_clean` or `clean_fields`, inside a save or not, and for one that raises, which left every validated field written by the next save
+* Compare the values a validation cleaned without taking the truth value of `==`, which raised for a numpy array
+* Track a copy's assignments apart from the original's, which shared one set
+* Track the assignments of an instance unpickled before its model built one, which saved nothing
+* Save a copy of a row given a new primary key with `track_update_fields` off, which raised
+* Write no row matching any of `pre_excludes`, which only refused a row matching all of them
+* Guard each table of a model split over several by the save's preconditions, which no table checked
+* Keep the preconditions and `check_state` of a save while a save nested in it runs, as a `pre_save` receiver's
+* Add `asave()`, which forces the insert and the update as `save()` does and takes its keywords
+* Raise the precondition error for a row deleted after a guarded update failed, which was inserted again
+* Leave the outer transaction usable when `BetterUniquenessErrorsMixin` turns a duplicate into a validation error, its save run in a savepoint
+* Return `Self` from `reload`
+
+Module `django.signals.handlers`:
+
+* Delete the files of a deleted model when a file field is empty or stored without a local path, where the delete was rolled back
+
+Module `django.templatetags`:
+
+* Return the plural from `verbose_name_plural`
+* Render `string_if_invalid` from the EXIF filters for a value outside their enum, instead of raising
+
+Module `django.views.base`:
+
+* Redirect on cancel in `CancellableDeleteView`, where it failed with a 500
+
+Module `django_formtools.views.mixins`:
+
+* Serialize a wizard step's form for its own request in `SerializeStepInstanceMixin`, never for every session
+
+Module `exceptions`:
+
+* Let the `MessageMixin` exceptions be pickled and copied
+
+Module `filesystem`:
+
+* Copy a symbolic link to a file as a link in `copy_recursive`, never writing through a link in the destination
+* Check the size of the copied files alone in `copy_recursive`, and raise the original error of a copy failing before it starts
+* Change the owner of a link itself in a recursive `chown`, never its target, unless `follow_symlinks` is set
+* Count a symbolic link by its own size in `get_size`, unless `follow_symlinks` is set
+
+Module `git`:
+
+* Refuse in `clone_or_pull` a directory that is not the root of a repository, and pass `url` and `directory` after `--`
+* Raise `GitReferenceError` from `get_ref` when git cannot run
+* Log the key of `scoped_ssh_key` by its SHA-256 digest, never by a slice of it
+
+Module `multimedia.exif`:
+
+* Map the four flipped EXIF orientations to their rotation, which raised `KeyError`
+* Return `None` from `Photo` for a tag value outside its enum, which raised `ValueError`
+
+Module `multimedia.ffmpeg`:
+
+* Keep an encoding running on undecodable bytes in FFmpeg's log, replaced
+* Parse a size of `N/A` as `None` in `to_size`, which killed the encoding
+* Drain the log in `get_frames_md5_checksum`, which blocked FFmpeg, and checksum every frame
+* Return `[]` from `get_media_streams` for a stream of another type, as documented
+* Pass a media path starting with `-` or naming a protocol to FFmpeg as a file
+
+Module `network.http`:
+
+* Write a download beside its file, moved over it once complete and matching its hash
+* Check the hash of a file already there in `download_ext_multi`, and remove a partial file whatever stops the download
+* Follow a redirect of `download` to http and https only, streaming the body to the file
+* Quote only the scheme of a refused URL in the error
+
+Module `network.rtp`:
+
+* Mark a truncated RTP packet invalid instead of raising `IndexError`
+
+Module `network.smpte2022`:
+
+* Add the SNBase extension bits of a FEC packet once
+* Keep `FecReceiver` running at sequence 0, and on late packets or packets already written
+
+Module `serialization`:
+
+* Keep the constructor defaults in `dict_to_object`, `*args` and `**kwargs` left out
+* Keep every attribute in `SmartJSONEncoderV2`, named like a dict method or not, and encode an object holding `__slots__`
+
+Module `ssh`:
+
+* Pass the host after `--` in `ssh` and `add_fingerprint`, never read as an option
+
+Module `states`:
+
+* Return an empty set from `get_transit_from` for a state no transition leads into, not raise `KeyError`
+* Declare the class attributes of `StateEnum` for the type checkers
+
+Module `subprocess`:
+
+* Wait for a process `cmd(communicate=False)` launches, which was taken for a failed attempt
+* Accept a `str` `input` and `cli_input` in `cmd`
+* Log no data `cmd` sends to stdin
+* Pass the `rsync` paths after `--`, never read as options
+
+Module `virtualenv`:
+
+* Relocate a virtualenv without rewriting its bytecode or binaries, nor writing through a link
+
+Module `voluptuous`:
+
+* Return the password from `Password`, which a schema replaced with `None`
+
+
 ## v14.13.1 (2026-11-19)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.13.0...14.13.1
