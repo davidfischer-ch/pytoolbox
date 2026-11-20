@@ -112,9 +112,11 @@ class ModelBasedFormCleanupMixin(_FormsMixin):
         """Delegate additional cleanup to the model's ``clean_form`` method."""
         super().clean()
         try:
-            return self._meta.model.clean_form(self)
+            clean_form = self._meta.model.clean_form
         except AttributeError:
             return self.cleaned_data
+
+        return clean_form(self)
 
 
 class RequestMixin(_FormsMixin):
@@ -134,7 +136,11 @@ class CreatedByMixin(RequestMixin):
     @override
     def save(self, commit: bool = True) -> models.Model:
         """Set ``created_by`` to the current user on first save."""
-        if hasattr(self.instance, 'created_by_id') and not self.instance.created_by_id:
+        if (
+            self.instance._state.adding  # pylint:disable=protected-access
+            and hasattr(self.instance, 'created_by_id')
+            and not self.instance.created_by_id
+        ):
             self.instance.created_by = self.request.user
         return super().save(commit=commit)
 
@@ -185,9 +191,11 @@ class UpdateWidgetAttributeMixin(_FormsMixin):
                 assert isinstance(attrs, dict)  # noqa: S101
                 update_widget_attributes(field.widget, attrs)
         try:
-            self._meta.model.init_form(self)
+            init_form = self._meta.model.init_form
         except AttributeError:
-            pass
+            return
+
+        init_form(self)
 
 
 __all__ = _all.diff(globals())

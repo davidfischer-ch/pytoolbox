@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from unittest.mock import MagicMock
 
+import pytest
 from django.forms import fields
 
 from pytoolbox.django.forms import mixins
@@ -163,6 +164,29 @@ def test_created_by_mixin_skips_existing() -> None:
     assert form.instance.created_by_id == 42
 
 
+def test_created_by_mixin_skips_an_existing_instance_without_creator() -> None:
+    """Editing a row whose creator is gone does not make the editor its creator."""
+
+    class Base:
+        """Test class."""
+
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
+            self.instance = MagicMock(pk=7, created_by_id=None)
+            self.instance._state.adding = False
+
+        def save(self, commit=True):  # pylint:disable=unused-argument
+            """Save method implementation."""
+            return self.instance
+
+    class FakeForm(mixins.CreatedByMixin, Base):
+        """Test form with CreatedByMixin."""
+
+    request = MagicMock()
+    form = FakeForm(request=request)
+    form.save()
+    assert form.instance.created_by is not request.user
+
+
 def test_model_based_form_cleanup_mixin_delegates() -> None:
     """clean() delegates to model.clean_form() when it exists."""
 
@@ -209,6 +233,35 @@ def test_model_based_form_cleanup_mixin_fallback() -> None:
     assert result == {'field': 'value'}
 
 
+def test_model_based_form_cleanup_mixin_raises_the_errors_of_clean_form() -> None:
+    """An AttributeError inside clean_form fails the cleanup instead of skipping its rules."""
+
+    class Model:
+        """Test model class."""
+
+        @classmethod
+        def clean_form(cls, form):
+            """Compare the dates, the end being optional."""
+            return form.cleaned_data['end'].date()
+
+    class Base:
+        """Test class."""
+
+        def clean(self):
+            """Test method."""
+
+    class FakeForm(mixins.ModelBasedFormCleanupMixin, Base):
+        """Test form with ModelBasedFormCleanupMixin."""
+
+        class _meta:  # noqa: N801
+            model = Model
+
+        cleaned_data = {'end': None}
+
+    with pytest.raises(AttributeError):
+        FakeForm().clean()
+
+
 def test_help_text_to_placeholder_mixin() -> None:
     """Help text is copied to the widget placeholder and then removed."""
 
@@ -250,3 +303,48 @@ def test_convert_email_to_text_mixin() -> None:
     form = FakeForm()
     assert form.fields['email'].widget.input_type == 'text'
     assert form.fields['name'].widget.input_type == 'text'  # CharField is also 'text'
+
+
+def test_update_widget_attribute_mixin_without_init_form() -> None:
+    """A model without init_form leaves the form as the rules built it."""
+
+    class Base:
+        """Test class."""
+
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
+            self.fields = OrderedDict([('name', fields.CharField())])
+
+    class FakeForm(mixins.UpdateWidgetAttributeMixin, Base):
+        """Test form with UpdateWidgetAttributeMixin."""
+
+        class _meta:  # noqa: N801
+            model = object()
+
+    assert list(FakeForm().fields) == ['name']
+
+
+def test_update_widget_attribute_mixin_raises_the_errors_of_init_form() -> None:
+    """An AttributeError raised inside init_form fails the form instead of half initialising it."""
+
+    class Model:
+        """Test model class."""
+
+        @classmethod
+        def init_form(cls, form):
+            """Restrict the form to the requesting user."""
+            form.owner = form.request.user
+
+    class Base:
+        """Test class."""
+
+        def __init__(self, *args, **kwargs):  # pylint:disable=unused-argument
+            self.fields = OrderedDict()
+
+    class FakeForm(mixins.UpdateWidgetAttributeMixin, Base):
+        """Test form with UpdateWidgetAttributeMixin."""
+
+        class _meta:  # noqa: N801
+            model = Model
+
+    with pytest.raises(AttributeError):
+        FakeForm()
