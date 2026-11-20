@@ -77,8 +77,7 @@ def clean_files_delete_handler(instance: models.Model, signal: object, **kwargs:
     """
     for field in kwargs['sender']._meta.fields:
         if isinstance(field, FileField):
-            file_field = getattr(instance, field.name)
-            if file_field.path:
+            if file_field := getattr(instance, field.name):
                 file_field.delete(save=False)
 
 
