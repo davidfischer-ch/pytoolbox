@@ -56,6 +56,7 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
 
     ER_VERSION = 'RTP Header : Version must be set to 2'
     ER_PADDING_LENGTH = 'RTP Header : Bad padding length'
+    ER_CSRC_COUNT = 'RTP Header : Bad CSRC count'
     ER_EXTENSION_LENGTH = 'RTP Header : Bad extension length'
     ER_PAYLOAD = 'RTP packet must have a payload'
 
@@ -337,13 +338,6 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
             return
 
         self.padding = (data[0] & self.P_MASK) == self.P_MASK
-        if self.padding:  # Remove padding if present
-            padding_length = data[-1]
-            if padding_length == 0 or length < (offset + padding_length):
-                self._error = self.ER_PADDING_LENGTH
-                return
-            length -= padding_length
-
         self.extension = (data[0] & self.X_MASK) == self.X_MASK
         cc = data[0] & self.CC_MASK  # pylint:disable=invalid-name
         self.csrc = []  # cc > 0 ? new long[cc] : null
@@ -352,6 +346,10 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
         self.sequence = data[2] * 256 + data[3]
         self.timestamp = ((data[4] * 256 + data[5]) * 256 + data[6]) * 256 + data[7]
         self.ssrc = ((data[8] * 256 + data[9]) * 256 + data[10]) * 256 + data[11]
+
+        if length < offset + 4 * cc:
+            self._error = self.ER_CSRC_COUNT
+            return
 
         for _ in range(cc):
             self.csrc.append(
@@ -362,11 +360,20 @@ class RtpPacket:  # pylint:disable=too-many-instance-attributes
             # FIXME In session.c of VLC they store per-source statistics in a rtp_source_t struct
 
         if self.extension:  # Extension header (ignored for now)
-            extension_length = data[offset + 2] * 256 + data[offset + 3]
-            offset += 4 + extension_length
+            if length < offset + 4:
+                self._error = self.ER_EXTENSION_LENGTH
+                return
+            offset += 4 + data[offset + 2] * 256 + data[offset + 3]
             if length < offset:
                 self._error = self.ER_EXTENSION_LENGTH
                 return
+
+        if self.padding:  # Remove padding if present
+            padding_length = data[length - 1]
+            if padding_length == 0 or length - padding_length < offset:
+                self._error = self.ER_PADDING_LENGTH
+                return
+            length -= padding_length
 
         # And finally ... The payload !
         self.payload = data[offset:length]
