@@ -474,18 +474,24 @@ def test_ffprobe_call_drains_the_output(tmp_path: Path) -> None:
         assert future.result(timeout=5) == 'Caf\ufffd\n' * 16_384
 
 
+def test_ffprobe_stream_classes_are_read_only() -> None:
+    """The stream classes every FFprobe shares cannot be changed through one of them."""
+    with pytest.raises(TypeError):
+        ffmpeg.FFprobe().stream_classes['audio'] = ffmpeg.AudioStream  # type: ignore[index]
+
+
 def test_ffprobe_get_audio_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4: Path) -> None:
     """FFprobe.get_audio_streams() returns audio stream info as dict or AudioStream."""
     probe = static_ffmpeg.ffprobe_class()
 
-    probe.stream_classes['audio'] = None
+    probe.stream_classes = {**probe.stream_classes, 'audio': None}
     (audio_stream,) = probe.get_audio_streams(small_mp4)
     assert isinstance(audio_stream, dict)
     assert audio_stream['avg_frame_rate'] == '0/0'
     assert audio_stream['channels'] == 1
     assert 'codec_time_base' not in audio_stream  # Missing in dump from ffprobe version 6.1
 
-    probe.stream_classes['audio'] = ffmpeg.AudioStream
+    probe.stream_classes = {**probe.stream_classes, 'audio': ffmpeg.AudioStream}
     (audio_stream,) = probe.get_audio_streams(small_mp4)
     assert isinstance(audio_stream, ffmpeg.AudioStream)
     assert audio_stream.avg_frame_rate is None
@@ -605,12 +611,12 @@ def test_ffprobe_get_video_streams(static_ffmpeg: type[ffmpeg.FFmpeg], small_mp4
     """FFprobe.get_video_streams() returns video stream info as dict or VideoStream."""
     probe = static_ffmpeg.ffprobe_class()
 
-    probe.stream_classes['video'] = None
+    probe.stream_classes = {**probe.stream_classes, 'video': None}
     (video_stream,) = probe.get_video_streams(small_mp4)
     assert isinstance(video_stream, dict)
     assert video_stream['avg_frame_rate'] == '30/1'
 
-    probe.stream_classes['video'] = ffmpeg.VideoStream
+    probe.stream_classes = {**probe.stream_classes, 'video': ffmpeg.VideoStream}
     (video_stream,) = probe.get_video_streams(small_mp4)
     assert isinstance(video_stream, ffmpeg.VideoStream)
     assert video_stream.avg_frame_rate == 30.0

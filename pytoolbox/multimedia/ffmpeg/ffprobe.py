@@ -13,6 +13,7 @@ import re
 import subprocess
 from datetime import time, timedelta
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Final, Literal, overload
 from xml.dom.minidom import Element  # nosec B408  # only the type; parsing goes via defusedxml
 
@@ -40,11 +41,10 @@ class FFprobe:
     duration_pattern: re.Pattern = DURATION_PATTERN
     format_class: type[miscellaneous.Format] | None = None
     media_class: type[miscellaneous.Media] = miscellaneous.Media
-    stream_classes: dict[str, type[miscellaneous.Stream] | None] = {
-        'audio': None,
-        'subtitle': None,
-        'video': None,
-    }
+    #: The class of each stream type, read-only: a subclass or an instance assigns its own mapping.
+    stream_classes: collections.abc.Mapping[str, type[miscellaneous.Stream] | None] = (
+        MappingProxyType({'audio': None, 'subtitle': None, 'video': None})
+    )
 
     def __init__(self, executable: Path | None = None) -> None:
         self.executable = executable or self.executable
@@ -165,7 +165,7 @@ class FFprobe:
             # Executable does not exist
             if fail or exc.errno == errno.ENOENT:
                 raise
-        except Exception:  # pylint:disable=broad-except
+        except Exception:
             if fail:
                 raise
         return None
