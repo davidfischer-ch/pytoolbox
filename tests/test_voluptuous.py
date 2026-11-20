@@ -102,8 +102,13 @@ def test_git_commit_hash_non_hex() -> None:
 def test_password_valid() -> None:
     """Password validator accepts strings of sufficient length."""
     validator = Password(length=8)
-    # Returns None on success (no return value)
-    assert validator('longpassword') is None
+    assert validator('longpassword') == 'longpassword'
+
+
+def test_password_in_a_schema_keeps_the_password() -> None:
+    """A schema validating a password returns the password, not None."""
+    schema = voluptuous.Schema({'password': Password(length=8)})
+    assert schema({'password': 'longpassword'}) == {'password': 'longpassword'}
 
 
 def test_password_too_short() -> None:
@@ -125,7 +130,7 @@ def test_password_default_length() -> None:
     validator = Password()
     with pytest.raises(PasswordInvalid):
         validator('only15charslng!')
-    assert validator('sixteen_chars!!!') is None
+    assert validator('sixteen_chars!!!') == 'sixteen_chars!!!'
 
 
 # --- Percent --------------------------------------------------------------------------------------

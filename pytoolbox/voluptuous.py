@@ -64,10 +64,11 @@ def Password(length: int = 16, msg: str | None = None) -> Callable:  # noqa: N80
     """Return a validator requiring a password of at least ``length`` characters."""
 
     @functools.wraps(Password)
-    def f(value: str) -> None:
+    def f(value: str) -> str:
         value = str(value)
         if len(value) < length:
             raise PasswordInvalid(msg or 'Incorrect password')
+        return value
 
     return f
 
