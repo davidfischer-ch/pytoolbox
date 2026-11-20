@@ -204,6 +204,29 @@ class _Child(_Parent):
         app_label = 'test'
 
 
+class _Product(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row unique by its brand and name, its price capped."""
+
+    brand = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    price = models.IntegerField(default=0)
+    cap = models.IntegerField(default=100)
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(price__lte=models.F('cap')),
+                name='test_product_price_capped',
+            ),
+            models.UniqueConstraint(fields=['brand', 'name'], name='test_product_unique_name'),
+        ]
+
+
 class _Reading(mixins.BatteriesIncludedModelMixin, models.Model):
     """A row whose saves write every field, its stamp included in a save limited to other fields."""
 
@@ -292,7 +315,7 @@ class _NotedRow(_Row):
 @pytest.fixture(name='tables')
 def fixture_tables() -> Iterator[None]:
     """Create the tables of the models above for one test."""
-    tables = (_Attachment, _Embedding, _Job, _Parent, _Child, _Reading, _Row)
+    tables = (_Attachment, _Embedding, _Job, _Parent, _Child, _Product, _Reading, _Row)
     with connection.schema_editor() as editor:
         for model in tables:
             editor.create_model(model)
@@ -592,6 +615,39 @@ def test_a_limited_save_validates_the_fields_it_writes() -> None:
     row.name = 'after'
     row.save()
     assert _get_stored(row, 'name', 'note') == ('after', 'x' * 101)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_limited_save_validates_a_constraint_naming_a_field_it_writes() -> None:
+    """A save writing the price checks it against the cap, a field it does not write."""
+    product = _Product.objects.create(brand='acme', name='lamp', cap=10)
+    product.price = 20
+    with pytest.raises(ValidationError):
+        product.save()
+    assert _get_stored(product, 'price') == (0,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_limited_save_validates_a_uniqueness_naming_a_field_it_writes() -> None:
+    """A save writing the name checks it unique with the brand, a field it does not write."""
+    _Product.objects.create(brand='acme', name='taken')
+    product = _Product.objects.create(brand='acme', name='free')
+    product.name = 'taken'
+    with pytest.raises(ValidationError):
+        product.save()
+    assert _get_stored(product, 'name') == ('free',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_validates_a_uniqueness_naming_a_deferred_field() -> None:
+    """A save writing the name checks it unique with the brand, deferred, read for the check."""
+    _Product.objects.create(brand='acme', name='taken')
+    product = _Product.objects.only('name').get(
+        pk=_Product.objects.create(brand='acme', name='free').pk,
+    )
+    product.name = 'taken'
+    with pytest.raises(ValidationError):
+        product.save()
 
 
 @pytest.mark.usefixtures('tables')
@@ -1384,6 +1440,10 @@ class _SaveRecorder:
         self._state = MagicMock(adding=False, db=None)
         self.saved: dict = {}
 
+    def get_constraints(self) -> list:
+        """Return no constraint."""
+        return []
+
     def get_deferred_fields(self) -> set[str]:
         """Return no deferred field."""
         return set()
@@ -1391,6 +1451,10 @@ class _SaveRecorder:
     def save(self, **kwargs) -> None:
         """Record the keywords received."""
         self.saved = kwargs
+
+    def _get_unique_checks(self, **kwargs) -> tuple[list, list]:
+        """Return no uniqueness check."""
+        return [], []
 
 
 @pytest.mark.parametrize(

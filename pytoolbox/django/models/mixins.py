@@ -86,8 +86,9 @@ class BatteriesIncludedModelMixin(_ModelMixin):
     Run :meth:`~django.db.models.Model.full_clean` automatically before every save, before any
     field's ``pre_save``: invalid data is stopped before anything is written, an upload included.
     Deferred fields are left out, and so are the fields a save limited by ``update_fields`` does
-    not write. The model's :meth:`~django.db.models.Model.clean` runs all the same, and a
-    uniqueness or constraint check naming a field left out is left to the database. The values the
+    not write, unless a uniqueness or a constraint check names one with a field the save writes:
+    such a field is validated as it stands, read from the database when deferred, and the check
+    runs. The model's :meth:`~django.db.models.Model.clean` runs all the same. The values the
     fields' ``pre_save`` assigns are not validated.
 
     Configuration:
@@ -410,11 +411,12 @@ class BatteriesIncludedModelMixin(_ModelMixin):
         Return the keyword arguments of the :meth:`full_clean` of a save writing *update_fields*.
 
         These are ``validate_on_save_kwargs``, with the deferred fields and the fields the save does
-        not write added to ``exclude``. *update_fields* is ``None`` for a save of every field.
+        not write added to ``exclude``, but those a uniqueness or a constraint check names with a
+        field the save writes. *update_fields* is ``None`` for a save of every field.
         """
         kwargs = dict(self.validate_on_save_kwargs)
         deferred = self.get_deferred_fields()
-        if excluded := [
+        unwritten = {
             f.name
             for f in self._meta.concrete_fields
             if f.attname in deferred
@@ -423,6 +425,15 @@ class BatteriesIncludedModelMixin(_ModelMixin):
                 and f.name not in update_fields
                 and f.attname not in update_fields
             )
+        }
+        written = {f.name for f in self._meta.concrete_fields} - unwritten
+        checked = {
+            name for names in self._get_checked_field_groups() if names & written for name in names
+        }
+        if excluded := [
+            f.name
+            for f in self._meta.concrete_fields
+            if f.name in unwritten and f.name not in checked
         ]:
             kwargs['exclude'] = [*kwargs.get('exclude', ()), *excluded]
         return kwargs
@@ -680,6 +691,37 @@ class BatteriesIncludedModelMixin(_ModelMixin):
         if not updated and filtered_qs is not base_qs:
             raise self.precondition_error_class()
         return updated
+
+    def _get_checked_field_groups(self) -> Iterator[frozenset[str]]:
+        """Yield the names of the fields each uniqueness and each constraint check names."""
+        # django-stubs declares neither _get_unique_checks nor _get_expr_references, both Model's.
+        # pyrefly: ignore[missing-attribute]
+        unique_checks, date_checks = self._get_unique_checks(include_meta_constraints=True)
+        for _model, names in unique_checks:
+            yield frozenset(names)
+        for _model, _lookup, name, unique_for in date_checks:
+            yield frozenset((name, unique_for))
+
+        # A parent's constraint names fields the model inherits: its own options resolve them.
+        for _model, constraints in self.get_constraints():
+            for constraint in constraints:
+                expressions = [
+                    *getattr(constraint, 'expressions', ()),
+                    getattr(constraint, 'condition', None),
+                ]
+                references = [
+                    reference
+                    for expression in expressions
+                    if expression is not None
+                    # pyrefly: ignore[missing-attribute]
+                    for reference, *_ in self._get_expr_references(expression)
+                ]
+                yield frozenset(
+                    self._meta.pk.name
+                    if reference == 'pk'
+                    else self._meta.get_field(reference).name
+                    for reference in (*getattr(constraint, 'fields', ()), *references)
+                )
 
     @classmethod
     def _get_field_attnames(cls) -> frozenset[str]:
