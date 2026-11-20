@@ -4,8 +4,10 @@ HTTP download utilities with progress tracking, hashing, and multi-file support.
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import os
+import shutil
 import sys
 import time
 import urllib.error
@@ -13,8 +15,9 @@ import urllib.parse
 import urllib.request
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import asdict, dataclass
+from http.client import HTTPMessage
 from pathlib import Path
-from typing import Any, Final, Protocol, TextIO
+from typing import IO, Any, Final, Protocol, TextIO, override
 
 import requests
 from requests.auth import AuthBase
@@ -80,12 +83,16 @@ class MultiProgressCallback(Protocol):  # pylint:disable=too-few-public-methods
 
 
 def download(url: str, path: Path, *, timeout: int | None = DEFAULT_TIMEOUT) -> None:
-    """Read the content of given `url` and save it as a file `path`."""
-    if urllib.parse.urlsplit(url).scheme not in {'http', 'https'}:
-        raise ValueError(f'Unsupported URL scheme for download: {url}')
-    with path.open('wb') as target:
-        with urllib.request.urlopen(url, timeout=timeout) as source:
-            target.write(source.read())
+    """
+    Read the content of given `url` and save it as a file `path`.
+
+    Raise :class:`ValueError` for a scheme other than http and https, on `url` or on a redirect.
+    The body is streamed to a file beside `path`, moved over it once complete.
+    """
+    _check_scheme(url)
+    opener = urllib.request.build_opener(_RedirectHandler)
+    with opener.open(url, timeout=timeout) as source, filesystem.open_safely(path) as target:
+        shutil.copyfileobj(source, target, DEFAULT_CHUNK_SIZE)
 
 
 # TODO Unpacking Resource for declaring parameters in a DRY manner
@@ -155,15 +162,20 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
     timeout: int | None = DEFAULT_TIMEOUT,
     verify: bool = True,
 ) -> Iterator[tuple[int, int | None, bytes | None, bool, str | None]]:
-    """Download *url* to *path*, yielding progress tuples with hash info."""
+    """
+    Download *url* to *path*, yielding progress tuples with hash info.
+
+    The body replaces *path* only once complete and matching *expected_hash*: a failed, interrupted
+    or abandoned download leaves *path* as it was.
+    """
     position = length = 0
     chunk: bytes | None = None
     file_hasher: crypto.Hash | None = None
     file_hash: str | None = None
     downloaded: bool = False
-    if force or not path.exists():
-        file = None
-        try:  # pylint:disable=too-many-try-statements
+    with contextlib.ExitStack() as stack:
+        if force or not path.exists():
+            file: IO[bytes] | None = None
             for position, length, chunk in iter_download_core(
                 url=url,
                 code=code,
@@ -185,16 +197,13 @@ def iter_download_to_file(  # pylint:disable=too-many-arguments,too-many-locals
                     file_hasher.update(chunk)
                     file_hash = file_hasher.hexdigest()
                 yield position, length, chunk, downloaded, file_hash
-                file = file or path.open('wb')  # pylint: disable=consider-using-with
+                file = file or stack.enter_context(filesystem.open_safely(path))
                 file.write(chunk)
-        finally:
-            if file:
-                file.close()
-    elif hash_algorithm:
-        file_hash = crypto.checksum(path, algorithm=hash_algorithm, chunk_size=chunk_size)
+        elif hash_algorithm:
+            file_hash = crypto.checksum(path, algorithm=hash_algorithm, chunk_size=chunk_size)
 
-    if expected_hash and file_hash != expected_hash:
-        raise CorruptedFileError(path=path, file_hash=file_hash, expected_hash=expected_hash)
+        if expected_hash and file_hash != expected_hash:
+            raise CorruptedFileError(path=path, file_hash=file_hash, expected_hash=expected_hash)
 
     if not downloaded:
         yield position, length, chunk, downloaded, file_hash
@@ -324,8 +333,9 @@ def download_ext_multi(
 
     Create any required directories recursively.
 
-    Each element should be a `dict` with the url, path and name keys.
-    Any extra item is passed to :func:`iter_download_to_file` as extra keyword arguments.
+    Each resource is downloaded by :func:`iter_download_to_file`, its fields but the name passed as
+    keyword arguments: a resource already at its path is downloaded again only if `force` is set,
+    and checked against its `expected_hash` either way.
     """
     resources = list(resources)  # Allow to pass an iterable and consome it once
     for counter, resource in enumerate(resources, 1):
@@ -342,24 +352,49 @@ def download_ext_multi(
             ),
         )
 
-        if not resource.path.exists():
-            filesystem.makedirs(resource.path, parent=True)
-            try:
-                fields: dict[str, Any] = asdict(resource)
-                del fields['name']  # Labels the download for the caller, not a request field.
-                for returned in iter_download_to_file(
-                    code=code,
-                    chunk_size=chunk_size,
-                    force=force,
-                    **fields,
-                ):
-                    callback(current=returned[0], total=returned[1])
-            except Exception:
-                filesystem.remove(resource.path)
-                raise
+        filesystem.makedirs(resource.path, parent=True)
+        fields: dict[str, Any] = asdict(resource)
+        del fields['name']  # Labels the download for the caller, not a request field.
+        for returned in iter_download_to_file(
+            code=code,
+            chunk_size=chunk_size,
+            force=force,
+            **fields,
+        ):
+            callback(current=returned[0], total=returned[1])
 
         callback(current=1, total=1)
         progress_stream.write(os.linesep)
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+class _RedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Redirect handler following a redirect only to a scheme :func:`download` accepts."""
+
+    @override
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: HTTPMessage,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        try:
+            _check_scheme(newurl)
+        except ValueError:
+            fp.close()
+            raise
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _check_scheme(url: str) -> None:
+    """Raise :class:`ValueError` for a scheme other than http and https."""
+    if (scheme := urllib.parse.urlsplit(url).scheme) not in {'http', 'https'}:
+        raise ValueError(f'Unsupported URL scheme for download: {scheme!r}')
 
 
 __all__ = _all.diff(globals())
