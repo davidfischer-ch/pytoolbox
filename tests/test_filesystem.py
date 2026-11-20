@@ -138,6 +138,16 @@ def test_copy_recursive_into_a_directory_with_files_keeps_them(tmp_path: Path) -
     assert (destination / 'keep.txt').read_text(encoding='utf-8') == 'kept!'
 
 
+def test_copy_recursive_copies_an_empty_file(tmp_path: Path) -> None:
+    """An empty source, of size 0, is copied as a complete one."""
+    source = tmp_path / 'source'
+    filesystem.makedirs(source)
+    (source / 'empty.txt').touch()
+
+    assert filesystem.copy_recursive(source, tmp_path / 'destination')['src_size'] == 0
+    assert (tmp_path / 'destination' / 'empty.txt').read_bytes() == b''
+
+
 def test_copy_recursive_copies_a_link_to_a_file_as_a_link(tmp_path: Path) -> None:
     """Without follow_symlinks, a link to a file outside the source never copies its content."""
     source = tmp_path / 'source'
@@ -247,6 +257,40 @@ def test_copy_recursive_error_before_the_copy_surfaces_as_itself(tmp_path: Path)
 
     with pytest.raises(re.error):
         filesystem.copy_recursive(source, tmp_path / 'destination', '(', regex=True)
+
+
+def test_copy_recursive_reports_its_progress(tmp_path: Path) -> None:
+    """The progress callback is called with the ratio copied, up to the whole source."""
+    source = tmp_path / 'source'
+    filesystem.makedirs(source)
+    (source / 'a.txt').write_text('a' * 10, encoding='utf-8')
+    ratios: list[float] = []
+
+    filesystem.copy_recursive(
+        source,
+        tmp_path / 'destination',
+        chunk_size=4,
+        progress_callback=lambda **kwargs: ratios.append(kwargs['ratio']),
+        ratio_delta=-1,
+        time_delta=-1,
+    )
+
+    assert ratios == [0.0, 0.4, 0.8, 1.0]
+
+
+def test_copy_recursive_raises_on_a_size_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A copy whose files do not sum to the size of the source raises, and removes what it wrote."""
+    source = tmp_path / 'source'
+    filesystem.makedirs(source)
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+    monkeypatch.setattr(filesystem, 'get_size', lambda **kwargs: 4)
+
+    with pytest.raises(OSError, match=r'\(4 vs 3\)'):
+        filesystem.copy_recursive(source, tmp_path / 'destination')
+    assert not (tmp_path / 'destination' / 'a.txt').exists()
 
 
 def test_copy_recursive_missing(tmp_path: Path) -> None:

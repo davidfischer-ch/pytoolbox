@@ -22,22 +22,22 @@ import requests
 from pytoolbox.exceptions import CorruptedFileError
 from pytoolbox.network import http
 
-type Origin = Callable[[int, dict[str, str], bytes], str]
+type Origin = Callable[..., str]
 
 
 @pytest.fixture(name='origin')
 def fixture_origin() -> Iterator[Origin]:
     """
-    Yield a function setting the response of a local HTTP server, and returning a URL it serves.
+    Yield a function setting the response of a local HTTP server to a path, and returning its URL.
     """
-    responses: list[tuple[int, dict[str, str], bytes]] = []
+    responses: dict[str, tuple[int, dict[str, str], bytes]] = {}
 
     class Handler(BaseHTTPRequestHandler):
-        """Request handler sending the last response set to every GET."""
+        """Request handler sending to each GET the last response set to its path."""
 
         def do_GET(self) -> None:  # pylint: disable=invalid-name
-            """Send the last response set."""
-            status, headers, body = responses[-1]
+            """Send the last response set to the path."""
+            status, headers, body = responses[self.path]
             self.send_response(status)
             for name, value in headers.items():
                 self.send_header(name, value)
@@ -49,9 +49,14 @@ def fixture_origin() -> Iterator[Origin]:
         def log_message(self, format: str, *args: object) -> None:
             pass
 
-    def set_response(status: int, headers: dict[str, str], body: bytes) -> str:
-        responses.append((status, headers, body))
-        return f'http://127.0.0.1:{server.server_address[1]}/file.bin'
+    def set_response(
+        status: int,
+        headers: dict[str, str],
+        body: bytes,
+        path: str = '/file.bin',
+    ) -> str:
+        responses[path] = (status, headers, body)
+        return f'http://127.0.0.1:{server.server_address[1]}{path}'
 
     with ThreadingHTTPServer(('127.0.0.1', 0), Handler) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -75,6 +80,15 @@ def test_download_keeps_the_existing_file_when_the_request_fails(
 
     assert path.read_bytes() == b'good'
     assert list(tmp_path.iterdir()) == [path]
+
+
+def test_download_follows_a_redirect_to_http(tmp_path: Path, origin: Origin) -> None:
+    """A redirect to an http address is followed, its body saved."""
+    target = origin(200, {}, b'moved', '/moved.bin')
+
+    http.download(origin(302, {'Location': target}, b''), tmp_path / 'file.bin')
+
+    assert (tmp_path / 'file.bin').read_bytes() == b'moved'
 
 
 def test_download_refuses_a_redirect_to_another_scheme(tmp_path: Path, origin: Origin) -> None:

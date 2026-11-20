@@ -207,6 +207,21 @@ class _Child(_Parent):
         app_label = 'test'
 
 
+class _Post(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row whose title is unique for its publication date."""
+
+    title = models.CharField(max_length=100, unique_for_date='published')
+    published = models.DateField()
+    note = models.CharField(max_length=100)
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+
 class _Product(mixins.BatteriesIncludedModelMixin, models.Model):
     """A row unique by its brand and name, its price capped."""
 
@@ -658,6 +673,12 @@ def test_a_save_validates_a_uniqueness_naming_a_deferred_field() -> None:
     product.name = 'taken'
     with pytest.raises(ValidationError):
         product.save()
+
+
+def test_a_limited_save_validates_a_date_uniqueness_naming_a_field_it_writes() -> None:
+    """A save writing the title validates its uniqueness for the date, a field it does not write."""
+    kwargs = _Post(title='news', published='2026-01-01').get_validation_kwargs(frozenset({'title'}))
+    assert kwargs['exclude'] == ['id', 'note']
 
 
 @pytest.mark.usefixtures('tables')
@@ -1203,6 +1224,12 @@ def test_can_transit_to_not_declared() -> None:
     assert _Job(state=_JobState.PENDING).can_transit_to(_JobState.COMPLETED) is False
 
 
+def test_can_transit_to_refuses_a_model_declaring_no_states() -> None:
+    """A model without a state machine has no transition to test."""
+    with pytest.raises(TypeError, match='_Row declares no states'):
+        _Row(name='row', note='row').can_transit_to('done')
+
+
 def test_can_transit_to_raises_on_fail() -> None:
     """A transition not declared in ``states`` raises, with ``fail`` on."""
     with pytest.raises(exceptions.TransitionNotAllowedError):
@@ -1273,6 +1300,14 @@ def test_uniqueness_error_leaves_the_transaction_usable() -> None:
         ):
             _Pair(name='a', note='b').save()
         assert not _Row.objects.exists()
+
+
+def test_uniqueness_hidden_duplicate_key_error_raised_by_default() -> None:
+    """A duplicate on hidden fields is raised as it is, unless the model handles it."""
+    error = IntegrityError('duplicate key')
+    with pytest.raises(IntegrityError) as raised:
+        _Pair(name='pair', note='pair')._handle_hidden_duplicate_key_error(error)
+    assert raised.value is error
 
 
 def test_uniqueness_save_converts_integrity_error() -> None:

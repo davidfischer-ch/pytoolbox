@@ -417,6 +417,16 @@ def test_ffmpeg_get_frames_md5_checksum_drains_the_log(
         assert future.result(timeout=5) == '0' * 32
 
 
+def test_ffmpeg_get_frames_md5_checksum_none_when_ffmpeg_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A checksum FFmpeg fails to compute is None."""
+    executable = _write_executable(tmp_path / 'ffmpeg', 'import sys\nsys.exit(1)\n')
+    monkeypatch.setattr(ffmpeg.FFmpeg, 'executable', executable)
+    assert ffmpeg.FFmpeg.get_frames_md5_checksum(tmp_path / 'input.mkv') is None
+
+
 def test_ffmpeg_get_process(static_ffmpeg: type[ffmpeg.FFmpeg]) -> None:
     """_get_process() creates a subprocess with correct arguments."""
     get = ffmpeg.FFmpeg()._get_process

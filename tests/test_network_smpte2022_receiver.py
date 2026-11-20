@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import io
+from collections.abc import Callable
+
+import pytest
 
 from pytoolbox.network.rtp import RtpPacket
 from pytoolbox.network.smpte2022.base import FecPacket
@@ -34,6 +37,18 @@ def create_media(sequence: int) -> RtpPacket:
     )
 
 
+def create_row_fec(sequence: int, snbase: int) -> FecPacket:
+    """Return a row FEC packet protecting the 4 media packets from ``snbase``."""
+    return FecPacket.compute(
+        sequence,
+        FecPacket.XOR,
+        FecPacket.ROW,
+        4,
+        1,
+        [create_media((snbase + index) & RtpPacket.S_MASK) for index in range(4)],
+    )
+
+
 def create_receiver(delay: int) -> tuple[FecReceiver, io.BytesIO]:
     """Return a receiver delaying ``delay`` media packets, and its output."""
     output = io.BytesIO()
@@ -61,6 +76,37 @@ def test_recovery_aborts_on_a_protected_packet_already_written() -> None:
     assert receiver.crosses == {}
     receiver.flush()
     assert output.getvalue() == b'#10#11#12#14#15#16'
+
+
+def test_recovery_aborts_a_row_on_a_protected_packet_already_written() -> None:
+    """A row FEC packet left needing a packet already written out is dropped, as a column one."""
+    receiver, output = create_receiver(4)
+    receiver.put_media(create_media(10), True)
+    receiver.put_media(create_media(11), True)
+    receiver.put_fec(create_row_fec(5, 10))
+    for sequence in (14, 15, 16):
+        receiver.put_media(create_media(sequence), True)
+
+    receiver.put_media(create_media(12), True)
+
+    assert receiver.media_aborted_recovery == 1
+    assert receiver.rows == {}
+    assert receiver.crosses == {}
+    receiver.flush()
+    assert output.getvalue() == b'#10#11#12#14#15#16'
+
+
+def test_recovery_by_a_row_fec_packet() -> None:
+    """A row FEC packet recovers the one media packet its row misses, and is then dropped."""
+    receiver, _ = create_receiver(8)
+    for sequence in (10, 11, 13):
+        receiver.put_media(create_media(sequence), True)
+
+    receiver.put_fec(create_row_fec(7, 10))
+
+    assert receiver.media_recovered == 1
+    assert receiver.medias[12].payload == create_media(12).payload
+    assert receiver.rows == {}
 
 
 def test_recovery_cascades_onto_media_sequence_zero() -> None:
@@ -116,3 +162,19 @@ def test_put_media_drops_a_packet_already_written() -> None:
         receiver.put_media(create_media(sequence), True)
     receiver.flush()
     assert output.getvalue() == b''.join(create_media(s).payload for s in range(100, 121))
+
+
+@pytest.mark.parametrize('create_fec', [create_column_fec, create_row_fec])
+def test_flush_drops_the_fec_packet_of_media_packets_lost(
+    create_fec: Callable[[int, int], FecPacket],
+) -> None:
+    """A FEC packet missing two media packets is dropped once the output passes them."""
+    receiver, output = create_receiver(8)
+    for sequence in (10, 13):
+        receiver.put_media(create_media(sequence), True)
+    receiver.put_fec(create_fec(7, 10))
+
+    receiver.flush()
+
+    assert receiver.cols == receiver.rows == receiver.crosses == {}
+    assert output.getvalue() == b'#10#13'
