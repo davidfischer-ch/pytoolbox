@@ -3,6 +3,28 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v15.0.1 (2026-11-20)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/15.0.0...15.0.1
+
+### Minor compatibility breaks
+
+Package:
+
+* Require Django `6.1` in the `django` extra, the first defining `DeferredAttribute.fetch_many`, which `django.models.mixins` reads at import
+
+### Fix and enhancements
+
+Module `django.models.mixins`:
+
+* Validate in a save limited to some fields every uniqueness and constraint check naming a field it writes, its other fields read as they stand, which the database refused with an `IntegrityError` instead
+* Let an instance built by `__new__` alone take field values, which raised `AttributeError`
+
+Docs:
+
+* Describe in v15.0.0's Migrations how to edit the historical migrations naming the removed mixins
+
+
 ## v15.0.0 (2026-11-20)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/14.13.1...15.0.0
@@ -69,6 +91,11 @@ Module `validation`:
 * Match the whole value in `valid_email` and `valid_filename`, refusing a valid prefix followed by more
 
 ### Migrations
+
+Module `django.models.mixins`:
+
+* Replace in each historical migration the removed mixins of a `bases=` tuple by `pytoolbox.django.models.mixins.BatteriesIncludedModelMixin`, once per tuple
+    * Only the model state changes, not the schema: Django detects no change to `bases`, and no new migration follows
 
 Renamed constants, the old name removed:
 
