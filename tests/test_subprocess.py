@@ -71,6 +71,15 @@ def test_cmd_logging(caplog, capsys):
     assert env_record.msg == 'Execute /usr/bin/env python'
 
 
+def test_cmd_logs_the_command_but_not_its_stdin(caplog) -> None:
+    """A secret sent through stdin, to keep it out of the process list, stays out of the log too."""
+    caplog.set_level(logging.DEBUG)
+    subprocess.cmd(['cat'], input='s3cr3t-value')
+    subprocess.cmd(['cat'], cli_input='s3cr3t-value')
+    assert [record.msg for record in caplog.records] == [regex.Match(r'Execute .*\bcat\b.*')] * 2
+    assert 's3cr3t-value' not in caplog.text
+
+
 def test_cmd_log_to_func() -> None:
     """cmd() can use a custom logging function."""
     log = mock.Mock()
@@ -324,6 +333,39 @@ def test_cmd_communicate_false() -> None:
     assert result['stderr'] is None
     assert result['process'] is not None
     result['process'].wait()
+
+
+def test_cmd_communicate_false_launches_once_without_judging_the_process() -> None:
+    """A process left running is a launch that succeeded, never a failed attempt to start again."""
+    with (
+        mock.patch.object(subprocess, 'Popen', wraps=subprocess.Popen) as popen,
+        mock.patch.object(subprocess.time, 'sleep'),
+    ):
+        result = subprocess.cmd(['sleep', '1'], communicate=False, tries=3)
+    try:
+        assert popen.call_count == 1
+        assert result['process'].poll() is None
+        assert result['returncode'] is None
+        assert result['stdout'] is None
+        assert result['stderr'] is None
+    finally:
+        result['process'].kill()
+        result['process'].wait()
+
+
+def test_cmd_sends_text_to_the_binary_stdin() -> None:
+    """Text given as input or cli_input reaches the process, whose pipes are binary."""
+    assert subprocess.cmd(['cat'], input='hello')['stdout'] == b'hello'
+    assert subprocess.cmd(['cat'], cli_input='typed')['stdout'] == b'typed'
+
+
+def test_cmd_raises_what_communicating_raised() -> None:
+    """A failure while communicating with the process reaches the caller as itself."""
+    with (
+        mock.patch.object(subprocess.Popen, 'communicate', side_effect=RuntimeError('broken')),
+        pytest.raises(RuntimeError, match='broken'),
+    ):
+        subprocess.cmd(['true'])
 
 
 def test_cmd_cli_input() -> None:

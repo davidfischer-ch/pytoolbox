@@ -5,6 +5,7 @@ Subprocess execution with retries, timeouts, logging and screen management.
 from __future__ import annotations
 
 import errno
+import io
 import multiprocessing
 import os
 import random
@@ -12,7 +13,6 @@ import re
 import shlex
 import shutil
 import subprocess
-import threading
 import time
 from collections.abc import Callable, Iterable
 from pathlib import Path
@@ -46,7 +46,7 @@ class CallResult(TypedDict):
     """Result dictionary returned by :func:`cmd`."""
 
     process: Popen | None
-    returncode: int
+    returncode: int | None
     stdout: bytes | None
     stderr: bytes | None
     exception: OSError | None
@@ -157,8 +157,8 @@ def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
-    input: str | None = ...,  # pylint:disable=redefined-builtin
-    cli_input: str | None = ...,
+    input: bytes | str | None = ...,  # pylint:disable=redefined-builtin
+    cli_input: bytes | str | None = ...,
     cli_output: bool = ...,
     communicate: Literal[False],
     timeout: float | None = ...,
@@ -177,8 +177,8 @@ def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
-    input: str | None = ...,  # pylint:disable=redefined-builtin
-    cli_input: str | None = ...,
+    input: bytes | str | None = ...,  # pylint:disable=redefined-builtin
+    cli_input: bytes | str | None = ...,
     cli_output: Literal[True],
     communicate: bool = ...,
     timeout: float | None = ...,
@@ -197,8 +197,8 @@ def cmd(  # pylint:disable=too-many-arguments
     command: CallArgsType,
     *,
     user: str | None = ...,
-    input: str | None = ...,  # pylint:disable=redefined-builtin
-    cli_input: str | None = ...,
+    input: bytes | str | None = ...,  # pylint:disable=redefined-builtin
+    cli_input: bytes | str | None = ...,
     cli_output: Literal[False] = ...,
     communicate: Literal[True] = ...,
     timeout: float | None = ...,
@@ -216,8 +216,8 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     command: CallArgsType,
     *,
     user: str | None = None,
-    input: str | None = None,  # pylint:disable=redefined-builtin
-    cli_input: str | None = None,
+    input: bytes | str | None = None,  # pylint:disable=redefined-builtin
+    cli_input: bytes | str | None = None,
     cli_output: bool = False,
     communicate: bool = True,
     timeout: float | None = None,
@@ -232,7 +232,11 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     """
     Call the `command` and return a dictionary with process, stdout, stderr, and the returncode.
 
-    Returned returncode, stdout and stderr will be None if `communicate` is set to False.
+    Returned returncode, stdout and stderr will be None if `communicate` is set to False: the
+    process is launched once and left running, its exit code unchecked.
+
+    A text `input` or `cli_input` is encoded to UTF-8 unless the pipes are opened in text mode.
+    The log holds the command line, never the data sent to stdin.
 
     :param command: The command to execute.
     :param user: If set, this will use ``sudo -u <user> ...`` to execute `command` as `user`.
@@ -261,14 +265,13 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     if user is not None:
         process_cmd = ['sudo', '-u', user, *process_cmd]
 
-    # log the execution
+    # Log the execution, never the data sent to stdin, which may hold a secret.
     log.debug(
         ''.join(
             [
                 'Execute ',
-                '' if input is None else f'echo {repr(input)} | ',
                 to_args_string(process_cmd),
-                '' if cli_input is None else f' < {repr(cli_input)}',
+                '' if input is None and cli_input is None else ' < (stdin not logged)',
             ]
         ),
     )
@@ -276,7 +279,7 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
     for trial in range(tries):  # noqa
         # create the sub-process
         try:
-            process = Popen(
+            process: Popen = Popen(
                 process_cmd,
                 stdin=subprocess.PIPE,
                 stdout=None if cli_output else subprocess.PIPE,
@@ -298,32 +301,28 @@ def cmd(  # pylint:disable=too-many-arguments,too-many-locals
 
         # Write to stdin (answer to questions, ...)
         if cli_input is not None and process.stdin is not None:
-            process.stdin.write(cli_input)
+            process.stdin.write(_encode_for_stdin(process, cli_input))
             process.stdin.flush()
 
+        if not communicate:
+            # The process runs on: the caller reads its exit code from the process.
+            return {
+                'process': process,
+                'returncode': None,
+                'stdout': None,
+                'stderr': None,
+                'exception': None,
+            }
+
         # Interact with the process and wait for the process to terminate
-        if communicate:
-            data: dict[str, Any] = {}
-            thread = threading.Thread(
-                target=_communicate_with_timeout,
-                kwargs={'data': data, 'input': input, 'process': process},
+        try:
+            stdout, stderr = process.communicate(
+                input=_encode_for_stdin(process, input),
+                timeout=timeout,
             )
-            thread.start()
-            thread.join(timeout=timeout)
-            if thread.is_alive():
-                try:
-                    process.terminate()
-                    thread.join()
-                except OSError as exc:
-                    # Manage race condition with process that may terminate just after the call to
-                    # thread.is_alive() !
-                    if exc.errno != errno.ESRCH:
-                        raise
-            stdout, stderr = data['stdout'], data['stderr']
-        else:
-            # get a return code that may be None of course ...
-            process.poll()
-            stdout = stderr = None
+        except subprocess.TimeoutExpired:
+            process.terminate()
+            stdout, stderr = process.communicate()
 
         result: CallResult = {
             'process': process,
@@ -479,14 +478,11 @@ def screen_list(name: str | None = None, **kwargs) -> list[str]:
 # --- Internals ------------------------------------------------------------------------------------
 
 
-# Thanks http://stackoverflow.com/questions/1191374
-def _communicate_with_timeout(  # pylint:disable=redefined-builtin
-    *,
-    data: dict[str, Any],
-    process: Popen,
-    input: str | None,
-) -> None:
-    data['stdout'], data['stderr'] = process.communicate(input=input)
+def _encode_for_stdin(process: Popen, data: bytes | str | None) -> bytes | str | None:
+    """Return `data` encoded to UTF-8 when it is text written to the binary stdin of `process`."""
+    if isinstance(data, str) and not isinstance(process.stdin, io.TextIOBase):
+        return data.encode('utf-8')
+    return data
 
 
 __all__ = _all.diff(globals())
