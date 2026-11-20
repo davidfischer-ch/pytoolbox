@@ -7,7 +7,7 @@ from __future__ import annotations
 import enum
 from typing import Any
 
-__all__ = ['OrderedEnum']
+__all__ = ['OrderedEnum', 'find_member']
 
 
 class OrderedEnum(enum.Enum):
@@ -49,3 +49,30 @@ class OrderedEnum(enum.Enum):
         if type(self) is type(other):
             return self.value != other.value  # pylint:disable=comparison-with-callable
         return NotImplemented
+
+
+def find_member[EnumT: enum.Enum](enum_class: type[EnumT], value: Any) -> EnumT | None:
+    """
+    Return the member of `enum_class` holding `value`, or ``None`` if none does.
+
+    A member passed as `value` is returned as is.
+
+    **Example usage**
+
+    >>> class Color(enum.Enum):
+    ...     RED = 1
+    ...     GREEN = 2
+    ...
+    >>> find_member(Color, 2)
+    <Color.GREEN: 2>
+    >>> find_member(Color, Color.RED)
+    <Color.RED: 1>
+    >>> find_member(Color, 3) is None
+    True
+    >>> find_member(Color, None) is None
+    True
+    """
+    try:
+        return enum_class(value)
+    except ValueError:
+        return None

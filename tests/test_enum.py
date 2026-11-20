@@ -120,3 +120,23 @@ def test_cross_enum_comparison() -> None:
 
     assert Priority.LOW.__eq__(Other.A) is NotImplemented
     assert Priority.LOW.__lt__(Other.A) is NotImplemented
+
+
+def test_find_member_of_a_member_or_its_value() -> None:
+    """A value finds the member holding it, and a member finds itself."""
+    assert enum.find_member(Priority, 2) is Priority.MEDIUM
+    assert enum.find_member(Priority, Priority.HIGH) is Priority.HIGH
+
+
+def test_find_member_of_a_value_no_member_holds() -> None:
+    """A value no member holds finds None, an unhashable one or another enum's member included."""
+
+    class Other(enum.OrderedEnum):
+        """Another enum, whose member holds a value of Priority."""
+
+        A = 1
+
+    assert enum.find_member(Priority, 4) is None
+    assert enum.find_member(Priority, None) is None
+    assert enum.find_member(Priority, [1]) is None
+    assert enum.find_member(Priority, Other.A) is None
