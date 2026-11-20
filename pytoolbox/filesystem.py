@@ -691,6 +691,9 @@ class TempStorage:
     """
     Temporary storage handling made easy.
 
+    Each path is created by the storage, private to its owner (files 0600, directories 0700), and a
+    path already there raises :class:`FileExistsError`.
+
     **Example usage**
 
     As a context manager:
@@ -742,9 +745,9 @@ class TempStorage:
         >>> tmp.remove_all()
         """
         directory = self.root / name.format(uuid=uuid.uuid4().hex)
+        directory.mkdir(mode=0o700, parents=True)
         self._path_to_key[directory] = key
         self._paths_by_key[key].add(directory)
-        makedirs(directory)
         chown(directory, user, group, recursive=True)
         return directory
 
@@ -821,11 +824,9 @@ class TempStorage:
         mode = 'w' if encoding else 'wb'
         name = name.format(uuid=uuid.uuid4().hex) + (f'.{extension}' if extension else '')
         path = self.root / name
+        path.touch(mode=0o600, exist_ok=False)
         self._path_to_key[path] = key
         self._paths_by_key[key].add(path)
-
-        with path.open(mode, encoding=encoding):
-            pass
         chown(path, user, group)
 
         if return_file:

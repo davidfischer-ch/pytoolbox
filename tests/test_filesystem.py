@@ -6,6 +6,7 @@ from __future__ import annotations
 import errno
 import os
 import re
+import stat
 import sys
 from pathlib import Path
 from unittest import mock
@@ -272,3 +273,37 @@ def test_symlink_over_a_regular_file_to_a_missing_source_reports_it_exists(tmp_p
         filesystem.symlink(str(tmp_path / 'missing'), str(link_name))
 
     assert error.value.errno == errno.EEXIST
+
+
+def test_temp_storage_create_tmp_directory_refuses_an_existing_path(tmp_path: Path) -> None:
+    """A directory already there is neither adopted nor removed with the temporary paths."""
+    tmp = filesystem.TempStorage(root=tmp_path)
+    filesystem.makedirs(tmp_path / 'work')
+    (tmp_path / 'work' / 'keep.txt').write_text('kept', encoding='utf-8')
+
+    with pytest.raises(FileExistsError):
+        tmp.create_tmp_directory('work')
+    tmp.remove_all()
+
+    assert (tmp_path / 'work' / 'keep.txt').read_text(encoding='utf-8') == 'kept'
+
+
+def test_temp_storage_create_tmp_file_refuses_a_link(tmp_path: Path) -> None:
+    """A link already at the path is never written through, nor removed with the temporary paths."""
+    tmp = filesystem.TempStorage(root=tmp_path)
+    (tmp_path / 'victim.txt').write_text('victim', encoding='utf-8')
+    (tmp_path / 'job.txt').symlink_to(tmp_path / 'victim.txt')
+
+    with pytest.raises(FileExistsError):
+        tmp.create_tmp_file(name='job', extension='txt')
+    tmp.remove_all()
+
+    assert (tmp_path / 'job.txt').is_symlink()
+    assert (tmp_path / 'victim.txt').read_text(encoding='utf-8') == 'victim'
+
+
+def test_temp_storage_creates_private_paths(tmp_path: Path) -> None:
+    """Temporary files and directories are private to their owner, as tempfile makes them."""
+    with filesystem.TempStorage(root=tmp_path) as tmp:
+        assert stat.S_IMODE(tmp.create_tmp_directory().stat().st_mode) == 0o700
+        assert stat.S_IMODE(tmp.create_tmp_file(return_file=False).stat().st_mode) == 0o600
