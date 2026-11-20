@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import errno
+import os
+import re
 import sys
 from pathlib import Path
 from unittest import mock
@@ -104,6 +106,132 @@ def test_copy_recursive_chunk_size(small_mp4: Path, tmp_path: Path, chunk_size: 
     )  # small.mp4 size
     assert list(filesystem.find_recursive(tmp_path, '*')) == [tmp_path / small_mp4.name]
     assert (tmp_path / small_mp4.name).read_bytes() == small_mp4.read_bytes()
+
+
+def test_copy_recursive_into_a_directory_with_files_keeps_them(tmp_path: Path) -> None:
+    """The size check covers the copied files, not the files the destination already held."""
+    source = tmp_path / 'source'
+    destination = tmp_path / 'destination'
+    filesystem.makedirs(source)
+    filesystem.makedirs(destination)
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+    (destination / 'keep.txt').write_text('kept!', encoding='utf-8')
+
+    assert filesystem.copy_recursive(source, destination)['src_size'] == 3
+
+    assert (destination / 'a.txt').read_text(encoding='utf-8') == 'abc'
+    assert (destination / 'keep.txt').read_text(encoding='utf-8') == 'kept!'
+
+
+def test_copy_recursive_copies_a_link_to_a_file_as_a_link(tmp_path: Path) -> None:
+    """Without follow_symlinks, a link to a file outside the source never copies its content."""
+    source = tmp_path / 'source'
+    filesystem.makedirs(source)
+    (tmp_path / 'secret.txt').write_text('secret', encoding='utf-8')
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+    (source / 'link.txt').symlink_to(Path('..') / 'secret.txt')
+
+    filesystem.copy_recursive(source, tmp_path / 'destination')
+
+    link = tmp_path / 'destination' / 'link.txt'
+    assert link.is_symlink()
+    assert link.readlink() == Path('..') / 'secret.txt'
+    assert (tmp_path / 'destination' / 'a.txt').read_text(encoding='utf-8') == 'abc'
+
+
+def test_copy_recursive_copies_a_broken_link(tmp_path: Path) -> None:
+    """A broken link in the source neither fails the copy nor removes the destination."""
+    source = tmp_path / 'source'
+    filesystem.makedirs(source)
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+    (source / 'broken.txt').symlink_to(tmp_path / 'missing.txt')
+
+    filesystem.copy_recursive(source, tmp_path / 'destination')
+
+    assert (tmp_path / 'destination' / 'broken.txt').readlink() == tmp_path / 'missing.txt'
+    assert (tmp_path / 'destination' / 'a.txt').read_text(encoding='utf-8') == 'abc'
+
+
+def test_copy_recursive_replaces_a_link_in_the_destination(tmp_path: Path) -> None:
+    """A file copied over a link in the destination replaces the link, never writes through it."""
+    source = tmp_path / 'source'
+    destination = tmp_path / 'destination'
+    filesystem.makedirs(source)
+    filesystem.makedirs(destination)
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+    (tmp_path / 'victim.txt').write_text('victim', encoding='utf-8')
+    (destination / 'a.txt').symlink_to(tmp_path / 'victim.txt')
+
+    filesystem.copy_recursive(source, destination)
+
+    assert not (destination / 'a.txt').is_symlink()
+    assert (destination / 'a.txt').read_text(encoding='utf-8') == 'abc'
+    assert (tmp_path / 'victim.txt').read_text(encoding='utf-8') == 'victim'
+
+
+@mark.skipif(os.geteuid() == 0, reason='root reads a file without read permission')
+def test_copy_recursive_error_removes_only_what_it_created(tmp_path: Path) -> None:
+    """A failed copy removes the files and directories it made, never the destination's others."""
+    source = tmp_path / 'source'
+    destination = tmp_path / 'destination'
+    filesystem.makedirs(source / 'sub' / 'deeper')
+    filesystem.makedirs(destination)
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+    (source / 'sub' / 'b.txt').write_text('def', encoding='utf-8')
+    (source / 'sub' / 'deeper' / 'unreadable.txt').write_text('ghi', encoding='utf-8')
+    (source / 'sub' / 'deeper' / 'unreadable.txt').chmod(0)
+    (destination / 'keep.txt').write_text('kept!', encoding='utf-8')
+
+    with pytest.raises(PermissionError):
+        filesystem.copy_recursive(source, destination)
+
+    assert sorted(destination.iterdir()) == [destination / 'keep.txt']
+    assert (destination / 'keep.txt').read_text(encoding='utf-8') == 'kept!'
+
+
+def test_copy_recursive_refuses_a_link_to_a_directory_in_the_destination(tmp_path: Path) -> None:
+    """Without follow_symlinks, nothing is written through a link to a destination directory."""
+    source = tmp_path / 'source'
+    destination = tmp_path / 'destination'
+    outside = tmp_path / 'outside'
+    filesystem.makedirs(source / 'sub')
+    filesystem.makedirs(destination)
+    filesystem.makedirs(outside)
+    (source / 'sub' / 'a.txt').write_text('abc', encoding='utf-8')
+    (destination / 'sub').symlink_to(outside)
+
+    with pytest.raises(OSError) as error:
+        filesystem.copy_recursive(source, destination)
+
+    assert error.value.errno == errno.ELOOP
+    assert list(outside.iterdir()) == []
+    assert (destination / 'sub').readlink() == outside
+
+
+def test_copy_recursive_follows_a_link_to_a_directory_when_asked(tmp_path: Path) -> None:
+    """With follow_symlinks, a link to a directory in the destination is written through."""
+    source = tmp_path / 'source'
+    destination = tmp_path / 'destination'
+    outside = tmp_path / 'outside'
+    filesystem.makedirs(source / 'sub')
+    filesystem.makedirs(destination)
+    filesystem.makedirs(outside)
+    (source / 'sub' / 'a.txt').write_text('abc', encoding='utf-8')
+    (destination / 'sub').symlink_to(outside)
+
+    filesystem.copy_recursive(source, destination, follow_symlinks=True)
+
+    assert (outside / 'a.txt').read_text(encoding='utf-8') == 'abc'
+
+
+def test_copy_recursive_error_before_the_copy_surfaces_as_itself(tmp_path: Path) -> None:
+    """An error raised before any file is copied reaches the caller, never masked by the cleanup."""
+    source = tmp_path / 'source'
+    filesystem.makedirs(source)
+    (source / 'a.txt').write_text('abc', encoding='utf-8')
+
+    with pytest.raises(re.error):
+        filesystem.copy_recursive(source, tmp_path / 'destination', '(', regex=True)
 
 
 def test_copy_recursive_missing(tmp_path: Path) -> None:

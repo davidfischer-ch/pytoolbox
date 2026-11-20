@@ -122,13 +122,27 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
     This function is based on a block-copy algorithm making progress update possible.
 
     Given `progress_callback` will be called with *start_date*, *elapsed_time*, *eta_time*,
-    *src_size*, *dst_size* and *ratio*. Set `remove_on_error` to remove the destination directory
-    in case of error.
+    *src_size*, *dst_size* and *ratio*. Set `remove_on_error` to remove, in case of error, the files
+    the copy wrote and the directories it made, leaving the destination's other files. The error is
+    raised as it is, never masked by the removal.
+
+    A symbolic link to a file is copied as a link, unless `follow_symlinks` is set. A file or link
+    the destination holds is replaced, never written through. A symbolic link to a directory in the
+    destination raises an :class:`OSError` (``ELOOP``), unless `follow_symlinks` is set.
+
+    .. warning::
+
+        Made for a new destination. Copying into an existing one replaces the files it holds at the
+        same paths, and a copy failing with `remove_on_error` set keeps neither version of them.
+        A directory another user swaps for a link during the copy is written through.
 
     This function will return a dictionary containing *start_date*, *elapsed_time* and *src_size*.
-    At the end of the copy, if the size of the destination directory is not equal to the source
-    then an :class:`OSError` is raised.
+    At the end of the copy, if the size of the copied files (the destination's other files left
+    out) is not equal to the source then an :class:`OSError` is raised.
     """
+    dst_paths: list[Path] = []
+    made_directories: list[Path] = []
+    ready_directories: set[Path] = set()
     try:  # pylint:disable=too-many-try-statements
         start_date = datetime_now(fmt=None)
         start_time = time.time()
@@ -152,64 +166,73 @@ def copy_recursive(  # pylint:disable=too-many-arguments,too-many-locals
             follow_symlinks=follow_symlinks,
         ):
             dst_path = destination_path / src_path.relative_to(source_path)
-            makedirs(dst_path, parent=True)
+            if dst_path.parent not in ready_directories:
+                _make_directory(
+                    dst_path.parent,
+                    follow_symlinks=follow_symlinks,
+                    made=made_directories,
+                    root=destination_path,
+                )
+                ready_directories.add(dst_path.parent)
 
-            # Initialize block-based copy
-            src_file = src_path.open('rb')
-            dst_file = dst_path.open('wb')
+            # A link is created anew, never written through one the destination holds.
+            if not follow_symlinks and src_path.is_symlink():
+                dst_path.unlink(missing_ok=True)
+                dst_path.symlink_to(src_path.readlink())
+                dst_paths.append(dst_path)
+                continue
 
             # Block-based copy loop
             prev_ratio: float = 0
             prev_time: float = 0
-            while True:
-                block = src_file.read(chunk_size)
-                try:
-                    ratio = float(dst_size) / src_size
-                    ratio = 0.0 if ratio < 0.0 else 1.0 if ratio > 1.0 else ratio
-                except ZeroDivisionError:
-                    ratio = 1.0
-                elapsed_time = time.time() - start_time
+            with src_path.open('rb') as src_file:
+                dst_path.unlink(missing_ok=True)
+                with dst_path.open('xb') as dst_file:
+                    dst_paths.append(dst_path)
+                    while True:
+                        block = src_file.read(chunk_size)
+                        try:
+                            ratio = float(dst_size) / src_size
+                            ratio = 0.0 if ratio < 0.0 else 1.0 if ratio > 1.0 else ratio
+                        except ZeroDivisionError:
+                            ratio = 1.0
+                        elapsed_time = time.time() - start_time
 
-                # Update status of job only if delta time or delta ratio is sufficient
-                if (
-                    progress_callback is not None
-                    and ratio - prev_ratio > ratio_delta
-                    and elapsed_time - prev_time > time_delta
-                ):
-                    prev_ratio = ratio
-                    prev_time = elapsed_time
-                    eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
-                    progress_callback(
-                        start_date=start_date,
-                        elapsed_time=elapsed_time,
-                        eta_time=eta_time,
-                        src_size=src_size,
-                        dst_size=dst_size,
-                        ratio=ratio,
-                    )
+                        # Update status of job only if delta time or delta ratio is sufficient
+                        if (
+                            progress_callback is not None
+                            and ratio - prev_ratio > ratio_delta
+                            and elapsed_time - prev_time > time_delta
+                        ):
+                            prev_ratio = ratio
+                            prev_time = elapsed_time
+                            eta_time = int(elapsed_time * (1.0 - ratio) / ratio) if ratio > 0 else 0
+                            progress_callback(
+                                start_date=start_date,
+                                elapsed_time=elapsed_time,
+                                eta_time=eta_time,
+                                src_size=src_size,
+                                dst_size=dst_size,
+                                ratio=ratio,
+                            )
 
-                block_length = len(block)
-                dst_size += block_length
+                        block_length = len(block)
+                        dst_size += block_length
 
-                if not block:
-                    break  # End of input reached
+                        if not block:
+                            break  # End of input reached
 
-                dst_file.write(block)
+                        dst_file.write(block)
 
-            # FIXME maybe a finally block for that
-            src_file.close()
-            dst_file.close()
-
-        # Output directory sanity check
-        if check_size:
-            if (dst_size := get_size(destination_path)) != src_size:
-                raise OSError(f'Destination size does not match source ({src_size} vs {dst_size})')
+        # Check the size of the copied files alone: the destination may hold others.
+        if check_size and (dst_size := sum(p.lstat().st_size for p in dst_paths)) != src_size:
+            raise OSError(f'Destination size does not match source ({src_size} vs {dst_size})')
 
         elapsed_time = time.time() - start_time
         return {'start_date': start_date, 'elapsed_time': elapsed_time, 'src_size': src_size}
     except Exception:
         if remove_on_error:
-            shutil.rmtree(destination_path, ignore_errors=True)
+            _remove_made(dst_paths, directories=made_directories)
         raise
 
 
@@ -426,7 +449,8 @@ def get_size(
     Return the size of a file or directory.
 
     If given `path` is a directory (or symlink to a directory), then returned value is computed by
-    summing the size of all files, and that recursively.
+    summing the size of all files, and that recursively. A symbolic link to a file counts for its
+    own size, unless `follow_symlinks` is set.
 
     **Example usage**
 
@@ -444,7 +468,7 @@ def get_size(
     if path.is_file():
         return path.stat().st_size
     return sum(
-        f.stat().st_size
+        f.stat(follow_symlinks=follow_symlinks).st_size
         for f in find_recursive(
             directory=path,
             patterns=patterns,
@@ -885,6 +909,52 @@ def _chown(path: Path, uid: int, gid: int) -> None:
     except FileNotFoundError:
         if not path.is_symlink():
             raise
+
+
+def _make_directory(
+    directory: Path,
+    *,
+    follow_symlinks: bool,
+    made: list[Path],
+    root: Path,
+) -> None:
+    """
+    Make `directory` and its missing parents, appending each to `made` as soon as it exists.
+
+    A symbolic link between `root` and `directory` raises an :class:`OSError` (``ELOOP``), unless
+    `follow_symlinks` is set.
+    """
+    if not follow_symlinks:
+        for path in (directory, *directory.parents):
+            if path == root:
+                break
+            if path.is_symlink():
+                raise OSError(errno.ELOOP, 'Symbolic link to a directory in the destination', path)
+
+    missing: list[Path] = []
+    for path in (directory, *directory.parents):
+        if path.is_dir():
+            break
+        missing.append(path)
+
+    for path in reversed(missing):
+        path.mkdir()
+        made.append(path)
+
+
+def _remove_made(paths: list[Path], *, directories: list[Path]) -> None:
+    """
+    Remove the files, then the directories (the outermost last), a failed copy made.
+
+    A directory still holding other files is kept, and no removal error masks the copy's.
+    """
+    for path in paths:
+        with contextlib.suppress(OSError):
+            path.unlink(missing_ok=True)
+
+    for directory in reversed(directories):
+        with contextlib.suppress(OSError):
+            directory.rmdir()
 
 
 __all__ = _all.diff(globals())
