@@ -3,542 +3,1201 @@
 # pylint:disable=protected-access,unused-argument,too-few-public-methods
 from __future__ import annotations
 
+import copy
+import inspect
+import json
+import pickle
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, override
 from unittest.mock import MagicMock, patch
 
+import numpy
 import pytest
+from asgiref.sync import async_to_sync
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectNotUpdated, ValidationError
-from django.db import DatabaseError, models
-from django.db.models.fields.files import FileField
+from django.core.files.base import ContentFile
+from django.core.files.storage import InMemoryStorage
+from django.db import connection, models, transaction
+from django.db.models import QuerySet, functions
 from django.db.utils import IntegrityError
+from django.template import Context, Template
+from django.test.utils import CaptureQueriesContext
 
 from pytoolbox import states
+from pytoolbox.django import signals
 from pytoolbox.django.core import exceptions
 from pytoolbox.django.models import mixins
+from pytoolbox.types import Missing
 
-# --- FasterValidateOnSaveMixin --------------------------------------------------------------------
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+# --- Models ---------------------------------------------------------------------------------------
 
 
-def test_faster_validate_on_save_mixin_uses_is_relation() -> None:
-    """Relation fields are excluded from validation, regular fields are not."""
+class _JobState(states.StateEnum):
+    """A job pending, running, then ended or retried: no state transits to itself."""
 
-    class TestModel(mixins.FasterValidateOnSaveMixin, models.Model):
-        """Test model with ForeignKey for testing FasterValidateOnSaveMixin."""
+    PENDING = 'PENDING'
+    RUNNING = 'RUNNING'
+    COMPLETED = 'COMPLETED'
+    FAILED = 'FAILED'
+    TRANSITIONS = {
+        PENDING: frozenset([RUNNING]),
+        RUNNING: frozenset([COMPLETED, FAILED]),
+        COMPLETED: frozenset(),
+        FAILED: frozenset([PENDING]),
+    }
 
-        name = models.CharField(max_length=100)
-        other = models.ForeignKey(
-            'auth.User',
-            on_delete=models.CASCADE,
-            null=True,
+
+class _LampState(states.StateEnum):
+    """A lamp off, on, broken or lost: every state leads into BROKEN, none into OFF."""
+
+    OFF = 'OFF'
+    ON = 'ON'
+    BROKEN = 'BROKEN'
+    LOST = 'LOST'
+    TRANSITIONS = {
+        OFF: frozenset([ON, BROKEN, LOST]),
+        ON: frozenset([BROKEN, LOST]),
+        BROKEN: frozenset([BROKEN, LOST]),
+        LOST: frozenset([BROKEN]),
+    }
+
+
+class _VectorField(models.Field):
+    """A vector held in a numpy array, whose ``==`` compares element by element."""
+
+    def from_db_value(self, value: str, expression: Any, db_connection: Any) -> numpy.ndarray:
+        """Return the vector stored as a JSON list."""
+        return numpy.array(json.loads(value))
+
+    @override
+    def get_internal_type(self) -> str:
+        return 'TextField'
+
+    @override
+    def get_prep_value(self, value: Any) -> str:
+        return json.dumps(numpy.asarray(value).tolist())
+
+    @override
+    def run_validators(self, value: numpy.ndarray) -> None:
+        super().run_validators(value.tolist())
+
+    @override
+    def to_python(self, value: Any) -> numpy.ndarray:
+        return numpy.array(value, dtype=float)
+
+    @override
+    def validate(self, value: numpy.ndarray, model_instance: models.Model) -> None:
+        super().validate(value.tolist(), model_instance)
+
+
+class _Attachment(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row with an upload, failing validation."""
+
+    file = models.FileField(storage=InMemoryStorage())
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+    @override
+    def clean(self) -> None:
+        """Fail the validation of every row."""
+        raise ValidationError('Refused.')
+
+
+class _Embedding(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row holding a vector."""
+
+    name = models.CharField(max_length=100)
+    vector = _VectorField()
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+
+class _Job(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row whose state follows :class:`_JobState`."""
+
+    name = models.CharField(max_length=100)
+    state = models.CharField(max_length=10)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    states = _JobState
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+
+# [CONV-PY-ALPHA-ORDER: a proxy model follows the model it stands for]
+class _FinishedJob(_Job):
+    """A job stamped when it reaches a final state."""
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+        proxy = True
+
+    @override
+    def on_state_transition(self, previous_state: Any) -> None:
+        """Stamp the job reaching a final state."""
+        if self.state in _JobState.FINAL_STATES:
+            self.finished_at = datetime.now(UTC)
+
+
+class _Pair(mixins.BetterUniquenessErrorsMixin, models.Model):
+    """A row unique by its name and note together."""
+
+    name = models.CharField(max_length=100)
+    note = models.CharField(max_length=100)
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+        unique_together = [('name', 'note')]
+
+
+# [CONV-PY-ALPHA-ORDER: a parent model precedes its child]
+class _Parent(mixins.BatteriesIncludedModelMixin, models.Model):
+    """The first table of a row split over two."""
+
+    version = models.IntegerField()
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+
+class _Child(_Parent):
+    """The second table of a row split over two."""
+
+    note = models.CharField(max_length=100)
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+
+class _Reading(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row whose saves write every field, its stamp included in a save limited to other fields."""
+
+    always_update_fields = ('stamp',)
+    track_update_fields = False
+
+    value = models.IntegerField()
+    note = models.CharField(max_length=100)
+    stamp = models.DateTimeField(auto_now=True, null=True)
+    job = models.ForeignKey(_Job, on_delete=models.PROTECT, null=True, blank=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+
+# [CONV-PY-ALPHA-ORDER: a proxy model follows the model it stands for]
+class _ReadingValidatedWithoutRelations(_Reading):
+    """A reading validated without its relation fields."""
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+        proxy = True
+
+    @override
+    def get_validation_kwargs(self, update_fields: frozenset[str] | None) -> dict[str, Any]:
+        """Leave every relation field out of the validation."""
+        kwargs = super().get_validation_kwargs(update_fields)
+        relations = [f.name for f in self.meta().concrete_fields if f.is_relation]
+        return {**kwargs, 'exclude': [*kwargs.get('exclude', ()), *relations]}
+
+
+class _Row(mixins.BatteriesIncludedModelMixin, models.Model):
+    """A row whose saves write the fields assigned since the last one."""
+
+    name = models.CharField(max_length=100)
+    note = models.CharField(max_length=100)
+    slug = models.CharField(max_length=100, blank=True)
+    stamp = models.DateTimeField(auto_now=True, null=True)
+    label = models.GeneratedField(
+        expression=functions.Concat('name', models.Value('!')),
+        output_field=models.CharField(max_length=101),
+        db_persist=True,
+    )
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+
+    @override
+    def clean(self) -> None:
+        """Derive the slug from the name."""
+        self.slug = self.name.lower()
+
+
+# [CONV-PY-ALPHA-ORDER: a proxy model follows the model it stands for]
+class _NotedRow(_Row):
+    """A row whose note is written whenever its name is."""
+
+    objects = models.Manager()
+
+    class Meta:
+        """Meta class for test model."""
+
+        app_label = 'test'
+        proxy = True
+
+    @override
+    def get_update_fields(self, update_fields: frozenset[str] | None) -> frozenset[str] | None:
+        """Write the note with the name."""
+        if update_fields is not None and 'name' in update_fields:
+            return update_fields | {'note'}
+        return update_fields
+
+
+@pytest.fixture(name='tables')
+def fixture_tables() -> Iterator[None]:
+    """Create the tables of the models above for one test."""
+    tables = (_Attachment, _Embedding, _Job, _Parent, _Child, _Reading, _Row)
+    with connection.schema_editor() as editor:
+        for model in tables:
+            editor.create_model(model)
+    yield
+    with connection.schema_editor() as editor:
+        for model in reversed(tables):
+            editor.delete_model(model)
+
+
+@pytest.fixture(name='transitions')
+def fixture_transitions() -> Iterator[list[dict[str, Any]]]:
+    """Return the keywords of each state transition of a :class:`_Job` signalled during a test."""
+    sent: list[dict[str, Any]] = []
+
+    def receive(**kwargs: Any) -> None:
+        sent.append(kwargs)
+
+    signals.post_state_transition.connect(receive, sender=_Job, weak=False)
+    yield sent
+    signals.post_state_transition.disconnect(receive, sender=_Job)
+
+
+def _get_stored(row: models.Model, *fields: str) -> tuple[Any, ...]:
+    """Return the values of *fields* stored in the row of *row*."""
+    return type(row).objects.values_list(*fields).get(pk=row.pk)
+
+
+# --- BatteriesIncludedModelMixin: saving ----------------------------------------------------------
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_new_instance_is_inserted() -> None:
+    """A new instance with the primary key of a row fails to insert, leaving the row as it was."""
+    row = _Row.objects.create(name='before', note='before')
+    with pytest.raises(IntegrityError):
+        _Row(name='after', note='after', pk=row.pk).save(validate=False)
+    assert _get_stored(row, 'name') == ('before',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_new_instance_not_forced_to_insert_updates() -> None:
+    """A new instance saved with ``force_insert=False`` updates the row of its primary key."""
+    row = _Row.objects.create(name='before', note='before')
+    _Row(name='after', note='after', pk=row.pk).save(force_insert=False, validate=False)
+    assert _get_stored(row, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_writes_only_the_fields_assigned() -> None:
+    """A field changed in the database since the instance was read survives a save of others."""
+    row = _Row.objects.create(name='before', note='before')
+    _Row.objects.filter(pk=row.pk).update(note='elsewhere')
+    row.name = 'after'
+    row.save()
+    row.save()
+    assert _get_stored(row, 'name', 'note') == ('after', 'elsewhere')
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_limited_save_keeps_the_assignments_it_leaves_out() -> None:
+    """A field assigned but left out of a limited save is written by the next save."""
+    row = _Row.objects.create(name='before', note='before')
+    row.name = 'after'
+    row.note = 'after'
+    row.save(update_fields=['name'])
+    row.save()
+    assert _get_stored(row, 'name', 'note') == ('after', 'after')
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_writes_the_fields_their_pre_save_sets() -> None:
+    """A field its ``pre_save`` sets, as ``auto_now`` does, is written with the fields assigned."""
+    row = _Row.objects.create(name='before', note='before')
+    _Row.objects.filter(pk=row.pk).update(stamp=None)
+    row.name = 'after'
+    row.save()
+    assert _get_stored(row, 'stamp') == (row.stamp,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_reads_the_generated_fields_back() -> None:
+    """A generated field is read back by each save writing its source, and is never written."""
+    row = _Row.objects.create(name='before', note='before')
+    row.name = 'after'
+    row.save()
+    row.save()
+    assert row.label == 'after!'
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_leaves_the_deferred_fields_unread() -> None:
+    """A save of a row read in part costs its update alone: neither saving nor validating loads."""
+    row = _Row.objects.create(name='before', note='before')
+    row = _Row.objects.only('name').get(pk=row.pk)
+    row.name = 'after'
+    with CaptureQueriesContext(connection) as queries:
+        row.save()
+    assert len(queries) == 1
+    assert {'note', 'stamp'} <= row.get_deferred_fields()
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_primary_key_assigned_unchanged_saves_the_row() -> None:
+    """Assigning the primary key its own value updates the row."""
+    row = _Row.objects.create(name='before', note='before')
+    row.pk = row.pk
+    row.name = 'after'
+    row.save()
+    assert _get_stored(row, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_new_primary_key_saves_a_copy() -> None:
+    """A save of a row given a new primary key inserts a copy, the next save updating it alone."""
+    row = _Row.objects.create(name='before', note='before')
+    original_pk = row.pk
+    row.pk = original_pk + 1
+    row.save()
+    assert row.previous_pk == original_pk + 1
+    row.name = 'after'
+    row.save()
+    assert sorted(_Row.objects.values_list('pk', 'name')) == [
+        (original_pk, 'before'),
+        (original_pk + 1, 'after'),
+    ]
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_new_primary_key_saves_a_copy_without_tracking() -> None:
+    """A save of every field, of a row given no or a new primary key, inserts a copy."""
+    reading = _Reading.objects.create(note='before', value=1)
+    original_pk = reading.pk
+    reading.pk = None
+    reading.save()
+    copy_pk = reading.pk
+    reading.pk = copy_pk + 1
+    reading.save()
+    assert sorted(_Reading.objects.values_list('pk', flat=True)) == [
+        original_pk,
+        copy_pk,
+        copy_pk + 1,
+    ]
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_copy_tracks_its_assignments_apart() -> None:
+    """A copy saved under a new primary key leaves the original's assignments to its own save."""
+    row = _Row.objects.create(name='before', note='before')
+    row.name = 'renamed'
+    # Copying looks the model up in the app registry, where the test app is not installed.
+    with patch.object(apps, 'get_model', return_value=_Row):
+        clone = copy.copy(row)
+    clone.pk = None
+    clone.save(validate=False)
+    row.save()
+    assert _get_stored(row, 'name') == ('renamed',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_without_tracking_writes_every_field() -> None:
+    """With ``track_update_fields`` off, nothing is tracked and a save writes every field."""
+    reading = _Reading.objects.create(note='before', value=1)
+    _Reading.objects.filter(pk=reading.pk).update(note='elsewhere')
+    reading.value = 2
+    assert reading._assigned_fields == set()
+    reading.save()
+    assert _get_stored(reading, 'value', 'note') == (2, 'before')
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_limited_save_writes_the_fields_always_updated() -> None:
+    """A field listed in ``always_update_fields`` is written by a save limited to other fields."""
+    reading = _Reading.objects.create(note='before', value=1)
+    _Reading.objects.filter(pk=reading.pk).update(stamp=None)
+    reading.value = 2
+    reading.save(update_fields=['value'])
+    assert _get_stored(reading, 'value', 'stamp') == (2, reading.stamp)
+
+
+@pytest.mark.usefixtures('tables')
+def test_update_fields_overridden_write_fields_together() -> None:
+    """A field :meth:`get_update_fields` writes with another is written by a save of that one."""
+    row = _NotedRow.objects.create(name='before', note='before')
+    _Row.objects.filter(pk=row.pk).update(note='elsewhere')
+    row.name = 'after'
+    row.save()
+    assert _get_stored(row, 'name', 'note') == ('after', 'before')
+
+
+@pytest.mark.parametrize('load', ['refresh_from_db', 'fetch_one', 'fetch_peers'])
+@pytest.mark.usefixtures('tables')
+def test_a_field_read_from_the_database_is_no_assignment(load: str) -> None:
+    """A field reloaded, or deferred then loaded, is left out of the next save of other fields."""
+    _Row.objects.create(name='first', note='before')
+    second = _Row.objects.create(name='second', note='before')
+
+    match load:
+        case 'refresh_from_db':
+            row = second
+            row.refresh_from_db()
+        case 'fetch_one':
+            row = _Row.objects.only('name').get(pk=second.pk)
+        case 'fetch_peers':
+            first, row = _Row.objects.only('name').fetch_mode(models.FETCH_PEERS).order_by('pk')
+            assert first.note == 'before'
+    assert row.note == 'before'
+
+    _Row.objects.filter(pk=row.pk).update(note='elsewhere')
+    row.name = 'after'
+    row.save()
+    assert _get_stored(row, 'name', 'note') == ('after', 'elsewhere')
+
+
+@pytest.mark.usefixtures('tables')
+def test_an_unpickled_row_tracks_its_assignments(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A save of a row unpickled before its model built any instance writes the fields assigned."""
+    row = _Row.objects.create(name='before', note='before')
+    data = pickle.dumps(row)
+    monkeypatch.delattr(_Row, '_field_attnames')
+    # Unpickling looks the model up in the app registry, where the test app is not installed.
+    with patch.object(apps, 'get_model', return_value=_Row):
+        clone = pickle.loads(data)
+    clone.name = 'after'
+    clone.save()
+    assert _get_stored(row, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_of_a_row_deleted_meanwhile_fails() -> None:
+    """An update is forced by default: a row deleted since it was read is not inserted again."""
+    reading = _Reading.objects.create(note='before', value=1)
+    _Reading.objects.filter(pk=reading.pk).delete()
+    with pytest.raises(ObjectNotUpdated):
+        reading.save()
+    assert not _Reading.objects.exists()
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_validates_the_row() -> None:
+    """A row failing :meth:`full_clean` is not saved: the save fails before the database."""
+    with pytest.raises(ValidationError):
+        _Row(name='x' * 101, note='before').save()
+    assert not _Row.objects.exists()
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_validates_nothing_when_validation_is_off() -> None:
+    """A save with ``validate=False`` or ``validate_on_save`` off writes an invalid row."""
+    _Row(name='x' * 101, note='before').save(validate=False)
+    with patch.object(_Row, 'validate_on_save', False):
+        _Row(name='y' * 101, note='before').save()
+    assert _Row.objects.count() == 2
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_validates_without_the_deferred_fields() -> None:
+    """
+    A save of every field validates them all but the deferred fields and the fields
+    ``validate_on_save_kwargs`` excludes, by name.
+    """
+    row = _Row.objects.create(name='before', note='before')
+    row = _Row.objects.only('name').get(pk=row.pk)
+    with (
+        patch.object(_Row, 'track_update_fields', False),
+        patch.object(_Row, 'validate_on_save_kwargs', {'exclude': ['name']}),
+        patch.object(_Row, 'full_clean') as full_clean,
+    ):
+        row.save()
+    full_clean.assert_called_once_with(exclude=['name', 'note', 'slug', 'stamp', 'label'])
+
+
+@pytest.mark.parametrize(
+    ('model', 'num_queries'),
+    [(_Reading, 2), (_ReadingValidatedWithoutRelations, 1)],
+)
+@pytest.mark.usefixtures('tables')
+def test_validation_kwargs_overridden_leave_the_relation_fields_out(
+    model: type[_Reading],
+    num_queries: int,
+) -> None:
+    """A save validating its relation fields reads the related row, one without them does not."""
+    job = _Job.objects.create(name='job', state=_JobState.PENDING)
+    reading = model.objects.create(note='before', value=1)
+    reading.job = job
+    with CaptureQueriesContext(connection) as queries:
+        reading.save()
+    assert len(queries) == num_queries
+    assert _get_stored(reading, 'job') == (job.pk,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_limited_save_validates_the_fields_it_writes() -> None:
+    """A tracked save of a row holding an invalid value validates and writes the fields assigned."""
+    row = _Row.objects.create(name='before', note='before')
+    _Row.objects.filter(pk=row.pk).update(note='x' * 101)
+    row = _Row.objects.get(pk=row.pk)
+    row.name = 'after'
+    row.save()
+    assert _get_stored(row, 'name', 'note') == ('after', 'x' * 101)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_of_every_field_validates_them_all() -> None:
+    """A save of every field fails on an invalid value in any of them."""
+    row = _Row.objects.create(name='before', note='before')
+    _Row.objects.filter(pk=row.pk).update(note='x' * 101)
+    row = _Row.objects.get(pk=row.pk)
+    row.name = 'after'
+    with patch.object(_Row, 'track_update_fields', False), pytest.raises(ValidationError):
+        row.save()
+    assert _get_stored(row, 'name') == ('before',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_writes_the_fields_clean_assigns() -> None:
+    """A field the model's ``clean()`` assigns is written with the fields assigned before."""
+    row = _Row.objects.create(name='Before', note='before')
+    row.name = 'After'
+    row.save()
+    assert _get_stored(row, 'name', 'slug') == ('After', 'after')
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_failing_validation_assigns_no_field() -> None:
+    """A save failing validation leaves the next save to write the fields assigned alone."""
+    job = _Job.objects.create(name='before', state=_JobState.FAILED)
+    job.name = 'x' * 101
+    with pytest.raises(ValidationError):
+        job.save()
+    job.name = 'after'
+    job.save()
+    assert _get_stored(job, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_validation_outside_a_save_assigns_no_field() -> None:
+    """Validating a row before saving it leaves the save to write the fields assigned alone."""
+    job = _Job.objects.create(name='before', state=_JobState.FAILED)
+    job.full_clean()
+    job.clean_fields()
+    job.name = 'after'
+    job.save()
+    assert _get_stored(job, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_validates_a_value_compared_element_by_element() -> None:
+    """A save validates a value whose ``==`` compares element by element, as a numpy array's."""
+    embedding = _Embedding.objects.create(name='before', vector=[1.0, 2.0])
+    embedding = _Embedding.objects.get(pk=embedding.pk)
+    embedding.name = 'after'
+    embedding.save()
+    stored = _Embedding.objects.get(pk=embedding.pk)
+    assert (stored.name, stored.vector.tolist()) == ('after', [1.0, 2.0])
+
+
+def test_a_save_failing_validation_stores_no_upload() -> None:
+    """A save of a row failing validation stores no upload."""
+    attachment = _Attachment(file=ContentFile(b'content', name='upload.txt'))
+    with pytest.raises(ValidationError):
+        attachment.save()
+    assert _Attachment.meta().get_field('file').storage.listdir('') == ([], [])
+
+
+@pytest.mark.usefixtures('tables')
+def test_an_asynchronous_save_saves_as_save_does() -> None:
+    """``asave()`` forces the insert and the update, and takes the keywords ``save()`` takes."""
+    row = _Row.objects.create(name='before', note='before')
+    with patch.object(_Row, 'validate_on_save', False), pytest.raises(IntegrityError):
+        async_to_sync(_Row(name='after', note='after', pk=row.pk).asave)()
+    assert _get_stored(row, 'name') == ('before',)
+
+    row.name = 'after'
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        async_to_sync(row.asave)(pre_filters={'note': 'other'})
+    assert _get_stored(row, 'name') == ('before',)
+
+    reading = _Reading.objects.create(note='before', value=1)
+    _Reading.objects.filter(pk=reading.pk).delete()
+    with pytest.raises(ObjectNotUpdated):
+        async_to_sync(reading.asave)()
+    assert not _Reading.objects.exists()
+
+
+def test_django_asave_still_runs_save() -> None:
+    """
+    Django's ``asave()`` still runs ``save()`` with the same four keywords: the ``asave()`` of
+    :class:`~pytoolbox.django.models.mixins.BatteriesIncludedModelMixin` mirrors that
+    ``sync_to_async`` wrapper.
+    """
+    with patch.object(models.Model, 'save') as save:
+        async_to_sync(models.Model.asave)(ContentType())
+    save.assert_called_once_with(
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    )
+    assert list(inspect.signature(models.Model.asave).parameters) == [
+        'self',
+        'force_insert',
+        'force_update',
+        'using',
+        'update_fields',
+    ]
+
+
+# --- BatteriesIncludedModelMixin: preconditions ---------------------------------------------------
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_writes_a_row_meeting_its_preconditions() -> None:
+    """A save writes a row matching all of ``pre_filters`` and none of ``pre_excludes``."""
+    row = _Row.objects.create(name='before', note='before')
+    row.name = 'after'
+    row.save(pre_excludes={'note': 'other'}, pre_filters={'note': 'before'})
+    assert _get_stored(row, 'name') == ('after',)
+
+
+@pytest.mark.parametrize(
+    'preconditions',
+    [{'pre_excludes': {'note': 'before'}}, {'pre_filters': {'note': 'other'}}],
+)
+@pytest.mark.usefixtures('tables')
+def test_a_save_of_a_row_failing_its_preconditions_fails(preconditions: dict) -> None:
+    """A save of a row failing a precondition writes nothing, and keeps the fields to write."""
+    row = _Row.objects.create(name='before', note='before')
+    row.name = 'after'
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        row.save(**preconditions)
+    assert _get_stored(row, 'name') == ('before',)
+    assert row._assigned_fields == {'name', 'slug', 'stamp'}
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_with_preconditions_of_a_row_deleted_meanwhile_fails() -> None:
+    """A forced update with preconditions, of a row deleted since it was read, raises."""
+    reading = _Reading.objects.create(note='before', value=1)
+    _Reading.objects.filter(pk=reading.pk).delete()
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        reading.save(pre_filters={'note': 'before'})
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_failing_its_preconditions_inserts_no_row() -> None:
+    """A save failing its preconditions inserts nothing, the row deleted after its update or not."""
+    reading = _Reading.objects.create(note='before', value=1)
+    update = QuerySet._update
+
+    def update_then_delete(queryset: QuerySet, *args: Any) -> Any:
+        rows = update(queryset, *args)
+        _Reading.objects.filter(pk=reading.pk).delete()
+        return rows
+
+    reading.value = 2
+    with (
+        patch.object(QuerySet, '_update', update_then_delete),
+        pytest.raises(exceptions.DatabaseUpdatePreconditionsError),
+    ):
+        reading.save(force_update=False, pre_filters={'note': 'other'})
+    assert not _Reading.objects.exists()
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_of_a_row_matching_one_exclusion_fails() -> None:
+    """A row matching any of ``pre_excludes`` is not written."""
+    row = _Row.objects.create(name='before', note='before')
+    row.name = 'after'
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        row.save(pre_excludes={'note': 'before', 'slug': 'other'})
+    assert _get_stored(row, 'name') == ('before',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_of_a_row_split_over_tables_checks_its_preconditions() -> None:
+    """No table of a row failing its preconditions is written, whatever table holds them."""
+    child = _Child.objects.create(note='before', version=4)
+    child.note = 'after'
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        child.save(pre_filters={'version': 3})
+    child.version = 5
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        child.save(pre_filters={'note': 'other'})
+    assert _get_stored(child, 'version', 'note') == (4, 'before')
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_save_nested_in_a_save_keeps_its_preconditions() -> None:
+    """A ``pre_save`` receiver saving the instance again leaves the outer update guarded."""
+
+    def save_again(instance: _Job, **kwargs: Any) -> None:
+        if instance.name != 'saved again':
+            instance.name = 'saved again'
+            instance.save(check_state=False, update_fields=['name'])
+
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    models.signals.pre_save.connect(save_again, sender=_Job, weak=False)
+    try:
+        job.state = _JobState.COMPLETED
+        with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+            job.save()
+    finally:
+        models.signals.pre_save.disconnect(save_again, sender=_Job)
+    assert _get_stored(job, 'state') == (_JobState.PENDING,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_preconditions_apply_to_one_save() -> None:
+    """The preconditions of an insert do not carry over to the next save."""
+    row = _Row(name='before', note='before')
+    row.save(pre_filters={'note': 'other'})
+    row.name = 'after'
+    row.save()
+    assert _get_stored(row, 'name') == ('after',)
+
+
+# --- BatteriesIncludedModelMixin: state machine ---------------------------------------------------
+
+
+def _get_preconditions(job: _Job, **options: Any) -> mixins.Preconditions:
+    """
+    Return the preconditions of an update of *job* writing its state.
+
+    The keyword arguments are those of an unguarded save, with *options* over the defaults.
+    """
+    return job.get_preconditions(
+        frozenset(['name', 'state']),
+        **{'check_state': True, 'pre_excludes': {}, 'pre_filters': {}, **options},
+    )
+
+
+def test_state_precondition_filters_the_states_allowed() -> None:
+    """Saving a state only some states reach is guarded by those states."""
+    assert _get_preconditions(_Job(state=_JobState.RUNNING)) == mixins.Preconditions(
+        pre_excludes={},
+        pre_filters={'state': 'PENDING'},
+    )
+
+
+def test_state_precondition_filters_the_states_allowed_when_most_are() -> None:
+    """Saving a state most states reach is guarded by the list of those states."""
+    with patch.object(_Job, 'states', _LampState):
+        assert _get_preconditions(_Job(state=_LampState.LOST)) == mixins.Preconditions(
+            pre_excludes={},
+            pre_filters={'state__in': frozenset(['OFF', 'ON', 'BROKEN'])},
         )
 
-        class Meta:
-            """Meta class for test model."""
 
-            app_label = 'test'
-
-    instance = TestModel.__new__(TestModel)
-    kwargs = instance.validate_on_save_kwargs
-    assert 'other' in kwargs['exclude']
-    assert 'name' not in kwargs['exclude']
-
-
-# --- PublicMetaMixin ------------------------------------------------------------------------------
-
-
-def test_public_meta_mixin() -> None:
-    """meta() classmethod exposes the private _meta for use in templates."""
-
-    class TestModel(mixins.PublicMetaMixin, models.Model):
-        """Test model for testing PublicMetaMixin."""
-
-        class Meta:
-            """Meta class for test model."""
-
-            app_label = 'test'
-
-    assert TestModel.meta() is TestModel._meta  # pylint:disable=no-member
-
-
-# --- ValidateOnSaveMixin --------------------------------------------------------------------------
-
-
-def test_validate_on_save_mixin_calls_full_clean() -> None:
-    """save() calls full_clean() when validate_on_save is True (default)."""
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.ValidateOnSaveMixin, Base):
-        """Test object with ValidateOnSaveMixin."""
-
-        full_clean = MagicMock()
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return no deferred field."""
-            return set()
-
-    obj = TestObj()
-    obj.save()
-    obj.full_clean.assert_called_once_with()
-
-
-def test_validate_on_save_mixin_leaves_deferred_fields_out() -> None:
-    """save() validates without the deferred fields, by name: their stored values were not read."""
-    title = MagicMock(attname='title')
-    title.name = 'title'
-    body = MagicMock(attname='body')
-    body.name = 'body'
-    author = MagicMock(attname='author_id')
-    author.name = 'author'
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.ValidateOnSaveMixin, Base):
-        """Test object with ValidateOnSaveMixin, two of its fields deferred."""
-
-        _meta = MagicMock(concrete_fields=[title, body, author])
-        full_clean = MagicMock()
-        validate_on_save_kwargs = {'exclude': ['title']}
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return the deferred fields' attnames."""
-            return {'author_id', 'body'}
-
-    obj = TestObj()
-    obj.save()
-    obj.full_clean.assert_called_once_with(exclude=['title', 'body', 'author'])
-
-
-def test_validate_on_save_mixin_skips_when_disabled() -> None:
-    """save() skips full_clean() when validate_on_save is set to False."""
-
-    class Base:
-        """Base class with save method."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.ValidateOnSaveMixin, Base):
-        """Test object with ValidateOnSaveMixin disabled."""
-
-        validate_on_save = False
-        full_clean = MagicMock()
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return no deferred field."""
-            return set()
-
-    obj = TestObj()
-    obj.save()
-    obj.full_clean.assert_not_called()
-
-
-def test_validate_on_save_mixin_skips_via_kwarg() -> None:
-    """save(validate=False) bypasses full_clean() even if default is True."""
-
-    class Base:
-        """Base class with save method."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.ValidateOnSaveMixin, Base):
-        """Test object with ValidateOnSaveMixin."""
-
-        full_clean = MagicMock()
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return no deferred field."""
-            return set()
-
-    obj = TestObj()
-    obj.save(validate=False)
-    obj.full_clean.assert_not_called()
-
-
-# --- AlwaysUpdateFieldsMixin ----------------------------------------------------------------------
-
-
-def test_always_update_fields_mixin() -> None:
-    """always_update_fields are injected into update_fields when saving."""
-    saved_kwargs = {}
-
-    class Base:
-        """Base class with save method."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
-        """Test object with AlwaysUpdateFieldsMixin."""
-
-        always_update_fields = ('modified_at',)
-
-    obj = TestObj()
-    obj.save(update_fields=['name'])
-    assert 'modified_at' in saved_kwargs['update_fields']
-    assert 'name' in saved_kwargs['update_fields']
-
-
-def test_always_update_fields_mixin_no_update_fields() -> None:
-    """Without update_fields, always_update_fields does not force a partial."""
-    saved_kwargs = {}
-
-    class Base:
-        """Base class with save method."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
-        """Test object with AlwaysUpdateFieldsMixin."""
-
-        always_update_fields = ('modified_at',)
-
-    obj = TestObj()
-    obj.save()
-    assert saved_kwargs['update_fields'] is None
-
-
-def test_always_update_fields_mixin_force_update() -> None:
-    """force_update=True also triggers always_update_fields injection."""
-    saved_kwargs = {}
-
-    class Base:
-        """Base class with save method."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AlwaysUpdateFieldsMixin, Base):
-        """Test object with AlwaysUpdateFieldsMixin."""
-
-        always_update_fields = ('modified_at',)
-
-    obj = TestObj()
-    obj.save(force_update=True)
-    assert 'modified_at' in saved_kwargs['update_fields']
-
-
-# --- AutoForceInsertMixin -------------------------------------------------------------------------
-
-
-def test_auto_force_insert_mixin() -> None:
-    """force_insert is set from _state.adding when not explicitly provided."""
-    saved_kwargs = {}
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AutoForceInsertMixin, Base):
-        """Test object with AutoForceInsertMixin."""
-
-        _state = MagicMock(adding=True)
-
-    obj = TestObj()
-    obj.save()
-    assert saved_kwargs['force_insert'] is True
-
-    saved_kwargs.clear()
-    obj._state.adding = False
-    obj.save()
-    assert saved_kwargs['force_insert'] is False
-
-
-def test_auto_force_insert_mixin_explicit_override() -> None:
-    """Explicit force_insert=False is not overridden by _state.adding."""
-    saved_kwargs = {}
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AutoForceInsertMixin, Base):
-        """Test object with AutoForceInsertMixin."""
-
-        _state = MagicMock(adding=True)
-
-    obj = TestObj()
-    obj.save(force_insert=False)
-    assert saved_kwargs['force_insert'] is False
-
-
-# --- CallFieldsPreSaveMixin -----------------------------------------------------------------------
-
-
-def test_call_fields_pre_save_mixin() -> None:
-    """pre_save is called on every writable non-pk field; the pk field is skipped."""
-    field1 = MagicMock(primary_key=False, generated=False)
-    field2 = MagicMock(primary_key=True, generated=False)
-    field3 = MagicMock(primary_key=False, generated=False)
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.CallFieldsPreSaveMixin, Base):
-        """Test object with CallFieldsPreSaveMixin."""
-
-        _meta = MagicMock(local_concrete_fields=[field1, field2, field3])
-        _state = MagicMock(adding=False)
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return no deferred field."""
-            return set()
-
-    obj = TestObj()
-    obj.save()
-    field1.pre_save.assert_called_once_with(obj, False)
-    field2.pre_save.assert_not_called()
-    field3.pre_save.assert_called_once_with(obj, False)
-
-
-def test_call_fields_pre_save_mixin_skips_generated_fields() -> None:
-    """A generated column is skipped: its pre_save would lazy-load an uncomputed value and fail."""
-    writable = MagicMock(primary_key=False, generated=False)
-    generated = MagicMock(primary_key=False, generated=True)
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.CallFieldsPreSaveMixin, Base):
-        """Test object with CallFieldsPreSaveMixin."""
-
-        _meta = MagicMock(local_concrete_fields=[writable, generated])
-        _state = MagicMock(adding=True)
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return no deferred field."""
-            return set()
-
-    obj = TestObj()
-    obj.save()
-    writable.pre_save.assert_called_once_with(obj, True)
-    generated.pre_save.assert_not_called()
-
-
-def test_call_fields_pre_save_mixin_skips_deferred_fields() -> None:
-    """A deferred field is skipped: its pre_save would load a value the save does not write."""
-    loaded = MagicMock(primary_key=False, generated=False, attname='title')
-    deferred = MagicMock(primary_key=False, generated=False, attname='body')
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-
-    class TestObj(mixins.CallFieldsPreSaveMixin, Base):
-        """Test object with CallFieldsPreSaveMixin, one of its fields deferred."""
-
-        _meta = MagicMock(local_concrete_fields=[loaded, deferred])
-        _state = MagicMock(adding=False)
-
-        def get_deferred_fields(self) -> set[str]:
-            """Return the deferred field's attname."""
-            return {'body'}
-
-    obj = TestObj()
-    obj.save()
-    loaded.pre_save.assert_called_once_with(obj, False)
-    deferred.pre_save.assert_not_called()
-
-
-# --- ReloadMixin ----------------------------------------------------------------------------------
-
-
-def test_reload_mixin() -> None:
-    """reload() fetches a fresh instance from the default manager by pk."""
-    mock_instance = MagicMock()
-
-    class TestObj(mixins.ReloadMixin):
-        """Test object with ReloadMixin."""
-
-        pk = 42
-        _meta = MagicMock()
-
-    TestObj._meta.model._default_manager.get.return_value = mock_instance
-    obj = TestObj()
-    result = obj.reload()
-    TestObj._meta.model._default_manager.get.assert_called_once_with(pk=42)
-    assert result is mock_instance
-
-
-# --- AutoRemovePKFromUpdateFieldsMixin ------------------------------------------------------------
-
-
-def _make_auto_remove_pk_obj(pk_value=1):
-    """Create a test object for AutoRemovePKFromUpdateFieldsMixin."""
-    saved_kwargs = {}
-
-    class Base:
-        """Test class."""
-
-        def __init__(self):
-            self.pk = pk_value
-            self._meta = MagicMock()
-            self._meta.pk.attname = 'id'
-
-        def save(self, **kwargs):
-            """Test method."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AutoRemovePKFromUpdateFieldsMixin, Base):
-        """Test object with AutoRemovePKFromUpdateFieldsMixin."""
-
-    return TestObj(), saved_kwargs
-
-
-def test_auto_remove_pk_unchanged_pk_removed() -> None:
-    """Unchanged PK is removed from update_fields to avoid Django error."""
-    obj, saved_kwargs = _make_auto_remove_pk_obj(pk_value=1)
-    obj.save(update_fields={'id', 'name'})
-    assert 'id' not in saved_kwargs['update_fields']
-    assert 'name' in saved_kwargs['update_fields']
-
-
-def test_auto_remove_pk_changed_pk_clears_args() -> None:
-    """Changed PK triggers duplication pattern: force_insert etc removed."""
-    obj, saved_kwargs = _make_auto_remove_pk_obj(pk_value=1)
-    obj.pk = 999  # Simulate changing PK for duplication
-    obj.save(
-        update_fields={'id', 'name'},
-        force_insert=True,
-        force_update=False,
-    )
-    assert saved_kwargs['force_insert'] is False
-    assert saved_kwargs['force_update'] is False
-    assert saved_kwargs['update_fields'] is None
-
-
-def test_auto_remove_pk_updates_previous_pk_after_save() -> None:
-    """previous_pk is updated to current pk after a successful save."""
-    obj, _ = _make_auto_remove_pk_obj(pk_value=1)
-    assert obj.previous_pk == 1
-    obj.pk = 2
-    obj.save(update_fields={'id'})
-    assert obj.previous_pk == 2
-
-
-def test_auto_remove_pk_no_update_fields() -> None:
-    """Without update_fields the mixin does nothing special."""
-    obj, saved_kwargs = _make_auto_remove_pk_obj(pk_value=1)
-    obj.save()
-    # update_fields=None so the branch is skipped
-    assert saved_kwargs['update_fields'] is None
-
-
-# --- AutoUpdateFieldsMixin ------------------------------------------------------------------------
-
-
-def _make_auto_update_obj(adding=False):
-    """Create a test object for AutoUpdateFieldsMixin."""
-    saved_kwargs = {}
-
-    class Base:
-        """Test class."""
-
-        def __init__(self):
-            self._state = MagicMock(adding=adding)
-            self._meta = MagicMock()
-            field_name = MagicMock(attname='name')
-            field_status = MagicMock(attname='status')
-            self._meta.fields = [field_name, field_status]
-
-        def save(self, *args, **kwargs):
-            """Save method implementation."""
-            saved_kwargs.update(kwargs)
-
-    class TestObj(mixins.AutoUpdateFieldsMixin, Base):
-        """Test object with AutoUpdateFieldsMixin."""
-
-    return TestObj(), saved_kwargs
-
-
-def test_auto_update_fields_tracks_setattr() -> None:
-    """Fields set via __setattr__ are tracked for update_fields."""
-    obj, saved_kwargs = _make_auto_update_obj(adding=False)
-    obj.name = 'new value'
-    obj.save()
-    assert 'name' in saved_kwargs['update_fields']
-
-
-def test_auto_update_fields_resets_after_save() -> None:
-    """Tracked fields are cleared after save."""
-    obj, _ = _make_auto_update_obj(adding=False)
-    obj.name = 'new value'
-    obj.save()
-    assert obj._setted_fields == set()
-
-
-def test_auto_update_fields_skips_adding() -> None:
-    """When _state.adding is True, update_fields is not auto-populated."""
-    obj, saved_kwargs = _make_auto_update_obj(adding=True)
-    obj.name = 'new value'
-    obj.save()
-    assert saved_kwargs['update_fields'] is None
-
-
-def test_auto_update_fields_default_force_update() -> None:
-    """force_update defaults to default_force_update when not given."""
-    obj, saved_kwargs = _make_auto_update_obj(adding=False)
-    obj.save()
-    assert saved_kwargs['force_update'] is False
-
-
-def test_auto_update_fields_force_insert_skips() -> None:
-    """force_insert=True bypasses auto update_fields detection."""
-    obj, saved_kwargs = _make_auto_update_obj(adding=False)
-    obj.name = 'changed'
-    obj.save(force_insert=True)
-    assert saved_kwargs['update_fields'] is None
+def test_state_precondition_filters_the_states_declared_when_every_one_is_allowed() -> None:
+    """Saving a state every state reaches, itself included, is guarded by the states declared."""
+    with patch.object(_Job, 'states', _LampState):
+        assert _get_preconditions(_Job(state=_LampState.BROKEN)) == mixins.Preconditions(
+            pre_excludes={},
+            pre_filters={'state__in': _LampState.ALL_STATES},
+        )
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_fails_an_update_into_a_state_no_transition_leads_into() -> None:
+    """An update writing a state no transition leads into fails, whatever the stored state."""
+    with patch.object(_Job, 'states', _LampState):
+        job = _Job.objects.create(name='before', state=_LampState.OFF)
+        job.state = _LampState.OFF
+        with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+            job.save()
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_refuses_a_stored_state_not_declared() -> None:
+    """A row holding a state ``states`` does not declare moves into no state."""
+    with patch.object(_Job, 'states', _LampState):
+        job = _Job.objects.create(name='before', state=_LampState.OFF)
+        _Job.objects.filter(pk=job.pk).update(state='LEGACY')
+        for state in (_LampState.LOST, _LampState.BROKEN):
+            job = _Job.objects.get(pk=job.pk)
+            job.state = state
+            with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+                job.save()
+    assert _get_stored(job, 'state') == ('LEGACY',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_holds_beside_the_save_exclusions() -> None:
+    """A save's ``pre_excludes`` naming other fields leave the state precondition whole."""
+    with patch.object(_Job, 'states', _LampState):
+        job = _Job.objects.create(name='free', state=_LampState.LOST)
+        job.state = _LampState.LOST
+        with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+            job.save(pre_excludes={'name': 'locked'})
+
+
+def test_state_precondition_left_to_the_save_naming_the_state() -> None:
+    """A save whose own preconditions name the state gets no other precondition on it."""
+    pre_filters = {'state__in': ['PENDING', 'RUNNING']}
+    assert _get_preconditions(
+        _Job(state=_JobState.RUNNING),
+        pre_filters=pre_filters,
+    ) == mixins.Preconditions(pre_excludes={}, pre_filters=pre_filters)
+
+
+@pytest.mark.parametrize(
+    ('fields', 'check_state'),
+    [(frozenset(['name']), True), (frozenset(['name', 'state']), False)],
+)
+def test_state_precondition_skipped_for_an_update_not_checking_the_state(
+    fields: frozenset[str],
+    check_state: bool,
+) -> None:
+    """An update not writing the state, or with ``check_state`` off, gets no state precondition."""
+    assert _Job(state=_JobState.RUNNING).get_preconditions(
+        fields,
+        check_state=check_state,
+        pre_excludes={},
+        pre_filters={},
+    ) == mixins.Preconditions(pre_excludes={}, pre_filters={})
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_left_out_of_a_save_without_the_state() -> None:
+    """A save of other fields writes no state, and needs no transition into the current one."""
+    job = _Job.objects.create(name='before', state=_JobState.RUNNING)
+    job.name = 'after'
+    job.save(update_fields=['name'])
+    assert _get_stored(job, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_left_out_of_a_tracked_save_without_the_state() -> None:
+    """A tracked save of fields other than the state needs no transition into the current one."""
+    job = _Job.objects.create(name='before', state=_JobState.RUNNING)
+    job.name = 'after'
+    job.save()
+    assert _get_stored(job, 'name') == ('after',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_guards_a_tracked_save() -> None:
+    """A tracked save writing a state ``states`` leads into from no state stored fails."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job.state = _JobState.COMPLETED
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        job.save()
+    assert _get_stored(job, 'state') == (_JobState.PENDING,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_guards_a_transition_from_a_state_moved_meanwhile() -> None:
+    """A transition declared from the state read fails once the stored state moved."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    _Job.objects.filter(pk=job.pk).update(state=_JobState.RUNNING)
+    job.state = _JobState.RUNNING
+    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
+        job.save()
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_skipped_by_check_state() -> None:
+    """A tracked save with ``check_state`` off writes any state, as syncing an outside one does."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job.check_state = False
+    job.state = _JobState.COMPLETED
+    job.save()
+    assert _get_stored(job, 'state') == (_JobState.COMPLETED,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_precondition_skipped_by_the_save() -> None:
+    """A save with ``check_state=False`` writes any state."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job.state = _JobState.COMPLETED
+    job.save(check_state=False)
+    assert _get_stored(job, 'state') == (_JobState.COMPLETED,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_transition_hook_assigns_fields_its_save_writes() -> None:
+    """The fields the transition hook assigns are written by the save of the transition alone."""
+    job = _FinishedJob.objects.create(name='before', state=_JobState.RUNNING)
+    job.state = _JobState.COMPLETED
+    job.save()
+    assert job.finished_at is not None
+    assert _get_stored(job, 'finished_at') == (job.finished_at,)
+
+    _Job.objects.filter(pk=job.pk).update(finished_at=None)
+    job = _FinishedJob.objects.get(pk=job.pk)
+    job.name = 'after'
+    job.save()
+    assert _get_stored(job, 'finished_at') == (None,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_transition_hook_assigns_fields_a_limited_save_writes() -> None:
+    """A save limited to the state writes the fields the transition hook assigns."""
+    job = _FinishedJob.objects.create(name='before', state=_JobState.RUNNING)
+    job = _FinishedJob.objects.get(pk=job.pk)
+    job.state = _JobState.COMPLETED
+    job.save(update_fields=['state'])
+    assert _get_stored(job, 'state', 'finished_at') == (_JobState.COMPLETED, job.finished_at)
+    assert job.finished_at is not None
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_transition_hook_skipped_by_a_limited_save_without_the_state() -> None:
+    """A new state left out of a limited save leaves the transition hook to the save writing it."""
+    job = _FinishedJob.objects.create(name='before', state=_JobState.RUNNING)
+    job.state = _JobState.COMPLETED
+    job.name = 'after'
+    job.save(update_fields=['name'])
+    assert job.finished_at is None
+    assert _get_stored(job, 'state', 'finished_at') == (_JobState.RUNNING, None)
+
+
+@pytest.mark.usefixtures('tables')
+def test_state_transition_hook_runs_on_an_insert_with_a_state() -> None:
+    """An insert with a state calls the transition hook, from no previous state."""
+    job = _FinishedJob.objects.create(name='before', state=_JobState.COMPLETED)
+    assert job.finished_at is not None
+    assert _get_stored(job, 'finished_at') == (job.finished_at,)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_state_transition_is_signalled(transitions: list[dict[str, Any]]) -> None:
+    """A save writing a new state signals the transition, from the state it moved from."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job.state = _JobState.RUNNING
+    job.save()
+    assert [(t['instance'], t['previous_state']) for t in transitions] == [
+        (job, _JobState.PENDING),
+    ]
+    assert job.previous_state == _JobState.RUNNING
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_state_transition_is_signalled_once_when_a_receiver_saves_again(
+    transitions: list[dict[str, Any]],
+) -> None:
+    """A receiver of the transition saving the instance again signals no second transition."""
+
+    def save_again(instance: _Job, **kwargs: Any) -> None:
+        if instance.name != 'saved again':
+            instance.name = 'saved again'
+            instance.save(check_state=False)
+
+    signals.post_state_transition.connect(save_again, sender=_Job, weak=False)
+    try:
+        with patch.object(_Job, 'track_update_fields', False):
+            job = _Job.objects.create(name='before', state=_JobState.PENDING)
+            job.state = _JobState.RUNNING
+            job.save()
+    finally:
+        signals.post_state_transition.disconnect(save_again, sender=_Job)
+    assert [t['previous_state'] for t in transitions] == [_JobState.PENDING]
+    assert _get_stored(job, 'name') == ('saved again',)
+
+
+@pytest.mark.usefixtures('tables')
+def test_no_state_transition_on_a_save_leaving_the_state(transitions: list[dict[str, Any]]) -> None:
+    """A save writing other fields, or the state it read, signals no transition."""
+    job = _Job.objects.create(name='before', state=_JobState.FAILED)
+    job.name = 'after'
+    job.save()
+    job.state = _JobState.FAILED
+    job.save(check_state=False)
+    assert transitions == []
+
+
+@pytest.mark.usefixtures('tables')
+def test_no_state_transition_on_a_save_without_the_state(
+    transitions: list[dict[str, Any]],
+) -> None:
+    """A save limited to other fields signals no transition, the new state still unwritten."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job.state = _JobState.RUNNING
+    job.save(update_fields=['name'])
+    assert transitions == []
+    assert job.previous_state == _JobState.PENDING
+
+
+@pytest.mark.usefixtures('tables')
+def test_no_state_transition_on_an_empty_save(transitions: list[dict[str, Any]]) -> None:
+    """A save writing no field, which Django skips, signals no state transition."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job.state = _JobState.RUNNING
+    job.save(update_fields=[])
+    assert transitions == []
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_deferred_state_stays_unread_on_load() -> None:
+    """Rows loaded with their state deferred cost one query, whatever their number."""
+    _Job.objects.create(name='first', state=_JobState.PENDING)
+    _Job.objects.create(name='second', state=_JobState.PENDING)
+    with CaptureQueriesContext(connection) as queries:
+        jobs = list(_Job.objects.only('name'))
+    assert len(queries) == 1
+    assert all('state' in job.get_deferred_fields() for job in jobs)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_deferred_state_loaded_with_its_peers_is_their_previous_state() -> None:
+    """A deferred state loaded for every row of a query at once is the previous state of each."""
+    _Job.objects.create(name='first', state=_JobState.PENDING)
+    _Job.objects.create(name='second', state=_JobState.RUNNING)
+    first, second = _Job.objects.only('name').fetch_mode(models.FETCH_PEERS).order_by('pk')
+    assert first.state == _JobState.PENDING
+    assert (first.previous_state, second.previous_state) == (_JobState.PENDING, _JobState.RUNNING)
+
+
+@pytest.mark.usefixtures('tables')
+def test_a_deferred_state_read_later_is_the_previous_state(
+    transitions: list[dict[str, Any]],
+) -> None:
+    """A deferred state is the previous state once read, and unknown before."""
+    job = _Job.objects.create(name='before', state=_JobState.PENDING)
+    job = _Job.objects.only('name').get(pk=job.pk)
+    assert job.previous_state is Missing
+
+    assert job.state == _JobState.PENDING
+    assert job.previous_state == _JobState.PENDING
+
+    job.state = _JobState.RUNNING
+    job.save()
+    assert [t['previous_state'] for t in transitions] == [_JobState.PENDING]
+
+
+def test_can_transit_to_declared() -> None:
+    """A transition declared in ``states`` is possible."""
+    assert _Job(state=_JobState.PENDING).can_transit_to(_JobState.RUNNING) is True
+
+
+def test_can_transit_to_not_declared() -> None:
+    """A transition not declared in ``states`` is not possible."""
+    assert _Job(state=_JobState.PENDING).can_transit_to(_JobState.COMPLETED) is False
+
+
+def test_can_transit_to_raises_on_fail() -> None:
+    """A transition not declared in ``states`` raises, with ``fail`` on."""
+    with pytest.raises(exceptions.TransitionNotAllowedError):
+        _Job(state=_JobState.PENDING).can_transit_to(_JobState.COMPLETED, fail=True)
+
+
+def test_can_transit_to_noop_skip() -> None:
+    """A transition to the current state is skipped with ``noop_skip`` on, even with ``fail`` on."""
+    job = _Job(state=_JobState.PENDING)
+    assert job.can_transit_to(_JobState.PENDING, fail=True, noop_skip=True) is False
+
+
+def test_check_state_in_valid() -> None:
+    """A current state among those given is found."""
+    assert _Job(state=_JobState.PENDING).check_state_in(['PENDING', 'RUNNING']) is True
+
+
+def test_check_state_in_invalid() -> None:
+    """A current state out of those given is not found."""
+    assert _Job(state=_JobState.PENDING).check_state_in(['COMPLETED']) is False
+
+
+def test_check_state_in_raises_on_fail() -> None:
+    """A current state out of those given raises, with ``fail`` on."""
+    with pytest.raises(exceptions.InvalidStateError):
+        _Job(state=_JobState.PENDING).check_state_in(['COMPLETED'], fail=True)
+
+
+# --- BatteriesIncludedModelMixin: accessors -------------------------------------------------------
+
+
+def test_a_template_reads_the_options() -> None:
+    """A template reads the model's options, which their name ``_meta`` hides from it."""
+    rendered = Template('{{ row.meta.verbose_name }}').render(Context({'row': _Row()}))
+    assert rendered == _Row._meta.verbose_name  # pylint:disable=no-member
+
+
+def test_a_related_model_and_its_manager_are_found_through_the_field() -> None:
+    """The model a foreign key leads to, and its default manager, are found by the key's name."""
+    assert _Reading.get_related_model('job') is _Job
+    assert _Reading.get_related_manager('job') is _Job._default_manager
+
+
+@pytest.mark.usefixtures('tables')
+def test_reload_reads_the_row_again() -> None:
+    """A reload holds the stored values, in a new instance."""
+    row = _Row.objects.create(name='before', note='before')
+    _Row.objects.filter(pk=row.pk).update(name='elsewhere')
+    reloaded = row.reload()
+    assert reloaded is not row
+    assert (reloaded.name, row.name) == ('elsewhere', 'before')
 
 
 # --- BetterUniquenessErrorsMixin ------------------------------------------------------------------
 
 
-def _make_uniqueness_obj(
-    unique_from_integrity_error=True,
-    unique_together_hide_fields=(),
-):
-    """Create a test object for BetterUniquenessErrorsMixin."""
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-
-    class TestObj(mixins.BetterUniquenessErrorsMixin, Base):
-        """Test object with BetterUniquenessErrorsMixin."""
-
-    obj = TestObj()
-    obj.unique_from_integrity_error = unique_from_integrity_error
-    obj.unique_together_hide_fields = unique_together_hide_fields
-    obj._meta = MagicMock()
-    return obj
+@pytest.mark.usefixtures('tables')
+def test_uniqueness_error_leaves_the_transaction_usable() -> None:
+    """A duplicate turned into a validation error leaves the outer transaction usable."""
+    duplicate = IntegrityError(
+        'duplicate key value violates unique constraint "pair"\n'
+        'DETAIL:  Key (name, note)=(a, b) already exists.'
+    )
+    with transaction.atomic():
+        with (
+            patch.object(_Pair, '_do_insert', side_effect=duplicate),
+            pytest.raises(ValidationError),
+        ):
+            _Pair(name='a', note='b').save()
+        assert not _Row.objects.exists()
 
 
 def test_uniqueness_save_converts_integrity_error() -> None:
@@ -546,6 +1205,8 @@ def test_uniqueness_save_converts_integrity_error() -> None:
 
     class Base:
         """Test class."""
+
+        _state = MagicMock(db=None)
 
         def save(self, *args, **kwargs):
             """Test method."""
@@ -574,6 +1235,8 @@ def test_uniqueness_save_reraises_non_matching_integrity() -> None:
     class Base:
         """Test class."""
 
+        _state = MagicMock(db=None)
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise IntegrityError('some other error')
@@ -595,6 +1258,8 @@ def test_uniqueness_save_disabled() -> None:
     class Base:
         """Test class."""
 
+        _state = MagicMock(db=None)
+
         def save(self, *args, **kwargs):
             """Test method."""
             raise IntegrityError('duplicate key value (name, org)')
@@ -615,6 +1280,8 @@ def test_uniqueness_hidden_fields_calls_handler() -> None:
 
     class Base:
         """Test class."""
+
+        _state = MagicMock(db=None)
 
         def save(self, *args, **kwargs):
             """Test method."""
@@ -698,499 +1365,28 @@ def test_perform_unique_checks_single_field_error_passthrough() -> None:
     assert error in result['name']
 
 
-# --- SaveInstanceFilesMixin -----------------------------------------------------------------------
-
-
-def test_save_instance_files_new_instance() -> None:
-    """File fields are cleared, instance saved, then files re-set and saved."""
-    save_calls = []
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-            save_calls.append(dict(kwargs))
-
-    file_field = MagicMock(spec=FileField)
-    file_field.name = 'document'
-
-    class TestObj(mixins.SaveInstanceFilesMixin, Base):
-        """Test object with SaveInstanceFilesMixin."""
-
-        pk = None
-        _meta = MagicMock(fields=[file_field])
-        document = 'my_file.pdf'
-
-    obj = TestObj()
-    obj.save()
-    # Should have been saved twice: once without file, once with
-    assert len(save_calls) == 2
-    assert save_calls[1].get('force_insert') is False
-
-
-def test_save_instance_files_existing_instance() -> None:
-    """Existing instance (pk set) is saved once without clearing files."""
-    save_calls = []
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-            save_calls.append(dict(kwargs))
-
-    file_field = MagicMock(spec=FileField)
-    file_field.name = 'document'
-
-    class TestObj(mixins.SaveInstanceFilesMixin, Base):
-        """Test object with SaveInstanceFilesMixin."""
-
-        pk = 42
-        _meta = MagicMock(fields=[file_field])
-        document = 'my_file.pdf'
-
-    obj = TestObj()
-    obj.save()
-    assert len(save_calls) == 1
-
-
-# --- UpdatePreconditionsMixin ---------------------------------------------------------------------
-
-
-def _make_preconditions_obj():
-    """Create a test object for UpdatePreconditionsMixin."""
-    saved_kwargs = {}
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-            saved_kwargs.update(kwargs)
-
-        def _do_update(self, base_qs, using, pk_val, values, uf, fu, returning_fields):
-            return True
-
-    class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        """Test object with UpdatePreconditionsMixin."""
-
-    return TestObj(), saved_kwargs
-
-
-def test_pop_preconditions_extracts_kwargs() -> None:
-    """pop_preconditions extracts pre_excludes and pre_filters from kwargs."""
-    obj, _ = _make_preconditions_obj()
-    _args, kwargs, has = obj.pop_preconditions(
-        pre_excludes={'status': 'deleted'},
-        pre_filters={'active': True},
-        other='value',
-    )
-    assert has is True
-    assert kwargs == {'other': 'value'}
-    assert obj._preconditions == ({'status': 'deleted'}, {'active': True})
-
-
-def test_pop_preconditions_empty() -> None:
-    """pop_preconditions with no precondition kwargs returns has=False."""
-    obj, _ = _make_preconditions_obj()
-    _args, _kwargs, has = obj.pop_preconditions(name='test')
-    assert has is False
-
-
-def test_apply_preconditions_filters_queryset() -> None:
-    """apply_preconditions applies filter and exclude to the base queryset."""
-    obj, _ = _make_preconditions_obj()
-    obj._preconditions = ({'status': 'deleted'}, {'active': True})
-    base_qs = MagicMock()
-    filtered_qs = MagicMock()
-    base_qs.exclude.return_value = filtered_qs
-
-    obj.apply_preconditions(
-        base_qs,
-        'default',
-        1,
-        [],
-        None,
-        False,
-    )
-    base_qs.exclude.assert_called_once_with(status='deleted')
-    filtered_qs.filter.assert_called_once_with(active=True)
-    assert not hasattr(obj, '_preconditions')
-
-
-def test_apply_preconditions_no_preconditions() -> None:
-    """apply_preconditions without stored preconditions passes qs through."""
-    obj, _ = _make_preconditions_obj()
-    base_qs = MagicMock()
-    result = obj.apply_preconditions(
-        base_qs,
-        'default',
-        1,
-        [],
-        None,
-        False,
-    )
-    assert result[0] is base_qs
-
-
-def _make_state_obj(state: str):
-    """Create a test object for StateTransitionPreconditionMixin, in *state*."""
-
-    class JobState(states.StateEnum):
-        """A job printing, then ended: ENDED is reachable from every state."""
-
-        PRINTING = 'PRINTING'
-        ENDED = 'ENDED'
-        TRANSITIONS = {
-            PRINTING: frozenset([PRINTING, ENDED]),
-            ENDED: frozenset([ENDED]),
-        }
-
-    class TestObj(mixins.StateTransitionPreconditionMixin):
-        """Test object with StateTransitionPreconditionMixin."""
-
-        states = JobState
-
-    obj = TestObj()
-    obj.state = state
-    return obj
-
-
-def test_state_precondition_filters_the_states_allowed() -> None:
-    """Saving a state only some states reach is guarded by those states."""
-    _args, _kwargs, has = _make_state_obj('PRINTING').pop_preconditions()
-    assert has is True
-
-
-def test_state_precondition_skipped_when_every_state_may_transit() -> None:
-    """Saving a state every state reaches, itself included, needs no precondition."""
-    obj = _make_state_obj('ENDED')
-    _args, _kwargs, has = obj.pop_preconditions()
-    assert has is False
-    assert obj._preconditions == ({}, {})
-
-
-def test_update_preconditions_save_catches_not_updated() -> None:
-    """Save raises precondition error when Django reports the update affected no rows."""
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-            raise ObjectNotUpdated('Forced update did not affect any rows.')
-
-    class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        """Test object with UpdatePreconditionsMixin."""
-
-    obj = TestObj()
-    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
-        obj.save(pre_filters={'active': True})
-
-
-def test_update_preconditions_save_reraises_unrelated() -> None:
-    """Save re-raises a DatabaseError other than Django's ObjectNotUpdated."""
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-            raise DatabaseError('connection lost')
-
-    class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        """Test object with UpdatePreconditionsMixin."""
-
-    obj = TestObj()
-    with pytest.raises(DatabaseError, match='connection lost'):
-        obj.save(pre_filters={'active': True})
-
-
-def test_do_update_precondition_failure() -> None:
-    """_do_update raises precondition error when row exists but update fails."""
-
-    class Base:
-        """Test class."""
-
-        def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
-            return False
-
-    class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        """Test object with UpdatePreconditionsMixin."""
-
-    obj = TestObj()
-    obj._preconditions = ({}, {'active': True})
-    base_qs = MagicMock()
-    filtered_qs = MagicMock()
-    base_qs.filter.return_value = filtered_qs
-    filtered_qs.filter.return_value.exists.return_value = True
-
-    with pytest.raises(exceptions.DatabaseUpdatePreconditionsError):
-        obj._do_update(base_qs, 'default', 1, [], None, False, None)
-
-
-def test_do_update_forwards_returning_fields() -> None:
-    """_do_update passes returning_fields through to the base implementation."""
-    received = {}
-
-    class Base:
-        """Test class."""
-
-        def _do_update(self, base_qs, using, pk, values, uf, fu, returning_fields):
-            received['returning_fields'] = returning_fields
-            return True
-
-    class TestObj(mixins.UpdatePreconditionsMixin, Base):
-        """Test object with UpdatePreconditionsMixin."""
-
-    sentinel = object()
-    obj = TestObj()
-    obj._do_update(MagicMock(), 'default', 1, [], None, False, sentinel)
-    assert received['returning_fields'] is sentinel
-
-
-# --- StateTransitionEventsMixin -------------------------------------------------------------------
-
-
-def test_state_transition_events_init() -> None:
-    """__init__ stores current state as previous_state."""
-
-    class Base:
-        """Test class."""
-
-        def __init__(self):
-            self.state = 'PENDING'
-
-    class TestObj(mixins.StateTransitionEventsMixin, Base):
-        """Test object with StateTransitionEventsMixin."""
-
-    obj = TestObj()
-    assert obj.previous_state == 'PENDING'
-
-
-def test_state_transition_events_fires_signal() -> None:
-    """save() fires post_state_transition signal when state is updated."""
-
-    class Base:
-        """Test class."""
-
-        def __init__(self):
-            self.state = 'PENDING'
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-
-    class TestObj(mixins.StateTransitionEventsMixin, Base):
-        """Test object with StateTransitionEventsMixin."""
-
-    obj = TestObj()
-    obj.state = 'RUNNING'
-
-    with patch.object(
-        mixins.signals.post_state_transition,
-        'send',
-    ) as mock_send:
-        obj.save(update_fields=['state'])
-        mock_send.assert_called_once()
-        call_kwargs = mock_send.call_args[1]
-        assert call_kwargs['instance'] is obj
-        assert call_kwargs['previous_state'] == 'PENDING'
-
-
-def test_state_transition_events_updates_previous() -> None:
-    """After save with state update, previous_state is updated."""
-
-    class Base:
-        """Test class."""
-
-        def __init__(self):
-            self.state = 'PENDING'
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-
-    class TestObj(mixins.StateTransitionEventsMixin, Base):
-        """Test object with StateTransitionEventsMixin."""
-
-    obj = TestObj()
-    obj.state = 'RUNNING'
-
-    with patch.object(
-        mixins.signals.post_state_transition,
-        'send',
-    ):
-        obj.save(update_fields=['state'])
-    assert obj.previous_state == 'RUNNING'
-
-
-def test_state_transition_events_no_signal_without_state() -> None:
-    """save() does not fire signal when state is not in update_fields."""
-
-    class Base:
-        """Test class."""
-
-        def __init__(self):
-            self.state = 'PENDING'
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-
-    class TestObj(mixins.StateTransitionEventsMixin, Base):
-        """Test object with StateTransitionEventsMixin."""
-
-    obj = TestObj()
-    with patch.object(
-        mixins.signals.post_state_transition,
-        'send',
-    ) as mock_send:
-        obj.save(update_fields=['name'])
-        mock_send.assert_not_called()
-
-
-# --- StateTransitionPreconditionMixin -------------------------------------------------------------
-
-
-def _make_state_machine(current_state='PENDING'):
-    """Create a state-machine test object."""
-
-    class States:
-        """Test states class."""
-
-        TRANSITIONS = {
-            'PENDING': {'RUNNING', 'CANCELLED'},
-            'RUNNING': {'COMPLETED', 'FAILED'},
-            'COMPLETED': set(),
-            'CANCELLED': set(),
-            'FAILED': set(),
-        }
-
-        @staticmethod
-        def get_transit_from(state, auto_inverse=False):
-            """Get transit from states."""
-            # Return states that can transition TO the given state
-            sources = {s for s, targets in States.TRANSITIONS.items() if state in targets}
-            return sources, True  # valid=True means use filter
-
-    class Base:
-        """Test class."""
-
-        def save(self, *args, **kwargs):
-            """Test method."""
-
-        def _do_update(self, base_qs, using, pk, values, uf, fu):
-            return True
-
-    class TestObj(mixins.StateTransitionPreconditionMixin, Base):
-        """Test object with StateTransitionPreconditionMixin."""
-
-    obj = TestObj()
-    obj.state = current_state
-    obj.states = States()
-    return obj
-
-
-def test_can_transit_to_allowed() -> None:
-    """can_transit_to returns True for allowed transitions."""
-    obj = _make_state_machine()
-    assert obj.can_transit_to('RUNNING') is True
-
-
-def test_can_transit_to_not_allowed() -> None:
-    """can_transit_to returns False for disallowed transitions (fail=False)."""
-    obj = _make_state_machine()
-    assert obj.can_transit_to('COMPLETED') is False
-
-
-def test_can_transit_to_raises_on_fail() -> None:
-    """can_transit_to raises TransitionNotAllowedError when fail=True."""
-    obj = _make_state_machine()
-    with pytest.raises(exceptions.TransitionNotAllowedError):
-        obj.can_transit_to('COMPLETED', fail=True)
-
-
-def test_can_transit_to_noop_skip() -> None:
-    """can_transit_to returns False for same state with noop_skip=True."""
-    obj = _make_state_machine()
-    assert obj.can_transit_to('PENDING', fail=True, noop_skip=True) is False
-
-
-def test_check_state_in_valid() -> None:
-    """check_state_in returns True when state is in the given set."""
-    obj = _make_state_machine()
-    assert obj.check_state_in(['PENDING', 'RUNNING']) is True
-
-
-def test_check_state_in_invalid() -> None:
-    """check_state_in returns False when state is not in the given set."""
-    obj = _make_state_machine()
-    assert obj.check_state_in(['COMPLETED']) is False
-
-
-def test_check_state_in_raises_on_fail() -> None:
-    """check_state_in raises InvalidStateError when fail=True."""
-    obj = _make_state_machine()
-    with pytest.raises(exceptions.InvalidStateError):
-        obj.check_state_in(['COMPLETED'], fail=True)
-
-
-def test_state_transition_pop_preconditions_adds_state_filter() -> None:
-    """pop_preconditions auto-adds state filter when state is being saved."""
-    obj = _make_state_machine(current_state='RUNNING')
-    _args, _kwargs, has = obj.pop_preconditions(
-        update_fields=['state'],
-    )
-    assert has is True
-    pre_excludes, pre_filters = obj._preconditions
-    # Should have a state filter from get_transit_from
-    has_state = any(k.startswith('state') for k in {**pre_excludes, **pre_filters})
-    assert has_state
-
-
-# --- RelatedModelMixin ----------------------------------------------------------------------------
-
-
-def test_related_model_mixin_delegates() -> None:
-    """get_related_manager and get_related_model delegate to utils."""
-
-    class TestObj(mixins.RelatedModelMixin):
-        """Test object with RelatedModelMixin."""
-
-        _meta = MagicMock()
-
-    mock_model = MagicMock()
-    TestObj._meta.get_field.return_value.related_model = mock_model
-    mock_model._default_manager = MagicMock()
-
-    result = TestObj.get_related_model('author')
-    assert result is mock_model
-
-    result = TestObj.get_related_manager('author')
-    assert result is mock_model._default_manager
-
-
 # --- Keywords passed on ---------------------------------------------------------------------------
 
 
 class _SaveRecorder:
     """The next class of a save chain: records what reaches it, with what the mixins read."""
 
-    _meta = MagicMock(fields=[], local_concrete_fields=[], pk=MagicMock(attname='id'))
-    always_update_fields = ()
+    _meta = MagicMock(
+        concrete_fields=[],
+        fields=[],
+        local_concrete_fields=[],
+        pk=MagicMock(attname='id'),
+    )
     full_clean = MagicMock()
     pk = 1
-    state = 'done'
 
     def __init__(self) -> None:
-        self._state = MagicMock(adding=False)
+        self._state = MagicMock(adding=False, db=None)
         self.saved: dict = {}
 
     def get_deferred_fields(self) -> set[str]:
         """Return no deferred field."""
         return set()
-
-    def on_post_state_transition(self, *args, **kwargs) -> None:
-        """Fire nothing."""
 
     def save(self, **kwargs) -> None:
         """Record the keywords received."""
@@ -1199,21 +1395,10 @@ class _SaveRecorder:
 
 @pytest.mark.parametrize(
     'mixin',
-    [
-        mixins.AlwaysUpdateFieldsMixin,
-        mixins.AutoForceInsertMixin,
-        mixins.AutoRemovePKFromUpdateFieldsMixin,
-        mixins.AutoUpdateFieldsMixin,
-        mixins.BetterUniquenessErrorsMixin,
-        mixins.CallFieldsPreSaveMixin,
-        mixins.SaveInstanceFilesMixin,
-        mixins.StateTransitionEventsMixin,
-        mixins.UpdatePreconditionsMixin,
-        mixins.ValidateOnSaveMixin,
-    ],
+    [mixins.BatteriesIncludedModelMixin, mixins.BetterUniquenessErrorsMixin],
 )
 def test_a_save_mixin_passes_on_the_keywords_it_does_not_take(mixin: type) -> None:
-    """A keyword reaches the next save: `validate` reaches ValidateOnSaveMixin behind the others."""
+    """A keyword the mixin does not take reaches the next save in the chain."""
     row = type('Row', (mixin, _SaveRecorder), {})()
     row.save(update_fields=['name'], marker=True)
     assert row.saved['marker'] is True

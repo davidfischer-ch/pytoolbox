@@ -19,6 +19,7 @@ from .types import get_slots
 __all__ = [
     'SlotsEqualityMixin',
     'unified_diff',
+    'is_equal',
     'VERSION_OPERATIONS',
     'Version',
     'ParseVersionTypes',
@@ -54,6 +55,19 @@ def unified_diff(before: str, after: str, *, colorize: bool = True, **kwargs) ->
     """
     diff = difflib.unified_diff(before.splitlines(), after.splitlines(), **kwargs)
     return os.linesep.join(_colorize(diff) if colorize else diff)
+
+
+# --- Values ---------------------------------------------------------------------------------------
+
+
+def is_equal(value: Any, other: Any) -> bool:
+    """
+    Return whether *value* is *other*, or equal to it by an ``==`` returning ``True``.
+
+    An ``==`` returning anything else, as the element by element comparison of a numpy array, counts
+    as a difference instead of raising on its truth value.
+    """
+    return value is other or (value == other) is True
 
 
 # --- Versions -------------------------------------------------------------------------------------

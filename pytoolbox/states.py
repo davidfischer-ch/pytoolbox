@@ -6,7 +6,8 @@ from __future__ import annotations
 
 import collections
 import inspect
-from typing import Any
+from collections.abc import Collection, Mapping
+from typing import Any, ClassVar
 
 __all__ = ['StateEnumMetaclass', 'StateEnumMergeMetaclass', 'StateEnum']
 
@@ -21,7 +22,8 @@ class StateEnumMetaclass(type):
         if hasattr(cls, 'TRANSITIONS'):
             cls.ALL_STATES = frozenset(cls.TRANSITIONS.keys())
             cls.FINAL_STATES = frozenset(s for s, t in cls.TRANSITIONS.items() if not t)
-            inverse_transitions = collections.defaultdict(set)
+            # Every state has its entry, empty for a state no transition leads into.
+            inverse_transitions = collections.defaultdict(set, {s: set() for s in cls.TRANSITIONS})
             for state, transitions in cls.TRANSITIONS.items():
                 for transition in transitions:
                     inverse_transitions[transition].add(state)
@@ -53,7 +55,17 @@ class StateEnumMergeMetaclass(StateEnumMetaclass):
 class StateEnum(metaclass=StateEnumMetaclass):
     """Base class for state enumerations with transition rules."""
 
-    # TODO type hint class attributes?
+    #: Every state, the keys of ``TRANSITIONS``.
+    ALL_STATES: ClassVar[frozenset[str]]
+
+    #: The states no transition leaves.
+    FINAL_STATES: ClassVar[frozenset[str]]
+
+    #: Each state, mapped to the states having a transition to it.
+    INVERSE_TRANSITIONS: ClassVar[dict[str, frozenset[str]]]
+
+    #: Each state, mapped to the states it has a transition to. Declared by each subclass.
+    TRANSITIONS: ClassVar[Mapping[str, Collection[str]]]
 
     @classmethod
     def get(cls, name: str) -> str | frozenset[str] | None:
@@ -72,12 +84,13 @@ class StateEnum(metaclass=StateEnumMetaclass):
         auto_inverse: bool = False,
     ) -> frozenset[str] | tuple[frozenset[str], bool]:
         """
-        Return a set with the states having a transition to given `state`.
+        Return the states having a transition to *state*.
 
-        If `auto_inverse` is set to True then a tuple is returned containing the smallest set from:
+        With ``auto_inverse``, return the smaller of two sets instead, paired with whether it holds
+        the states having a transition to *state*:
 
-        * (States allowed to transit to given `state`, True)
-        * (States not allowed to transit to given `state`, False)
+        * (the states having a transition to *state*, ``True``)
+        * (the states having none, ``False``)
         """
         valid = cls.INVERSE_TRANSITIONS[state]
         if not auto_inverse:

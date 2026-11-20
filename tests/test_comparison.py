@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 from unittest.mock import patch
 
+import numpy
 from pytest import mark
 
 from pytoolbox import comparison, console
@@ -120,6 +122,30 @@ def test_unified_diff_colorize() -> None:
 """
             ).strip()
         )
+
+
+# --- Values ---------------------------------------------------------------------------------------
+
+
+@mark.parametrize(
+    ('value', 'other', 'expected'),
+    [
+        ('name', 'name', True),
+        ('name', 'other', False),
+        (1, 1.0, True),
+        (numpy.array([1.0, 2.0]), numpy.array([1.0, 2.0]), False),
+        (numpy.array([1.0, 2.0]), [1.0, 2.0], False),
+    ],
+)
+def test_is_equal(value: Any, other: Any, expected: bool) -> None:
+    """An ``==`` comparing element by element counts as a difference, without raising."""
+    assert comparison.is_equal(value, other) is expected
+
+
+def test_is_equal_identity() -> None:
+    """A value is equal to itself, whatever its ``==`` returns."""
+    vector = numpy.array([1.0, 2.0])
+    assert comparison.is_equal(vector, vector) is True
 
 
 # --- Versions -------------------------------------------------------------------------------------

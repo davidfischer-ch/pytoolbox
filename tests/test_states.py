@@ -59,6 +59,20 @@ class MergeState(MediaState, PlayerState, metaclass=states.StateEnumMergeMetacla
     """Class used only for testing: not engineered for brewing coffee!"""
 
 
+class QueueState(states.StateEnum):
+    """Queue item state enum for testing: no transition leads into QUEUED."""
+
+    QUEUED = 'QUEUED'
+    SENT = 'SENT'
+    DONE = 'DONE'
+
+    TRANSITIONS = {
+        QUEUED: frozenset([SENT]),
+        SENT: frozenset([DONE]),
+        DONE: frozenset([]),
+    }
+
+
 def test_state_enum_get() -> None:
     """StateEnum.get() returns state by case-insensitive name or 'all'."""
     assert MediaState.get('new') == MediaState.NEW
@@ -83,6 +97,12 @@ def test_state_enum_get_transit_from() -> None:
         frozenset([MediaState.ANALYZING]),
         True,
     )
+
+
+def test_state_enum_get_transit_from_a_state_no_transition_leads_into() -> None:
+    """No state transits to a state no transition leads into."""
+    assert QueueState.get_transit_from(QueueState.QUEUED) == frozenset()
+    assert QueueState.get_transit_from(QueueState.QUEUED, auto_inverse=True) == (frozenset(), True)
 
 
 def test_state_enum_all_states() -> None:
