@@ -31,9 +31,25 @@ def test_valid_filename_non_string() -> None:
     assert valid_filename(None) is False
 
 
+def test_valid_filename_refuses_a_path() -> None:
+    """The whole string must be one file name: a path or a NUL byte is refused."""
+    assert valid_filename('archive.tar.gz') is True
+    assert valid_filename('a.b/../../etc/passwd') is False
+    assert valid_filename('a.b/c') is False
+    assert valid_filename('a.b\\c') is False
+    assert valid_filename('x.y\0') is False
+
+
 def test_valid_email_non_string() -> None:
     """valid_email returns False for non-string input."""
     assert valid_email(None) is False
+
+
+def test_valid_email_refuses_a_valid_prefix_followed_by_more() -> None:
+    """The whole string must be one address: a header injection or a second address is refused."""
+    assert valid_email('a@b.ch\nBcc: v@x.org') is False
+    assert valid_email('a@b.c d') is False
+    assert valid_email('a@b.c@evil.org') is False
 
 
 def test_valid_secret_non_string() -> None:

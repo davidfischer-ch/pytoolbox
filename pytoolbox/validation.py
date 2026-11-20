@@ -100,7 +100,7 @@ class StrongTypedMixin:  # pylint:disable=too-few-public-methods
 
 def valid_filename(name: str) -> bool:
     """
-    Return True if `name` is a valid file name.
+    Return True if `name` is a valid file name, with an extension and no path separator.
 
     **Example usage**
 
@@ -110,14 +110,14 @@ def valid_filename(name: str) -> bool:
     True
     """
     try:
-        return re.match(r'[^\.]+\.[^\.]+', name) is not None
+        return re.fullmatch(r'[^./\\\0]+\.[^/\\\0]+', name) is not None
     except Exception:  # pylint:disable=broad-except
         return False
 
 
 def valid_ip(address: str) -> bool:
     """
-    Return True if `ip` is a valid IP address.
+    Return True if `address` is a valid IP address.
 
     **Example usage**
 
@@ -145,7 +145,7 @@ def valid_email(email: str) -> bool:
     True
     """
     try:
-        return re.match(r'[^@]+@[^@]+\.[^@]+', email) is not None
+        return re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', email) is not None
     except Exception:  # pylint:disable=broad-except
         return False
 
@@ -280,7 +280,7 @@ def valid_uri(
 
 def valid_uuid(value: Any, *, objectid_allowed: bool = False, none_allowed: bool = False) -> bool:
     """
-    Return True if `id` is a valid UUID / ObjectId.
+    Return True if `value` is a valid UUID / ObjectId.
 
     **Example usage**
 
