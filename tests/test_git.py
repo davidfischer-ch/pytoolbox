@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import tempfile
@@ -26,7 +27,7 @@ EXPECTED_PYTOOLBOX_TAGS: Final[list[str]] = [
 ]
 
 
-def test_blame(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+def test_blame(pytoolbox_git: Path) -> None:
     """
     blame() returns git blame output with commit, author, date, and line.
 
@@ -58,7 +59,7 @@ def test_clone_or_pull(pytoolbox_git: Path) -> None:
     pytest.skip('Not implemented.')
 
 
-def test_create_tag(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+def test_create_tag(pytoolbox_git: Path) -> None:
     """create_tag() creates a new git tag and raises for duplicates."""
     with raises(exceptions.DuplicateGitTagError):
         git.create_tag(pytoolbox_git, '14.7.0')
@@ -78,6 +79,14 @@ def test_get_ref(pytoolbox_git: Path) -> None:
             get_ref(tempfile.gettempdir())
 
 
+def test_get_ref_raises_its_own_error_when_git_cannot_start(tmp_path: Path) -> None:
+    """A caller falling back on GitReferenceError falls back too when git cannot even be started."""
+    with raises(exceptions.GitReferenceError):
+        git.get_ref(tmp_path / 'missing', ci_vars=False)
+    with patch.dict(os.environ, {'PATH': ''}), raises(exceptions.GitReferenceError):
+        git.get_ref(tmp_path, ci_vars=False)
+
+
 def test_get_ref_from_gitlab_ci(pytoolbox_git: Path) -> None:
     """get_ref() returns CI variable when running in GitLab CI."""
     get_ref = git.get_ref
@@ -88,14 +97,14 @@ def test_get_ref_from_gitlab_ci(pytoolbox_git: Path) -> None:
         assert get_ref(pytoolbox_git, kind='commit', ci_vars=False) != 'toto'
 
 
-def test_get_tags(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+def test_get_tags(pytoolbox_git: Path) -> None:
     """get_tags() returns list of git tags in reverse chronological order."""
     tags = git.get_tags(pytoolbox_git)
     assert tags[: len(EXPECTED_PYTOOLBOX_TAGS)] == EXPECTED_PYTOOLBOX_TAGS
     assert '' not in tags  # Known potential bug
 
 
-def test_get_tags_with_ref(pytoolbox_git: Path) -> None:  # pylint:disable=redefined-outer-name
+def test_get_tags_with_ref(pytoolbox_git: Path) -> None:
     """get_tags() with ref parameter returns tags reachable from that ref."""
     tags = git.get_tags
     assert tags(pytoolbox_git, ref='4863c99a97fe358caa24e48b5c477b852b5a6721') == ['14.7.0']
@@ -167,6 +176,18 @@ def test_scoped_ssh_key_options_with_spaces() -> None:
             assert "-o 'ProxyCommand ssh -W %h:%p jump-host'" in ssh_cmd
 
 
+def test_scoped_ssh_key_logs_no_part_of_the_key(caplog: pytest.LogCaptureFixture) -> None:
+    """The log holds the key's digest, never a slice of the key."""
+    caplog.set_level(logging.DEBUG, logger='pytoolbox.git')
+    content = 'ghijklmnopqrstuvwxyz' * 10
+    with patch('pytoolbox.subprocess.cmd'), git.scoped_ssh_key(Path(), content):
+        pass
+    slices = {content[start : start + 8] for start in range(len(content) - 7)}
+    messages = [record.getMessage() for record in caplog.records]
+    assert len(messages) == 2
+    assert [message for message in messages if any(part in message for part in slices)] == []
+
+
 def _make_called_process_error(msg='failed'):  # pylint:disable=unused-argument
     """Create a CalledProcessError with required attributes."""
     return exceptions.CalledProcessError(
@@ -184,6 +205,22 @@ def test_scoped_ssh_key_config_fails() -> None:
         with pytest.raises(exceptions.CalledProcessError):
             with git.scoped_ssh_key(Path(), 'x' * 200):
                 pass  # pragma: no cover
+
+
+def test_clone_or_pull_leaves_the_enclosing_work_tree_alone(tmp_path: Path) -> None:
+    """A directory in a work tree, without a repository of its own, is never reset nor pulled."""
+    project = tmp_path / 'project'
+    _git(tmp_path, 'init', '--bare', 'upstream.git')
+    _git(tmp_path, 'init', project)
+    (project / 'tracked.txt').write_text('committed\n', encoding='utf-8')
+    _git(project, 'add', 'tracked.txt')
+    _git(project, 'commit', '--message', 'Add a tracked file')
+    (project / 'tracked.txt').write_text('uncommitted\n', encoding='utf-8')
+    directory = project / 'vendor' / 'lib'
+    directory.mkdir(parents=True)
+    with raises(exceptions.CalledProcessError):
+        git.clone_or_pull(directory, str(tmp_path / 'upstream.git'))
+    assert (project / 'tracked.txt').read_text(encoding='utf-8') == 'uncommitted\n'
 
 
 def test_clone_or_pull_existing_directory(tmp_path: Path) -> None:
@@ -265,3 +302,20 @@ def test_create_tag_unknown_error(tmp_path: Path) -> None:
         cmd.side_effect = _make_called_process_error()
         with pytest.raises(exceptions.CalledProcessError):
             git.create_tag(tmp_path, 'v1.0')
+
+
+def _git(directory: Path, *arguments: str | Path) -> None:
+    """Run git in `directory` with an identity of its own, whatever the user's configuration."""
+    subprocess.cmd(
+        [
+            'git',
+            '-c',
+            'user.name=Test',
+            '-c',
+            'user.email=test@example.com',
+            '-c',
+            'commit.gpgsign=false',
+            *arguments,
+        ],
+        cwd=directory,
+    )

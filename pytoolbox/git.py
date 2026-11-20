@@ -13,7 +13,7 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Literal
 
-from . import exceptions, humanize, logging, subprocess
+from . import crypto, exceptions, humanize, logging, subprocess
 from .subprocess import CallArgType
 
 log = logging.get_logger(__name__)
@@ -34,7 +34,7 @@ type RefKind = Literal['branch', 'commit']
 def blame(file_path: Path) -> list[str]:
     """Return the ``git blame`` output lines for a file."""
     lines = subprocess.cmd(
-        ['git', 'blame', file_path],
+        ['git', 'blame', '--', file_path],
         cwd=file_path.parent,
     )['stdout'].decode('utf-8')
     return [line for line in lines.split(os.linesep) if line]
@@ -48,18 +48,25 @@ def clone_or_pull(
     clone_depth: int | None = None,
     reset: bool = True,
 ) -> None:
-    """Clone a Git repository or pull if it already exists."""
+    """
+    Clone a Git repository or pull if it already exists.
+
+    Raise :class:`~pytoolbox.exceptions.CalledProcessError` if `directory` exists without being a
+    repository of its own, git looking for it in `directory` alone. A clone passes `url` and
+    `directory` after ``--``, never read as options.
+    """
     if directory.exists():
+        env = {**os.environ, 'GIT_CEILING_DIRECTORIES': str(directory.resolve().parent)}
         if reset and not bare:
-            subprocess.cmd(['git', 'reset', '--hard'], cwd=directory)
-        subprocess.cmd(['git', 'fetch' if bare else 'pull'], cwd=directory)
+            subprocess.cmd(['git', 'reset', '--hard'], cwd=directory, env=env)
+        subprocess.cmd(['git', 'fetch' if bare else 'pull'], cwd=directory, env=env)
     else:
         command: list[CallArgType] = ['git', 'clone']
         if bare:
             command.append('--bare')
         if clone_depth:
             command.extend(['--depth', clone_depth])
-        command.extend([url, directory])
+        command.extend(['--', url, directory])
         subprocess.cmd(command)
 
 
@@ -69,7 +76,7 @@ def create_tag(directory: Path, name: str) -> None:
     :class:`~pytoolbox.exceptions.DuplicateGitTagError` on duplicates.
     """
     try:
-        subprocess.cmd(['git', 'tag', name], cwd=directory)
+        subprocess.cmd(['git', 'tag', '--', name], cwd=directory)
     except exceptions.CalledProcessError as exc:
         if name in get_tags(directory):
             # Parsing output is not robust since it can be in French, English, ...
@@ -90,13 +97,16 @@ def get_ref(
 
     * The content of the environment variable CI_COMMIT_REF_NAME when available (GitLab CI/CD)
     * The git branch reference to point to the branch when running locally (via git CLI)
+
+    Raise :class:`~pytoolbox.exceptions.GitReferenceError` if no reference is found, git failing to
+    run included.
     """
     if ci_vars and (ref := os.getenv('CI_COMMIT_REF_NAME')):
         log.debug('Detected Git ref from GitLab CI context is %s', ref)
     else:
         extra = {'branch': ['--abbrev-ref'], 'commit': []}[kind]
         result = subprocess.cmd(['git', 'rev-parse', *extra, 'HEAD'], cwd=directory, fail=False)
-        ref = result['stdout'].decode('utf-8').strip()
+        ref = (result['stdout'] or b'').decode('utf-8').strip()
         log.debug('Detected Git ref from directory %r of kind %s is %s', directory, kind, ref)
     if not ref:
         raise exceptions.GitReferenceError()
@@ -117,13 +127,18 @@ def scoped_ssh_key(
     *,
     options: Iterable[str] = tuple(),  # type: ignore[assignment]
 ) -> Iterator[str]:
-    """Load an SSH key (content is the private key)."""
+    """
+    Load an SSH key (content is the private key).
+
+    The key is logged by its SHA-256 digest alone, never by any part of it.
+    """
+    digest = crypto.checksum(content)
     with tempfile.NamedTemporaryFile('w') as key_file:
         Path(key_file.name).chmod(stat.S_IRUSR)
         key_file.write(content + os.linesep)
         key_file.flush()
         try:
-            log.debug('Set identity "...%s..."', content[100:120])
+            log.debug('Set identity of SHA-256 %s', digest)
             options_str = ' '.join(f'-o {shlex.quote(o)}' for o in options) if options else ''
             ssh_cmd = f'ssh -F {os.devnull} -i {key_file.name} -o IdentitiesOnly=yes {options_str}'
             subprocess.cmd(
@@ -136,7 +151,7 @@ def scoped_ssh_key(
         else:
             yield key_file.name
         finally:
-            log.debug('Unset identity "...%s..."', content[100:120])
+            log.debug('Unset identity of SHA-256 %s', digest)
             subprocess.cmd(
                 ['git', 'config', '--unset', 'core.sshCommand'],
                 cwd=directory,
