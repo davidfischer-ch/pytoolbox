@@ -197,7 +197,7 @@ def verbose_name(instance: Any) -> str:
     """Return the verbose name (singular) of a model."""
     if instance is None or instance == string_if_invalid:
         return string_if_invalid
-    return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
+    return constants.DEFERRED_PATTERN.sub('', force_str(instance._meta.verbose_name))
 
 
 @register.filter
@@ -205,7 +205,7 @@ def verbose_name_plural(instance: Any) -> str:
     """Return the verbose name (plural) of a model."""
     if instance is None or instance == string_if_invalid:
         return string_if_invalid
-    return constants.DEFFERED_REGEX.sub('', force_str(instance._meta.verbose_name))
+    return constants.DEFERRED_PATTERN.sub('', force_str(instance._meta.verbose_name))
 
 
 # --- Tags -----------------------------------------------------------------------------------------

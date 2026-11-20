@@ -13,21 +13,21 @@ from . import module
 
 _all = module.All(globals())
 
-ALL_CAP_REGEX: Final[re.Pattern] = re.compile(r'([a-z0-9])([A-Z])')
-FIRST_CAP_REGEX: Final[re.Pattern] = re.compile(r'(.)([A-Z][a-z]+)')
+ALL_CAP_PATTERN: Final[re.Pattern] = re.compile(r'([a-z0-9])([A-Z])')
+FIRST_CAP_PATTERN: Final[re.Pattern] = re.compile(r'(.)([A-Z][a-z]+)')
 
 
 def camel_to_dash(string: str) -> str:
     """Convert camelCase to dashed-case."""
-    sub_string = FIRST_CAP_REGEX.sub(r'\1-\2', string)
-    dashed_case_str = ALL_CAP_REGEX.sub(r'\1-\2', sub_string).lower()
+    sub_string = FIRST_CAP_PATTERN.sub(r'\1-\2', string)
+    dashed_case_str = ALL_CAP_PATTERN.sub(r'\1-\2', sub_string).lower()
     return dashed_case_str.replace('--', '-')
 
 
 def camel_to_snake(string: str) -> str:
     """Convert camelCase to snake_case."""
-    sub_string = FIRST_CAP_REGEX.sub(r'\1_\2', string)
-    snake_cased_str = ALL_CAP_REGEX.sub(r'\1_\2', sub_string).lower()
+    sub_string = FIRST_CAP_PATTERN.sub(r'\1_\2', string)
+    snake_cased_str = ALL_CAP_PATTERN.sub(r'\1_\2', sub_string).lower()
     return snake_cased_str.replace('__', '_')
 
 

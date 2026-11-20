@@ -10,10 +10,10 @@ from typing import Any, Final, override
 
 from .ffmpeg import FFmpeg
 
-__all__ = ['ENCODING_REGEX', 'X264']
+__all__ = ['ENCODING_PATTERN', 'X264']
 
 # [79.5%] 3276/4123 frames, 284.69 fps, 2111.44 kb/s, eta 0:00:02
-ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
+ENCODING_PATTERN: Final[re.Pattern[str]] = re.compile(
     r'\[(?P<percent>\d+\.\d*)%\]\s+(?P<frame>\d+)/(?P<frame_total>\d+)\s+frames,\s+'
     r'(?P<frame_rate>\d+\.\d*)\s+fps,\s+(?P<bit_rate>[^,]+),\s+eta\s+(?P<eta>[\d:]+)',
 )
@@ -22,7 +22,7 @@ ENCODING_REGEX: Final[re.Pattern[str]] = re.compile(
 class X264(FFmpeg):
     """Wrap the x264 standalone encoder (not yet implemented)."""
 
-    # encoding_regex = ENCODING_REGEX
+    # encoding_pattern = ENCODING_PATTERN
     executable = Path('x264')
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

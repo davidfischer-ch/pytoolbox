@@ -41,7 +41,7 @@ DEFAULT_FREQUENCY_UNITS: Final[tuple[str, ...]] = (
     'YHz',
 )
 DEFAULT_WEIGHT_UNITS: Final[tuple[str, ...]] = ('g', 'Kg', 'T', 'KT', 'MT', 'GT')
-DIGIT_REGEX: Final[re.Pattern] = re.compile(r'(\d+)')
+DIGIT_PATTERN: Final[re.Pattern] = re.compile(r'(\d+)')
 
 BITRATE_PATTERN: Final[re.Pattern] = re.compile(
     r'(?P<number>[\+-]?\d*\.?\d+([eE]\+\d+)?)\s*(?P<unit>[a-zA-Z]+(/[a-zA-Z]+)?)',
@@ -73,7 +73,7 @@ def natural_int_key(text: str) -> list[int | str]:
     >>> sorted(['a26', 'a1', 'a4', 'a19', 'b2', 'a10', 'a3', 'b12'], key=natural_int_key)
     ['a1', 'a3', 'a4', 'a10', 'a19', 'a26', 'b2', 'b12']
     """
-    return [int(c) if c.isdigit() else c for c in DIGIT_REGEX.split(text)]
+    return [int(c) if c.isdigit() else c for c in DIGIT_PATTERN.split(text)]
 
 
 def naturalbitrate(
