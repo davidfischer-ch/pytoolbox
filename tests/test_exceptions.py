@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import copy
+import pickle
+
 import pytest
 from pytest import raises
 
@@ -76,6 +79,15 @@ def test_called_process_error_repr_and_str() -> None:
     assert str(exc) == (
         "Process ['find', '-maxdepth=2', '-type=f', '-gid=0', '(…)'] failed with return code 1"
     )
+
+
+def test_called_process_error_survives_pickle_and_copy() -> None:
+    """An error with required attributes comes back whole from a worker process or a copy."""
+    error = exceptions.CalledProcessError(cmd=['ls'], returncode=2, stdout=None, stderr=b'oops')
+    for clone in (pickle.loads(pickle.dumps(error)), copy.copy(error)):
+        assert isinstance(clone, exceptions.CalledProcessError)
+        assert clone.__dict__ == error.__dict__
+        assert str(clone) == str(error)
 
 
 def test_ssh_error_repr() -> None:

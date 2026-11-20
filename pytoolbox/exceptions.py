@@ -4,6 +4,7 @@ Custom exception classes and assertion helpers.
 
 from __future__ import annotations
 
+import functools
 import inspect
 import io
 import traceback
@@ -33,6 +34,11 @@ class MessageMixin(Exception):  # noqa: N818
         if missing := [attr for attr in self.attrs if not hasattr(self, attr)]:
             missing = ', '.join(missing)  # type: ignore[assignment]
             raise AttributeError(f'{type(self)} is missing attributes or properties: {missing}')
+
+    @override
+    def __reduce__(self) -> tuple[Any, ...]:
+        """Rebuild from the attributes, which the constructor requires before it returns."""
+        return functools.partial(type(self), **self.__dict__), ()
 
     @override
     def __repr__(self) -> str:
