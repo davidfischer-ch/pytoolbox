@@ -101,8 +101,8 @@ all_but_vision = [
 ]
 all = ['pytoolbox[all_but_vision,vision]']
 doc = [
-    'sphinx>=7.2.6',
-    'sphinx-rtd-theme>=2.0.0'
+    'sphinx>=9.1,<10',
+    'sphinx-rtd-theme>=3.1,<4'
 ]
 test = [
     'colored>=2.2.4',
