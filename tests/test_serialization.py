@@ -1,8 +1,9 @@
 """Tests for the serialization module."""
 
-# pylint:disable=protected-access
+# pylint:disable=protected-access,too-few-public-methods
 from __future__ import annotations
 
+import json
 import math
 import os
 import stat
@@ -122,3 +123,57 @@ def test_to_file_safe_leaves_the_directory_as_it_was_when_the_write_fails(tmp_pa
     assert path.read_text(encoding='utf-8') == 'old'
     assert sorted(p.name for p in tmp_path.iterdir()) == ['data.txt', 'data.txt.tmp']
     assert other.read_text(encoding='utf-8') == 'another writer'
+
+
+def test_dict_to_object_passes_only_the_keys_the_constructor_names() -> None:
+    """A key missing from the dictionary leaves its default, and ``*args`` receives nothing."""
+
+    class User:
+        """Test class with a defaulted constructor parameter."""
+
+        def __init__(self, first_name, last_name='Okafor'):
+            self.first_name = first_name
+            self.last_name = last_name
+
+    class Variadic:
+        """Test class whose constructor takes extra positional arguments."""
+
+        def __init__(self, a, *args):
+            self.a = a
+            self.args = args
+
+    user = serialization.dict_to_object(User, {'first_name': 'Mira'}, inspect_constructor=True)
+    assert user.__dict__ == {'first_name': 'Mira', 'last_name': 'Okafor'}
+    variadic = serialization.dict_to_object(Variadic, {'a': 1}, inspect_constructor=True)
+    assert variadic.__dict__ == {'a': 1, 'args': ()}
+
+
+def test_object_to_json_with_properties_keeps_attributes_named_like_dict_methods() -> None:
+    """An attribute sharing its name with a method of :class:`dict` is serialized like any other."""
+
+    class Report:
+        """Test class with attributes named like the methods of a dictionary."""
+
+        def __init__(self):
+            self.title = 't'
+            self.values = [1, 2]
+            self.items = 3
+
+    data = json.loads(serialization.object_to_json(Report(), include_properties=True))
+    assert data == {'title': 't', 'values': [1, 2], 'items': 3}
+
+
+def test_object_to_json_with_properties_serializes_slots_and_refuses_plain_values() -> None:
+    """A slotted object is serialized by its members; a value with no attributes is refused."""
+
+    class Slotted:
+        """Test class storing its attributes in slots."""
+
+        __slots__ = ('x',)
+
+        def __init__(self):
+            self.x = 1
+
+    assert serialization.object_to_json(Slotted(), include_properties=True) == '{"x": 1}'
+    with pytest.raises(TypeError, match='not JSON serializable'):
+        serialization.object_to_json({1, 2}, include_properties=True)

@@ -4,19 +4,14 @@ Serialization to/from JSON, pickle, YAML and nested dictionaries.
 
 from __future__ import annotations
 
-import contextlib
 import errno
 import inspect
 import io
 import json
-import os
 import pickle
-import secrets
 import shutil
-import stat
-from collections.abc import Iterator
 from pathlib import Path
-from typing import IO, Any, override
+from typing import Any, override
 
 import ruamel.yaml
 
@@ -103,7 +98,7 @@ def to_file(
                 raise
             backup_path = None
     mode = 'wb' if binary else 'w'
-    with _open_safely(Path(path).resolve(), mode) if safe else Path(path).open(mode) as f:
+    with filesystem.open_safely(Path(path).resolve(), mode) if safe else Path(path).open(mode) as f:
         if data is not None:
             f.write(data)
         if pickle_data is not None:
@@ -148,7 +143,7 @@ class PickleableObject:
         backup: bool = False,
         makedirs: bool = False,
     ) -> None:
-        """Serialize `self` to a file, excluding the attribute `_pickle_path`."""
+        """Serialize `self` to a file, excluding the attribute ``_pickle_path``."""
         pickle_path = getattr(self, '_pickle_path', None)
         path = path or pickle_path
         if path is None:
@@ -188,17 +183,22 @@ class SmartJSONEncoderV1(json.JSONEncoder):
 
 
 class SmartJSONEncoderV2(json.JSONEncoder):
-    """JSON encoder that also serializes properties alongside attributes."""
+    """
+    JSON encoder that also serializes properties alongside attributes.
+
+    An object holding ``__dict__`` or ``__slots__`` is encoded as the dict of its attributes and
+    properties, whatever their names, methods and dunder names left out.
+    """
 
     @override
     def default(self, obj: Any) -> Any:  # pylint:disable=arguments-differ
         if ObjectId is not None and isinstance(obj, ObjectId):
             return str(obj)
+        if not hasattr(obj, '__dict__') and not hasattr(obj, '__slots__'):
+            return super().default(obj)
         attributes = {}
         for attr in inspect.getmembers(obj):
             if inspect.isroutine(attr[1]) or inspect.isbuiltin(attr[1]) or attr[0].startswith('__'):
-                continue
-            if hasattr(obj.__dict__, attr[0]) and not isinstance(attr[1], property):
                 continue
             attributes[attr[0]] = attr[1]
         return attributes
@@ -246,7 +246,7 @@ def json_to_object(cls: type[Any], json_string: str, inspect_constructor: bool) 
     Deserialize the JSON string `json_string` to an instance of `cls`.
 
     Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword
-    arguments to the constructor (`__init__`) of `cls`.
+    arguments to the constructor (``__init__``) of `cls`.
     """
     return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
@@ -255,12 +255,12 @@ def jsonfile_to_object(
     cls: type[Any], path_or_file: str | io.IOBase, inspect_constructor: bool
 ) -> Any:
     """
-    Load and deserialize the JSON string stored in a file `path` to an instance of `cls`.
+    Load and deserialize the JSON string stored in a file `path_or_file` to an instance of `cls`.
 
     .. warning::
 
         Class constructor is responsible of converting attributes to instances of classes with
-        `dict_to_object`.
+        :func:`dict_to_object`.
 
     **Example usage**
 
@@ -298,7 +298,7 @@ class JsoneableObject:
     .. warning::
 
         Class constructor is responsible of converting attributes to instances of classes with
-        `dict_to_object`.
+        :func:`dict_to_object`.
 
     Convert-back from JSON strings containing extra parameters:
 
@@ -375,7 +375,7 @@ class JsoneableObject:
         makedirs: bool = False,
         **kwargs: Any,
     ) -> None:
-        """Serialize `self` to a file, excluding the attribute `_json_path`."""
+        """Serialize `self` to a file, excluding the attribute ``_json_path``."""
         if path is None and hasattr(self, '_json_path'):
             path = self._json_path
             try:
@@ -408,7 +408,7 @@ class JsoneableObject:
 
     @classmethod
     def from_json(cls, json_string: str, inspect_constructor: bool) -> JsoneableObject:
-        """Deserialize a JSON string to an instance of `JsoneableObject`."""
+        """Deserialize a JSON string to an instance of :class:`JsoneableObject`."""
         return dict_to_object(cls, json.loads(json_string), inspect_constructor)
 
 
@@ -588,7 +588,9 @@ def dict_to_object(cls: type[Any], the_dict: dict[str, Any], inspect_constructor
     Convert a python dictionary to an instance of a class.
 
     Set `inspect_constructor` to True to filter input dictionary to avoid sending unexpected keyword
-    arguments to the constructor (`__init__`) of `cls`.
+    arguments to the constructor (``__init__``) of `cls`. A parameter missing from the dictionary
+    then keeps its default, or receives None if it has none. Only the parameters passed by keyword
+    are filled, ``*args`` and ``**kwargs`` left out.
 
     **Example usage**
 
@@ -614,9 +616,11 @@ def dict_to_object(cls: type[Any], the_dict: dict[str, Any], inspect_constructor
     """
     if inspect_constructor:
         the_dict = {
-            p.name: the_dict.get(p.name, None)
+            p.name: the_dict.get(p.name)
             for p in inspect.signature(cls.__init__).parameters.values()
             if p.name != 'self'
+            and p.kind in (p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
+            and (p.name in the_dict or p.default is p.empty)
         }
     return cls(**the_dict)
 
@@ -715,23 +719,3 @@ def _object_to_dict_item(
 
 
 __all__ = _all.diff(globals())
-
-
-@contextlib.contextmanager
-def _open_safely(target: Path, mode: str) -> Iterator[IO[Any]]:
-    """
-    Yield a new file beside *target*, moved over it on success and removed on failure.
-
-    The file takes the permissions of an existing target, or those of a plain open otherwise.
-    """
-    temporary = target.with_name(f'{target.name}.{secrets.token_hex(8)}.tmp')
-    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
-    try:
-        with os.fdopen(descriptor, mode) as f:
-            with contextlib.suppress(FileNotFoundError):
-                os.fchmod(descriptor, stat.S_IMODE(target.stat().st_mode))
-            yield f
-        temporary.replace(target)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
