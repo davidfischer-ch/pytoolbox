@@ -25,6 +25,15 @@ def test_exposure_mode_none() -> None:
     assert templatetags.exposure_mode(None) == templatetags.string_if_invalid
 
 
+def test_filters_value_out_of_the_enum() -> None:
+    """A value that no member holds renders as the invalid string, never fails the page."""
+    assert templatetags.exposure_mode(3) == templatetags.string_if_invalid
+    assert templatetags.exposure_mode('auto') == templatetags.string_if_invalid
+    assert templatetags.orientation(9) == templatetags.string_if_invalid
+    assert templatetags.sensing_method(6) == templatetags.string_if_invalid
+    assert templatetags.white_balance(2) == templatetags.string_if_invalid
+
+
 def test_orientation_int() -> None:
     """Integer input is converted to enum and returns the translated label."""
     assert templatetags.orientation(1) == 'Normal orientation'

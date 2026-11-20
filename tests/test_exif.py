@@ -6,6 +6,7 @@ import shutil
 from datetime import datetime
 from fractions import Fraction
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Final
 
 import pytest
@@ -28,6 +29,19 @@ except (ImportError, ValueError):
     pass
 
 requires_gexiv2 = pytest.mark.skipif(not _gexiv2_available, reason='GExiv2 not available')
+
+
+def test_image_rotation_of_a_flipped_orientation() -> None:
+    """A flipped orientation rotates as the orientation it flips horizontally."""
+    orientation = exif.Orientation
+    rotations = {
+        member: exif.Image(None, member).rotation  # type: ignore[arg-type]
+        for member in orientation
+    }
+    assert rotations[orientation.HOR_FLIP] == rotations[orientation.NORMAL]
+    assert rotations[orientation.VERT_FLIP] == rotations[orientation.ROT_180_CCW]
+    assert rotations[orientation.HOR_FLIP_ROT_270_CW] == rotations[orientation.ROT_270_CW]
+    assert rotations[orientation.HOR_FLIP_ROT_90_CW] == rotations[orientation.ROT_90_CW]
 
 
 @requires_gexiv2
@@ -204,3 +218,17 @@ def test_metadata_tags_returns_dict_of_tags() -> None:
     tags = metadata.tags
     assert 'Exif.Image.Make' in tags
     assert all(isinstance(v, Tag) for v in tags.values())
+
+
+def test_photo_values_out_of_the_enums() -> None:
+    """A value that no member of its enum holds reads as unknown."""
+    photo = exif.Photo(
+        {  # type: ignore[arg-type]
+            'Exif.Photo.ExposureMode': SimpleNamespace(data=3),
+            'Exif.Photo.SensingMethod': SimpleNamespace(data=6),
+            'Exif.Photo.WhiteBalance': SimpleNamespace(data='auto'),
+        },
+    )
+    assert photo.exposure_mode is None
+    assert photo.sensing_method is None
+    assert photo.white_balance is None

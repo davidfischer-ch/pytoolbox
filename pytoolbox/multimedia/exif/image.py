@@ -5,7 +5,9 @@ EXIF image metadata including orientation and dimensions.
 from __future__ import annotations
 
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
+
+from pytoolbox.enum import find_member
 
 from .tag import TagSet
 
@@ -31,15 +33,17 @@ class Orientation(enum.Enum):
 class Image(TagSet):
     """Provide access to image-level EXIF metadata (dimensions, orientation)."""
 
-    ORIENTATION_TO_ROTATION = {
+    #: The rotation in degrees of each orientation, ``None`` included. A flipped orientation is a
+    #: horizontal flip followed by the rotation of its entry.
+    ORIENTATION_TO_ROTATION: ClassVar[dict[Orientation | None, int]] = {
         None: 0,
         Orientation.NORMAL: 0,
-        # 2 = Mirror horizontal
+        Orientation.HOR_FLIP: 0,
         Orientation.ROT_180_CCW: 180,
-        # 4 = Mirror vertical
-        # 5 = Mirror horizontal and rotate 270 CW
+        Orientation.VERT_FLIP: 180,
+        Orientation.HOR_FLIP_ROT_270_CW: -270,
         Orientation.ROT_90_CW: -90,
-        # 7 = Mirror horizontal and rotate 90 CW
+        Orientation.HOR_FLIP_ROT_90_CW: -90,
         Orientation.ROT_270_CW: -270,
     }
 
@@ -69,11 +73,7 @@ class Image(TagSet):
         """Return the image :class:`Orientation` or ``None`` if unknown."""
         if self._orientation is not None:
             return self._orientation
-        data = self.metadata['Exif.Image.Orientation'].data
-        try:
-            return Orientation(data)
-        except Exception:  # pylint:disable=broad-except
-            return None
+        return find_member(Orientation, self.metadata['Exif.Image.Orientation'].data)
 
     @property
     def rotation(self) -> int:

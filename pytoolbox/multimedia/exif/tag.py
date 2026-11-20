@@ -30,7 +30,7 @@ class Tag:
 
     brand_class = Brand
     date_formats = ['%Y%m%d %H%M%S', '%Y%m%d']
-    date_clean_regex = re.compile(r'[:-]')
+    date_clean_pattern = re.compile(r'[:-]')
     group_to_brand_blacklist = frozenset(['aux', 'crs', 'exifEX', 'Image', 'Photo'])
     type_to_hook = {
         datetime: 'tag_string',  # clean method will convert to a date-time
@@ -131,7 +131,7 @@ class Tag:
         if self.type == time:
             return str_to_time(data)
         if self.type == datetime or isinstance(data, str):
-            cleaned_data = self.date_clean_regex.sub('', data)
+            cleaned_data = self.date_clean_pattern.sub('', data)
             for date_format in self.date_formats:
                 if date := str_to_datetime(cleaned_data, fmt=date_format, fail=False):
                     return date

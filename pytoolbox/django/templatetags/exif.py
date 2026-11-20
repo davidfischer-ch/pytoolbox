@@ -1,12 +1,18 @@
-"""EXIF-related template filters."""
+"""
+EXIF-related template filters.
+
+Each filter renders ``string_if_invalid`` for a value outside its enum.
+"""
 
 # pylint:disable=unused-argument
 from __future__ import annotations
 
-from typing import Final, cast
+import enum
+from typing import Any, Final, cast
 
 from django.utils.translation import gettext_lazy as _l
 
+from pytoolbox.enum import find_member
 from pytoolbox.multimedia.exif.image import Orientation
 from pytoolbox.multimedia.exif.photo import ExposureMode, SensingMethod, WhiteBalance
 
@@ -61,38 +67,36 @@ WHITE_BALANCE_LABELS: Final[dict[WhiteBalance, str]] = cast(
 @register.filter(is_safe=True)
 def exposure_mode(value: int | ExposureMode | None, autoescape: bool = True) -> str:
     """Return the human-readable exposure mode label for the given EXIF integer or enum."""
-    if value is None or value == string_if_invalid:
-        return string_if_invalid
-    if not isinstance(value, ExposureMode):
-        value = ExposureMode(value)
-    return EXPOSURE_MODE_LABELS.get(value, string_if_invalid)
+    return _to_label(ExposureMode, EXPOSURE_MODE_LABELS, value)
 
 
 @register.filter(is_safe=True)
 def orientation(value: int | Orientation | None, autoescape: bool = True) -> str:
     """Return the human-readable orientation label for the given EXIF integer or enum."""
-    if value is None or value == string_if_invalid:
-        return string_if_invalid
-    if not isinstance(value, Orientation):
-        value = Orientation(value)
-    return ORIENTATION_LABELS.get(value, string_if_invalid)
+    return _to_label(Orientation, ORIENTATION_LABELS, value)
 
 
 @register.filter(is_safe=True)
 def sensing_method(value: int | SensingMethod | None, autoescape: bool = True) -> str:
     """Return the human-readable sensing method label for the given EXIF integer or enum."""
-    if value is None or value == string_if_invalid:
-        return string_if_invalid
-    if not isinstance(value, SensingMethod):
-        value = SensingMethod(value)
-    return SENSING_METHOD_LABELS.get(value, string_if_invalid)
+    return _to_label(SensingMethod, SENSING_METHOD_LABELS, value)
 
 
 @register.filter(is_safe=True)
 def white_balance(value: int | WhiteBalance | None, autoescape: bool = True) -> str:
     """Return the human-readable white balance label for the given EXIF integer or enum."""
-    if value is None or value == string_if_invalid:
+    return _to_label(WhiteBalance, WHITE_BALANCE_LABELS, value)
+
+
+# --- Internals ------------------------------------------------------------------------------------
+
+
+def _to_label[EnumT: enum.Enum](
+    enum_class: type[EnumT],
+    labels: dict[EnumT, str],
+    value: Any,
+) -> str:
+    """Return the label of the *enum_class* member holding *value*, else ``string_if_invalid``."""
+    if (member := find_member(enum_class, value)) is None:
         return string_if_invalid
-    if not isinstance(value, WhiteBalance):
-        value = WhiteBalance(value)
-    return WHITE_BALANCE_LABELS.get(value, string_if_invalid)
+    return labels.get(member, string_if_invalid)

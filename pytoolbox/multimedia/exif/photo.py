@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from fractions import Fraction
 
-from pytoolbox.enum import OrderedEnum
+from pytoolbox.enum import OrderedEnum, find_member
 
 from .tag import TagSet
 
@@ -52,9 +52,8 @@ class Photo(TagSet):
 
     @property
     def exposure_mode(self) -> ExposureMode | None:
-        """Return the :class:`ExposureMode` or ``None``."""
-        data = self.metadata['Exif.Photo.ExposureMode'].data
-        return None if data is None else ExposureMode(data)
+        """Return the :class:`ExposureMode` or ``None`` if unknown."""
+        return find_member(ExposureMode, self.metadata['Exif.Photo.ExposureMode'].data)
 
     @property
     def exposure_time(self) -> Fraction | None:
@@ -78,12 +77,10 @@ class Photo(TagSet):
 
     @property
     def sensing_method(self) -> SensingMethod | None:
-        """Return the :class:`SensingMethod` or ``None``."""
-        data = self.metadata['Exif.Photo.SensingMethod'].data
-        return None if data is None else SensingMethod(data)
+        """Return the :class:`SensingMethod` or ``None`` if unknown."""
+        return find_member(SensingMethod, self.metadata['Exif.Photo.SensingMethod'].data)
 
     @property
     def white_balance(self) -> WhiteBalance | None:
-        """Return the :class:`WhiteBalance` or ``None``."""
-        data = self.metadata['Exif.Photo.WhiteBalance'].data
-        return None if data is None else WhiteBalance(data)
+        """Return the :class:`WhiteBalance` or ``None`` if unknown."""
+        return find_member(WhiteBalance, self.metadata['Exif.Photo.WhiteBalance'].data)
