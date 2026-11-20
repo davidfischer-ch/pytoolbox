@@ -29,30 +29,44 @@ def test_chown(tmp_path: Path) -> None:
 
     with mock.patch('os.chown') as chown:
         filesystem.chown(file_a, 'root')
-    chown.assert_called_once_with(file_a, 0, -1)
+    chown.assert_called_once_with(file_a, 0, -1, follow_symlinks=True)
 
     with mock.patch('os.chown') as chown:
         filesystem.chown(tmp_path, 100, 'root')
-    chown.assert_called_once_with(tmp_path, 100, 0)
+    chown.assert_called_once_with(tmp_path, 100, 0, follow_symlinks=True)
 
     with mock.patch('os.chown') as chown:
         filesystem.chown(tmp_path, 100, 'root', recursive=True)
 
     chown.assert_has_calls(
         [
-            mock.call(tmp_path, 100, 0),
-            mock.call(file_b, 100, 0),
-            mock.call(file_a, 100, 0),
-            mock.call(file_c.parent, 100, 0),
-            mock.call(file_c, 100, 0),
+            mock.call(tmp_path, 100, 0, follow_symlinks=True),
+            mock.call(file_b, 100, 0, follow_symlinks=False),
+            mock.call(file_a, 100, 0, follow_symlinks=False),
+            mock.call(file_c.parent, 100, 0, follow_symlinks=True),
+            mock.call(file_c, 100, 0, follow_symlinks=False),
         ],
         any_order=True,
     )
 
 
-def _strict_chown(path: Path, _uid: int, _gid: int) -> None:
-    """Mimic real os.chown: raise FileNotFoundError on broken symlinks."""
-    if Path(path).is_symlink() and not Path(path).exists():
+@mark.skipif(sys.platform == 'win32', reason='os.chown is POSIX only')
+def test_chown_recursive_changes_a_link_not_its_target(tmp_path: Path) -> None:
+    """Without follow_symlinks, a link in the tree is changed itself, its target outside never."""
+    (tmp_path / 'outside.txt').touch()
+    tree = tmp_path / 'tree'
+    filesystem.makedirs(tree)
+    (tree / 'link').symlink_to(tmp_path / 'outside.txt')
+
+    with mock.patch('os.chown') as chown:
+        filesystem.chown(tree, 100, recursive=True)
+
+    assert mock.call(tree / 'link', 100, -1, follow_symlinks=False) in chown.call_args_list
+
+
+def _strict_chown(path: Path, _uid: int, _gid: int, *, follow_symlinks: bool = True) -> None:
+    """Mimic real os.chown: raise FileNotFoundError on broken symlinks it follows."""
+    if follow_symlinks and Path(path).is_symlink() and not Path(path).exists():
         raise FileNotFoundError(2, 'No such file or directory', str(path))
 
 

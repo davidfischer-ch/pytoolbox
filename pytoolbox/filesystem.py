@@ -79,6 +79,8 @@ def chown(
     """
     Change owner/group of a path, can be recursive.
     Both can be a name, an id or None to leave it unchanged.
+
+    A symbolic link to a file met in the tree is changed itself, unless `follow_symlinks` is set.
     """
     if not hasattr(os, 'chown'):
         return
@@ -95,7 +97,7 @@ def chown(
             dir_path = Path(dirpath)
             _chown(dir_path, uid, gid)
             for filename in filenames:
-                _chown(dir_path / filename, uid, gid)
+                _chown(dir_path / filename, uid, gid, follow_symlinks=follow_symlinks)
     else:
         _chown(path, uid, gid)
 
@@ -902,10 +904,10 @@ class TempStorage:
 # --- Internals ------------------------------------------------------------------------------------
 
 
-def _chown(path: Path, uid: int, gid: int) -> None:
+def _chown(path: Path, uid: int, gid: int, *, follow_symlinks: bool = True) -> None:
     """Call ``os.chown``, silencing ``FileNotFoundError`` on broken symlinks."""
     try:
-        os.chown(path, uid, gid)
+        os.chown(path, uid, gid, follow_symlinks=follow_symlinks)
     except FileNotFoundError:
         if not path.is_symlink():
             raise
