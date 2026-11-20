@@ -363,6 +363,13 @@ def test_a_new_instance_not_forced_to_insert_updates() -> None:
     assert _get_stored(row, 'name') == ('after',)
 
 
+def test_an_instance_built_without_init_takes_assignments() -> None:
+    """An instance built by ``__new__`` alone, its ``__init__`` never run, takes field values."""
+    row = _Row.__new__(_Row)
+    row.name = 'built'
+    assert row.name == 'built'
+
+
 @pytest.mark.usefixtures('tables')
 def test_a_save_writes_only_the_fields_assigned() -> None:
     """A field changed in the database since the instance was read survives a save of others."""

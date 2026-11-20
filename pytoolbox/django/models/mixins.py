@@ -288,8 +288,16 @@ class BatteriesIncludedModelMixin(_ModelMixin):
 
     @override
     def __setattr__(self, name: str, value: Any) -> None:
-        """Track an assignment to a field of a row read from the database, its loading aside."""
-        if name in self._get_field_attnames() and not self._state.adding:
+        """
+        Track an assignment to a field of a row read from the database, its loading aside.
+
+        An instance built by ``__new__`` alone, its ``__init__`` never run, tracks nothing.
+        """
+        if (
+            name in self._get_field_attnames()
+            and '_state' in self.__dict__
+            and not self._state.adding
+        ):
             # A deferred field loaded with its peers is assigned by DeferredAttribute.fetch_many.
             if self._reloading or (
                 name not in self.__dict__ and sys._getframe(1).f_code is _FETCH_MANY_CODE
