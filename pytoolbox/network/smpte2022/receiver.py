@@ -7,6 +7,7 @@ from __future__ import annotations
 import collections
 import io
 import os
+from typing import ClassVar
 
 from pytoolbox.network.ip import IPSocket
 from pytoolbox.network.rtp import RtpPacket
@@ -98,7 +99,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
     >>> receiver.put_fec(fec)
     >>> print(receiver)
     Name  Received Buffered Maximum Dropped
-    Media       19       20      20
+    Media       19       20      20       0
     Col          1        0       1       0
     Row          0        0       0       0
     Cross                 0       1
@@ -131,12 +132,6 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
     )
     ER_ROW_MISMATCH = 'Row FEC packet n°{0}, expected n°{1}'
     ER_ROW_OVERWRITE = 'Another row FEC packet is already registered to protect media packet n°{0}'
-    ER_GET_COL_CASCADE = (
-        'Column FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
-    )
-    ER_GET_ROW_CASCADE = (
-        'Row FEC cascade : Unable to compute sequence # of the media packet to recover{0}{1}{0}'
-    )
     ER_NULL_COL_CASCADE = 'Column FEC cascade : Unable to find linked entry in crosses buffer'
     ER_NULL_ROW_CASCADE = 'Row FEC cascade : Unable to find linked entry in crosses buffer'
     ER_STARTUP = 'Current position still not initialized (startup state)'
@@ -146,6 +141,10 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
     DELAY_NAMES = ['packets', 'seconds']
     DELAY_RANGE = range(len(DELAY_NAMES))  # noqa
     PACKETS, SECONDS = DELAY_RANGE
+
+    #: The FEC window, in delays: a FEC packet is kept up to it ahead of the output position, and a
+    #: late media packet is dropped up to it behind.
+    FEC_WINDOW_DELAYS: ClassVar[int] = 10
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Constructors >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -193,6 +192,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         self.media_aborted_recovery = 0  # Aborted media packet recovery counter
         self.media_overwritten = 0  # Overwritten media packets counter
         self.media_missing = 0  # Missing media packets counter
+        self.media_dropped = 0  # Dropped media packets counter
         self.max_media = 0  # Largest amount of stored elements in the medias buffer
         # Statistics about fec (buffers and packets)
         self.col_received = 0  # Received column fec packets counter
@@ -234,7 +234,12 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
             raise ValueError(self.ER_DELAY_UNITS.format(units))
 
     def put_media(self, media: RtpPacket, onlyMP2TS: bool) -> None:  # noqa: N803
-        """Put an incoming media packet."""
+        """
+        Put an incoming media packet.
+
+        A duplicate or late packet, up to the FEC window behind the output position, is dropped and
+        counted as such.
+        """
         if self.flushing:
             raise ValueError(self.ER_FLUSHING)
         if onlyMP2TS:
@@ -243,12 +248,22 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         elif not media.valid:
             raise ValueError(self.ER_VALID_RTP)
 
+        self.media_received += 1
+
+        # A packet farther behind than the FEC window is a sequence jump, which out() catches up on.
+        if not self.startup and self.validity_window(
+            media.sequence,
+            (self.position - self.FEC_WINDOW_DELAYS * self.delay_value) & RtpPacket.S_MASK,
+            self.position,
+        ):
+            self.media_dropped += 1
+            return
+
         # Put the media packet into medias buffer
         if media.sequence in self.medias:
             self.media_overwritten += 1
         self.medias[media.sequence] = media
         self.max_media = max(self.max_media, len(self.medias))
-        self.media_received += 1
 
         if cross := self.crosses.get(media.sequence):
             # Simulate the recovery of a media packet to update buffers and potentially start
@@ -282,7 +297,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         cross = None
         media_lost = 0
         media_max = (fec.snbase + fec.na * fec.offset) & RtpPacket.S_MASK
-        media_test = fec.snbase
+        media_test = fec.snbase & RtpPacket.S_MASK
 
         while media_test != media_max:
             # If media packet is not in the medias buffer (is missing)
@@ -296,12 +311,12 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
 
                 # Register the fec packet able to recover the missing media packet
                 if fec.direction == FecPacket.COL:
-                    if cross['col_sequence']:
+                    if cross['col_sequence'] is not None:
                         raise ValueError(self.ER_COL_OVERWRITE.format(media_lost))
                     cross['col_sequence'] = fec.sequence
 
                 elif fec.direction == FecPacket.ROW:
-                    if cross['row_sequence']:
+                    if cross['row_sequence'] is not None:
                         raise ValueError(self.ER_ROW_OVERWRITE.format(media_lost))
                     cross['row_sequence'] = fec.sequence
 
@@ -325,9 +340,9 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         # FIXME check if 10 * delay_value is a good way to avoid removing early fec packets !
         # The fec packet is useless if it needs an already output'ed media packet to do recovery
         drop = not self.validity_window(
-            fec.snbase,
+            fec.snbase & RtpPacket.S_MASK,
             self.position,
-            (self.position + 10 * self.delay_value) & RtpPacket.S_MASK,
+            (self.position + self.FEC_WINDOW_DELAYS * self.delay_value) & RtpPacket.S_MASK,
         )
 
         if fec.direction == FecPacket.COL:
@@ -421,13 +436,13 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
             # > recovered payload ^= all media packets linked to the fec packet
             aborted = False
             media_max = (fec.snbase + fec.na * fec.offset) & RtpPacket.S_MASK
-            media_test = fec.snbase
+            media_test = fec.snbase & RtpPacket.S_MASK
             while media_test != media_max:
                 if media_test == media_sequence:
                     media_test = (media_test + fec.offset) & RtpPacket.S_MASK
                     continue
                 # Unable to recover the media packet if any of the friend media packets is missing
-                if not (friend := self.medias[media_test]):
+                if (friend := self.medias.get(media_test)) is None:
                     self.media_aborted_recovery += 1
                     aborted = True
                     break
@@ -439,22 +454,33 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
                     media.payload[index] ^= friend.payload[index]
                 media_test = (media_test + fec.offset) & RtpPacket.S_MASK
 
-            # If the media packet is successfully recovered
-            if not aborted:
-                media.payload = media.payload[0:payload_size]
-                self.media_recovered += 1
-                if media.sequence in self.medias:
-                    self.media_overwritten += 1
-                self.medias[media.sequence] = media
-                self.max_media = max(self.max_media, len(self.medias))
+            # A friend already written out leaves the FEC packet nothing to recover, and the media
+            # packet still missing: it stays linked to the FEC packet of the other direction
+            if aborted:
                 if fec.direction == FecPacket.COL:
                     del self.cols[fec.sequence]
+                    cross['col_sequence'] = None
                 else:
                     del self.rows[fec.sequence]
+                    cross['row_sequence'] = None
+                if cross['col_sequence'] is not None or cross['row_sequence'] is not None:
+                    self.crosses[media_sequence] = cross
+                return
+
+            media.payload = media.payload[0:payload_size]
+            self.media_recovered += 1
+            if media.sequence in self.medias:
+                self.media_overwritten += 1
+            self.medias[media.sequence] = media
+            self.max_media = max(self.max_media, len(self.medias))
+            if fec.direction == FecPacket.COL:
+                del self.cols[fec.sequence]
+            else:
+                del self.rows[fec.sequence]
 
         # Check if a cascade effect happens ...
-        fec_col = self.cols.get(col_sequence) if col_sequence else None
-        fec_row = self.rows.get(row_sequence) if row_sequence else None
+        fec_col = self.cols.get(col_sequence) if col_sequence is not None else None
+        fec_row = self.rows.get(row_sequence) if row_sequence is not None else None
 
         if fec_col:
             fec_col.set_recovered(media_sequence)
@@ -464,34 +490,30 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
         if fec_col:
             if len(fec_col.missing) == 1:
                 # Cascade !
-                if cascade_media_sequence := fec_col.missing[0]:
-                    if cascade_cross := self.crosses.get(cascade_media_sequence):
-                        self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_col)
-                    else:
-                        raise NotImplementedError(
-                            f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
-                            f'{self.ER_NULL_COL_CASCADE}{os.linesep}'
-                            f'media sequence : {cascade_media_sequence}{os.linesep}'
-                            f'{fec_col}{os.linesep}',
-                        )
+                cascade_media_sequence = fec_col.missing[0]
+                if cascade_cross := self.crosses.get(cascade_media_sequence):
+                    self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_col)
                 else:
-                    raise NotImplementedError(self.ER_GET_COL_CASCADE.format(os.linesep, fec_col))
+                    raise NotImplementedError(
+                        f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
+                        f'{self.ER_NULL_COL_CASCADE}{os.linesep}'
+                        f'media sequence : {cascade_media_sequence}{os.linesep}'
+                        f'{fec_col}{os.linesep}',
+                    )
 
         if fec_row:
             if len(fec_row.missing) == 1:
                 # Cascade !
-                if cascade_media_sequence := fec_row.missing[0]:
-                    if cascade_cross := self.crosses.get(cascade_media_sequence):
-                        self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_row)
-                    else:
-                        raise NotImplementedError(
-                            f'{self.ER_NULL_ROW_CASCADE}{os.linesep}'
-                            f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
-                            f'media sequence : {cascade_media_sequence}{os.linesep}'
-                            f'{fec_row}{os.linesep}',
-                        )
+                cascade_media_sequence = fec_row.missing[0]
+                if cascade_cross := self.crosses.get(cascade_media_sequence):
+                    self.recover_media_packet(cascade_media_sequence, cascade_cross, fec_row)
                 else:
-                    raise NotImplementedError(self.ER_GET_ROW_CASCADE.format(os.linesep, fec_row))
+                    raise NotImplementedError(
+                        f'{self.ER_NULL_ROW_CASCADE}{os.linesep}'
+                        f'recover_media_packet({media_sequence}, {cross}, {fec}):{os.linesep}'
+                        f'media sequence : {cascade_media_sequence}{os.linesep}'
+                        f'{fec_row}{os.linesep}',
+                    )
 
     def out(self) -> None:
         """Extract packets to output in order to keep a 'certain' amount of them in the buffer."""
@@ -523,10 +545,10 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
                 # Remove any fec packet linked to current media packet
                 if cross := self.crosses.get(self.position):
                     del self.crosses[self.position]
-                    if cross['col_sequence'] and cross['col_sequence'] in self.cols:
-                        del self.cols[cross['col_sequence']]
-                    if cross['row_sequence'] and cross['row_sequence'] in self.rows:
-                        del self.rows[cross['row_sequence']]
+                    if (col_sequence := cross['col_sequence']) is not None:
+                        self.cols.pop(col_sequence, None)
+                    if (row_sequence := cross['row_sequence']) is not None:
+                        self.rows.pop(row_sequence, None)
 
         # Extract packets to output in order to keep a 'certain' amount of them in the buffer
         elif units == self.SECONDS:  # based on time stamps
@@ -542,7 +564,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
 
         >>> print(FecReceiver('salut'))
         Name  Received Buffered Maximum Dropped
-        Media        0        0       0
+        Media        0        0       0       0
         Col          0        0       0       0
         Row          0        0       0       0
         Cross                 0       0
@@ -558,7 +580,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
 
         return (
             f'Name  Received Buffered Maximum Dropped{os.linesep}'
-            f'Media %8d%9d%8d{os.linesep}'
+            f'Media %8d%9d%8d%8d{os.linesep}'
             f'Col   %8d%9d%8d%8d{os.linesep}'
             f'Row   %8d%9d%8d%8d{os.linesep}'
             f'Cross         %9d%8d{os.linesep}'
@@ -572,6 +594,7 @@ class FecReceiver:  # pylint:disable=too-many-instance-attributes
                 self.media_received,
                 len(self.medias),
                 self.max_media,
+                self.media_dropped,
                 self.col_received,
                 len(self.cols),
                 self.max_col,
