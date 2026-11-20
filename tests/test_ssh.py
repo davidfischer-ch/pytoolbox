@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Final
+from unittest.mock import patch
 
 from pytest import raises
 
@@ -113,3 +114,14 @@ def test_stop_agent():
     assert ssh.stop_agent()
     assert 'SSH_AGENT_PID' not in os.environ
     assert not ssh.stop_agent()
+
+
+def test_a_host_never_turns_into_an_option(tmp_path: Path) -> None:
+    """A host read from outside data reaches ssh as the destination, never as an option to run."""
+    with patch('pytoolbox.ssh.subprocess.cmd', return_value={'stdout': b''}) as cmd:
+        ssh.ssh('-oProxyCommand=touch x', remote_cmd='uptime')
+        assert cmd.call_args.args[0] == ['ssh', '-n', '--', '-oProxyCommand=touch x', 'uptime']
+        ssh.add_fingerprint(tmp_path / 'known_hosts', '-f/etc/passwd')
+        assert cmd.call_args.args[0] == ['ssh-keyscan', '-H', '--', '-f/etc/passwd']
+        with raises(ValueError):
+            ssh.ssh('', remote_cmd='attacker.example')

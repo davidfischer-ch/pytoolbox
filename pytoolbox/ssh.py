@@ -18,7 +18,7 @@ from . import exceptions, logging, subprocess
 from .subprocess import CallArgType, CallResultFull
 
 __all__ = [
-    'AGENT_START_REGEX',
+    'AGENT_START_PATTERN',
     'add_fingerprint',
     'add_key',
     'is_agent_up',
@@ -30,7 +30,7 @@ __all__ = [
 
 log = logging.get_logger(__name__)
 
-AGENT_START_REGEX: Final[re.Pattern] = re.compile(
+AGENT_START_PATTERN: Final[re.Pattern] = re.compile(
     r'SSH_AUTH_SOCK=(?P<SSH_AUTH_SOCK>[^;]+).*'
     r'SSH_AGENT_PID=(?P<SSH_AGENT_PID>\d+)',
     re.MULTILINE | re.DOTALL,
@@ -38,9 +38,13 @@ AGENT_START_REGEX: Final[re.Pattern] = re.compile(
 
 
 def add_fingerprint(path: Path, host: str) -> None:
-    """Scan an host's SSH fingerprint and add it to the list of known hosts."""
+    """
+    Scan an host's SSH fingerprint and add it to the list of known hosts.
+
+    The host is passed after ``--``, never read as an option.
+    """
     log.info('Adding SSH fingerprint of host %s', host)
-    keys: bytes = subprocess.cmd(['ssh-keyscan', '-H', host])['stdout']
+    keys: bytes = subprocess.cmd(['ssh-keyscan', '-H', '--', host])['stdout']
     with path.open('ab') as key_file:
         key_file.write(keys)
     path.chmod(stat.S_IRUSR | stat.S_IWUSR)
@@ -92,7 +96,7 @@ def start_agent() -> dict[str, Any]:
     Export related environment variables.
     """
     output: str = subprocess.cmd(['ssh-agent', '-s'])['stdout'].decode('utf-8')
-    if (match := AGENT_START_REGEX.search(output)) is None:
+    if (match := AGENT_START_PATTERN.search(output)) is None:
         raise exceptions.SSHAgentParsingError(output=output)
     variables = match.groupdict()
     os.environ.update(variables)
@@ -121,11 +125,18 @@ def ssh(
     remote_cmd: str | None = None,
     **kwargs,
 ) -> CallResultFull:
-    """Execute an SSH command on a remote host."""
+    """
+    Execute an SSH command on a remote host.
+
+    Raise :class:`ValueError` if `host` is empty. The host and the command are passed after ``--``,
+    ssh reading neither of them as an option.
+    """
+    if not host:
+        raise ValueError('The host to connect to is empty.')
     command: list[CallArgType] = ['ssh']
     if identity_file is not None:
         command.extend(['-i', identity_file])
-    command.append(host)
     if remote_cmd is not None:
-        command.extend(['-n', remote_cmd])
+        command.append('-n')
+    command.extend(['--', host, remote_cmd])
     return subprocess.cmd([c for c in command if c], **kwargs)
