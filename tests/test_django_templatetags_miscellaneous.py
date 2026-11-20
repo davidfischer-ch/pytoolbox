@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 
 from django.db import models
 from django.test import override_settings
+from django.test.utils import isolate_apps
 
 from pytoolbox.django import templatetags
 
@@ -113,6 +114,7 @@ def test_timedelta_filter() -> None:
     assert templatetags.timedelta(None) == templatetags.string_if_invalid
 
 
+@isolate_apps()
 def test_verbose_name() -> None:
     """Returns the model's singular verbose name."""
 
@@ -129,6 +131,7 @@ def test_verbose_name() -> None:
     assert templatetags.verbose_name(instance) == 'my model'
 
 
+@isolate_apps()
 def test_verbose_name_plural() -> None:
     """Returns the model's plural verbose name."""
 
