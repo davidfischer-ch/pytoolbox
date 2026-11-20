@@ -52,6 +52,20 @@ jobs:
         python -m pytest -vvvv ${{ matrix.pytest-args }}
     - name: Coveralls
       uses: coverallsapp/github-action@v2
+      with:
+        flag-name: python-${{ matrix.python-version }}
+        parallel: true
+
+  # Merges the coverage the jobs of the matrix sent, as one build.
+  coveralls:
+    needs: build
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls
+      uses: coverallsapp/github-action@v2
+      with:
+        parallel-finished: true
 
   build-windows:
     if: false
