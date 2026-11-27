@@ -6,24 +6,30 @@ from __future__ import annotations
 
 import builtins
 import collections
+import contextlib
+import copy
 import math
-from collections.abc import Iterable, Mapping
-from typing import Any, override
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Literal, overload, override
 
 from . import module
 from .datetime import TimeValue, total_seconds
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 _all = module.All(globals())
 
 
 class EventsTable:
-    """Scan a spare events table and replace missing entry by previous (non empty) entry."""
+    """A sparse events table, a missing entry reading the previous non-empty one."""
 
     def __init__(
         self,
         sparse_events_table: dict[int, str],
         time_range: int,
         time_speedup: int | float,
+        *,
         sleep_factor: float = 1.0,
     ) -> None:
         self.time_range = time_range
@@ -31,7 +37,7 @@ class EventsTable:
         self.sleep_factor = sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
-        for index in range(self.time_range):  # noqa
+        for index in range(self.time_range):
             event = sparse_events_table.get(index, previous_event)
             self.events[index] = event
             previous_event = event
@@ -39,28 +45,11 @@ class EventsTable:
     def get(
         self,
         time: TimeValue,
+        *,
         time_speedup: int | float | None = None,
         default_value: str | None = None,
     ) -> tuple[int, str | None]:
         """Return the event index and value for a given time."""
-        # """
-        # >>> def test_get_index(time_range, time_speedup):
-        # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
-        # ...     modulo = previous = 0
-        # ...     for t in range(24 * 3600 + 1):
-        # ...         index = table.get(t+2*60, time_range, time_speedup)[0]
-        # ...         if previous > index:
-        # ...             modulo += 1
-        # ...         assert 0 <= index < time_range
-        # ...         previous = index
-        # ...     assert modulo == time_speedup
-
-        # Test get_index with a speedup of 1440 (maps 1 minute to 24 hours):
-        # >>> test_get_index(24, 24 * 60)
-
-        # Test get_index with a speedup of 12 (maps 2 hours to 24 hours):
-        # >>> test_get_index(24, 12)
-        # """
         speedup = time_speedup or self.time_speedup
         index = int(total_seconds(time) * (speedup / 3600) % self.time_range)
         return index, self.events.get(index, default_value)
@@ -68,6 +57,7 @@ class EventsTable:
     def sleep_time(
         self,
         time: TimeValue,
+        *,
         time_speedup: int | float | None = None,
         sleep_factor: float | None = None,
     ) -> int:
@@ -103,10 +93,9 @@ class EventsTable:
         >>> table.sleep_time(1, time_speedup=1)
         149
         """
-        # 150 = 3600 / 24
         speedup = time_speedup or self.time_speedup
         factor = sleep_factor or self.sleep_factor
-        duration = self.time_range * 150 / (speedup * factor)
+        duration = self.time_range * (3600 / 24) / (speedup * factor)
         return math.ceil(duration - (total_seconds(time) % duration))
 
 
@@ -137,10 +126,8 @@ class pygal_deque(collections.deque):  # noqa: N801
     def append(self, value: Any) -> None:  # pylint:disable=arguments-renamed
         """Append a value, replacing duplicates with ``None``."""
         if value != self.last and value is not None:
-            try:
+            with contextlib.suppress(IndexError):
                 self[-1] = self.last
-            except Exception:  # pylint:disable=broad-except
-                pass
             self.last = value
         else:
             value = None
@@ -152,14 +139,12 @@ class pygal_deque(collections.deque):  # noqa: N801
         if self[0] is None:
             self[0] = first
 
-    def list(self, fill: bool = False) -> builtins.list[Any]:
+    def list(self, *, fill: bool = False) -> builtins.list[Any]:
         """Return the deque as a list, optionally filling ``None`` gaps."""
         self_list = list(self)
-        try:
+        with contextlib.suppress(IndexError):
             if self.last is not None:
                 self_list[-1] = self.last
-        except Exception:  # pylint:disable=broad-except
-            pass
         if fill and self_list:
             previous = None
             for index, _ in enumerate(self_list):
@@ -170,7 +155,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         return self_list
 
 
-def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dict:
+def flatten_dict(the_dict: dict[str, Any], *, key_template: str = '{0}.{1}') -> dict[str, Any]:
     """
     Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given
     `key_template`.
@@ -181,7 +166,7 @@ def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dic
     {'a': 'b', 'c': 'd'}
     >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}})
     {'a.b.c': ['d', 'e'], 'a.f': 'g'}
-    >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}')
+    >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, key_template='{1}-{0}')
     {'c-b-a': ['d', 'e'], 'f-a': 'g'}
     """
 
@@ -189,16 +174,37 @@ def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dic
         if isinstance(value, dict):
             return [
                 (key_template.format(key, k), v)
-                for k, v in flatten_dict(value, key_template).items()
+                for k, v in flatten_dict(value, key_template=key_template).items()
             ]
         return [(key, value)]
 
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
-def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
+@overload
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: Literal[False] = False) -> dict[K, V]: ...
+
+
+@overload
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: Literal[True]) -> dict[K, Any]: ...
+
+
+@overload
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: bool) -> dict[K, Any]: ...
+
+
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: bool = False) -> dict[K, Any]:
     """
-    Return a dictionary from multiple dictionaries.
+    Return a dictionary from multiple dictionaries, without mutating them.
+
+    With `deep`, two mappings at one key merge recursively into a :class:`dict`, a mapping alone
+    keeps its type, and any other value replaces the previous one. The result holds deep copies,
+    keys included: each key and value is copied once and stays shared where the inputs share it, a
+    cycle included. Each distinct pair of mappings merges once, into one dictionary of the result:
+    where the inputs share mappings in different places, the result holds up to the product of their
+    mapping counts in dictionaries. Merging a value :func:`copy.deepcopy` cannot copy, such as a
+    :class:`types.MappingProxyType`, raises its :exc:`TypeError`, unless the value is a mapping
+    merged into another.
 
     .. warning::
 
@@ -210,22 +216,55 @@ def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
     {'a': 1, 'b': 3, 'c': 5}
     >>> merge_dicts({'c': 5}, {'b': 3, 'c': 4}, {'a': 1, 'b': 2})
     {'c': 4, 'b': 2, 'a': 1}
+
+    Merge the nested mappings and replace the lists:
+
+    >>> merge_dicts({'a': {'b': 1, 'c': 2}, 'd': [1]}, {'a': {'c': 3}, 'd': [2]}, deep=True)
+    {'a': {'b': 1, 'c': 3}, 'd': [2]}
+    >>> merge_dicts({'a': {'b': {'c': 1}}}, {'a': {'b': {'d': 2}}}, deep=True)
+    {'a': {'b': {'c': 1, 'd': 2}}}
     """
-    merged_dict = {}
-    for the_dict in dicts:
-        merged_dict.update(the_dict)
+    merged_dict: dict[K, Any] = {}
+    if not deep:
+        for the_dict in dicts:
+            merged_dict.update(the_dict)
+        return merged_dict
+
+    copies: dict[int, Any] = {}
+
+    # Map the identities of each pair of mappings already merged to that pair and its merge;
+    # holding the pair keeps both identities unique for the call.
+    merges: dict[tuple[int, int], tuple[Mapping[Any, Any], Mapping[Any, Any], dict[Any, Any]]] = {}
+
+    # A stack rather than recursion, to merge deeper than the recursion limit. Popped last in, it
+    # completes each input's merges before the next input.
+    pending = [(merged_dict, the_dict) for the_dict in reversed(dicts)]
+    while pending:
+        target, source = pending.pop()
+        for source_key, value in source.items():
+            key = copy.deepcopy(source_key, copies)
+            if not (isinstance(current := target.get(key), Mapping) and isinstance(value, Mapping)):
+                target[key] = copy.deepcopy(value, copies)
+            elif entry := merges.get((id(current), id(value))):
+                target[key] = entry[2]
+            else:
+                target[key] = merged = dict(current)
+                merges[id(current), id(value)] = current, value, merged
+                pending.append((merged, value))
+
     return merged_dict
 
 
-def swap_dict_of_values(
-    the_dict: dict[str, Any],
+def swap_dict_of_values[V](
+    the_dict: Mapping[Any, Iterable[V]],
+    *,
     type: type[Any] | None = set,  # pylint:disable=redefined-builtin
     method: Any = set.add,
-) -> dict[str, Any]:
+) -> dict[V, Any]:
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
-    This algorithm expect that the values are a container with objects, not a single object.
+    This algorithm expects that the values are a container with objects, not a single object.
     Set type to None if values are unique and you want keys to be the values.
 
     **Example usage**
@@ -251,7 +290,7 @@ def swap_dict_of_values(
     True
     """
     if type is None:
-        reversed_dict = {}
+        reversed_dict: dict[V, Any] = {}
         for key, values in the_dict.items():
             for value in values:
                 reversed_dict[value] = key
@@ -264,11 +303,12 @@ def swap_dict_of_values(
     return reversed_dict
 
 
-def to_dict_of_values(
-    iterable: Iterable[tuple[Any, Any]],
+def to_dict_of_values[K](
+    iterable: Iterable[tuple[K, Any]],
+    *,
     type: type[Any] = list,  # pylint:disable=redefined-builtin
     method: Any = list.append,
-) -> collections.defaultdict:
+) -> collections.defaultdict[K, Any]:
     """
     Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as
     key -> values.
@@ -283,19 +323,19 @@ def to_dict_of_values(
     ...     'a': {1, 2}
     ... }
     """
-    dict_of_values: collections.defaultdict[Any, Any] = collections.defaultdict(type)
+    dict_of_values: collections.defaultdict[K, Any] = collections.defaultdict(type)
     for key, value in iterable:
         method(dict_of_values[key], value)
     return dict_of_values
 
 
-def window(values: list[Any], index: int, delta: int) -> tuple[list, int, int]:
+def window[T](values: Sequence[T], index: int, *, delta: int) -> tuple[Sequence[T], int, int]:
     """
     Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with
     (items, left, right).
 
-    This function tries to simulate a physical slider, meaning the number of extracted elements is
-    constant but the centering at `index` is not guaranteed.
+    The number of items extracted is constant, as on a physical slider: near the edges of `values`,
+    the window is not centered at `index`.
 
     A visual example with 6 `values` and ``delta=1``::
 
@@ -308,30 +348,30 @@ def window(values: list[Any], index: int, delta: int) -> tuple[list, int, int]:
 
     **Example usage**
 
-    >>> window(['a'], 0, 2)
+    >>> window(['a'], 0, delta=2)
     (['a'], 0, 0)
-    >>> window(['a', 'b', 'c', 'd'], 2, 0)
+    >>> window(['a', 'b', 'c', 'd'], 2, delta=0)
     (['c'], 2, 2)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 0, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 0, delta=1)
     (['a', 'b', 'c'], 0, 2)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 1, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 1, delta=1)
     (['a', 'b', 'c'], 0, 2)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 2, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 2, delta=1)
     (['b', 'c', 'd'], 1, 3)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 3, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 3, delta=1)
     (['c', 'd', 'e'], 2, 4)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 4, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 4, delta=1)
     (['c', 'd', 'e'], 2, 4)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 3, 6)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 3, delta=6)
     (['a', 'b', 'c', 'd', 'e'], 0, 4)
     >>> data = list(range(20))
-    >>> window(data, 6, 6)
+    >>> window(data, 6, delta=6)
     ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12)
-    >>> window(data, 7, 6)
+    >>> window(data, 7, delta=6)
     ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13)
-    >>> window(data, 10, 6)
+    >>> window(data, 10, delta=6)
     ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16)
-    >>> window(data, 19, 6)
+    >>> window(data, 19, delta=6)
     ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19)
     """
     length = len(values)
