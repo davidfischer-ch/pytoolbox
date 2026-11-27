@@ -3,6 +3,35 @@
 Roadmap ? Not so, but you can check this: https://github.com/davidfischer-ch/pytoolbox/issues
 
 
+## v15.1.0 (2026-11-27)
+
+Diff: https://github.com/davidfischer-ch/pytoolbox/compare/15.0.1...15.1.0
+
+### Minor compatibility breaks
+
+Module `collections`:
+
+* Make the option parameters of the helpers keyword-only
+    * `EventsTable(sleep_factor=)`, `EventsTable.get(time_speedup=, default_value=)`
+    * `EventsTable.sleep_time(time_speedup=, sleep_factor=)`, `pygal_deque.list(fill=)`
+    * `flatten_dict(key_template=)`, `window(delta=)`
+    * `swap_dict_of_values(type=, method=)`, `to_dict_of_values(type=, method=)`
+
+### Features
+
+Module `collections`:
+
+* Add a keyword-only `deep` mode to `merge_dicts`, merging the nested mappings at every depth into copies
+    * Keep a mapping shared by several keys, or holding itself, shared in the result, each merged once
+
+### Fix and enhancements
+
+Module `collections`:
+
+* Suppress only `IndexError` in `pygal_deque.append` and `pygal_deque.list`, which hid every exception
+* Type `swap_dict_of_values`, `to_dict_of_values` and `window` with their element types, and `flatten_dict` with `dict[str, Any]`
+
+
 ## v15.0.1 (2026-11-20)
 
 Diff: https://github.com/davidfischer-ch/pytoolbox/compare/15.0.0...15.0.1
