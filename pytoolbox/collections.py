@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import builtins
 import collections
+import contextlib
 import math
 from typing import TYPE_CHECKING, Any, override
 
@@ -123,10 +124,8 @@ class pygal_deque(collections.deque):  # noqa: N801
     def append(self, value: Any) -> None:  # pylint:disable=arguments-renamed
         """Append a value, replacing duplicates with ``None``."""
         if value != self.last and value is not None:
-            try:
+            with contextlib.suppress(IndexError):
                 self[-1] = self.last
-            except Exception:  # pylint:disable=broad-except
-                pass
             self.last = value
         else:
             value = None
@@ -141,11 +140,9 @@ class pygal_deque(collections.deque):  # noqa: N801
     def list(self, *, fill: bool = False) -> builtins.list[Any]:
         """Return the deque as a list, optionally filling ``None`` gaps."""
         self_list = list(self)
-        try:
+        with contextlib.suppress(IndexError):
             if self.last is not None:
                 self_list[-1] = self.last
-        except Exception:  # pylint:disable=broad-except
-            pass
         if fill and self_list:
             previous = None
             for index, _ in enumerate(self_list):
