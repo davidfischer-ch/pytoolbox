@@ -26,6 +26,7 @@ class EventsTable:
         sparse_events_table: dict[int, str],
         time_range: int,
         time_speedup: int | float,
+        *,
         sleep_factor: float = 1.0,
     ) -> None:
         self.time_range = time_range
@@ -41,6 +42,7 @@ class EventsTable:
     def get(
         self,
         time: TimeValue,
+        *,
         time_speedup: int | float | None = None,
         default_value: str | None = None,
     ) -> tuple[int, str | None]:
@@ -52,6 +54,7 @@ class EventsTable:
     def sleep_time(
         self,
         time: TimeValue,
+        *,
         time_speedup: int | float | None = None,
         sleep_factor: float | None = None,
     ) -> int:
@@ -135,7 +138,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         if self[0] is None:
             self[0] = first
 
-    def list(self, fill: bool = False) -> builtins.list[Any]:
+    def list(self, *, fill: bool = False) -> builtins.list[Any]:
         """Return the deque as a list, optionally filling ``None`` gaps."""
         self_list = list(self)
         try:
@@ -153,7 +156,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         return self_list
 
 
-def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dict[str, Any]:
+def flatten_dict(the_dict: dict[str, Any], *, key_template: str = '{0}.{1}') -> dict[str, Any]:
     """
     Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given
     `key_template`.
@@ -164,7 +167,7 @@ def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dic
     {'a': 'b', 'c': 'd'}
     >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}})
     {'a.b.c': ['d', 'e'], 'a.f': 'g'}
-    >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, '{1}-{0}')
+    >>> flatten_dict({'a': {'b': {'c': ['d', 'e']}, 'f': 'g'}}, key_template='{1}-{0}')
     {'c-b-a': ['d', 'e'], 'f-a': 'g'}
     """
 
@@ -172,7 +175,7 @@ def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dic
         if isinstance(value, dict):
             return [
                 (key_template.format(key, k), v)
-                for k, v in flatten_dict(value, key_template).items()
+                for k, v in flatten_dict(value, key_template=key_template).items()
             ]
         return [(key, value)]
 
@@ -202,6 +205,7 @@ def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
 
 def swap_dict_of_values[V](
     the_dict: Mapping[Any, Iterable[V]],
+    *,
     type: type[Any] | None = set,  # pylint:disable=redefined-builtin
     method: Any = set.add,
 ) -> dict[V, Any]:
@@ -249,6 +253,7 @@ def swap_dict_of_values[V](
 
 def to_dict_of_values[K](
     iterable: Iterable[tuple[K, Any]],
+    *,
     type: type[Any] = list,  # pylint:disable=redefined-builtin
     method: Any = list.append,
 ) -> collections.defaultdict[K, Any]:
@@ -272,7 +277,7 @@ def to_dict_of_values[K](
     return dict_of_values
 
 
-def window[T](values: Sequence[T], index: int, delta: int) -> tuple[Sequence[T], int, int]:
+def window[T](values: Sequence[T], index: int, *, delta: int) -> tuple[Sequence[T], int, int]:
     """
     Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with
     (items, left, right).
@@ -291,30 +296,30 @@ def window[T](values: Sequence[T], index: int, delta: int) -> tuple[Sequence[T],
 
     **Example usage**
 
-    >>> window(['a'], 0, 2)
+    >>> window(['a'], 0, delta=2)
     (['a'], 0, 0)
-    >>> window(['a', 'b', 'c', 'd'], 2, 0)
+    >>> window(['a', 'b', 'c', 'd'], 2, delta=0)
     (['c'], 2, 2)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 0, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 0, delta=1)
     (['a', 'b', 'c'], 0, 2)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 1, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 1, delta=1)
     (['a', 'b', 'c'], 0, 2)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 2, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 2, delta=1)
     (['b', 'c', 'd'], 1, 3)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 3, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 3, delta=1)
     (['c', 'd', 'e'], 2, 4)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 4, 1)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 4, delta=1)
     (['c', 'd', 'e'], 2, 4)
-    >>> window(['a', 'b', 'c', 'd', 'e'], 3, 6)
+    >>> window(['a', 'b', 'c', 'd', 'e'], 3, delta=6)
     (['a', 'b', 'c', 'd', 'e'], 0, 4)
     >>> data = list(range(20))
-    >>> window(data, 6, 6)
+    >>> window(data, 6, delta=6)
     ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0, 12)
-    >>> window(data, 7, 6)
+    >>> window(data, 7, delta=6)
     ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 13)
-    >>> window(data, 10, 6)
+    >>> window(data, 10, delta=6)
     ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 4, 16)
-    >>> window(data, 19, 6)
+    >>> window(data, 19, delta=6)
     ([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 7, 19)
     """
     length = len(values)
