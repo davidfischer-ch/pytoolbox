@@ -7,14 +7,16 @@ from __future__ import annotations
 import builtins
 import collections
 import contextlib
+import copy
 import math
-from typing import TYPE_CHECKING, Any, override
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Literal, overload, override
 
 from . import module
 from .datetime import TimeValue, total_seconds
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Iterable, Sequence
 
 _all = module.All(globals())
 
@@ -179,9 +181,30 @@ def flatten_dict(the_dict: dict[str, Any], *, key_template: str = '{0}.{1}') -> 
     return dict(item for k, v in the_dict.items() for item in expand_item(k, v))
 
 
-def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
+@overload
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: Literal[False] = False) -> dict[K, V]: ...
+
+
+@overload
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: Literal[True]) -> dict[K, Any]: ...
+
+
+@overload
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: bool) -> dict[K, Any]: ...
+
+
+def merge_dicts[K, V](*dicts: Mapping[K, V], deep: bool = False) -> dict[K, Any]:
     """
-    Return a dictionary from multiple dictionaries.
+    Return a dictionary from multiple dictionaries, without mutating them.
+
+    With `deep`, two mappings at one key merge recursively into a :class:`dict`, a mapping alone
+    keeps its type, and any other value replaces the previous one. The result holds deep copies,
+    keys included: each key and value is copied once and stays shared where the inputs share it, a
+    cycle included. Each distinct pair of mappings merges once, into one dictionary of the result:
+    where the inputs share mappings in different places, the result holds up to the product of their
+    mapping counts in dictionaries. Merging a value :func:`copy.deepcopy` cannot copy, such as a
+    :class:`types.MappingProxyType`, raises its :exc:`TypeError`, unless the value is a mapping
+    merged into another.
 
     .. warning::
 
@@ -193,10 +216,42 @@ def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
     {'a': 1, 'b': 3, 'c': 5}
     >>> merge_dicts({'c': 5}, {'b': 3, 'c': 4}, {'a': 1, 'b': 2})
     {'c': 4, 'b': 2, 'a': 1}
+
+    Merge the nested mappings and replace the lists:
+
+    >>> merge_dicts({'a': {'b': 1, 'c': 2}, 'd': [1]}, {'a': {'c': 3}, 'd': [2]}, deep=True)
+    {'a': {'b': 1, 'c': 3}, 'd': [2]}
+    >>> merge_dicts({'a': {'b': {'c': 1}}}, {'a': {'b': {'d': 2}}}, deep=True)
+    {'a': {'b': {'c': 1, 'd': 2}}}
     """
-    merged_dict = {}
-    for the_dict in dicts:
-        merged_dict.update(the_dict)
+    merged_dict: dict[K, Any] = {}
+    if not deep:
+        for the_dict in dicts:
+            merged_dict.update(the_dict)
+        return merged_dict
+
+    copies: dict[int, Any] = {}
+
+    # Map the identities of each pair of mappings already merged to that pair and its merge;
+    # holding the pair keeps both identities unique for the call.
+    merges: dict[tuple[int, int], tuple[Mapping[Any, Any], Mapping[Any, Any], dict[Any, Any]]] = {}
+
+    # A stack rather than recursion, to merge deeper than the recursion limit. Popped last in, it
+    # completes each input's merges before the next input.
+    pending = [(merged_dict, the_dict) for the_dict in reversed(dicts)]
+    while pending:
+        target, source = pending.pop()
+        for source_key, value in source.items():
+            key = copy.deepcopy(source_key, copies)
+            if not (isinstance(current := target.get(key), Mapping) and isinstance(value, Mapping)):
+                target[key] = copy.deepcopy(value, copies)
+            elif entry := merges.get((id(current), id(value))):
+                target[key] = entry[2]
+            else:
+                target[key] = merged = dict(current)
+                merges[id(current), id(value)] = current, value, merged
+                pending.append((merged, value))
+
     return merged_dict
 
 
