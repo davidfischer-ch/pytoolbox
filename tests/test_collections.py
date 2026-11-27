@@ -6,9 +6,7 @@ from pytoolbox.collections import EventsTable, pygal_deque
 
 
 def test_events_table_get_maps_time_to_correct_event() -> None:
-    """Verify the time-to-index formula maps seconds to the correct event slot."""
-    # With time_range=24 and speedup=24, one real hour maps to one index.
-    # Formula: index = int(seconds * (speedup / 3600) % time_range)
+    """A time maps to the event of its slot, each slot lasting 3600 / speedup seconds."""
     table = EventsTable({0: 'midnight', 1: 'dawn', 12: 'noon'}, time_range=24, time_speedup=24)
     assert table.get(0) == (0, 'midnight')
     assert table.get(150) == (1, 'dawn')
@@ -59,8 +57,7 @@ def test_pygal_deque() -> None:
 
 
 def test_pygal_deque_list_empty_with_last_set() -> None:
-    """list() handles the case where deque is empty but last is set."""
+    """An empty deque lists as empty, even with a last value set."""
     data = pygal_deque()
-    data.last = 42  # Manually set last without appending
-    # list() should handle the IndexError on self_list[-1] gracefully
+    data.last = 42
     assert not data.list()

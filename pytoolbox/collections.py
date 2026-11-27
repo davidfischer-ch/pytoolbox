@@ -7,17 +7,19 @@ from __future__ import annotations
 import builtins
 import collections
 import math
-from collections.abc import Iterable, Mapping
-from typing import Any, override
+from typing import TYPE_CHECKING, Any, override
 
 from . import module
 from .datetime import TimeValue, total_seconds
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping, Sequence
 
 _all = module.All(globals())
 
 
 class EventsTable:
-    """Scan a spare events table and replace missing entry by previous (non empty) entry."""
+    """A sparse events table, a missing entry reading the previous non-empty one."""
 
     def __init__(
         self,
@@ -31,7 +33,7 @@ class EventsTable:
         self.sleep_factor = sleep_factor
         previous_event = sparse_events_table[0]
         self.events = {}
-        for index in range(self.time_range):  # noqa
+        for index in range(self.time_range):
             event = sparse_events_table.get(index, previous_event)
             self.events[index] = event
             previous_event = event
@@ -43,24 +45,6 @@ class EventsTable:
         default_value: str | None = None,
     ) -> tuple[int, str | None]:
         """Return the event index and value for a given time."""
-        # """
-        # >>> def test_get_index(time_range, time_speedup):
-        # ...     table = EventsTable({0: 'salut'}, time_range, time_speedup)
-        # ...     modulo = previous = 0
-        # ...     for t in range(24 * 3600 + 1):
-        # ...         index = table.get(t+2*60, time_range, time_speedup)[0]
-        # ...         if previous > index:
-        # ...             modulo += 1
-        # ...         assert 0 <= index < time_range
-        # ...         previous = index
-        # ...     assert modulo == time_speedup
-
-        # Test get_index with a speedup of 1440 (maps 1 minute to 24 hours):
-        # >>> test_get_index(24, 24 * 60)
-
-        # Test get_index with a speedup of 12 (maps 2 hours to 24 hours):
-        # >>> test_get_index(24, 12)
-        # """
         speedup = time_speedup or self.time_speedup
         index = int(total_seconds(time) * (speedup / 3600) % self.time_range)
         return index, self.events.get(index, default_value)
@@ -103,10 +87,9 @@ class EventsTable:
         >>> table.sleep_time(1, time_speedup=1)
         149
         """
-        # 150 = 3600 / 24
         speedup = time_speedup or self.time_speedup
         factor = sleep_factor or self.sleep_factor
-        duration = self.time_range * 150 / (speedup * factor)
+        duration = self.time_range * (3600 / 24) / (speedup * factor)
         return math.ceil(duration - (total_seconds(time) % duration))
 
 
@@ -170,7 +153,7 @@ class pygal_deque(collections.deque):  # noqa: N801
         return self_list
 
 
-def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dict:
+def flatten_dict(the_dict: dict[str, Any], key_template: str = '{0}.{1}') -> dict[str, Any]:
     """
     Flatten the keys of a nested dictionary. Nested keys will be appended iteratively using given
     `key_template`.
@@ -217,15 +200,15 @@ def merge_dicts[K, V](*dicts: Mapping[K, V]) -> dict[K, V]:
     return merged_dict
 
 
-def swap_dict_of_values(
-    the_dict: dict[str, Any],
+def swap_dict_of_values[V](
+    the_dict: Mapping[Any, Iterable[V]],
     type: type[Any] | None = set,  # pylint:disable=redefined-builtin
     method: Any = set.add,
-) -> dict[str, Any]:
+) -> dict[V, Any]:
     """
     Return a dictionary (:class:`collections.defaultdict`) with keys and values swapped.
 
-    This algorithm expect that the values are a container with objects, not a single object.
+    This algorithm expects that the values are a container with objects, not a single object.
     Set type to None if values are unique and you want keys to be the values.
 
     **Example usage**
@@ -251,7 +234,7 @@ def swap_dict_of_values(
     True
     """
     if type is None:
-        reversed_dict = {}
+        reversed_dict: dict[V, Any] = {}
         for key, values in the_dict.items():
             for value in values:
                 reversed_dict[value] = key
@@ -264,11 +247,11 @@ def swap_dict_of_values(
     return reversed_dict
 
 
-def to_dict_of_values(
-    iterable: Iterable[tuple[Any, Any]],
+def to_dict_of_values[K](
+    iterable: Iterable[tuple[K, Any]],
     type: type[Any] = list,  # pylint:disable=redefined-builtin
     method: Any = list.append,
-) -> collections.defaultdict:
+) -> collections.defaultdict[K, Any]:
     """
     Return a dictionary (:class:`collections.defaultdict`) with key, value pairs merged as
     key -> values.
@@ -283,19 +266,19 @@ def to_dict_of_values(
     ...     'a': {1, 2}
     ... }
     """
-    dict_of_values: collections.defaultdict[Any, Any] = collections.defaultdict(type)
+    dict_of_values: collections.defaultdict[K, Any] = collections.defaultdict(type)
     for key, value in iterable:
         method(dict_of_values[key], value)
     return dict_of_values
 
 
-def window(values: list[Any], index: int, delta: int) -> tuple[list, int, int]:
+def window[T](values: Sequence[T], index: int, delta: int) -> tuple[Sequence[T], int, int]:
     """
     Extract 1+2*`delta` items from `values` centered at `index` and return a tuple with
     (items, left, right).
 
-    This function tries to simulate a physical slider, meaning the number of extracted elements is
-    constant but the centering at `index` is not guaranteed.
+    The number of items extracted is constant, as on a physical slider: near the edges of `values`,
+    the window is not centered at `index`.
 
     A visual example with 6 `values` and ``delta=1``::
 
